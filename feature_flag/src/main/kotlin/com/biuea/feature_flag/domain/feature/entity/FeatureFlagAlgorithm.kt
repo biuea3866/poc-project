@@ -39,7 +39,7 @@ object FeatureFlagAlgorithmDecider {
     }
 }
 
-class SpecificAlgorithm(
+data class SpecificAlgorithm(
     val specifics: List<Int>
 ): FeatureFlagAlgorithm {
     override fun isEnabled(workspaceId: Int): Boolean {
@@ -51,11 +51,11 @@ class SpecificAlgorithm(
     }
 }
 
-class PercentAlgorithm(
+data class PercentAlgorithm(
     val percentage: Int
 ) : FeatureFlagAlgorithm {
     override fun isEnabled(workspaceId: Int): Boolean {
-        return (workspaceId % 100) < this.percentage
+        return (workspaceId % 100) <= this.percentage
     }
 }
 

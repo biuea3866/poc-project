@@ -3,6 +3,8 @@ package com.biuea.feature_flag.application.applicant
 import com.biuea.feature_flag.domain.applicant.ApplicantService
 import com.biuea.feature_flag.domain.feature.entity.Feature
 import com.biuea.feature_flag.domain.feature.entity.FeatureFlag
+import com.biuea.feature_flag.domain.feature.entity.FeatureFlagAlgorithmOption
+import com.biuea.feature_flag.domain.feature.entity.FeatureFlagGroup
 import com.biuea.feature_flag.domain.feature.entity.FeatureFlagStatus
 import com.biuea.feature_flag.domain.feature.service.FeatureFlagService
 import io.kotest.core.spec.style.DescribeSpec
@@ -10,6 +12,7 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.spyk
 import io.mockk.verify
+import io.mockk.clearMocks
 import java.time.ZonedDateTime
 
 class ApplicantFacadeTest : DescribeSpec({
@@ -18,20 +21,38 @@ class ApplicantFacadeTest : DescribeSpec({
         val applicantService = spyk(ApplicantService())
         val applicantFacade = ApplicantFacade(featureFlagService, applicantService)
 
+        fun groupFor(
+            feature: Feature,
+            workspaceId: Int,
+            status: FeatureFlagStatus = FeatureFlagStatus.ACTIVE
+        ): FeatureFlagGroup {
+            val featureFlag = FeatureFlag(
+                _id = 0L,
+                _feature = feature,
+                _updatedAt = ZonedDateTime.now(),
+                _createdAt = ZonedDateTime.now()
+            )
+            return FeatureFlagGroup.create(
+                featureFlag = featureFlag,
+                status = status,
+                algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                specifics = listOf(workspaceId),
+                absolute = null,
+                percentage = null
+            )
+        }
+
+        beforeTest { clearMocks(applicantService) }
+
         context("execute 메서드 호출 시") {
             it("AI_SCREENING 기능이 활성화되어 있으면 aiScreeningFeature 메서드를 호출한다") {
                 // given
                 val workspaceId = 1
-                val featureFlags = listOf(
-                    FeatureFlag(
-                        _id = 1L,
-                        _feature = Feature.AI_SCREENING,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    )
+                val groups = listOf(
+                    groupFor(Feature.AI_SCREENING, workspaceId)
                 )
 
-                every { featureFlagService.fetchFeatureFlags(workspaceId) } returns featureFlags
+                every { featureFlagService.fetchFeatureFlagGroups(workspaceId) } returns groups
 
                 // when
                 applicantFacade.execute(workspaceId)
@@ -39,21 +60,17 @@ class ApplicantFacadeTest : DescribeSpec({
                 // then
                 verify { applicantService.aiScreeningFeature() }
                 verify(exactly = 0) { applicantService.applicantEvaluatorFeature() }
+                verify(atLeast = 1) { applicantService.commonBusiness() }
             }
 
             it("APPLICANT_EVALUATOR 기능이 활성화되어 있으면 applicantEvaluatorFeature 메서드를 호출한다") {
                 // given
                 val workspaceId = 1
-                val featureFlags = listOf(
-                    FeatureFlag(
-                        _id = 1L,
-                        _feature = Feature.APPLICANT_EVALUATOR,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    )
+                val groups = listOf(
+                    groupFor(Feature.APPLICANT_EVALUATOR, workspaceId)
                 )
 
-                every { featureFlagService.fetchFeatureFlags(workspaceId) } returns featureFlags
+                every { featureFlagService.fetchFeatureFlagGroups(workspaceId) } returns groups
 
                 // when
                 applicantFacade.execute(workspaceId)
@@ -61,14 +78,15 @@ class ApplicantFacadeTest : DescribeSpec({
                 // then
                 verify(exactly = 0) { applicantService.aiScreeningFeature() }
                 verify { applicantService.applicantEvaluatorFeature() }
+                verify(atLeast = 1) { applicantService.commonBusiness() }
             }
 
             it("활성화된 기능이 없으면 commonBusiness 메서드를 호출한다") {
                 // given
                 val workspaceId = 1
-                val featureFlags = emptyList<FeatureFlag>()
+                val groups = emptyList<FeatureFlagGroup>()
 
-                every { featureFlagService.fetchFeatureFlags(workspaceId) } returns featureFlags
+                every { featureFlagService.fetchFeatureFlagGroups(workspaceId) } returns groups
 
                 // when
                 applicantFacade.execute(workspaceId)
@@ -79,32 +97,23 @@ class ApplicantFacadeTest : DescribeSpec({
                 verify(atLeast = 1) { applicantService.commonBusiness() }
             }
 
-            it("AI_SCREENING과 APPLICANT_EVALUATOR 기능이 모두 활성화되어 있으면 AI_SCREENING이 우선 적용된다") {
+            it("AI_SCREENING과 APPLICANT_EVALUATOR 기능이 모두 활성화되어 있으면 두 기능 모두 실행된다") {
                 // given
                 val workspaceId = 1
-                val featureFlags = listOf(
-                    FeatureFlag(
-                        _id = 1L,
-                        _feature = Feature.AI_SCREENING,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    ),
-                    FeatureFlag(
-                        _id = 2L,
-                        _feature = Feature.APPLICANT_EVALUATOR,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    )
+                val groups = listOf(
+                    groupFor(Feature.AI_SCREENING, workspaceId),
+                    groupFor(Feature.APPLICANT_EVALUATOR, workspaceId)
                 )
 
-                every { featureFlagService.fetchFeatureFlags(workspaceId) } returns featureFlags
+                every { featureFlagService.fetchFeatureFlagGroups(workspaceId) } returns groups
 
                 // when
                 applicantFacade.execute(workspaceId)
 
                 // then
                 verify { applicantService.aiScreeningFeature() }
-                verify(exactly = 0) { applicantService.applicantEvaluatorFeature() }
+                verify { applicantService.applicantEvaluatorFeature() }
+                verify(atLeast = 1) { applicantService.commonBusiness() }
             }
         }
     }

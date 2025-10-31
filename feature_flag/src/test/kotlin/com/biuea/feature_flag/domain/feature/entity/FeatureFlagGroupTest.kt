@@ -21,6 +21,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagGroup.create(
                             featureFlag = featureFlag,
+                            status = FeatureFlagStatus.ACTIVE,
                             algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                             specifics = emptyList(),
                             absolute = null,
@@ -37,6 +38,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagGroup.create(
                             featureFlag = featureFlag,
+                            status = FeatureFlagStatus.ACTIVE,
                             algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                             specifics = specifics,
                             absolute = null,
@@ -52,6 +54,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     // when
                     val featureFlagGroup = FeatureFlagGroup.create(
                         featureFlag = featureFlag,
+                        status = FeatureFlagStatus.ACTIVE,
                         algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                         specifics = specifics,
                         absolute = null,
@@ -72,6 +75,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagGroup.create(
                             featureFlag = featureFlag,
+                            status = FeatureFlagStatus.ACTIVE,
                             algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
                             specifics = emptyList(),
                             absolute = null,
@@ -87,6 +91,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     // when
                     val featureFlagGroup = FeatureFlagGroup.create(
                         featureFlag = featureFlag,
+                        status = FeatureFlagStatus.ACTIVE,
                         algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
                         specifics = emptyList(),
                         absolute = null,
@@ -107,6 +112,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagGroup.create(
                             featureFlag = featureFlag,
+                            status = FeatureFlagStatus.ACTIVE,
                             algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
                             specifics = emptyList(),
                             absolute = null,
@@ -122,6 +128,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                     // when
                     val featureFlagGroup = FeatureFlagGroup.create(
                         featureFlag = featureFlag,
+                        status = FeatureFlagStatus.ACTIVE,
                         algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
                         specifics = emptyList(),
                         absolute = absolute,
@@ -143,6 +150,7 @@ class FeatureFlagGroupTest : DescribeSpec({
                 val featureFlagGroup = FeatureFlagGroup(
                     _id = 1L,
                     _featureFlag = featureFlag,
+                    _status = FeatureFlagStatus.ACTIVE,
                     _specifics = emptyList(),
                     _percentage = null,
                     _absolute = null,
@@ -156,11 +164,12 @@ class FeatureFlagGroupTest : DescribeSpec({
                 }
             }
             
-            it("알고리즘이 초기화되었으면 알고리즘의 isEnable 결과를 반환한다") {
+            it("알고리즘이 초기화되었으면 알고리즘의 isEnabled 결과를 반환한다") {
                 // given
                 val specifics = listOf(1, 2, 3)
                 val featureFlagGroup = FeatureFlagGroup.create(
                     featureFlag = featureFlag,
+                    status = FeatureFlagStatus.ACTIVE,
                     algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                     specifics = specifics,
                     absolute = null,
@@ -173,175 +182,44 @@ class FeatureFlagGroupTest : DescribeSpec({
             }
         }
         
-        context("changeAlgorithm 메서드 호출 시") {
-            it("알고리즘과 관련 속성이 변경된다") {
+        context("상태 변경 및 검증") {
+            it("activate/inactivate 동작을 확인한다") {
                 // given
-                val initialSpecifics = listOf(1, 2, 3)
-                val featureFlagGroup = FeatureFlagGroup.create(
+                val group = FeatureFlagGroup.create(
                     featureFlag = featureFlag,
+                    status = FeatureFlagStatus.INACTIVE,
                     algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = initialSpecifics,
+                    specifics = listOf(1),
                     absolute = null,
                     percentage = null
                 )
-                
-                val newPercentage = 50
                 
                 // when
-                featureFlagGroup.changeAlgorithm(
-                    algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
-                    specifics = emptyList(),
-                    absolute = null,
-                    percentage = newPercentage
-                )
+                group.activate()
                 
                 // then
-                featureFlagGroup.specifics shouldBe emptyList()
-                featureFlagGroup.percentage shouldBe newPercentage
-                featureFlagGroup.absolute shouldBe null
-                featureFlagGroup.containsWorkspace(50) shouldBe true
-                featureFlagGroup.containsWorkspace(51) shouldBe false
-            }
-        }
-        
-        context("isAvailable 메서드 호출 시") {
-            it("FeatureFlag가 활성화 상태면 true를 반환한다") {
-                // given
-                val activeFeatureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = activeFeatureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-                
-                // when & then
-                featureFlagGroup.isAvailable() shouldBe true
-            }
-            
-            it("FeatureFlag가 비활성화 상태면 false를 반환한다") {
-                // given
-                val inactiveFeatureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.INACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = inactiveFeatureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-                
-                // when & then
-                featureFlagGroup.isAvailable() shouldBe false
-            }
-        }
-        
-        context("checkActivation 메서드 호출 시") {
-            it("FeatureFlag가 활성화 상태면 예외가 발생하지 않는다") {
-                // given
-                val activeFeatureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = activeFeatureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-                
-                // when & then
-                featureFlagGroup.checkActivation() // 예외가 발생하지 않아야 함
-            }
-            
-            it("FeatureFlag가 비활성화 상태면 IllegalStateException이 발생한다") {
-                // given
-                val inactiveFeatureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.INACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = inactiveFeatureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-                
-                // when & then
-                shouldThrow<IllegalStateException> {
-                    featureFlagGroup.checkActivation()
-                }
-            }
-        }
-        
-        context("associatedByFeatureFlag 확장 함수 사용 시") {
-            it("FeatureFlag를 키로 하는 Map을 반환한다") {
-                // given
-                val featureFlag1 = FeatureFlag(
-                    _id = 1L,
-                    _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlag2 = FeatureFlag(
-                    _id = 2L,
-                    _feature = Feature.APPLICANT_EVALUATOR,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-                
-                val featureFlagGroup1 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag1,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-                
-                val featureFlagGroup2 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag2,
-                    algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
-                    specifics = emptyList(),
-                    absolute = null,
-                    percentage = 50
-                )
-                
-                val featureFlagGroups = listOf(featureFlagGroup1, featureFlagGroup2)
+                group.isActivation() shouldBe true
                 
                 // when
-                val map = featureFlagGroups.associatedByFeatureFlag()
+                group.inactivate()
                 
                 // then
-                map.size shouldBe 2
-                map[featureFlag1] shouldBe featureFlagGroup1
-                map[featureFlag2] shouldBe featureFlagGroup2
+                group.isActivation() shouldBe false
+            }
+            
+            it("비활성 상태면 checkActivation에서 예외가 발생한다") {
+                // given
+                val group = FeatureFlagGroup.create(
+                    featureFlag = featureFlag,
+                    status = FeatureFlagStatus.INACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(1),
+                    absolute = null,
+                    percentage = null
+                )
+                
+                // when & then
+                shouldThrow<IllegalStateException> { group.checkActivation() }
             }
         }
     }

@@ -12,7 +12,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     // when & then
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagAlgorithmDecider.decide(
-                            algorithm = FeatureFlagAlgorithmOption.SPECIFIC,
+                            algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                             specifics = null,
                             percentage = null,
                             absolute = null
@@ -24,7 +24,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     // when & then
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagAlgorithmDecider.decide(
-                            algorithm = FeatureFlagAlgorithmOption.SPECIFIC,
+                            algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                             specifics = emptyList(),
                             percentage = null,
                             absolute = null
@@ -38,7 +38,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     
                     // when
                     val algorithm = FeatureFlagAlgorithmDecider.decide(
-                        algorithm = FeatureFlagAlgorithmOption.SPECIFIC,
+                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
                         specifics = specifics,
                         percentage = null,
                         absolute = null
@@ -54,7 +54,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     // when & then
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagAlgorithmDecider.decide(
-                            algorithm = FeatureFlagAlgorithmOption.PERCENT,
+                            algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
                             specifics = null,
                             percentage = null,
                             absolute = null
@@ -68,7 +68,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     
                     // when
                     val algorithm = FeatureFlagAlgorithmDecider.decide(
-                        algorithm = FeatureFlagAlgorithmOption.PERCENT,
+                        algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
                         specifics = null,
                         percentage = percentage,
                         absolute = null
@@ -84,7 +84,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     // when & then
                     shouldThrow<IllegalArgumentException> {
                         FeatureFlagAlgorithmDecider.decide(
-                            algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
+                            algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
                             specifics = null,
                             percentage = null,
                             absolute = null
@@ -98,7 +98,7 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
                     
                     // when
                     val algorithm = FeatureFlagAlgorithmDecider.decide(
-                        algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
+                        algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
                         specifics = null,
                         percentage = null,
                         absolute = absolute
@@ -145,25 +145,25 @@ class FeatureFlagAlgorithmTest : DescribeSpec({
         
         describe("PercentAlgorithm") {
             context("isEnabled 메서드 호출 시") {
-                it("workspaceId를 100으로 나눈 나머지가 percentage 이하면 true를 반환한다") {
+                it("workspaceId를 100으로 나눈 나머지가 percentage 미만이면 true를 반환한다") {
                     // given
                     val percentage = 50
                     val algorithm = PercentAlgorithm(percentage)
                     
                     // when & then
-                    algorithm.isEnabled(50) shouldBe true  // 50 % 100 = 50, 50 <= 50
-                    algorithm.isEnabled(150) shouldBe true // 150 % 100 = 50, 50 <= 50
-                    algorithm.isEnabled(49) shouldBe true  // 49 % 100 = 49, 49 <= 50
+                    algorithm.isEnabled(49) shouldBe true  // 49 % 100 = 49, 49 < 50
+                    algorithm.isEnabled(149) shouldBe true // 149 % 100 = 49, 49 < 50
+                    algorithm.isEnabled(50) shouldBe false // 50 % 100 = 50, 50 !< 50
                 }
                 
-                it("workspaceId를 100으로 나눈 나머지가 percentage 초과면 false를 반환한다") {
+                it("workspaceId를 100으로 나눈 나머지가 percentage 이상이면 false를 반환한다") {
                     // given
                     val percentage = 50
                     val algorithm = PercentAlgorithm(percentage)
                     
                     // when & then
-                    algorithm.isEnabled(51) shouldBe false  // 51 % 100 = 51, 51 > 50
-                    algorithm.isEnabled(151) shouldBe false // 151 % 100 = 51, 51 > 50
+                    algorithm.isEnabled(50) shouldBe false
+                    algorithm.isEnabled(151) shouldBe false // 151 % 100 = 51, 51 >= 50
                 }
             }
         }

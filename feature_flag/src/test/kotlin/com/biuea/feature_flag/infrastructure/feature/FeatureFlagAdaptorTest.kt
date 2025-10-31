@@ -9,11 +9,11 @@ import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagEntity
 import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagGroupEntity
 import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagGroupJpaRepository
 import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagJpaRepository
-import com.biuea.feature_flag.infrastructure.feature.jpa.toDomain
 import com.biuea.feature_flag.infrastructure.feature.jpa.toEntity
-import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -21,419 +21,304 @@ import org.springframework.data.repository.findByIdOrNull
 import java.time.ZonedDateTime
 
 class FeatureFlagAdaptorTest : DescribeSpec({
-    describe("FeatureFlagAdaptor 클래스") {
+    describe("FeatureFlagAdaptor") {
         val featureFlagJpaRepository = mockk<FeatureFlagJpaRepository>()
         val featureFlagGroupJpaRepository = mockk<FeatureFlagGroupJpaRepository>()
-        val featureFlagAdaptor = FeatureFlagAdaptor(featureFlagJpaRepository, featureFlagGroupJpaRepository)
+        val adaptor = FeatureFlagAdaptor(featureFlagJpaRepository, featureFlagGroupJpaRepository)
 
-        context("FeatureFlagRepository 구현") {
-            context("save 메서드 호출 시") {
-                it("FeatureFlag 엔티티를 저장하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val featureFlag = FeatureFlag(
-                        _id = 1L,
-                        _feature = Feature.AI_SCREENING,
-                        _status = FeatureFlagStatus.ACTIVE,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    )
+        context("FeatureFlagRepository") {
+            it("save stores and returns domain FeatureFlag") {
+                // given
+                val domain = FeatureFlag(
+                    _id = 1L,
+                    _feature = Feature.AI_SCREENING,
+                    _updatedAt = ZonedDateTime.now(),
+                    _createdAt = ZonedDateTime.now()
+                )
+                val savedEntity = domain.toEntity().apply { id = 1L }
+                every { featureFlagJpaRepository.save(any()) } returns savedEntity
 
-                    val featureFlagEntity = featureFlag.toEntity()
+                // when
+                val result = adaptor.save(domain)
 
-                    every { featureFlagJpaRepository.save(any()) } returns featureFlagEntity
-
-                    // when
-                    val result = featureFlagAdaptor.save(featureFlag)
-
-                    // then
-                    result.feature shouldBe featureFlag.feature
-                    result.status shouldBe featureFlag.status
-                    verify { featureFlagJpaRepository.save(any()) }
-                }
+                // then
+                result.feature shouldBe domain.feature
+                verify { featureFlagJpaRepository.save(any()) }
             }
 
-            context("getFeatureFlags 메서드 호출 시") {
-                it("모든 FeatureFlag 엔티티를 조회하고 도메인 객체 목록으로 변환하여 반환한다") {
-                    // given
-                    val featureFlagEntity1 = FeatureFlagEntity(
-                        feature = Feature.AI_SCREENING,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = 1L }
+            it("getFeatureFlags returns all mapped FeatureFlags") {
+                // given
+                val e1 = FeatureFlagEntity(
+                    feature = Feature.AI_SCREENING,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = 1L }
+                val e2 = FeatureFlagEntity(
+                    feature = Feature.APPLICANT_EVALUATOR,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = 2L }
+                every { featureFlagJpaRepository.findAll() } returns listOf(e1, e2)
 
-                    val featureFlagEntity2 = FeatureFlagEntity(
-                        feature = Feature.APPLICANT_EVALUATOR,
-                        status = FeatureFlagStatus.INACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = 2L }
+                // when
+                val result = adaptor.getFeatureFlags()
 
-                    every { featureFlagJpaRepository.findAll() } returns listOf(featureFlagEntity1, featureFlagEntity2)
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlags()
-
-                    // then
-                    result.size shouldBe 2
-                    result[0].id shouldBe featureFlagEntity1.id
-                    result[0].feature shouldBe featureFlagEntity1.feature
-                    result[1].id shouldBe featureFlagEntity2.id
-                    result[1].feature shouldBe featureFlagEntity2.feature
-                }
+                // then
+                result.shouldHaveSize(2)
+                result[0].id shouldBe e1.id
+                result[0].feature shouldBe e1.feature
+                result[1].id shouldBe e2.id
+                result[1].feature shouldBe e2.feature
             }
 
-            context("getFeatureFlagBy 메서드 호출 시") {
-                it("Feature로 FeatureFlag 엔티티를 조회하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-                    val featureFlagEntity = FeatureFlagEntity(
-                        feature = feature,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = 1L }
+            it("getFeatureFlagBy returns mapped domain or throws") {
+                // given
+                val feature = Feature.AI_SCREENING
+                val entity = FeatureFlagEntity(
+                    feature = feature,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = 1L }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns entity
 
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns featureFlagEntity
+                // when
+                val result = adaptor.getFeatureFlagBy(feature)
 
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagBy(feature)
+                // then
+                result.id shouldBe entity.id
+                result.feature shouldBe feature
 
-                    // then
-                    result.id shouldBe featureFlagEntity.id
-                    result.feature shouldBe feature
-                }
-
-                it("Feature에 해당하는 FeatureFlag 엔티티가 없으면 예외가 발생한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
-
-                    // when & then
-                    shouldThrow<NoSuchElementException> {
-                        featureFlagAdaptor.getFeatureFlagBy(feature)
-                    }
-                }
+                // and: not found
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
+                shouldThrow<NoSuchElementException> { adaptor.getFeatureFlagBy(feature) }
             }
 
-            context("getFeatureFlagOrNullBy 메서드 호출 시") {
-                it("Feature로 FeatureFlag 엔티티를 조회하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-                    val featureFlagEntity = FeatureFlagEntity(
-                        feature = feature,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = 1L }
+            it("getFeatureFlagOrNullBy returns mapped domain or null") {
+                val feature = Feature.AI_SCREENING
+                val entity = FeatureFlagEntity(
+                    feature = feature,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = 1L }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns entity
+                adaptor.getFeatureFlagOrNullBy(feature)?.id shouldBe entity.id
+                adaptor.getFeatureFlagOrNullBy(feature)?.feature shouldBe feature
 
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns featureFlagEntity
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagOrNullBy(feature)
-
-                    // then
-                    result?.id shouldBe featureFlagEntity.id
-                    result?.feature shouldBe feature
-                }
-
-                it("Feature에 해당하는 FeatureFlag 엔티티가 없으면 null을 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagOrNullBy(feature)
-
-                    // then
-                    result shouldBe null
-                }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
+                adaptor.getFeatureFlagOrNullBy(feature) shouldBe null
             }
         }
 
-        context("FeatureFlagGroupRepository 구현") {
-            context("save 메서드 호출 시") {
-                it("FeatureFlagGroup 엔티티를 저장하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val featureFlag = FeatureFlag(
-                        _id = 1L,
-                        _feature = Feature.AI_SCREENING,
-                        _status = FeatureFlagStatus.ACTIVE,
-                        _updatedAt = ZonedDateTime.now(),
-                        _createdAt = ZonedDateTime.now()
-                    )
-
-                    val featureFlagGroup = FeatureFlagGroup.create(
-                        featureFlag = featureFlag,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        specifics = listOf(1, 2, 3),
-                        absolute = null,
-                        percentage = null
-                    )
-
-                    val featureFlagEntity = featureFlag.toEntity()
-                    val featureFlagGroupEntity = featureFlagGroup.toEntity()
-
-                    every { featureFlagGroupJpaRepository.save(any()) } returns featureFlagGroupEntity
-                    every { featureFlagJpaRepository.findByIdOrNull(featureFlagGroupEntity.featureFlagId) } returns featureFlagEntity
-
-                    // when
-                    val result = featureFlagAdaptor.save(featureFlagGroup)
-
-                    // then
-                    result.id shouldBe featureFlagGroup.id
-                    result.specifics shouldBe featureFlagGroup.specifics
-                    verify { featureFlagGroupJpaRepository.save(any()) }
-                }
+        context("FeatureFlagGroupRepository") {
+            fun newFeatureFlag(): FeatureFlag {
+                return FeatureFlag(
+                    _id = 10L,
+                    _feature = Feature.AI_SCREENING,
+                    _updatedAt = ZonedDateTime.now(),
+                    _createdAt = ZonedDateTime.now()
+                )
             }
 
-            context("getFeatureFlagGroupOrNullBy(id) 메서드 호출 시") {
-                it("ID로 FeatureFlagGroup 엔티티를 조회하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val id = 1L
-                    val featureFlagId = 2L
+            it("save group stores and returns mapped domain") {
+                // given
+                val featureFlag = newFeatureFlag()
+                val group = FeatureFlagGroup.create(
+                    featureFlag = featureFlag,
+                    status = FeatureFlagStatus.ACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(1, 2, 3),
+                    absolute = null,
+                    percentage = null,
+                )
 
-                    val featureFlagEntity = FeatureFlagEntity(
-                        feature = Feature.AI_SCREENING,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { this.id = featureFlagId }
+                val groupEntity = group.toEntity()
+                val ffEntity = featureFlag.toEntity()
+                every { featureFlagGroupJpaRepository.save(any()) } returns groupEntity
+                every { featureFlagJpaRepository.findByIdOrNull(groupEntity.featureFlagId) } returns ffEntity
 
-                    val featureFlagGroupEntity = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId,
-                        specifics = listOf(1, 2, 3),
-                        percentage = null,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { this.id = id }
+                // when
+                val result = adaptor.save(group)
 
-                    every { featureFlagGroupJpaRepository.findByIdOrNull(id) } returns featureFlagGroupEntity
-                    every { featureFlagJpaRepository.findByIdOrNull(featureFlagId) } returns featureFlagEntity
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(id)
-
-                    // then
-                    result?.id shouldBe id
-                    result?.featureFlag?.id shouldBe featureFlagId
-                }
-
-                it("ID에 해당하는 FeatureFlagGroup 엔티티가 없으면 null을 반환한다") {
-                    // given
-                    val id = 1L
-
-                    every { featureFlagGroupJpaRepository.findByIdOrNull(id) } returns null
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(id)
-
-                    // then
-                    result shouldBe null
-                }
-
-                it("FeatureFlagGroup 엔티티는 있지만 FeatureFlag 엔티티가 없으면 null을 반환한다") {
-                    // given
-                    val id = 1L
-                    val featureFlagId = 2L
-
-                    val featureFlagGroupEntity = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId,
-                        specifics = listOf(1, 2, 3),
-                        percentage = null,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { this.id = id }
-
-                    every { featureFlagGroupJpaRepository.findByIdOrNull(id) } returns featureFlagGroupEntity
-                    every { featureFlagJpaRepository.findByIdOrNull(featureFlagId) } returns null
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(id)
-
-                    // then
-                    result shouldBe null
-                }
+                // then
+                result.id shouldBe group.id
+                result.specifics shouldBe group.specifics
+                verify { featureFlagGroupJpaRepository.save(any()) }
             }
 
-            context("getFeatureFlagGroupOrNullBy(feature) 메서드 호출 시") {
-                it("Feature로 FeatureFlagGroup 엔티티를 조회하고 도메인 객체로 변환하여 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-                    val featureFlagId = 1L
-                    val featureFlagGroupId = 2L
+            it("getFeatureFlagGroupOrNullBy(id) returns mapped domain or null") {
+                val groupId = 1L
+                val ffId = 2L
+                val ffEntity = FeatureFlagEntity(
+                    feature = Feature.AI_SCREENING,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = ffId }
+                val groupEntity = FeatureFlagGroupEntity(
+                    featureFlagId = ffId,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = listOf(1, 2, 3),
+                    percentage = null,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = groupId }
 
-                    val featureFlagEntity = FeatureFlagEntity(
-                        feature = feature,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagId }
+                every { featureFlagGroupJpaRepository.findByIdOrNull(groupId) } returns groupEntity
+                every { featureFlagJpaRepository.findByIdOrNull(ffId) } returns ffEntity
+                adaptor.getFeatureFlagGroupOrNullBy(groupId)?.id shouldBe groupId
+                adaptor.getFeatureFlagGroupOrNullBy(groupId)?.featureFlag?.id shouldBe ffId
 
-                    val featureFlagGroupEntity = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId,
-                        specifics = listOf(1, 2, 3),
-                        percentage = null,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagGroupId }
+                every { featureFlagGroupJpaRepository.findByIdOrNull(groupId) } returns null
+                adaptor.getFeatureFlagGroupOrNullBy(groupId) shouldBe null
 
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns featureFlagEntity
-                    every { featureFlagGroupJpaRepository.findByFeatureFlagId(featureFlagId) } returns featureFlagGroupEntity
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(feature)
-
-                    // then
-                    result?.id shouldBe featureFlagGroupId
-                    result?.featureFlag?.id shouldBe featureFlagId
-                    result?.featureFlag?.feature shouldBe feature
-                }
-
-                it("Feature에 해당하는 FeatureFlag 엔티티가 없으면 null을 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(feature)
-
-                    // then
-                    result shouldBe null
-                }
-
-                it("FeatureFlag 엔티티는 있지만 FeatureFlagGroup 엔티티가 없으면 null을 반환한다") {
-                    // given
-                    val feature = Feature.AI_SCREENING
-                    val featureFlagId = 1L
-
-                    val featureFlagEntity = FeatureFlagEntity(
-                        feature = feature,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagId }
-
-                    every { featureFlagJpaRepository.findByFeatureIs(feature) } returns featureFlagEntity
-                    every { featureFlagGroupJpaRepository.findByFeatureFlagId(featureFlagId) } returns null
-
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroupOrNullBy(feature)
-
-                    // then
-                    result shouldBe null
-                }
+                every { featureFlagGroupJpaRepository.findByIdOrNull(groupId) } returns groupEntity
+                every { featureFlagJpaRepository.findByIdOrNull(ffId) } returns null
+                adaptor.getFeatureFlagGroupOrNullBy(groupId) shouldBe null
             }
 
-            context("getFeatureFlagGroups 메서드 호출 시") {
-                it("모든 FeatureFlagGroup 엔티티를 조회하고 도메인 객체 목록으로 변환하여 반환한다") {
-                    // given
-                    val featureFlagId1 = 1L
-                    val featureFlagId2 = 2L
-                    val featureFlagGroupId1 = 3L
-                    val featureFlagGroupId2 = 4L
+            it("getFeatureFlagGroupOrNullBy(feature) returns mapped domain or null") {
+                val feature = Feature.AI_SCREENING
+                val ffId = 5L
+                val groupId = 9L
+                val ffEntity = FeatureFlagEntity(
+                    feature = feature,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = ffId }
+                val groupEntity = FeatureFlagGroupEntity(
+                    featureFlagId = ffId,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = listOf(1, 2, 3),
+                    percentage = null,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = groupId }
 
-                    val featureFlagEntity1 = FeatureFlagEntity(
-                        feature = Feature.AI_SCREENING,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagId1 }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns ffEntity
+                every { featureFlagGroupJpaRepository.findByFeatureFlagId(ffId) } returns groupEntity
+                adaptor.getFeatureFlagGroupOrNullBy(feature)?.id shouldBe groupId
+                adaptor.getFeatureFlagGroupOrNullBy(feature)?.featureFlag?.id shouldBe ffId
+                adaptor.getFeatureFlagGroupOrNullBy(feature)?.featureFlag?.feature shouldBe feature
 
-                    val featureFlagEntity2 = FeatureFlagEntity(
-                        feature = Feature.APPLICANT_EVALUATOR,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagId2 }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns null
+                adaptor.getFeatureFlagGroupOrNullBy(feature) shouldBe null
 
-                    val featureFlagGroupEntity1 = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId1,
-                        specifics = listOf(1, 2, 3),
-                        percentage = null,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagGroupId1 }
+                every { featureFlagJpaRepository.findByFeatureIs(feature) } returns ffEntity
+                every { featureFlagGroupJpaRepository.findByFeatureFlagId(ffId) } returns null
+                adaptor.getFeatureFlagGroupOrNullBy(feature) shouldBe null
+            }
 
-                    val featureFlagGroupEntity2 = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId2,
-                        specifics = emptyList(),
-                        percentage = 50,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagGroupId2 }
+            it("getFeatureFlagGroups joins flags and groups and maps all valid ones") {
+                val ffId1 = 1L
+                val ffId2 = 2L
+                val gId1 = 3L
+                val gId2 = 4L
 
-                    every { featureFlagJpaRepository.findAll() } returns listOf(featureFlagEntity1, featureFlagEntity2)
-                    every { featureFlagGroupJpaRepository.findAll() } returns listOf(featureFlagGroupEntity1, featureFlagGroupEntity2)
+                val ffEntity1 = FeatureFlagEntity(
+                    feature = Feature.AI_SCREENING,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = ffId1 }
+                val ffEntity2 = FeatureFlagEntity(
+                    feature = Feature.APPLICANT_EVALUATOR,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = ffId2 }
 
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroups()
+                val gEntity1 = FeatureFlagGroupEntity(
+                    featureFlagId = ffId1,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = listOf(1, 2, 3),
+                    percentage = null,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = gId1 }
+                val gEntity2 = FeatureFlagGroupEntity(
+                    featureFlagId = ffId2,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = emptyList(),
+                    percentage = 50,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = gId2 }
 
-                    // then
-                    result.size shouldBe 2
-                    result[0].id shouldBe featureFlagGroupId1
-                    result[0].featureFlag.id shouldBe featureFlagId1
-                    result[1].id shouldBe featureFlagGroupId2
-                    result[1].featureFlag.id shouldBe featureFlagId2
-                }
+                every { featureFlagJpaRepository.findAll() } returns listOf(ffEntity1, ffEntity2)
+                every { featureFlagGroupJpaRepository.findAll() } returns listOf(gEntity1, gEntity2)
 
-                it("FeatureFlagGroup 엔티티는 있지만 연결된 FeatureFlag 엔티티가 없는 경우 해당 그룹은 제외한다") {
-                    // given
-                    val featureFlagId1 = 1L
-                    val featureFlagGroupId1 = 3L
-                    val featureFlagGroupId2 = 4L
+                val result = adaptor.getFeatureFlagGroups()
 
-                    val featureFlagEntity1 = FeatureFlagEntity(
-                        feature = Feature.AI_SCREENING,
-                        status = FeatureFlagStatus.ACTIVE,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagId1 }
+                result.shouldHaveSize(2)
+                result[0].id shouldBe gId1
+                result[0].featureFlag.id shouldBe ffId1
+                result[1].id shouldBe gId2
+                result[1].featureFlag.id shouldBe ffId2
+            }
 
-                    val featureFlagGroupEntity1 = FeatureFlagGroupEntity(
-                        featureFlagId = featureFlagId1,
-                        specifics = listOf(1, 2, 3),
-                        percentage = null,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagGroupId1 }
+            it("getFeatureFlagGroups filters out groups without matching feature flag") {
+                val ffId1 = 1L
+                val gId1 = 3L
+                val gId2 = 4L
 
-                    val featureFlagGroupEntity2 = FeatureFlagGroupEntity(
-                        featureFlagId = 999L, // 존재하지 않는 featureFlagId
-                        specifics = emptyList(),
-                        percentage = 50,
-                        absolute = null,
-                        algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
-                        updatedAt = ZonedDateTime.now(),
-                        createdAt = ZonedDateTime.now()
-                    ).apply { id = featureFlagGroupId2 }
+                val ffEntity1 = FeatureFlagEntity(
+                    feature = Feature.AI_SCREENING,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = ffId1 }
 
-                    every { featureFlagJpaRepository.findAll() } returns listOf(featureFlagEntity1)
-                    every { featureFlagGroupJpaRepository.findAll() } returns listOf(featureFlagGroupEntity1, featureFlagGroupEntity2)
+                val gEntity1 = FeatureFlagGroupEntity(
+                    featureFlagId = ffId1,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = listOf(1, 2, 3),
+                    percentage = null,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = gId1 }
+                val gEntity2 = FeatureFlagGroupEntity(
+                    featureFlagId = 999L,
+                    status = FeatureFlagStatus.ACTIVE,
+                    specifics = emptyList(),
+                    percentage = 50,
+                    absolute = null,
+                    algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
+                    createdAt = ZonedDateTime.now(),
+                    updatedAt = ZonedDateTime.now(),
+                ).apply { id = gId2 }
 
-                    // when
-                    val result = featureFlagAdaptor.getFeatureFlagGroups()
+                every { featureFlagJpaRepository.findAll() } returns listOf(ffEntity1)
+                every { featureFlagGroupJpaRepository.findAll() } returns listOf(gEntity1, gEntity2)
 
-                    // then
-                    result.size shouldBe 1
-                    result[0].id shouldBe featureFlagGroupId1
-                    result[0].featureFlag.id shouldBe featureFlagId1
-                }
+                val result = adaptor.getFeatureFlagGroups()
+
+                result.shouldHaveSize(1)
+                result[0].id shouldBe gId1
+                result[0].featureFlag.id shouldBe ffId1
+            }
+
+            it("delete group delegates to JPA repository") {
+                val featureFlag = newFeatureFlag()
+                val group = FeatureFlagGroup.create(
+                    featureFlag = featureFlag,
+                    status = FeatureFlagStatus.INACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(1),
+                    absolute = null,
+                    percentage = null,
+                )
+
+                every { featureFlagGroupJpaRepository.delete(any()) } returns Unit
+
+                adaptor.delete(group)
+
+                verify { featureFlagGroupJpaRepository.delete(any()) }
             }
         }
     }

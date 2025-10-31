@@ -89,8 +89,7 @@ class FeatureFlagAdaptor(
 
     private fun updateCache(updater: (List<FeatureFlagGroup>) -> List<FeatureFlagGroup>) {
         val cache = cacheManager.getCache("featureFlagGroups")?: return
-        val cachedList = cache.get("allGroups")?.get() as List<FeatureFlagGroup>
-
+        val cachedList = (cache.get("allGroups")?.get() as List<FeatureFlagGroup>?) ?: emptyList()
         if (cachedList.isEmpty()) {
             cache.evict("allGroups")
         } else {

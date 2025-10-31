@@ -7,501 +7,206 @@ import com.biuea.feature_flag.domain.feature.entity.FeatureFlagGroup
 import com.biuea.feature_flag.domain.feature.entity.FeatureFlagStatus
 import com.biuea.feature_flag.domain.feature.repository.FeatureFlagGroupRepository
 import com.biuea.feature_flag.domain.feature.repository.FeatureFlagRepository
-import io.kotest.core.spec.style.DescribeSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.ZonedDateTime
 
 class FeatureFlagServiceTest : DescribeSpec({
-    describe("FeatureFlagService 클래스") {
+    describe("FeatureFlagService") {
         val featureFlagRepository = mockk<FeatureFlagRepository>()
         val featureFlagGroupRepository = mockk<FeatureFlagGroupRepository>()
-        val featureFlagService = FeatureFlagService(featureFlagRepository, featureFlagGroupRepository)
+        val service = FeatureFlagService(featureFlagRepository, featureFlagGroupRepository)
 
-        context("registerFeatureFlag 메서드 호출 시") {
-            it("이미 존재하는 Feature에 대해 예외가 발생한다") {
+        context("registerFeatureFlag") {
+            it("이미 존재하면 예외") {
                 // given
-                val feature = Feature.AI_SCREENING
-                val status = FeatureFlagStatus.ACTIVE
-
-                every { featureFlagRepository.getFeatureFlagOrNullBy(feature) } returns FeatureFlag(
+                every { featureFlagRepository.getFeatureFlagOrNullBy(Feature.AI_SCREENING) } returns FeatureFlag(
                     _id = 1L,
-                    _feature = feature,
-                    _status = status,
+                    _feature = Feature.AI_SCREENING,
                     _updatedAt = ZonedDateTime.now(),
                     _createdAt = ZonedDateTime.now()
                 )
 
-                // when & then
-                shouldThrow<IllegalStateException> {
-                    featureFlagService.registerFeatureFlag(feature, status)
-                }
+                // expect
+                shouldThrow<IllegalStateException> { service.registerFeatureFlag(Feature.AI_SCREENING) }
             }
 
-            it("존재하지 않는 Feature에 대해 새로운 FeatureFlag를 생성하고 저장한다") {
+            it("존재하지 않으면 저장") {
                 // given
-                val feature = Feature.AI_SCREENING
-                val status = FeatureFlagStatus.ACTIVE
-                val createdFeatureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = status,
+                val saved = FeatureFlag(
+                    _id = 10L,
+                    _feature = Feature.AI_SCREENING,
                     _updatedAt = ZonedDateTime.now(),
                     _createdAt = ZonedDateTime.now()
                 )
-
-                every { featureFlagRepository.getFeatureFlagOrNullBy(feature) } returns null
-                every { featureFlagRepository.save(any()) } returns createdFeatureFlag
+                every { featureFlagRepository.getFeatureFlagOrNullBy(Feature.AI_SCREENING) } returns null
+                every { featureFlagRepository.save(any()) } returns saved
 
                 // when
-                val result = featureFlagService.registerFeatureFlag(feature, status)
+                val result = service.registerFeatureFlag(Feature.AI_SCREENING)
 
                 // then
-                result shouldBe createdFeatureFlag
+                result shouldBe saved
                 verify { featureFlagRepository.save(any()) }
             }
         }
 
-        context("activateFeatureFlag 메서드 호출 시") {
-            it("FeatureFlag를 활성화하고 저장한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = mockk<FeatureFlag>(relaxed = true)
-
-                every { featureFlagRepository.getFeatureFlagBy(feature) } returns featureFlag
-                every { featureFlagRepository.save(featureFlag) } returns featureFlag
-
-                // when
-                featureFlagService.activateFeatureFlag(feature, FeatureFlagStatus.ACTIVE)
-
-                // then
-                verify { featureFlag.activate() }
-                verify { featureFlagRepository.save(featureFlag) }
+        context("activateFeatureFlag (Group)") {
+            it("없는 그룹이면 예외") {
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(1L) } returns null
+                shouldThrow<NoSuchElementException> { service.activateFeatureFlag(1L, FeatureFlagStatus.ACTIVE) }
             }
 
-            it("FeatureFlag를 비활성화하고 저장한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = mockk<FeatureFlag>(relaxed = true)
+            it("ACTIVE 요청이면 그룹 활성화 후 저장") {
+                val group = mockk<FeatureFlagGroup>(relaxed = true)
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(1L) } returns group
+                every { featureFlagGroupRepository.save(group) } returns group
 
-                every { featureFlagRepository.getFeatureFlagBy(feature) } returns featureFlag
-                every { featureFlagRepository.save(featureFlag) } returns featureFlag
+                service.activateFeatureFlag(1L, FeatureFlagStatus.ACTIVE)
 
-                // when
-                featureFlagService.activateFeatureFlag(feature, FeatureFlagStatus.INACTIVE)
+                verify { group.activate() }
+                verify { featureFlagGroupRepository.save(group) }
+            }
 
-                // then
-                verify { featureFlag.inactivate() }
-                verify { featureFlagRepository.save(featureFlag) }
+            it("INACTIVE 요청이면 그룹 비활성화 후 저장") {
+                val group = mockk<FeatureFlagGroup>(relaxed = true)
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(1L) } returns group
+                every { featureFlagGroupRepository.save(group) } returns group
+
+                service.activateFeatureFlag(1L, FeatureFlagStatus.INACTIVE)
+
+                verify { group.inactivate() }
+                verify { featureFlagGroupRepository.save(group) }
             }
         }
 
-        context("fetchFeatureFlagGroupMap 메서드 호출 시") {
-            it("FeatureFlagGroup 목록을 Map으로 변환하여 반환한다") {
-                // given
-                val featureFlag1 = FeatureFlag(
+        context("fetchFeatureFlagGroups") {
+            it("워크스페이스에 활성화된 그룹만 반환한다") {
+                val workspaceId = 7
+                val ff = FeatureFlag(
                     _id = 1L,
                     _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.ACTIVE,
                     _updatedAt = ZonedDateTime.now(),
                     _createdAt = ZonedDateTime.now()
                 )
-
-                val featureFlag2 = FeatureFlag(
-                    _id = 2L,
-                    _feature = Feature.APPLICANT_EVALUATOR,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup1 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag1,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
+                val g1 = FeatureFlagGroup.create(
+                    featureFlag = ff,
+                    status = FeatureFlagStatus.ACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(workspaceId),
+                    absolute = null,
                     percentage = null
                 )
-
-                val featureFlagGroup2 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag2,
-                    algorithmOption = FeatureFlagAlgorithmOption.PERCENT,
-                    specifics = emptyList(),
+                val g2 = FeatureFlagGroup.create(
+                    featureFlag = ff,
+                    status = FeatureFlagStatus.INACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(workspaceId),
                     absolute = null,
-                    percentage = 50
+                    percentage = null
                 )
+                val g3 = FeatureFlagGroup.create(
+                    featureFlag = ff,
+                    status = FeatureFlagStatus.ACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(999),
+                    absolute = null,
+                    percentage = null
+                )
+                every { featureFlagGroupRepository.getFeatureFlagGroups() } returns listOf(g1, g2, g3)
 
-                val featureFlagGroups = listOf(featureFlagGroup1, featureFlagGroup2)
+                val result = service.fetchFeatureFlagGroups(workspaceId)
 
-                every { featureFlagGroupRepository.getFeatureFlagGroups() } returns featureFlagGroups
-
-                // when
-                val result = featureFlagService.fetchFeatureFlagGroupMap()
-
-                // then
-                result.size shouldBe 2
-                result[featureFlag1] shouldBe featureFlagGroup1
-                result[featureFlag2] shouldBe featureFlagGroup2
+                result.shouldContainExactly(g1)
             }
         }
 
-        context("isEnabled 메서드 호출 시") {
-            it("FeatureFlagGroup이 없으면 false를 반환한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val workspaceId = 1
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns null
-
-                // when
-                val result = featureFlagService.isEnabled(feature, workspaceId)
-
-                // then
-                result shouldBe false
-            }
-
-            it("FeatureFlagGroup이 비활성화 상태면 false를 반환한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val workspaceId = 1
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.INACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when
-                val result = featureFlagService.isEnabled(feature, workspaceId)
-
-                // then
-                result shouldBe false
-            }
-
-            it("FeatureFlagGroup이 활성화 상태이고 워크스페이스가 포함되면 true를 반환한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val workspaceId = 1
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = listOf(1, 2, 3),
-                    absolute = null,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when
-                val result = featureFlagService.isEnabled(feature, workspaceId)
-
-                // then
-                result shouldBe true
-            }
-
-            it("FeatureFlagGroup이 활성화 상태이지만 워크스페이스가 포함되지 않으면 false를 반환한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val workspaceId = 4
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = listOf(1, 2, 3),
-                    absolute = null,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when
-                val result = featureFlagService.isEnabled(feature, workspaceId)
-
-                // then
-                result shouldBe false
-            }
-        }
-
-        context("fetchFeatureFlags 메서드 호출 시") {
-            it("워크스페이스에 활성화된 FeatureFlag 목록을 반환한다") {
-                // given
-                val workspaceId = 1
-                val featureFlag1 = FeatureFlag(
+        context("decideFeatureFlagGroup") {
+            it("이미 그룹 존재하면 예외") {
+                val ff = FeatureFlag(
                     _id = 1L,
                     _feature = Feature.AI_SCREENING,
-                    _status = FeatureFlagStatus.ACTIVE,
                     _updatedAt = ZonedDateTime.now(),
                     _createdAt = ZonedDateTime.now()
                 )
-
-                val featureFlag2 = FeatureFlag(
-                    _id = 2L,
-                    _feature = Feature.APPLICANT_EVALUATOR,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlag3 = FeatureFlag(
-                    _id = 3L,
-                    _feature = Feature.LOOP_INTERVIEW,
-                    _status = FeatureFlagStatus.INACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup1 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag1,
+                val existing = FeatureFlagGroup.create(
+                    featureFlag = ff,
+                    status = FeatureFlagStatus.ACTIVE,
                     algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = listOf(1, 2, 3),
+                    specifics = listOf(1),
                     absolute = null,
                     percentage = null
                 )
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(Feature.AI_SCREENING) } returns existing
 
-                val featureFlagGroup2 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag2,
-                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = listOf(4, 5, 6),
-                    absolute = null,
-                    percentage = null
-                )
-
-                val featureFlagGroup3 = FeatureFlagGroup.create(
-                    featureFlag = featureFlag3,
-                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
-                    specifics = listOf(1, 2, 3),
-                    absolute = null,
-                    percentage = null
-                )
-
-                val featureFlagGroups = listOf(featureFlagGroup1, featureFlagGroup2, featureFlagGroup3)
-
-                every { featureFlagGroupRepository.getFeatureFlagGroups() } returns featureFlagGroups
-
-                // when
-                val result = featureFlagService.fetchFeatureFlags(workspaceId)
-
-                // then
-                result.size shouldBe 1
-                result shouldBe listOf(featureFlag1)
-            }
-        }
-
-        context("fetchAvailableFeatureFlagGroup 메서드 호출 시") {
-            it("활성화된 FeatureFlagGroup이 없으면 예외가 발생한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns null
-
-                // when & then
                 shouldThrow<IllegalStateException> {
-                    featureFlagService.fetchAvailableFeatureFlagGroup(feature)
-                }
-            }
-
-            it("FeatureFlagGroup이 비활성화 상태면 예외가 발생한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.INACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when & then
-                shouldThrow<IllegalStateException> {
-                    featureFlagService.fetchAvailableFeatureFlagGroup(feature)
-                }
-            }
-
-            it("활성화된 FeatureFlagGroup이 있으면 반환한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when
-                val result = featureFlagService.fetchAvailableFeatureFlagGroup(feature)
-
-                // then
-                result shouldBe featureFlagGroup
-            }
-        }
-
-        context("decideFeatureFlagGroup 메서드 호출 시") {
-            it("이미 존재하는 Feature에 대해 예외가 발생한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.ACTIVE,
-                    _updatedAt = ZonedDateTime.now(),
-                    _createdAt = ZonedDateTime.now()
-                )
-
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns featureFlagGroup
-
-                // when & then
-                shouldThrow<IllegalStateException> {
-                    featureFlagService.decideFeatureFlagGroup(
-                        feature = feature,
-                        algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
-                        specifics = emptyList(),
+                    service.decideFeatureFlagGroup(
+                        feature = Feature.AI_SCREENING,
+                        status = FeatureFlagStatus.ACTIVE,
+                        algorithm = FeatureFlagAlgorithmOption.SPECIFIC,
+                        specifics = listOf(1),
                         percentage = null,
-                        absolute = 100
+                        absolute = null,
                     )
                 }
             }
 
-            it("존재하지 않는 Feature에 대해 새로운 FeatureFlagGroup을 생성하고 저장한다") {
-                // given
-                val feature = Feature.AI_SCREENING
-                val featureFlag = FeatureFlag(
-                    _id = 1L,
-                    _feature = feature,
-                    _status = FeatureFlagStatus.ACTIVE,
+            it("새 그룹 생성 및 저장") {
+                val ff = FeatureFlag(
+                    _id = 9L,
+                    _feature = Feature.AI_SCREENING,
                     _updatedAt = ZonedDateTime.now(),
                     _createdAt = ZonedDateTime.now()
                 )
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(Feature.AI_SCREENING) } returns null
+                every { featureFlagRepository.getFeatureFlagBy(Feature.AI_SCREENING) } returns ff
+                every { featureFlagGroupRepository.save(any()) } answers { firstArg() }
 
-                val featureFlagGroup = FeatureFlagGroup.create(
-                    featureFlag = featureFlag,
-                    algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    absolute = 100,
-                    percentage = null
-                )
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(feature) } returns null
-                every { featureFlagRepository.getFeatureFlagBy(feature) } returns featureFlag
-                every { featureFlagGroupRepository.save(any()) } returns featureFlagGroup
-
-                // when
-                featureFlagService.decideFeatureFlagGroup(
-                    feature = feature,
+                service.decideFeatureFlagGroup(
+                    feature = Feature.AI_SCREENING,
+                    status = FeatureFlagStatus.ACTIVE,
                     algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
                     specifics = emptyList(),
                     percentage = null,
-                    absolute = 100
+                    absolute = 100,
                 )
 
-                // then
                 verify { featureFlagGroupRepository.save(any()) }
             }
         }
 
-        context("changeFeatureFlagGroupAlgorithm 메서드 호출 시") {
-            it("존재하지 않는 FeatureFlagGroup에 대해 예외가 발생한다") {
-                // given
-                val featureFlagGroupId = 1L
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(featureFlagGroupId) } returns null
-
-                // when & then
-                shouldThrow<NoSuchElementException> {
-                    featureFlagService.changeFeatureFlagGroupAlgorithm(
-                        featureFlagGroupId = featureFlagGroupId,
-                        algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
-                        specifics = emptyList(),
-                        percentage = null,
-                        absolute = 100
-                    )
-                }
+        context("deleteFeatureFlagGroup") {
+            it("없는 그룹이면 예외") {
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(123L) } returns null
+                shouldThrow<NoSuchElementException> { service.deleteFeatureFlagGroup(123L) }
             }
 
-            it("존재하는 FeatureFlagGroup의 알고리즘을 변경하고 저장한다") {
-                // given
-                val featureFlagGroupId = 1L
-                val featureFlagGroup = mockk<FeatureFlagGroup>(relaxed = true)
-
-                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(featureFlagGroupId) } returns featureFlagGroup
-                every { featureFlagGroupRepository.save(featureFlagGroup) } returns featureFlagGroup
-
-                // when
-                featureFlagService.changeFeatureFlagGroupAlgorithm(
-                    featureFlagGroupId = featureFlagGroupId,
-                    algorithm = FeatureFlagAlgorithmOption.ABSOLUTE,
-                    specifics = emptyList(),
-                    percentage = null,
-                    absolute = 100
+            it("존재하면 삭제 호출") {
+                val ff = FeatureFlag(
+                    _id = 1L,
+                    _feature = Feature.AI_SCREENING,
+                    _updatedAt = ZonedDateTime.now(),
+                    _createdAt = ZonedDateTime.now()
                 )
+                val group = FeatureFlagGroup.create(
+                    featureFlag = ff,
+                    status = FeatureFlagStatus.ACTIVE,
+                    algorithmOption = FeatureFlagAlgorithmOption.SPECIFIC,
+                    specifics = listOf(1),
+                    absolute = null,
+                    percentage = null
+                )
+                every { featureFlagGroupRepository.getFeatureFlagGroupOrNullBy(5L) } returns group
+                every { featureFlagGroupRepository.delete(group) } returns Unit
 
-                // then
-                verify { 
-                    featureFlagGroup.changeAlgorithm(
-                        algorithmOption = FeatureFlagAlgorithmOption.ABSOLUTE,
-                        specifics = emptyList(),
-                        percentage = null,
-                        absolute = 100
-                    ) 
-                }
-                verify { featureFlagGroupRepository.save(featureFlagGroup) }
+                service.deleteFeatureFlagGroup(5L)
+
+                verify { featureFlagGroupRepository.delete(group) }
             }
         }
     }

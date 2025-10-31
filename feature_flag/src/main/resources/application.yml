@@ -10,7 +10,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      ddl-auto: create-drop
     properties:
       hibernate:
         format_sql: true
@@ -24,6 +24,11 @@ spring:
       write-dates-as-timestamps: false
     time-zone: Asia/Seoul
 
+logging:
+  level:
+    org:
+      springframework:
+        cache: TRACE
 #  kafka:
 #    bootstrap-servers: localhost:9092,localhost:9093,localhost:9094
 
