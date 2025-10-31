@@ -9,13 +9,18 @@ import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagGroupJpaRepo
 import com.biuea.feature_flag.infrastructure.feature.jpa.FeatureFlagJpaRepository
 import com.biuea.feature_flag.infrastructure.feature.jpa.toDomain
 import com.biuea.feature_flag.infrastructure.feature.jpa.toEntity
+import org.springframework.cache.CacheManager
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.CachePut
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Component
 
 @Component
 class FeatureFlagAdaptor(
     private val featureFlagJpaRepository: FeatureFlagJpaRepository,
-    private val featureFlagGroupJpaRepository: FeatureFlagGroupJpaRepository
+    private val featureFlagGroupJpaRepository: FeatureFlagGroupJpaRepository,
+    private val cacheManager: CacheManager
 ): FeatureFlagRepository, FeatureFlagGroupRepository {
     override fun save(entity: FeatureFlag): FeatureFlag {
         return featureFlagJpaRepository.save(entity.toEntity()).toDomain()
@@ -35,8 +40,23 @@ class FeatureFlagAdaptor(
     }
 
     override fun save(entity: FeatureFlagGroup): FeatureFlagGroup {
-        return featureFlagGroupJpaRepository.save(entity.toEntity())
+        val saved = featureFlagGroupJpaRepository.save(entity.toEntity())
             .toDomain(entity.featureFlag.toEntity())
+
+        updateCache { cachedList ->
+            val mutableList = cachedList.toMutableList()
+            val existingIndex = mutableList.indexOfFirst { it.id == saved.id }
+
+            if (existingIndex >= 0) {
+                mutableList[existingIndex] = saved
+            } else {
+                mutableList.add(saved)
+            }
+
+            mutableList
+        }
+
+        return saved
     }
 
     override fun getFeatureFlagGroupOrNullBy(id: Long): FeatureFlagGroup? {
@@ -52,6 +72,7 @@ class FeatureFlagAdaptor(
             ?.toDomain(featureFlag)
     }
 
+    @Cacheable(cacheNames = ["featureFlagGroups"], key = "'allGroups'")
     override fun getFeatureFlagGroups(): List<FeatureFlagGroup> {
         val featureFlags = featureFlagJpaRepository.findAll().associateBy { it.id }
         return featureFlagGroupJpaRepository.findAll().mapNotNull { entity ->
@@ -62,5 +83,19 @@ class FeatureFlagAdaptor(
 
     override fun delete(entity: FeatureFlagGroup) {
         featureFlagGroupJpaRepository.delete(entity.toEntity())
+
+        updateCache { cachedList -> cachedList.filter { it.id != entity.id } }
+    }
+
+    private fun updateCache(updater: (List<FeatureFlagGroup>) -> List<FeatureFlagGroup>) {
+        val cache = cacheManager.getCache("featureFlagGroups")?: return
+        val cachedList = cache.get("allGroups")?.get() as List<FeatureFlagGroup>
+
+        if (cachedList.isEmpty()) {
+            cache.evict("allGroups")
+        } else {
+            val updatedList = updater(cachedList)
+            cache.put("allGroups", updatedList)
+        }
     }
 }

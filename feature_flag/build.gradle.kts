@@ -1,11 +1,11 @@
 plugins {
     kotlin("jvm") version "1.9.25"
-    kotlin("plugin.jpa") version "2.3.0-Beta1"
-    id("org.springframework.boot") version "3.5.6"
+    kotlin("plugin.jpa") version "1.9.25"
+    id("org.springframework.boot") version "3.3.5"
     id("io.spring.dependency-management") version "1.1.7"
-    id("org.jetbrains.kotlin.plugin.spring") version "2.3.0-Beta1"
-    id("org.jetbrains.kotlin.plugin.noarg") version "2.3.0-Beta1"
-    id("org.jetbrains.kotlin.plugin.allopen") version "2.3.0-Beta1"
+    id("org.jetbrains.kotlin.plugin.spring") version "1.9.25"
+    id("org.jetbrains.kotlin.plugin.noarg") version "1.9.25"
+    id("org.jetbrains.kotlin.plugin.allopen") version "1.9.25"
 }
 
 group = "com.biuea"
@@ -27,6 +27,8 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("mysql:mysql-connector-java:8.0.33")
+    implementation("com.github.ben-manes.caffeine:caffeine:3.2.3")
+    implementation("org.springframework.boot:spring-boot-starter-cache")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
