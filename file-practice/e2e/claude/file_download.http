@@ -1,0 +1,8 @@
+### 동기 엑셀 다운로드
+GET http://localhost:8080/api/claude/download/excel/sync?userId=100&includePrice=true&useLargeDataset=true
+
+### 비동기 엑셀 다운로드
+POST http://localhost:8080/api/claude/download/excel/async?userId=100&includePrice=true&useLargeDataset=true
+
+### 동기 PDF 다운로드
+GET http://localhost:8080/api/claude/download/pdf/sync?userId=100&useLargeDataset=true

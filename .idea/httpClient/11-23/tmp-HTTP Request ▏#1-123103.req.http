@@ -1,0 +1,5 @@
+// Size: 0 B
+### HTTP Request ▏#1
+GET http://localhost:8080/api/claude/download/excel/sync?userId=100&includePrice=true&useLargeDataset=true HTTP/1.1
+Content-Length: 0
+
