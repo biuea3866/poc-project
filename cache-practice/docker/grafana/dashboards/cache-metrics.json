@@ -1,0 +1,77 @@
+{
+  "dashboard": {
+    "title": "Cache Practice Metrics",
+    "panels": [
+      {
+        "id": 1,
+        "title": "Application CPU Usage",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "process_cpu_usage{application=\"cache-practice\"}",
+            "legendFormat": "CPU Usage"
+          }
+        ]
+      },
+      {
+        "id": 2,
+        "title": "Application Memory Usage",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 0
+        },
+        "targets": [
+          {
+            "expr": "jvm_memory_used_bytes{application=\"cache-practice\"}",
+            "legendFormat": "{{area}}"
+          }
+        ]
+      },
+      {
+        "id": 3,
+        "title": "Cache Hit Rate",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 0,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "rate(cache_gets{result=\"hit\"}[1m])",
+            "legendFormat": "Hit Rate"
+          }
+        ]
+      },
+      {
+        "id": 4,
+        "title": "HTTP Request Latency",
+        "type": "graph",
+        "gridPos": {
+          "h": 8,
+          "w": 12,
+          "x": 12,
+          "y": 8
+        },
+        "targets": [
+          {
+            "expr": "http_server_requests_seconds_sum{application=\"cache-practice\"} / http_server_requests_seconds_count{application=\"cache-practice\"}",
+            "legendFormat": "Avg Latency"
+          }
+        ]
+      }
+    ],
+    "schemaVersion": 16,
+    "version": 1
+  }
+}
