@@ -25,6 +25,9 @@ dependencies {
     // Apache POI for Excel
     implementation("org.apache.poi:poi-ooxml:5.2.5")
 
+    // EasyExcel for Excel (Alibaba)
+    implementation("com.alibaba:easyexcel:3.3.4")
+
     // Apache PDFBox for PDF
     implementation("org.apache.pdfbox:pdfbox:2.0.29")
 
@@ -37,6 +40,10 @@ dependencies {
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.1.0")
+
+    // JMH for benchmarking
+    testImplementation("org.openjdk.jmh:jmh-core:1.37")
+    testImplementation("org.openjdk.jmh:jmh-generator-annprocess:1.37")
 }
 
 tasks.withType<KotlinCompile> {
@@ -48,4 +55,8 @@ tasks.withType<KotlinCompile> {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    testLogging {
+        events("passed", "skipped", "failed", "standardOut", "standardError")
+        showStandardStreams = true
+    }
 }
