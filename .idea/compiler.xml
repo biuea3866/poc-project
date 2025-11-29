@@ -2,9 +2,15 @@
 <project version="4">
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="concurrency" options="-parameters" />
+      <module name="concurrency.main" options="-parameters" />
+      <module name="concurrency.test" options="-parameters" />
       <module name="feature_flag" options="-parameters" />
       <module name="feature_flag.main" options="-parameters" />
       <module name="feature_flag.test" options="-parameters" />
+      <module name="file-practice" options="-parameters" />
+      <module name="file-practice.main" options="-parameters" />
+      <module name="file-practice.test" options="-parameters" />
       <module name="flag" options="-parameters" />
       <module name="flag.main" options="-parameters" />
       <module name="flag.test" options="-parameters" />
