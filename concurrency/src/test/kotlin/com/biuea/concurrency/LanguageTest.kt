@@ -13,7 +13,7 @@ import kotlin.time.measureTime
 
 class LanguageTest {
     @Test
-    fun `Not Lock`() {
+    fun `락 없이 실행`() {
         val threadPools = Executors.newFixedThreadPool(100)
         val latch = CountDownLatch(10000)
         val viewPage = ViewPage()
@@ -37,7 +37,7 @@ class LanguageTest {
     }
 
     @Test
-    fun `SynchronizeTest`() {
+    fun `Synchronized 테스트`() {
         val threadPools = Executors.newFixedThreadPool(100)
         val latch = CountDownLatch(10000)
         val synchronized = SynchronizedView()
@@ -60,7 +60,7 @@ class LanguageTest {
     }
 
     @Test
-    fun `ReentrantLockViewTest`() {
+    fun `ReentrantLock 테스트`() {
         val threadPools = Executors.newFixedThreadPool(100)
         val latch = CountDownLatch(10000)
         val reentrantLockView = ReentrantLockView()
@@ -83,7 +83,7 @@ class LanguageTest {
     }
 
     @Test
-    fun `VolatileViewPageTest`() {
+    fun `Volatile 테스트`() {
         val threadPools = Executors.newFixedThreadPool(100)
         val latch = CountDownLatch(10000)
         val volatileViewPage = VolatileViewPage()
@@ -106,7 +106,7 @@ class LanguageTest {
     }
 
     @Test
-    fun `CAS, Synchorized View`() {
+    fun `CAS vs Synchronized 비교`() {
         val threadPools = Executors.newFixedThreadPool(100)
         val latch = CountDownLatch(1_000_000)
         val synchronized = SynchronizedView()
