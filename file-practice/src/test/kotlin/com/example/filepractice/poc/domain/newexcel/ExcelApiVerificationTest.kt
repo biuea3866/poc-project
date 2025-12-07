@@ -28,7 +28,7 @@ class ExcelApiVerificationTest {
         )
 
         // When
-        sheet.createSheet(workbook, data, context)
+        sheet.createSheet(workbook, data.asSequence(), context)
 
         // Save to file
         val file = File("build/api_verification_full.xlsx")
@@ -97,7 +97,7 @@ class ExcelApiVerificationTest {
         )
 
         // When
-        sheet.createSheet(workbook, data, context)
+        sheet.createSheet(workbook, data.asSequence(), context)
 
         // Save to file
         val file = File("build/api_verification_simple.xlsx")
@@ -156,7 +156,7 @@ class ExcelApiVerificationTest {
         )
 
         // When
-        sheet.createSheet(workbook, data, context)
+        sheet.createSheet(workbook, data.asSequence(), context)
 
         // Save to file
         val file = File("build/api_verification_custom.xlsx")

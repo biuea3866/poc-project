@@ -41,7 +41,7 @@ class NewExcelDownloadController {
             )
         )
 
-        sheet.createSheet(workbook, productData, context)
+        sheet.createSheet(workbook, productData.asSequence(), context)
 
         // 파일 생성
         val outputStream = ByteArrayOutputStream()
@@ -75,11 +75,11 @@ class NewExcelDownloadController {
                 HeaderNodeContext("amount", repeat = 1, isVisible = true),
                 HeaderNodeContext("qty", repeat = 1, isVisible = true),
                 HeaderNodeContext("content", repeat = 1, isVisible = false),  // 숨김
-                HeaderNodeContext("images", repeat = 0, isVisible = false)   // 숨김
+                HeaderNodeContext("images", repeat = 3, isVisible = true)   // 숨김
             )
         )
 
-        sheet.createSheet(workbook, productData, context)
+        sheet.createSheet(workbook, productData.asSequence(), context)
 
         val outputStream = ByteArrayOutputStream()
         workbook.write(outputStream)
@@ -122,7 +122,7 @@ class NewExcelDownloadController {
             )
         )
 
-        sheet.createSheet(workbook, productData, context)
+        sheet.createSheet(workbook, productData.asSequence(), context)
 
         val outputStream = ByteArrayOutputStream()
         workbook.write(outputStream)

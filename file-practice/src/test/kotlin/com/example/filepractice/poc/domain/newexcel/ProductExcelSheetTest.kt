@@ -13,7 +13,7 @@ class ProductExcelSheetTest {
         val sheet = ProductExcelSheet()
         val workbook = SXSSFWorkbook()
 
-        val testData = listOf(
+        val testData = sequenceOf(
             ProductExcelData(
                 productId = 1L,
                 productName = "테스트 상품",
