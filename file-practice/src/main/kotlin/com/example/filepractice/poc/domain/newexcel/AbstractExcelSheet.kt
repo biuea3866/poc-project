@@ -42,7 +42,7 @@ abstract class AbstractExcelSheet<T : ExcelData> {
 
     fun createSheet(
         workbook: SXSSFWorkbook,
-        data: List<T>,
+        data: Sequence<T>,
         excelHeaderContext: ExcelHeaderContext
     ) {
         val sheet = workbook.createSheet(getSheetName())
@@ -64,7 +64,7 @@ abstract class AbstractExcelSheet<T : ExcelData> {
 
     protected fun writeData(
         sheet: Sheet,
-        data: List<T>,
+        data: Sequence<T>,
         currentRow: Int = 1
     ) {
         var rowIndex = currentRow
