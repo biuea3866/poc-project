@@ -1,0 +1,14 @@
+*/out
+*/build
+
+# Large log and result files
+*.log
+**/app-log.txt
+**/seed-log.txt
+**/results-*.json
+**/*.log
+
+# Test results
+**/k6-*.log
+**/test-execution.log
+**/seeding.log
