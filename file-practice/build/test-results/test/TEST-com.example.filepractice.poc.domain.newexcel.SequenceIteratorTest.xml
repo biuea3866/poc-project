@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.filepractice.poc.domain.newexcel.SequenceIteratorTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2025-12-07T04:40:14.996Z" hostname="jobongjun-ui-MacBookPro.local" time="0.028">
+  <properties/>
+  <testcase name="Sequence 데이터가 부족할 때 빈 셀 처리 테스트()" classname="com.example.filepractice.poc.domain.newexcel.SequenceIteratorTest" time="0.014"/>
+  <testcase name="Sequence를 사용한 엑셀 생성 테스트()" classname="com.example.filepractice.poc.domain.newexcel.SequenceIteratorTest" time="0.014"/>
+  <system-out><![CDATA[✅ Sequence 데이터 부족 시 빈 셀 처리 성공
+✅ Sequence를 사용한 엑셀 생성 성공
+   - 이미지 데이터: Sequence로 처리
+   - 댓글 데이터: Sequence로 처리
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

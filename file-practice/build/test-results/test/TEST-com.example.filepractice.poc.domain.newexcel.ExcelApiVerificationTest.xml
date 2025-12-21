@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="com.example.filepractice.poc.domain.newexcel.ExcelApiVerificationTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2025-12-07T04:40:13.785Z" hostname="jobongjun-ui-MacBookPro.local" time="1.138">
+  <properties/>
+  <testcase name="엑셀 파일 구조 검증 - Custom (images repeat=2)()" classname="com.example.filepractice.poc.domain.newexcel.ExcelApiVerificationTest" time="1.044"/>
+  <testcase name="엑셀 파일 구조 검증 - Full()" classname="com.example.filepractice.poc.domain.newexcel.ExcelApiVerificationTest" time="0.051"/>
+  <testcase name="엑셀 파일 구조 검증 - Simple()" classname="com.example.filepractice.poc.domain.newexcel.ExcelApiVerificationTest" time="0.042"/>
+  <system-out><![CDATA[
+=== Custom Excel (images repeat=2, with content) ===
+Total columns: 51
+✅ Expected columns: 51, Actual: 51
+
+=== Full Excel (images repeat=3, comments repeat=10) ===
+Total columns: 74
+  [0] 상품 ID
+  [1] 상품명
+  [2] 상품 가격
+  [3] 상품 갯수
+  [4] 상품 내역
+  [5] 상품 이미지 1 - ID
+  [6] 상품 이미지 1 - 이름
+  [7] 상품 이미지 1 - 크기
+  [8] 댓글 1 - ID
+  [9] 댓글 1 - 내용
+  [10] 댓글 2 - ID
+  [11] 댓글 2 - 내용
+  [12] 댓글 3 - ID
+  [13] 댓글 3 - 내용
+  [14] 댓글 4 - ID
+  [15] 댓글 4 - 내용
+  [16] 댓글 5 - ID
+  [17] 댓글 5 - 내용
+  [18] 댓글 6 - ID
+  [19] 댓글 6 - 내용
+  [20] 댓글 7 - ID
+  [21] 댓글 7 - 내용
+  [22] 댓글 8 - ID
+  [23] 댓글 8 - 내용
+  [24] 댓글 9 - ID
+  [25] 댓글 9 - 내용
+  [26] 댓글 10 - ID
+  [27] 댓글 10 - 내용
+  [28] 상품 이미지 2 - ID
+  [29] 상품 이미지 2 - 이름
+  [30] 상품 이미지 2 - 크기
+  [31] 댓글 1 - ID
+  [32] 댓글 1 - 내용
+  [33] 댓글 2 - ID
+  [34] 댓글 2 - 내용
+  [35] 댓글 3 - ID
+  [36] 댓글 3 - 내용
+  [37] 댓글 4 - ID
+  [38] 댓글 4 - 내용
+  [39] 댓글 5 - ID
+  [40] 댓글 5 - 내용
+  [41] 댓글 6 - ID
+  [42] 댓글 6 - 내용
+  [43] 댓글 7 - ID
+  [44] 댓글 7 - 내용
+  [45] 댓글 8 - ID
+  [46] 댓글 8 - 내용
+  [47] 댓글 9 - ID
+  [48] 댓글 9 - 내용
+  [49] 댓글 10 - ID
+  [50] 댓글 10 - 내용
+  [51] 상품 이미지 3 - ID
+  [52] 상품 이미지 3 - 이름
+  [53] 상품 이미지 3 - 크기
+  [54] 댓글 1 - ID
+  [55] 댓글 1 - 내용
+  [56] 댓글 2 - ID
+  [57] 댓글 2 - 내용
+  [58] 댓글 3 - ID
+  [59] 댓글 3 - 내용
+  [60] 댓글 4 - ID
+  [61] 댓글 4 - 내용
+  [62] 댓글 5 - ID
+  [63] 댓글 5 - 내용
+  [64] 댓글 6 - ID
+  [65] 댓글 6 - 내용
+  [66] 댓글 7 - ID
+  [67] 댓글 7 - 내용
+  [68] 댓글 8 - ID
+  [69] 댓글 8 - 내용
+  [70] 댓글 9 - ID
+  [71] 댓글 9 - 내용
+  [72] 댓글 10 - ID
+  [73] 댓글 10 - 내용
+
+Image/Comment related headers: 69
+✅ Expected columns: 74, Actual: 74
+
+=== Simple Excel (no images, no content) ===
+Total columns: 4
+  [0] 상품 ID
+  [1] 상품명
+  [2] 상품 가격
+  [3] 상품 갯수
+✅ Simple Excel verified: 4 columns
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

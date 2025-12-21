@@ -1,39 +1,25 @@
 spring:
   application:
     name: cache-practice
+  profiles:
+    active: caffeine  # 기본 프로파일: caffeine, ehcache 중 선택
 
-  datasource:
-    url: jdbc:mysql://localhost:3308/cache_practice?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
-    username: root
-    password: password
-    driver-class-name: com.mysql.cj.jdbc.Driver
-    hikari:
-      maximum-pool-size: 10
-      minimum-idle: 5
-
-  jpa:
-    hibernate:
-      ddl-auto: update
-    show-sql: false
-    properties:
-      hibernate:
-        format_sql: true
-        dialect: org.hibernate.dialect.MySQLDialect
-
-  cache:
-    type: caffeine
-    caffeine:
-      spec: maximumSize=10000,expireAfterWrite=60s
+# 공통 설정은 불필요하므로 제거 (인메모리 Repository 사용)
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,metrics,prometheus,caches
+  endpoint:
+    health:
+      show-details: always
   metrics:
     export:
       prometheus:
         enabled: true
+    enable:
+      cache: true  # 캐시 메트릭 활성화
     tags:
       application: ${spring.application.name}
 
@@ -43,4 +29,35 @@ server:
 logging:
   level:
     com.example.cachepractice: INFO
-    org.hibernate.SQL: DEBUG
+    org.springframework.cache: DEBUG
+
+---
+# Caffeine 프로파일
+spring:
+  config:
+    activate:
+      on-profile: caffeine
+  cache:
+    type: caffeine
+    cache-names: products,productList
+
+logging:
+  level:
+    com.example.cachepractice: INFO
+    com.github.benmanes.caffeine: DEBUG
+
+---
+# EHCache 프로파일
+spring:
+  config:
+    activate:
+      on-profile: ehcache
+  cache:
+    type: jcache
+    jcache:
+      config: classpath:ehcache.xml
+
+logging:
+  level:
+    com.example.cachepractice: INFO
+    org.ehcache: DEBUG

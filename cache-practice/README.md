@@ -1,177 +1,196 @@
-# Cache Practice Project
+# Spring 로컬 캐시 실습 프로젝트
 
-Spring Boot 로컬 캐시(Caffeine) 성능 비교 프로젝트
+Spring Boot에서 로컬 캐시를 효과적으로 사용하는 방법을 시연하는 프로젝트입니다.
 
-## 프로젝트 개요
+## 주요 특징
 
-이 프로젝트는 Caffeine 캐시를 활용한 두 가지 캐시 전략의 성능을 비교합니다:
-- **Lazy Loading**: Write/Read 패턴으로 점진적으로 캐시 구축
-- **Eager Loading**: 애플리케이션 부트 시 전체 데이터 캐시 로드 (TTL 1분)
+### 1. 두 가지 캐시 구현 비교
+- **Caffeine**: Window TinyLfu 알고리즘, 고성능
+- **EHCache**: JSR-107 표준, 다양한 메모리 계층 지원
 
-## 기술 스택
+### 2. 다양한 캐싱 전략 구현
+- **Look Aside + Write Around**: 읽기 중심 워크로드에 적합
+- **Read Through + Write Around**: 캐시 중심 설계
+- **Read Through + Write Through**: 강한 일관성 필요 시
 
-- Kotlin + Spring Boot 3.2.0
-- Caffeine Cache
-- MySQL 8.0
-- Prometheus + Grafana
-- k6 (부하 테스트)
+### 3. 캐싱 문제 해결 (5가지 방법)
+- **캐시 스템피드 해결**:
+  - Lock (Caffeine 자동 잠금)
+  - 조기 갱신 (Scheduled Early Refresh)
+  - PER (Probabilistic Early Recomputation)
+- **캐시 관통 해결**:
+  - 빈 값 캐싱 (센티널 객체)
+  - 블룸 필터 (Bloom Filter)
 
-## 프로젝트 구조
+### 4. 모니터링
+- Spring Actuator를 통한 캐시 메트릭
+- Prometheus 엔드포인트 제공
+- 각 전략별 통계 API
 
-```
-cache-practice/
-├── src/main/kotlin/com/example/cachepractice/
-│   ├── domain/              # Order, OrderItem 엔티티
-│   ├── service/             # Lazy/Eager 캐시 서비스
-│   ├── controller/          # REST API 컨트롤러
-│   └── config/              # 캐시 설정
-├── docker/
-│   ├── prometheus/          # Prometheus 설정
-│   └── grafana/             # Grafana 대시보드
-├── k6/                      # 부하 테스트 스크립트
-└── docker-compose.yml
-```
+## 빠른 시작
 
-## 시작하기
-
-### 1. 인프라 시작
-
+### 1. 빌드 및 테스트
 ```bash
-cd cache-practice
-docker-compose up -d
+./gradlew clean build
 ```
 
-이 명령어는 다음을 시작합니다:
-- MySQL (포트 3306)
-- Prometheus (포트 9090)
-- Grafana (포트 3000)
+### 2. 애플리케이션 실행
 
-### 2. 데이터베이스 시드 (100만 건)
-
-```bash
-./gradlew bootRun --args='--spring.profiles.active=seed'
-```
-
-주의: 100만 건의 데이터를 생성하는 데 시간이 걸립니다 (약 10-30분).
-
-### 3. 애플리케이션 실행
-
+#### Caffeine 사용 (기본)
 ```bash
 ./gradlew bootRun
 ```
 
-애플리케이션이 시작되면 Eager Loading 서비스가 자동으로 모든 주문을 캐시에 로드합니다.
+#### EHCache 사용
+```bash
+./gradlew bootRun --args='--spring.profiles.active=ehcache'
+```
 
 ## API 엔드포인트
 
-### Lazy Loading (점진적 캐시)
-- `GET /api/orders/lazy/{id}` - 캐시 사용
-- `GET /api/orders/lazy/no-cache/{id}` - 캐시 미사용
+### 기본 CRUD (기존)
 
-### Eager Loading (부트 시 로딩)
-- `GET /api/orders/eager/{id}` - 캐시 사용 (TTL 1분)
-- `GET /api/orders/eager/no-cache/{id}` - 캐시 미사용
+```bash
+# 제품 조회
+curl http://localhost:8080/api/products/1
+
+# 캐시 스템피드 방지 테스트
+curl http://localhost:8080/api/products/stampede-test/1
+
+# 캐시 통계 조회
+curl http://localhost:8080/api/products/cache/stats
+```
+
+### 캐시 전략별 API
+
+```bash
+# 1. Look Aside + Write Around
+curl http://localhost:8080/api/strategy/look-aside-write-around/1
+curl -X POST http://localhost:8080/api/strategy/look-aside-write-around \
+  -H "Content-Type: application/json" \
+  -d '{"id": 10, "name": "Product", "price": 99.99}'
+
+# 2. Read Through + Write Around
+curl http://localhost:8080/api/strategy/read-through-write-around/1
+curl http://localhost:8080/api/strategy/read-through-write-around/stats
+
+# 3. Read Through + Write Through
+curl http://localhost:8080/api/strategy/read-through-write-through/1
+curl http://localhost:8080/api/strategy/read-through-write-through/stats
+```
+
+### 캐시 문제 해결 API
+
+```bash
+# 조기 갱신 (Early Refresh)
+curl http://localhost:8080/api/problem/early-refresh/1
+curl -X POST http://localhost:8080/api/problem/early-refresh/hotkey/1
+curl http://localhost:8080/api/problem/early-refresh/stats
+
+# PER (Probabilistic Early Recomputation)
+curl http://localhost:8080/api/problem/per/1?beta=1.0
+curl -X POST http://localhost:8080/api/problem/per/test-beta/1
+curl http://localhost:8080/api/problem/per/stats
+
+# 블룸 필터 (Bloom Filter)
+curl http://localhost:8080/api/problem/bloom-filter/1
+curl http://localhost:8080/api/problem/bloom-filter/9999  # 없는 ID (차단됨)
+curl http://localhost:8080/api/problem/bloom-filter/stats
+```
 
 ### 모니터링
-- `GET /actuator/prometheus` - Prometheus 메트릭
-- `GET /actuator/health` - 헬스 체크
 
-## 부하 테스트 실행
-
-k6가 설치되어 있어야 합니다: https://k6.io/docs/getting-started/installation/
-
-### 1. 캐시 없이 테스트
 ```bash
-k6 run k6/test-no-cache.js
+# 애플리케이션 상태
+curl http://localhost:8080/actuator/health
+
+# 캐시 정보
+curl http://localhost:8080/actuator/caches
+
+# Prometheus 메트릭
+curl http://localhost:8080/actuator/prometheus
 ```
 
-### 2. Lazy Loading 캐시 테스트
-```bash
-k6 run k6/test-lazy-cache.js
+## 프로젝트 구조
+
+```
+src/main/kotlin/com/example/cachepractice/
+├── config/
+│   ├── CaffeineCacheConfig.kt              # Caffeine 설정
+│   └── EHCacheConfig.kt                    # EHCache 설정
+├── controller/
+│   ├── ProductController.kt                # 기본 REST API
+│   └── CacheStrategyController.kt          # 전략/문제해결 API
+├── domain/
+│   └── Product.kt                          # 도메인 모델
+├── repository/
+│   └── ProductRepository.kt                # 인메모리 저장소
+├── service/
+│   ├── ProductService.kt                   # 기본 캐시 서비스
+│   ├── CaffeineDirectService.kt            # Caffeine 직접 사용
+│   ├── strategy/                           # 캐시 전략
+│   │   ├── LookAsideWriteAroundService.kt
+│   │   ├── ReadThroughWriteAroundService.kt
+│   │   └── ReadThroughWriteThroughService.kt
+│   └── problem/                            # 문제 해결
+│       ├── EarlyRefreshService.kt          # 조기 갱신
+│       ├── ProbabilisticEarlyRecomputationService.kt  # PER
+│       └── BloomFilterService.kt           # 블룸 필터
+
+src/test/kotlin/com/example/cachepractice/
+└── service/
+    ├── ProductServiceTest.kt               # 캐시 동작 테스트
+    └── CacheStampedeTest.kt                # 스템피드 테스트
 ```
 
-### 3. Eager Loading 캐시 테스트 (2분 동안 실행)
+## 테스트 실행
+
 ```bash
-k6 run k6/test-eager-cache.js
+# 전체 테스트
+./gradlew test
+
+# 특정 테스트
+./gradlew test --tests ProductServiceTest
+./gradlew test --tests CacheStampedeTest
 ```
 
-이 테스트는 2분 동안 실행되며, 1분 후 TTL이 만료되어 cache penetration이 발생합니다.
+## 학습 포인트
 
-## 모니터링
+1. **캐싱 전략**: Look Aside, Write Through, Invalidate
+2. **캐시 스템피드**: 동시성 문제와 해결
+3. **캐시 관통**: 존재하지 않는 데이터 처리
+4. **Caffeine vs EHCache**: 각 구현의 장단점
+5. **모니터링**: Actuator를 통한 성능 추적
 
-### Grafana 대시보드
+## 성능 예시
 
-1. 브라우저에서 http://localhost:3000 접속
-2. 로그인: admin / admin
-3. "Cache Practice Metrics" 대시보드 확인
+### 캐시 적중 vs 미스
+- 첫 번째 조회 (캐시 미스): ~105ms
+- 두 번째 조회 (캐시 적중): ~1ms
+- **성능 향상: 약 100배**
 
-### 주요 메트릭
+### 캐시 스템피드 방지
+- 스템피드 방지 없음: 10번 DB 조회 (~1000ms)
+- Caffeine 방지: 1번 DB 조회 (~120ms)
+- **성능 향상: 약 8배**
 
-- **Application CPU Usage**: 애플리케이션 CPU 사용률
-- **Application Memory Usage**: JVM 메모리 사용량
-- **Cache Hit Rate**: 캐시 히트율
-- **HTTP Request Latency**: API 응답 시간
+## 참고 문서
 
-### Prometheus
+자세한 내용은 [CACHE_GUIDE.md](CACHE_GUIDE.md)를 참고하세요.
 
-- 브라우저에서 http://localhost:9090 접속
-- 직접 쿼리로 메트릭 확인 가능
+## 기술 스택
 
-## 성능 비교 시나리오
+- Kotlin 1.9.21
+- Spring Boot 3.2.0
+- Caffeine 3.1.8
+- EHCache 3.10.8
+- Spring Actuator + Prometheus
 
-### 시나리오 1: 캐시 없음 vs Lazy Loading
-1. 캐시 없는 상태로 부하 테스트 실행
-2. Grafana에서 CPU, 메모리, 지연시간 기록
-3. Lazy Loading 캐시로 부하 테스트 실행
-4. 메트릭 비교
+## 요구사항
 
-### 시나리오 2: Lazy Loading vs Eager Loading
-1. Lazy Loading으로 부하 테스트
-2. 애플리케이션 재시작 (Eager Loading 활성화)
-3. 2분 동안 부하 테스트 (1분 후 TTL 만료 관찰)
-4. Cache penetration 발생 시 메트릭 변화 확인
+- JDK 17 이상
+- Gradle 8.x
 
-## 캐시 전략 상세
+## 라이선스
 
-### Lazy Loading (Write/Read Pattern)
-- 첫 요청 시 DB에서 조회 후 캐시에 저장
-- 이후 동일 요청은 캐시에서 반환
-- 장점: 필요한 데이터만 캐시, 메모리 효율적
-- 단점: 첫 요청은 느림 (Cache warming 필요)
-
-### Eager Loading (Boot-time Loading)
-- 애플리케이션 시작 시 모든 데이터 캐시 로드
-- TTL 1분 후 전체 캐시 만료
-- 장점: 모든 요청이 빠름
-- 단점: 메모리 사용량 높음, Cache penetration 위험
-
-## 트러블슈팅
-
-### MySQL 연결 실패
-```bash
-# MySQL 컨테이너 로그 확인
-docker logs cache-practice-mysql
-
-# MySQL 재시작
-docker-compose restart mysql
-```
-
-### 메모리 부족
-100만 건 데이터와 Eager Loading은 많은 메모리를 사용합니다.
-JVM 힙 크기 조정:
-```bash
-./gradlew bootRun -Dspring-boot.run.jvmArguments="-Xmx4g"
-```
-
-### Grafana 대시보드가 보이지 않음
-```bash
-# Grafana 재시작
-docker-compose restart grafana
-```
-
-## 참고사항
-
-- 데이터 시드는 한 번만 실행하면 됩니다
-- Eager Loading은 시작 시간이 오래 걸릴 수 있습니다
-- k6 테스트 결과는 콘솔에 출력됩니다
-- 성능 비교 결과는 PERFORMANCE_REPORT.md에 기록하세요
+MIT License
