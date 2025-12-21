@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="com.example.filepractice.service.ExcelServiceTest" tests="2" skipped="0" failures="0" errors="0" timestamp="2025-11-22T08:32:18.033Z" hostname="jobongjun-ui-MacBookPro.local" time="0.747">
-  <properties/>
-  <testcase name="모든 열을 선택했을 때 엑셀 파일이 정상적으로 생성되는지 테스트()" classname="com.example.filepractice.service.ExcelServiceTest" time="0.74"/>
-  <testcase name="일부 열만 선택했을 때 엑셀 파일이 정상적으로 생성되는지 테스트()" classname="com.example.filepractice.service.ExcelServiceTest" time="0.006"/>
-  <system-out><![CDATA[]]></system-out>
-  <system-err><![CDATA[]]></system-err>
-</testsuite>
