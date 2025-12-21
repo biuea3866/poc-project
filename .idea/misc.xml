@@ -2,6 +2,7 @@
 <project version="4">
   <component name="ExternalStorageConfigurationManager" enabled="true" />
   <component name="FrameworkDetectionExcludesConfiguration">
+    <file type="web" url="file://$PROJECT_DIR$/concurrency" />
     <file type="web" url="file://$PROJECT_DIR$/feature_flag" />
     <file type="web" url="file://$PROJECT_DIR$/file-practice" />
     <file type="web" url="file://$PROJECT_DIR$/flag_speckit/backend" />
