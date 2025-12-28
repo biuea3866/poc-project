@@ -1,0 +1,38 @@
+spring:
+  datasource:
+    url: jdbc:mysql://127.0.0.1:3306/cache_practice?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
+    username: cache_user
+    password: cache_password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      connection-timeout: 10000
+      maximum-pool-size: 5
+      minimum-idle: 1
+      max-lifetime: 60000
+  jpa:
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+        jdbc:
+          time_zone: UTC
+    show-sql: false
+  data:
+    redis:
+      host: 127.0.0.1
+      port: 6379
+      timeout: 3000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+
+# Redisson 설정
+redisson:
+  address: redis://127.0.0.1:6379
+  connectionPoolSize: 8
+  connectionMinimumIdleSize: 2
+  timeout: 3000

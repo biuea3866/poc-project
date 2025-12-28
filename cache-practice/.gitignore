@@ -36,4 +36,12 @@ out/
 ### VS Code ###
 .vscode/
 
+### Docker ###
+.env
+docker/mysql/data/
+docker/redis/data/
+
+### Logs ###
+*.log
+
 *.json
