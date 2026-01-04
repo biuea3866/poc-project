@@ -13,10 +13,6 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
-        <option name="externalProjectPath" value="$PROJECT_DIR$/excel" />
-        <option name="gradleJvm" value="#JAVA_HOME" />
-      </GradleProjectSettings>
-      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/concurrency" />
         <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
@@ -24,6 +20,10 @@
             <option value="$PROJECT_DIR$/concurrency" />
           </set>
         </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/excel" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
       </GradleProjectSettings>
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/feature_flag" />
@@ -49,6 +49,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/flag_speckit/backend" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/kotlin-practice" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/kotlin-practice" />
           </set>
         </option>
       </GradleProjectSettings>
