@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>카카오페이 결제 (Mock)</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #fee500;
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .container {
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+      max-width: 400px;
+      width: 100%;
+      overflow: hidden;
+    }
+    .header {
+      background: #3c1e1e;
+      color: white;
+      padding: 24px;
+      text-align: center;
+    }
+    .header h2 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 8px;
+    }
+    .logo {
+      font-size: 32px;
+      margin-bottom: 8px;
+    }
+    .badge {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 12px;
+      display: inline-block;
+    }
+    .payment-info {
+      padding: 24px;
+    }
+    .info-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 0;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    .info-row:last-child {
+      border-bottom: none;
+    }
+    .info-label {
+      color: #666;
+      font-size: 14px;
+    }
+    .info-value {
+      color: #333;
+      font-size: 14px;
+      font-weight: 500;
+    }
+    .amount {
+      font-size: 28px;
+      font-weight: bold;
+      color: #fee500;
+      text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);
+    }
+    .buttons {
+      padding: 0 24px 24px;
+      display: flex;
+      gap: 12px;
+    }
+    button {
+      flex: 1;
+      padding: 16px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pay-btn {
+      background: #fee500;
+      color: #3c1e1e;
+    }
+    .pay-btn:hover {
+      background: #fada0a;
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(254, 229, 0, 0.3);
+    }
+    .cancel-btn {
+      background: #f5f5f5;
+      color: #666;
+    }
+    .cancel-btn:hover {
+      background: #e0e0e0;
+    }
+    .footer {
+      padding: 16px 24px;
+      background: #f9f9f9;
+      text-align: center;
+      font-size: 12px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <div class="logo">💬</div>
+      <h2>카카오페이 Mock 결제창</h2>
+      <span class="badge">테스트 환경</span>
+    </div>
+
+    <div class="payment-info">
+      <div class="info-row">
+        <span class="info-label">TID</span>
+        <span class="info-value"><%= tid %></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">주문번호</span>
+        <span class="info-value"><%= orderId %></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">상품명</span>
+        <span class="info-value"><%= orderName %></span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">결제금액</span>
+        <span class="amount"><%= amount.toLocaleString() %>원</span>
+      </div>
+    </div>
+
+    <div class="buttons">
+      <button class="cancel-btn" onclick="cancel()">취소</button>
+      <button class="pay-btn" onclick="pay()">결제하기</button>
+    </div>
+
+    <div class="footer">
+      Mock PG Server v1.0 | Port 8081
+    </div>
+  </div>
+
+  <script>
+    function pay() {
+      const approvalUrl = '<%= approvalUrl %>';
+      const pgToken = 'mock_pg_token_' + Date.now();
+
+      // Store pg_token in the server (simulated via localStorage for mock)
+      localStorage.setItem('pg_token_<%= tid %>', pgToken);
+
+      const params = new URLSearchParams({
+        pg_token: pgToken
+      });
+      window.location.href = `${approvalUrl}?${params.toString()}`;
+    }
+
+    function cancel() {
+      const cancelUrl = '<%= cancelUrl %>';
+      const params = new URLSearchParams({
+        code: '-781',
+        message: '사용자가 결제를 취소했습니다'
+      });
+      window.location.href = `${cancelUrl}?${params.toString()}`;
+    }
+  </script>
+</body>
+</html>

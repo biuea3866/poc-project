@@ -1,5 +1,7 @@
-*/out
-*/build
+**/out
+**/build
+.gradle/
+**/.gradle/
 
 # Large log and result files
 *.log

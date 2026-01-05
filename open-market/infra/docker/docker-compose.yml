@@ -1,0 +1,194 @@
+version: '3.8'
+
+services:
+  # ==================== Database ====================
+  mysql:
+    image: mysql:8.0
+    container_name: openmarket-mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: openmarket
+      MYSQL_USER: openmarket
+      MYSQL_PASSWORD: openmarket
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./init/mysql:/docker-entrypoint-initdb.d
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== Cache ====================
+  redis:
+    image: redis:7.0-alpine
+    container_name: openmarket-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # ==================== Message Queue ====================
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.5.0
+    container_name: openmarket-zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:7.5.0
+    container_name: openmarket-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
+    depends_on:
+      - zookeeper
+    healthcheck:
+      test: ["CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:9092"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
+
+  kafka-ui:
+    image: provectuslabs/kafka-ui:latest
+    container_name: openmarket-kafka-ui
+    ports:
+      - "8090:8080"
+    environment:
+      KAFKA_CLUSTERS_0_NAME: local
+      KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:9092
+      KAFKA_CLUSTERS_0_ZOOKEEPER: zookeeper:2181
+    depends_on:
+      - kafka
+
+  # ==================== Search ====================
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: openmarket-elasticsearch
+    ports:
+      - "9200:9200"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    volumes:
+      - es_data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.11.0
+    container_name: openmarket-kibana
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+    depends_on:
+      - elasticsearch
+
+  # ==================== Pinpoint APM ====================
+  pinpoint-hbase:
+    image: pinpointdocker/pinpoint-hbase:2.5.2
+    container_name: openmarket-pinpoint-hbase
+    volumes:
+      - hbase_data:/home/pinpoint/hbase
+      - zookeeper_data:/home/pinpoint/zookeeper
+    expose:
+      - "16010"
+      - "2181"
+
+  pinpoint-collector:
+    image: pinpointdocker/pinpoint-collector:2.5.2
+    container_name: openmarket-pinpoint-collector
+    ports:
+      - "9991:9991/tcp"
+      - "9992:9992/tcp"
+      - "9993:9993/tcp"
+      - "9994:9994/tcp"
+      - "9995:9995/udp"
+      - "9996:9996/udp"
+    environment:
+      - SPRING_PROFILES_ACTIVE=release
+      - PINPOINT_ZOOKEEPER_ADDRESS=pinpoint-hbase
+      - CLUSTER_ENABLE=true
+      - LOGGING_LEVEL_ROOT=INFO
+      - FLINK_CLUSTER_ENABLE=false
+    depends_on:
+      - pinpoint-hbase
+    restart: unless-stopped
+
+  pinpoint-web:
+    image: pinpointdocker/pinpoint-web:2.5.2
+    container_name: openmarket-pinpoint-web
+    ports:
+      - "8079:8079"
+    environment:
+      - SPRING_PROFILES_ACTIVE=release
+      - PINPOINT_ZOOKEEPER_ADDRESS=pinpoint-hbase
+      - CLUSTER_ENABLE=true
+      - ADMIN_PASSWORD=admin
+      - ANALYTICS_ENABLE=false
+      - WEBHOOK_ENABLE=false
+      - ALARM_MAIL_ENABLE=false
+      - ALARM_MAIL_SMTP_HOST=
+      - ALARM_MAIL_SMTP_PORT=587
+      - ALARM_MAIL_SMTP_USERNAME=
+      - ALARM_MAIL_SMTP_PASSWORD=
+      - ALARM_MAIL_FROM_ADDRESS=
+      - ALARM_MAIL_SERVER_URL=http://localhost:8079
+    depends_on:
+      - pinpoint-hbase
+      - pinpoint-collector
+    restart: unless-stopped
+
+  # ==================== Mock Servers ====================
+  pg-mock:
+    build:
+      context: ../../mock-servers/pg-mock
+      dockerfile: Dockerfile
+    container_name: openmarket-pg-mock
+    ports:
+      - "8081:8081"
+    profiles:
+      - mock
+
+  channel-mock:
+    build:
+      context: ../../mock-servers/channel-mock
+      dockerfile: Dockerfile
+    container_name: openmarket-channel-mock
+    ports:
+      - "8082:8082"
+    profiles:
+      - mock
+
+volumes:
+  mysql_data:
+  redis_data:
+  es_data:
+  hbase_data:
+  zookeeper_data:
+
+networks:
+  default:
+    name: openmarket-network
