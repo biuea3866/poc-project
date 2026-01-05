@@ -382,6 +382,80 @@ sequenceDiagram
 2. **스레드 전환**: 비동기 작업 중 스레드가 변경되면 트랜잭션 컨텍스트가 유실됩니다.
 3. **트랜잭션 경계 불명확**: 비동기 작업의 시작과 종료 시점이 명확하지 않아 트랜잭션 범위 설정이 어렵습니다.
 
+### 코루틴에서의 트랜잭션 주의점
+* **suspend = 안전 보장 아님**: `suspend` 함수라도 `withContext(Dispatchers.IO)` 등으로 스레드 전환이 발생하면 ThreadLocal 기반 트랜잭션이 깨질 수 있습니다.
+* **컨텍스트 전파 필요**: 트랜잭션을 코루틴 컨텍스트로 명시적으로 전파하지 않으면 자식 코루틴에서 트랜잭션을 찾지 못합니다.
+* **병렬 분기 금지**: 하나의 트랜잭션에서 `launch/async`로 병렬 분기를 하면 커밋 시점과 실패 전파가 불명확해집니다.
+* **경계 불명확**: 코루틴이 비동기로 길게 살아 있으면 롱 트랜잭션이 되기 쉽습니다.
+
+```kotlin
+// CoroutineContext로 트랜잭션 전파 (ThreadLocal 의존 최소화)
+class TransactionElement(val tx: TransactionContext) : CoroutineContext.Element {
+    companion object Key : CoroutineContext.Key<TransactionElement>
+    override val key: CoroutineContext.Key<*> = Key
+}
+
+suspend fun <T> withTransaction(tx: TransactionContext, block: suspend () -> T): T {
+    return withContext(TransactionElement(tx)) { block() }
+}
+```
+
+### 버추얼 스레드에서의 트랜잭션 주의점
+* **ThreadLocal은 스레드 단위**: 부모 버추얼 스레드의 ThreadLocal은 자식 버추얼 스레드에 자동 전파되지 않습니다.
+* **분기 시 트랜잭션 분리**: 새로운 버추얼 스레드를 만들면 별도 트랜잭션으로 취급해야 안전합니다.
+* **트랜잭션 경계 유지**: 동일 트랜잭션을 유지하려면 같은 버추얼 스레드 내에서 작업을 마무리해야 합니다.
+* **Pinning 가능성**: `synchronized` 등으로 캐리어 스레드가 고정되면 동시성이 떨어지고 롱 트랜잭션이 생길 수 있습니다.
+
+### 예제 코드
+
+#### 코루틴 - 잘못된 패턴 (ThreadLocal 유실)
+```kotlin
+@Transactional
+suspend fun updateUserBad(userId: Long) {
+    // 스레드 전환으로 ThreadLocal 트랜잭션이 끊길 수 있음
+    withContext(Dispatchers.IO) {
+        userRepository.updateStatus(userId, "ACTIVE")
+    }
+}
+```
+
+#### 코루틴 - 권장 패턴 (경계 명확화)
+```kotlin
+@Transactional
+suspend fun updateUserGood(userId: Long) = coroutineScope {
+    userRepository.updateStatus(userId, "ACTIVE")
+    // 트랜잭션 외부 비동기 작업
+    launch {
+        notificationService.send(userId)
+    }
+}
+```
+
+#### 버추얼 스레드 - 잘못된 패턴 (ThreadLocal 전파 안 됨)
+```kotlin
+@Transactional
+fun updateOrderBad(orderId: Long) {
+    Thread.startVirtualThread {
+        // 새로운 버추얼 스레드로 분기하면서 트랜잭션 컨텍스트가 없음
+        orderRepository.markPaid(orderId)
+    }.join()
+}
+```
+
+#### 버추얼 스레드 - 권장 패턴 (같은 스레드에서 완료)
+```kotlin
+@Transactional
+fun updateOrderGood(orderId: Long) {
+    // 트랜잭션 경계 안에서 처리
+    orderRepository.markPaid(orderId)
+    orderRepository.appendHistory(orderId, "PAID")
+}
+```
+
+#### 관련 예제/테스트 코드
+- 예제: `kotlin-practice/src/main/kotlin/com/biuea/kotlinpractice/async/AsyncTransactionExamples.kt`
+- 테스트: `kotlin-practice/src/test/kotlin/com/biuea/kotlinpractice/AsyncTransactionExamplesTest.kt`
+
 ### 해결 방안
 
 #### 1. 코루틴 - TransactionContext 전파
@@ -477,42 +551,6 @@ suspend fun processData() = coroutineScope {
     transactional {
         save(data1.await())
         save(data2.await())
-    }
-}
-```
-
-#### 패턴 3: 보상 트랜잭션
-```mermaid
-stateDiagram-v2
-    [*] --> Step1
-    Step1 --> Step2: 성공
-    Step2 --> Step3: 성공
-    Step3 --> [*]: 성공
-
-    Step1 --> Compensate1: 실패
-    Step2 --> Compensate2: 실패
-    Step3 --> Compensate3: 실패
-
-    Compensate1 --> [*]
-    Compensate2 --> Compensate1
-    Compensate3 --> Compensate2
-```
-
-```kotlin
-// Saga 패턴 적용
-suspend fun distributedTransaction() {
-    val completedSteps = mutableListOf<String>()
-
-    try {
-        step1().also { completedSteps.add("step1") }
-        step2().also { completedSteps.add("step2") }
-        step3().also { completedSteps.add("step3") }
-    } catch (e: Exception) {
-        // 보상 트랜잭션 실행
-        completedSteps.reversed().forEach { step ->
-            compensate(step)
-        }
-        throw e
     }
 }
 ```
