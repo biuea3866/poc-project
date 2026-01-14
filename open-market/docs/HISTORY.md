@@ -236,7 +236,7 @@ mock-servers/pg-mock/
 
 ### [2025-01-04] 프로젝트 문서 초안 작성
 
-**작업자**: Claude (with Human: 조봉준)  
+**작업자**: Claude  
 **작업 유형**: 문서 작성  
 **소요 시간**: -
 
@@ -269,7 +269,7 @@ docs/
 - 없음 (신규 프로젝트)
 
 #### 주요 결정사항
-1. Backend는 Human(조봉준)이 직접 개발
+1. Backend는 Human이 직접 개발
 2. Frontend, Infra, Mock Server는 LLM이 담당
 3. 외부 연동은 실제 API 스펙 기반 Mock으로 구현
 
