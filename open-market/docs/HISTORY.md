@@ -14,14 +14,167 @@
 | 항목 | 상태 |
 |------|------|
 | **현재 Phase** | Phase 2 - Payment & Order (진행중) |
-| **마지막 작업** | PG Mock 서버 실행 테스트 완료 |
-| **마지막 작업자** | Claude Code |
-| **마지막 작업일** | 2025-01-05 |
-| **다음 작업** | Docker Compose 실행 (credential 문제 해결 필요) |
+| **마지막 작업** | Docker Compose mock 프로파일 실행 시도 |
+| **마지막 작업자** | Codex |
+| **마지막 작업일** | 2026-01-15 |
+| **다음 작업** | Docker 데몬 실행 후 mock 프로파일 재시도 |
 
 ---
 
 ## 📝 작업 로그
+
+### [2026-01-15] Docker Compose mock 프로파일 실행 시도
+
+**작업자**: Codex  
+**작업 유형**: TEST - Infra  
+**소요 시간**: ~10분
+
+#### 완료된 작업
+- [x] docker compose mock 프로파일 실행 시도 (pg-mock, channel-mock)
+
+#### 발생한 이슈
+- Docker 데몬 미실행으로 compose 실패
+
+#### 다음 작업
+1. Docker 데몬 실행 후 `docker compose --profile mock up -d pg-mock channel-mock` 재시도
+
+### [2026-01-15] Channel Mock 웹훅 검증 스크립트 추가
+
+**작업자**: Codex  
+**작업 유형**: FEATURE / TEST - Mock Server  
+**소요 시간**: ~30분
+
+#### 완료된 작업
+- [x] 채널별 웹훅 이벤트 검증 스크립트 추가
+- [x] 로컬 실행 테스트로 웹훅 수신 확인
+
+#### 생성된 파일
+- mock-servers/channel-mock/scripts/verify-webhooks.sh
+
+#### 변경된 파일
+- 없음
+
+#### 테스트 결과
+- `./scripts/verify-webhooks.sh` 실행 시 채널별 ORDER.CREATED 이벤트 수신 확인
+
+#### 다음 작업
+1. Docker Compose 실행 테스트
+
+### [2026-01-15] Channel Mock 웹훅 이벤트 샘플 확장
+
+**작업자**: Codex  
+**작업 유형**: FEATURE / TEST - Mock Server  
+**소요 시간**: ~1시간
+
+#### 완료된 작업
+- [x] 채널별 웹훅 이벤트 목록 및 샘플 payload 추가
+- [x] 웹훅 이벤트 목록 조회 엔드포인트 추가
+- [x] 트리거 시 샘플 payload 자동 적용
+- [x] Channel Mock 로컬 테스트 재확인
+
+#### 생성된 파일
+- mock-servers/channel-mock/src/webhooks/sample-events.ts
+
+#### 변경된 파일
+- mock-servers/channel-mock/src/routes/webhook-management.ts (이벤트 검증/목록/샘플 적용)
+- mock-servers/channel-mock/src/routes/openapi.ts (events 엔드포인트 추가)
+
+#### 테스트 결과
+- `GET /api/st11/webhooks/events` 이벤트 목록 정상 응답
+- `POST /api/st11/webhooks/trigger` 샘플 payload로 전송 성공
+- `GET /webhooks/received` 수신 이벤트 저장 확인
+
+#### 다음 작업
+1. 웹훅 이벤트용 시나리오 테스트 스크립트 추가 여부 검토
+
+### [2026-01-15] Channel Mock 웹훅/OpenAPI 구현 및 테스트
+
+**작업자**: Codex  
+**작업 유형**: FEATURE / TEST - Mock Server  
+**소요 시간**: ~1시간
+
+#### 완료된 작업
+- [x] 채널별 웹훅 등록/트리거 API 추가 (ST11/Naver/Kakao/Toss/Coupang)
+- [x] 웹훅 수신 테스트 엔드포인트 추가 및 이벤트 저장
+- [x] OpenAPI 요약 엔드포인트 추가
+- [x] Channel Mock 로컬 테스트 (인증/상품/주문/웹훅)
+
+#### 생성된 파일
+- mock-servers/channel-mock/src/routes/webhook-management.ts
+- mock-servers/channel-mock/src/routes/webhook-receiver.ts
+- mock-servers/channel-mock/src/routes/openapi.ts
+- mock-servers/channel-mock/src/services/webhook.service.ts
+
+#### 변경된 파일
+- mock-servers/channel-mock/src/db/schema.sql (webhooks, webhook_events 테이블 추가)
+- mock-servers/channel-mock/src/routes/index.ts (웹훅/OpenAPI 라우팅 추가)
+- mock-servers/channel-mock/src/services/webhook.service.ts (HTTP 전송 방식 적용)
+
+#### 테스트 결과
+- Health Check: `GET http://localhost:8082/health`
+- OpenAPI: `GET http://localhost:8082/openapi.json`
+- ST11 인증/상품/주문 API 정상 응답
+- 웹훅 등록/트리거 후 `/webhooks/received`에 이벤트 저장 확인
+
+#### 다음 작업
+1. 네이버/카카오/토스/쿠팡 웹훅 이벤트 샘플 추가
+2. Docker Compose mock 프로파일에 channel-mock 포함
+
+### [2026-01-15] PG Mock 검증 및 Channel Mock 구현
+
+**작업자**: Codex  
+**작업 유형**: FEATURE / TEST - Mock Server  
+**소요 시간**: ~1시간
+
+#### 완료된 작업
+- [x] pg-mock 로컬 실행 및 Toss 결제 플로우(prepare/confirm) 테스트
+- [x] channel-mock 기본 구조 및 엔드포인트 구현 (ST11/Naver/Kakao/Toss/Coupang)
+- [x] SQLite 스키마 및 서비스 레이어 추가 (auth/product/order)
+
+#### 생성된 파일
+- mock-servers/channel-mock/package.json
+- mock-servers/channel-mock/tsconfig.json
+- mock-servers/channel-mock/Dockerfile
+- mock-servers/channel-mock/.gitignore
+- mock-servers/channel-mock/.dockerignore
+- mock-servers/channel-mock/src/app.ts
+- mock-servers/channel-mock/src/routes/index.ts
+- mock-servers/channel-mock/src/routes/st11/auth.ts
+- mock-servers/channel-mock/src/routes/st11/products.ts
+- mock-servers/channel-mock/src/routes/st11/orders.ts
+- mock-servers/channel-mock/src/routes/naver/auth.ts
+- mock-servers/channel-mock/src/routes/naver/products.ts
+- mock-servers/channel-mock/src/routes/naver/orders.ts
+- mock-servers/channel-mock/src/routes/kakao/auth.ts
+- mock-servers/channel-mock/src/routes/kakao/products.ts
+- mock-servers/channel-mock/src/routes/kakao/orders.ts
+- mock-servers/channel-mock/src/routes/toss/auth.ts
+- mock-servers/channel-mock/src/routes/toss/products.ts
+- mock-servers/channel-mock/src/routes/toss/orders.ts
+- mock-servers/channel-mock/src/routes/coupang/products.ts
+- mock-servers/channel-mock/src/routes/coupang/orders.ts
+- mock-servers/channel-mock/src/services/auth.service.ts
+- mock-servers/channel-mock/src/services/product.service.ts
+- mock-servers/channel-mock/src/services/order.service.ts
+- mock-servers/channel-mock/src/db/index.ts
+- mock-servers/channel-mock/src/db/init.ts
+- mock-servers/channel-mock/src/db/schema.sql
+- mock-servers/channel-mock/src/scenarios/index.ts
+- mock-servers/channel-mock/src/middleware/auth.ts
+- mock-servers/channel-mock/src/middleware/scenario.ts
+- mock-servers/channel-mock/src/types/index.ts
+
+#### 변경된 파일
+- 없음
+
+#### 테스트 결과
+- pg-mock 건강 체크: `GET http://localhost:8081/health` 정상 응답
+- Toss 결제 준비/승인: `/api/toss/v1/payments` → `/api/toss/v1/payments/confirm` 정상 응답
+
+#### 다음 작업
+1. channel-mock npm install/build 및 로컬 구동 테스트
+2. channel-mock 주요 엔드포인트 정상 동작 확인 (상품 등록/주문 조회/발송)
+3. Docker Compose에 channel-mock 포함 여부 확인
 
 ### [2025-01-05] PG Mock 서버 실행 테스트
 
