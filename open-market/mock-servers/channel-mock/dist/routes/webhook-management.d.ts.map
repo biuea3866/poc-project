@@ -1,0 +1,1 @@
+{"version":3,"file":"webhook-management.d.ts","sourceRoot":"","sources":["../../src/routes/webhook-management.ts"],"names":[],"mappings":"AAEA,OAAO,EAAE,OAAO,EAAE,MAAM,UAAU,CAAC;AAGnC,UAAU,oBAAoB;IAC5B,WAAW,CAAC,EAAE,CAAC,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,GAAG,EAAE,IAAI,EAAE,GAAG,KAAK,IAAI,CAAC;CACvD;AAED,wBAAgB,mBAAmB,CAAC,OAAO,EAAE,OAAO,EAAE,OAAO,GAAE,oBAAyB,8CAgFvF"}

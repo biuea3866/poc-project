@@ -1,0 +1,1 @@
+{"version":3,"file":"index.d.ts","sourceRoot":"","sources":["../../src/scenarios/index.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,cAAc,EAAE,YAAY,EAAE,MAAM,UAAU,CAAC;AAExD,eAAO,MAAM,SAAS,EAAE,MAAM,CAAC,YAAY,EAAE,cAAc,CA6C1D,CAAC;AAEF,wBAAgB,WAAW,CAAC,YAAY,CAAC,EAAE,MAAM,GAAG,cAAc,CAOjE;AAED,wBAAsB,aAAa,CAAC,QAAQ,EAAE,cAAc,GAAG,OAAO,CAAC,IAAI,CAAC,CAI3E"}
