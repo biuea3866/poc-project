@@ -1,5 +1,0 @@
-// Size: 0 B
-### Get a feature flag
-GET http://localhost:8080/flags/my-new-feature HTTP/1.1
-Content-Length: 0
-

@@ -1,1 +1,0 @@
-Dynamic checkout for workspace: some-workspace-2\n  - Flag 'my-new-feature' is enabled.\n  - Flag 'new-checkout-experience' is enabled.\n    Applying new checkout experience logic.\n

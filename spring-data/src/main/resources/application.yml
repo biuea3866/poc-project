@@ -1,0 +1,96 @@
+spring:
+  application:
+    name: spring-data
+  profiles:
+    active: local
+
+  # MySQL DataSource Configuration
+  datasource:
+    url: jdbc:mysql://localhost:3306/partition_test?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 50
+      minimum-idle: 10
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+
+  # Kafka Configuration
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      acks: all
+      retries: 3
+      properties:
+        linger.ms: 5
+        batch.size: 16384
+    consumer:
+      group-id: spring-data-consumer
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
+server:
+  port: 8080
+
+# Logging
+logging:
+  level:
+    root: INFO
+    com.biuea.springdata: DEBUG
+    org.apache.kafka: WARN
+    org.springframework.kafka: INFO
+
+# Actuator & Prometheus
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,kafka
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
+
+---
+# Local Profile
+spring:
+  config:
+    activate:
+      on-profile: local
+
+---
+# Performance Test Profile
+spring:
+  config:
+    activate:
+      on-profile: perf-test
+  kafka:
+    consumer:
+      max-poll-records: 1000
+      fetch-min-size: 1048576
+      fetch-max-wait: 500ms
+
+logging:
+  level:
+    root: WARN
+    com.biuea.springdata.kafka: INFO
