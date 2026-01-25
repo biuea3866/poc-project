@@ -12,3 +12,5 @@
 **/k6-*.log
 **/test-execution.log
 **/seeding.log
+
+*/.idea

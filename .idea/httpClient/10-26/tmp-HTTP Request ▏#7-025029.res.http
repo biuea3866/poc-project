@@ -1,9 +1,0 @@
-// Status: 200, time: 61ms, size: 180 B
-### HTTP Request ▏#7
-GET http://localhost:8080/api/v1/dynamic-checkout?workspaceId=some-workspace HTTP/1.1
-content-length: 180
-content-type: text/plain;charset=UTF-8
-date: Sun, 26 Oct 2025 05:50:29 GMT
-
-Dynamic checkout for workspace: some-workspace\n  - Flag 'my-new-feature' is enabled.\n  - Flag 'new-checkout-experience' is enabled.\n    Applying new checkout experience logic.\n
->> /Users/biuea/feature/flag_project/.idea/httpClient/10-26/HTTP Request ▏#7/2025-10-26T145029.txt

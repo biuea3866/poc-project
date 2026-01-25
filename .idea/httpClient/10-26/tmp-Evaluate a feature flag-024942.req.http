@@ -1,5 +1,0 @@
-// Size: 0 B
-### Evaluate a feature flag
-GET http://localhost:8080/evaluate?flagName=new-checkout-experience&workspaceId=some-workspace HTTP/1.1
-Content-Length: 0
-
