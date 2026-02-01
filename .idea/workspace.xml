@@ -1,0 +1,542 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="dfc5a930-310c-44ef-80e3-8724d0fd2b4b" name="Changes" comment="" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="ExternalProjectsData">
+    <projectState path="$PROJECT_DIR$/architecture">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/cache-practice">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/concurrency">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/feature_flag">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/file-practice">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/flag_speckit/backend">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/kotlin-practice">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/open-market">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/spring-data">
+      <ProjectState />
+    </projectState>
+  </component>
+  <component name="ExternalProjectsManager">
+    <system id="GRADLE">
+      <state>
+        <task path="$PROJECT_DIR$/flag_speckit/backend">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/file-practice">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/concurrency">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/cache-practice">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/open-market">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/kotlin-practice">
+          <activation />
+        </task>
+        <task path="$PROJECT_DIR$/spring-data">
+          <activation />
+        </task>
+        <projects_view>
+          <tree_state>
+            <expand />
+            <select />
+          </tree_state>
+        </projects_view>
+      </state>
+    </system>
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Kotlin Interface" />
+        <option value="Kotlin Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+  </component>
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$/spring-data" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1" javaHome="$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-17.0.10/Contents/Home" gradleVersion="9.2.1" />
+  <component name="HighlightingSettingsPerFile">
+    <setting file="jar://$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-17.0.10/Contents/Home/lib/src.zip!/java.base/java/util/zip/Checksum.java" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 6
+}</component>
+  <component name="ProjectId" id="34VFIWSPAf8LF6ysOrjFHhdy28m" />
+  <component name="ProjectViewState">
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent"><![CDATA[{
+  "keyToString": {
+    "Gradle.BloomFilterServiceTest.executor": "Run",
+    "Gradle.Build feature_flag.executor": "Run",
+    "Gradle.Build file-practice.executor": "Run",
+    "Gradle.CacheStampedeTest.executor": "Run",
+    "Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트.executor": "Run",
+    "Gradle.DatabasePerformanceTest.주문 처리 성능 비교.executor": "Run",
+    "Gradle.Download Sources.executor": "Run",
+    "Gradle.LanguageTest.CAS, Synchorized View.executor": "Run",
+    "Gradle.LanguageTest.세마포어 테스트.executor": "Run",
+    "Gradle.LanguageTest.코루틴 테스트.executor": "Run",
+    "Gradle.LookAsideWriteAroundServiceTest.executor": "Run",
+    "Gradle.PocExcelDownloadTest.SIMPLE 워크북 타입 테스트.executor": "Run",
+    "Gradle.ProbabilisticEarlyRecomputationServiceTest.executor": "Run",
+    "Gradle.ProductServiceTest.executor": "Run",
+    "Gradle.ReadThroughWriteAroundServiceTest.executor": "Run",
+    "Gradle.ReadThroughWriteThroughServiceTest.executor": "Run",
+    "Gradle.RedisCachingE2ETest.executor": "Run",
+    "Gradle.RedisConcurrencyE2ETest.executor": "Run",
+    "Gradle.RedisDistributedLockE2ETest.executor": "Run",
+    "Gradle.Tests in 'cache-practice.test'.executor": "Run",
+    "Gradle.Tests in 'com.example.filepractice.poc.domain.newexcel'.executor": "Run",
+    "Gradle.Tests in 'concurrency.test'.executor": "Run",
+    "Gradle.Tests in 'file-practice.test'.executor": "Run",
+    "Gradle.Tests in 'flag.test'.executor": "Run",
+    "Gradle.WaitingSystemServiceIntegrationTest.executor": "Run",
+    "Gradle.backend [:com.example.flag.FlagApplicationKt.main()].executor": "Debug",
+    "Gradle.backend [build].executor": "Run",
+    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.async.VirtualThreadExampleKt.main()].executor": "Run",
+    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.data.ChannelExampleKt.main()].executor": "Run",
+    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.jvm.ClassLoaderKt.main()].executor": "Run",
+    "Gradle.kotlin-practice [build].executor": "Run",
+    "Gradle.open-market [build].executor": "Run",
+    "HttpClient.AI_SCREENING 피쳐 그룹 적용 (30%).executor": "httpExecutor",
+    "HttpClient.AI_SCREENING 피쳐 등록.executor": "httpExecutor",
+    "HttpClient.APPLICANT_EVALUATOR 피쳐 등록.executor": "httpExecutor",
+    "HttpClient.APPLICANT_EVALUTOR 피쳐 그룹 적용 (3000번 웤스까지).executor": "httpExecutor",
+    "HttpClient.Add a percentage rollout rule.executor": "httpExecutor",
+    "HttpClient.Create a new feature flag.executor": "httpExecutor",
+    "HttpClient.Evaluate a feature flag.executor": "httpExecutor",
+    "HttpClient.Get a feature flag.executor": "httpExecutor",
+    "HttpClient.HTTP Request ▏#1.executor": "httpExecutor",
+    "HttpClient.HTTP Request ▏#6.executor": "httpExecutor",
+    "HttpClient.HTTP Request ▏#7.executor": "httpExecutor",
+    "HttpClient.Toggle a feature flag.executor": "httpExecutor",
+    "HttpClient.적용 대상.executor": "httpExecutor",
+    "JUnit.ExcelPerformanceComparisonTest.성능 비교 - 500000건.executor": "Run",
+    "Kotlin.FlagApplicationKt.executor": "Run",
+    "ModuleVcsDetector.initialDetectionPerformed": "true",
+    "RequestMappingsPanelOrder0": "0",
+    "RequestMappingsPanelOrder1": "1",
+    "RequestMappingsPanelWidth0": "75",
+    "RequestMappingsPanelWidth1": "75",
+    "RunOnceActivity.ShowReadmeOnStart": "true",
+    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
+    "Spring Boot.FeatureFlagApplication.executor": "Debug",
+    "Spring Boot.FilePracticeApplication (1).executor": "Run",
+    "Spring Boot.FilePracticeApplication.executor": "Run",
+    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
+    "git-widget-placeholder": "main",
+    "junie.onboarding.icon.badge.shown": "true",
+    "kotlin-language-version-configured": "true",
+    "last_opened_file_path": "/Users/biuea/feature/flag_project/file-practice/src/main/kotlin/com/example/filepractice/poc/domain/newexcel",
+    "node.js.detected.package.eslint": "true",
+    "node.js.detected.package.tslint": "true",
+    "node.js.selected.package.eslint": "(autodetect)",
+    "node.js.selected.package.tslint": "(autodetect)",
+    "nodejs_package_manager_path": "npm",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.2",
+    "run.configurations.included.in.services": "true",
+    "settings.editor.selected.configurable": "preferences.pluginManager",
+    "to.speed.mode.migration.done": "true",
+    "ts.external.directory.path": "/Users/biuea/feature/flag_project/open-market/mock-servers/channel-mock/node_modules/typescript/lib",
+    "vue.rearranger.settings.migration": "true"
+  }
+}]]></component>
+  <component name="ReactorSettings">
+    <option name="notificationShown" value="true" />
+  </component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/file-practice/src/main/kotlin/com/example/filepractice/poc/domain/newexcel" />
+      <recent name="$PROJECT_DIR$/flag_speckit" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/open-market" />
+      <recent name="$PROJECT_DIR$/cache-practice/src/main/resources/img" />
+      <recent name="$PROJECT_DIR$/architecture/src/main/kotlin/com/biuea/architecture/coupon" />
+      <recent name="$PROJECT_DIR$/file-practice" />
+      <recent name="$PROJECT_DIR$" />
+    </key>
+    <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
+      <recent name="com.example.filepractice.poc.domain.newexcel" />
+    </key>
+    <key name="K2MoveDeclarationsDialog.RECENT_PACKAGE_KEY">
+      <recent name="com.example.filepractice.poc.domain.newexcel" />
+    </key>
+  </component>
+  <component name="RunDashboard">
+    <option name="configurationTypes">
+      <set>
+        <option value="MicronautRunConfigurationType" />
+        <option value="QuarkusRunConfigurationType" />
+        <option value="SpringBootApplicationConfigurationType" />
+      </set>
+    </option>
+  </component>
+  <component name="RunManager" selected="Kotlin.ChannelExampleKt">
+    <configuration name="DatabasePerformanceTest.전체 성능 비교 종합 테스트" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/kotlin-practice" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" value="" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value=":test" />
+            <option value="--tests" />
+            <option value="&quot;com.biuea.kotlinpractice.DatabasePerformanceTest.전체 성능 비교 종합 테스트&quot;" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>false</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>true</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="kotlin-practice [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/kotlin-practice" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="open-market [build]" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+      <ExternalSystemSettings>
+        <option name="executionName" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/open-market" />
+        <option name="externalSystemIdString" value="GRADLE" />
+        <option name="scriptParameters" />
+        <option name="taskDescriptions">
+          <list />
+        </option>
+        <option name="taskNames">
+          <list>
+            <option value="build" />
+          </list>
+        </option>
+        <option name="vmOptions" />
+      </ExternalSystemSettings>
+      <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+      <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+      <DebugAllEnabled>false</DebugAllEnabled>
+      <RunAsTest>false</RunAsTest>
+      <method v="2" />
+    </configuration>
+    <configuration name="ChannelExampleKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.biuea.kotlinpractice.data.ChannelExampleKt" />
+      <module name="kotlin-practice.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClassLoaderKt" type="JetRunConfigurationType" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.biuea.kotlinpractice.jvm.ClassLoaderKt" />
+      <module name="kotlin-practice.main" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ArchitectureApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="architecture.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.architecture.ArchitectureApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="CachePracticeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="cache-practice.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.cachepractice.CachePracticeApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ConcurrencyApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="concurrency.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.concurrency.ConcurrencyApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FeatureFlagApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="feature_flag.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.feature_flag.FeatureFlagApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FilePracticeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="corretto-17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <module name="file-practice.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.filepractice.FilePracticeApplication" />
+      <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+        <option name="credential" />
+        <option name="region" />
+        <option name="useCurrentConnection" value="false" />
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FilePracticeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="ALTERNATIVE_JRE_PATH" value="corretto-17" />
+      <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
+      <module name="file-practice.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.filepractice.FilePracticeApplication" />
+      <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+        <option name="credential" />
+        <option name="region" />
+        <option name="useCurrentConnection" value="false" />
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="FlagApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="flag.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.flag.FlagApplication" />
+      <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+        <option name="credential" />
+        <option name="region" />
+        <option name="useCurrentConnection" value="false" />
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="KotlinPracticeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="kotlin-practice.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kotlinpractice.KotlinPracticeApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="OpenMarketApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="open-market.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.openmarket.OpenMarketApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SpringDataApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="spring-data.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.springdata.SpringDataApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="적용 대상" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/feature_flag/e2e/scenario/apply_example.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="AI_SCREENING 피쳐 그룹 적용 (30%)" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/feature_flag/e2e/scenario/activate_feature_flag.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="AI_SCREENING 피쳐 등록" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/feature_flag/e2e/scenario/activate_feature_flag.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="APPLICANT_EVALUATOR 피쳐 등록" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/feature_flag/e2e/scenario/activate_feature_flag.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="APPLICANT_EVALUTOR 피쳐 그룹 적용 (3000번 웤스까지)" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/feature_flag/e2e/scenario/activate_feature_flag.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="Add a percentage rollout rule" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="Create a new feature flag" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="Evaluate a feature flag" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="Get a feature flag" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="HTTP Request ▏#1" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/file-practice/e2e/claude/file_download.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="HTTP Request ▏#6" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="HTTP Request ▏#7" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <configuration name="Toggle a feature flag" type="intellijHttpClient" activateToolWindowBeforeRun="false">
+      <env />
+      <httpFilePath>$PROJECT_DIR$/flag_speckit/backend/src/test/resources/scenarios.http</httpFilePath>
+      <method v="2" />
+    </configuration>
+    <list>
+      <item itemvalue="Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트" />
+      <item itemvalue="Gradle.kotlin-practice [build]" />
+      <item itemvalue="Gradle.open-market [build]" />
+      <item itemvalue="HttpClient.적용 대상" />
+      <item itemvalue="HttpClient.AI_SCREENING 피쳐 그룹 적용 (30%)" />
+      <item itemvalue="HttpClient.AI_SCREENING 피쳐 등록" />
+      <item itemvalue="HttpClient.APPLICANT_EVALUATOR 피쳐 등록" />
+      <item itemvalue="HttpClient.APPLICANT_EVALUTOR 피쳐 그룹 적용 (3000번 웤스까지)" />
+      <item itemvalue="HttpClient.Add a percentage rollout rule" />
+      <item itemvalue="HttpClient.Create a new feature flag" />
+      <item itemvalue="HttpClient.Evaluate a feature flag" />
+      <item itemvalue="HttpClient.Get a feature flag" />
+      <item itemvalue="HttpClient.HTTP Request ▏#1" />
+      <item itemvalue="HttpClient.HTTP Request ▏#6" />
+      <item itemvalue="HttpClient.HTTP Request ▏#7" />
+      <item itemvalue="HttpClient.Toggle a feature flag" />
+      <item itemvalue="Kotlin.ChannelExampleKt" />
+      <item itemvalue="Kotlin.ClassLoaderKt" />
+      <item itemvalue="Spring Boot.SpringDataApplication" />
+      <item itemvalue="Spring Boot.ArchitectureApplication" />
+      <item itemvalue="Spring Boot.CachePracticeApplication" />
+      <item itemvalue="Spring Boot.ConcurrencyApplication" />
+      <item itemvalue="Spring Boot.FeatureFlagApplication" />
+      <item itemvalue="Spring Boot.FilePracticeApplication" />
+      <item itemvalue="Spring Boot.FlagApplication" />
+      <item itemvalue="Spring Boot.KotlinPracticeApplication" />
+      <item itemvalue="Spring Boot.OpenMarketApplication" />
+    </list>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Kotlin.ChannelExampleKt" />
+        <item itemvalue="Gradle.kotlin-practice [build]" />
+        <item itemvalue="Kotlin.ClassLoaderKt" />
+        <item itemvalue="Gradle.open-market [build]" />
+        <item itemvalue="Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28539.13" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-IU-252.28539.13" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="StructureViewState">
+    <option name="selectedTab" value="Logical" />
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="dfc5a930-310c-44ef-80e3-8724d0fd2b4b" name="Changes" comment="" />
+      <created>1761290753163</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1761290753163</updated>
+      <workItem from="1761290755685" duration="8729000" />
+      <workItem from="1761403285196" duration="19272000" />
+      <workItem from="1761822161981" duration="16596000" />
+      <workItem from="1763468732616" duration="22470000" />
+      <workItem from="1763873429959" duration="28530000" />
+      <workItem from="1764142481949" duration="15131000" />
+      <workItem from="1764394524536" duration="30059000" />
+      <workItem from="1764836827744" duration="83038000" />
+      <workItem from="1766538602575" duration="292000" />
+      <workItem from="1766539165623" duration="597000" />
+      <workItem from="1766565402159" duration="595000" />
+      <workItem from="1766672155998" duration="38703000" />
+      <workItem from="1767014133440" duration="56168000" />
+      <workItem from="1767745514822" duration="596000" />
+      <workItem from="1767754523607" duration="31780000" />
+      <workItem from="1768523814121" duration="4625000" />
+      <workItem from="1768622452203" duration="53460000" />
+      <workItem from="1769618434995" duration="1442000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+  <component name="github-copilot-workspace">
+    <instructionFileLocations>
+      <option value=".github/instructions" />
+    </instructionFileLocations>
+    <promptFileLocations>
+      <option value=".github/prompts" />
+    </promptFileLocations>
+  </component>
+</project>
