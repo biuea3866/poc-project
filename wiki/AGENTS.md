@@ -53,6 +53,22 @@ make -C wiki worktree-list                   # 전체 목록 확인
 ---
 ```
 
+## Pull Request Workflow
+작업이 완료되면 PR을 생성하고 링크를 공유한다.
+
+### 기본 흐름
+1. 변경 사항 커밋
+2. 원격 푸시
+   - `git push -u origin feat/<feature-name>`
+3. PR 생성 (둘 중 하나)
+   - CLI: `gh pr create -B main -H feat/<feature-name> -t "<제목>" -b "<설명>"`
+   - 웹: GitHub에서 브랜치 `feat/<feature-name>`로 PR 생성
+
+### 체크리스트
+- 베이스 브랜치: `main`
+- 로그 파일: `wiki/logs/feat-<feature-name>.md` 업데이트 확인
+- 필요 시 스크린샷/설명 포함
+
 ## Conventions
 - API endpoint는 복수형 사용: `/api/v1/documents`
 - Soft delete: `deleted_at` nullable 컬럼 사용
