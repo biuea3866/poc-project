@@ -38,3 +38,13 @@
   - SecurityConfig 작성 (인증 필터, 권한 설정)
   - document.status / ai_status 분리 마이그레이션
 ---
+
+---
+### 2026-02-01 15:41
+- **Agent:** Codex
+- **Task:** 로그 보완 및 정정 사항 기록
+- **Changes:** wiki/logs/main.md
+- **Decisions:** PR 워크플로우는 문서 추가 시점 이후 작업부터 적용으로 명확화
+- **Issues:** 없음
+- **Next:** 없음
+---

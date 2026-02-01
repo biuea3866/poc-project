@@ -55,6 +55,7 @@ make -C wiki worktree-list                   # 전체 목록 확인
 
 ## Pull Request Workflow
 작업이 완료되면 PR을 생성하고 링크를 공유한다.
+이 규칙은 **문서에 추가된 시점 이후의 작업부터 적용**한다.
 
 ### 기본 흐름
 1. 변경 사항 커밋
