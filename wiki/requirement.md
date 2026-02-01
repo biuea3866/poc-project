@@ -100,12 +100,21 @@ B. AI 지능형 기능
     * document_id
     * created_by
 
-* tag
+* tag_type
   * id: pk long auto_increment
-  * name: varchar(100) unique "전역 태그 이름"
+  * name: varchar(100) unique "태그 타입 (예: TECH, DOMAIN, TEAM 등)"
   * created_at: datetime not null '생성 일시'
   * index list
     * name
+
+* tag
+  * id: pk long auto_increment
+  * name: varchar(100) "전역 태그 이름"
+  * tag_type_id: long not null "태그 타입 id"
+  * created_at: datetime not null '생성 일시'
+  * index list
+    * name
+    * name, tag_type_id (unique)
 
 * document_tag_map
   * id: pk long auto_increment
@@ -194,6 +203,12 @@ C. AI & Search API (지능형 기능)
 |GET|/api/v1/documents/{id}/ai-status/stream|해당 글의 AI 처리 상태 실시간 스트림 (SSE)|
 |GET|/api/v1/ai/logs|에이전트들이 남긴 업데이트 및 참조 기록 확인. 쿼리 파라미터: `documentId`, `agentType`, `page`, `size`|
 
+D. Tag API
+
+|Method|Endpoint|Description|
+|--|--|--|
+|GET|/api/v1/tags/types|태그 타입 목록 조회 (FE에서 태그 타입 관리용)|
+
 ## 4. FE
 
 이 프롬프트는 UI/UX 구성뿐만 아니라 백엔드의 비동기 AI 처리 상태를 핸들링하는 데 초점을 맞춥니다.
@@ -225,7 +240,7 @@ C. AI & Search API (지능형 기능)
 > **주제:** 다중 DB(MySQL, Postgres) 및 메시지 브로커(Kafka)를 포함한 AI 서비스 인프라 구축
 > **환경:** Docker Compose (로컬 개발 환경 타겟)
 > **상세 구성 요구사항:**
-> 1. **MySQL 8.0:** 서비스 메타데이터 및 유저 정보 저장용. ERD 기반 초기 스키마 포함. 테이블: `user`, `document`, `document_revision`, `tag`, `document_tag_map`, `document_summary`, `ai_agent_log`.
+> 1. **MySQL 8.0:** 서비스 메타데이터 및 유저 정보 저장용. ERD 기반 초기 스키마 포함. 테이블: `user`, `document`, `document_revision`, `tag_type`, `tag`, `document_tag_map`, `document_summary`, `ai_agent_log`.
 > 2. **PostgreSQL 16 + pgvector:** 벡터 데이터 저장용.
 >    - `ankane/pgvector` 이미지를 사용하여 컨테이너 실행 시 자동으로 `CREATE EXTENSION vector;`가 수행되도록 설정.
 >    - 테이블: `document_embeddings`. HNSW 인덱스 포함.

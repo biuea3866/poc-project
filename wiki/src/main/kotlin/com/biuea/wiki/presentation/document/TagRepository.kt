@@ -1,10 +1,9 @@
 package com.biuea.wiki.presentation.document
 
 import com.biuea.wiki.domain.document.Tag
+import com.biuea.wiki.domain.document.TagType
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface TagRepository : JpaRepository<Tag, Long> {
-    fun findByNameIn(names: Set<String>): List<Tag>
-
-    fun findByName(name: String): Tag?
+    fun findByNameAndTagType(name: String, tagType: TagType): Tag?
 }

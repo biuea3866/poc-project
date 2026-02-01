@@ -34,12 +34,32 @@ CREATE TABLE IF NOT EXISTS `document_revision` (
     INDEX `idx_document_revision_created_by` (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+CREATE TABLE IF NOT EXISTS `tag_type` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT '태그 타입 (예: TECH, DOMAIN, TEAM 등)',
+    `created_at` DATETIME NOT NULL COMMENT '생성 일시',
+    INDEX `idx_tag_type_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 CREATE TABLE IF NOT EXISTS `tag` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT '전역 태그 이름',
+    `name` VARCHAR(100) NOT NULL COMMENT '전역 태그 이름',
+    `tag_type_id` BIGINT NOT NULL COMMENT '태그 타입 id',
     `created_at` DATETIME NOT NULL COMMENT '생성 일시',
-    INDEX `idx_tag_name` (`name`)
+    UNIQUE KEY `uq_tag_name_type` (`name`, `tag_type_id`),
+    INDEX `idx_tag_name` (`name`),
+    INDEX `idx_tag_type_id` (`tag_type_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT IGNORE INTO `tag_type` (`name`, `created_at`) VALUES
+('TECH', NOW()),
+('DOMAIN', NOW()),
+('TEAM', NOW()),
+('PROJECT', NOW()),
+('TOPIC', NOW()),
+('STATUS', NOW()),
+('PROCESS', NOW()),
+('CUSTOM', NOW());
 
 CREATE TABLE IF NOT EXISTS `document_tag_map` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,

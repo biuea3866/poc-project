@@ -6,5 +6,10 @@ data class SaveDocumentCommand(
     val status: DocumentStatus = DocumentStatus.PENDING,
     val parentId: Long?,
     val createdBy: Long,
-    val tags: List<String> = emptyList()
+    val tags: List<TagInput> = emptyList()
+)
+
+data class TagInput(
+    val name: String,
+    val type: String
 )
