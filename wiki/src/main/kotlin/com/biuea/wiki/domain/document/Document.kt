@@ -2,6 +2,7 @@ package com.biuea.wiki.domain.document
 
 import com.biuea.wiki.domain.ai.AiAgentLog
 import com.biuea.wiki.domain.common.BaseTimeEntity
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
@@ -47,20 +48,25 @@ class Document(
     val id: Long = 0L,
 ) : BaseTimeEntity() {
 
-    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
-    val children: MutableList<Document> = mutableListOf()
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var children: MutableList<Document> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
-    val revisions: MutableList<DocumentRevision> = mutableListOf()
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var revisions: MutableList<DocumentRevision> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
-    val tags: MutableList<DocumentTag> = mutableListOf()
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var tagMaps: MutableList<DocumentTagMap> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
-    val summaries: MutableList<DocumentSummary> = mutableListOf()
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var summaries: MutableList<DocumentSummary> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
-    val agentLogs: MutableList<AiAgentLog> = mutableListOf()
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var agentLogs: MutableList<AiAgentLog> = mutableListOf()
+        protected set
 
     fun softDelete() {
         this.status = DocumentStatus.DELETED
@@ -68,4 +74,28 @@ class Document(
     }
 
     fun isDeleted(): Boolean = status == DocumentStatus.DELETED
+
+    fun addChild(child: Document) {
+        children.add(child)
+        child.mergeTo(this)
+    }
+
+    fun addRevision(revision: DocumentRevision) {
+        revisions.add(revision)
+        revision.mappedBy(this)
+    }
+
+    fun addTagMaps(tagMaps: List<DocumentTagMap>, revision: DocumentRevision? = null) {
+        tagMaps.forEach { it.mappedBy(this, revision) }
+        this.tagMaps.addAll(tagMaps)
+    }
+
+    fun addSummary(summary: DocumentSummary, revision: DocumentRevision) {
+        summaries.add(summary)
+        summary.mappedBy(this, revision)
+    }
+
+    fun mergeTo(parent: Document) {
+        this.parent = parent
+    }
 }

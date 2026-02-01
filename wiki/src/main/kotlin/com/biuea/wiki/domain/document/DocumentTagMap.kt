@@ -12,28 +12,44 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "document_tag")
+@Table(name = "document_tag_map")
 @EntityListeners(AuditingEntityListener::class)
-class DocumentTag(
-    @Column(nullable = false, columnDefinition = "TEXT")
-    val name: String,
-
+class DocumentTagMap(
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_revision_id", nullable = false)
-    val documentRevision: DocumentRevision,
+    @JoinColumn(name = "tag_id", nullable = false)
+    val tag: Tag,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
-    val document: Document,
+    var document: Document,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "document_revision_id")
+    var documentRevision: DocumentRevision? = null,
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false)
-    var createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: ZonedDateTime = ZonedDateTime.now(),
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
-)
+) {
+    fun mappedBy(document: Document, documentRevision: DocumentRevision? = null) {
+        this.document = document
+        this.documentRevision = documentRevision
+    }
+
+    companion object {
+        fun create(tag: Tag, document: Document, documentRevision: DocumentRevision? = null): DocumentTagMap {
+            return DocumentTagMap(
+                tag = tag,
+                document = document,
+                documentRevision = documentRevision
+            )
+        }
+    }
+}

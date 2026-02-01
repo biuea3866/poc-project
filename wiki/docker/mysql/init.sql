@@ -34,13 +34,22 @@ CREATE TABLE IF NOT EXISTS `document_revision` (
     INDEX `idx_document_revision_created_by` (`created_by`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE IF NOT EXISTS `document_tag` (
+CREATE TABLE IF NOT EXISTS `tag` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` TEXT NOT NULL COMMENT '태그 정보',
-    `document_revision_id` BIGINT NOT NULL COMMENT '글 개정 정보 id',
-    `document_id` BIGINT NOT NULL COMMENT '글 id',
+    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT '전역 태그 이름',
     `created_at` DATETIME NOT NULL COMMENT '생성 일시',
-    INDEX `idx_document_tag_doc_rev` (`document_id`, `document_revision_id`)
+    INDEX `idx_tag_name` (`name`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `document_tag_map` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `tag_id` BIGINT NOT NULL COMMENT 'tag id',
+    `document_id` BIGINT NOT NULL COMMENT '글 id',
+    `document_revision_id` BIGINT NULL COMMENT '글 개정 정보 id',
+    `created_at` DATETIME NOT NULL COMMENT '생성 일시',
+    UNIQUE KEY `uq_document_tag_map` (`document_id`, `tag_id`),
+    INDEX `idx_document_tag_map_document_id` (`document_id`),
+    INDEX `idx_document_tag_map_tag_id` (`tag_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `document_summary` (

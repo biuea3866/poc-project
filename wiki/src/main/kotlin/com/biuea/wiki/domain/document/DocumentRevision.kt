@@ -1,6 +1,7 @@
 package com.biuea.wiki.domain.document
 
 import com.biuea.wiki.domain.ai.AiAgentLog
+import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -25,7 +26,7 @@ class DocumentRevision(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
-    val document: Document,
+    var document: Document,
 
     @Column(name = "created_by", nullable = false, updatable = false)
     val createdBy: Long,
@@ -39,12 +40,39 @@ class DocumentRevision(
     val id: Long = 0L,
 ) {
 
-    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY)
-    val tags: MutableList<DocumentTag> = mutableListOf()
+    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var tagMaps: MutableList<DocumentTagMap> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY)
-    val summaries: MutableList<DocumentSummary> = mutableListOf()
+    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var summaries: MutableList<DocumentSummary> = mutableListOf()
+        protected set
 
-    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY)
-    val agentLogs: MutableList<AiAgentLog> = mutableListOf()
+    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    var agentLogs: MutableList<AiAgentLog> = mutableListOf()
+        protected set
+
+    fun mappedBy(document: Document) {
+        this.document = document
+    }
+
+    fun addTagMaps(tagMaps: List<DocumentTagMap>) {
+        tagMaps.forEach { it.mappedBy(document, this) }
+        this.tagMaps.addAll(tagMaps)
+    }
+
+    fun addSummary(summary: DocumentSummary) {
+        summaries.add(summary)
+        summary.mappedBy(document, this)
+    }
+
+    companion object {
+        fun create(data: String, document: Document, createdBy: Long): DocumentRevision {
+            return DocumentRevision(
+                data = data,
+                document = document,
+                createdBy = createdBy
+            )
+        }
+    }
 }

@@ -18,7 +18,7 @@
 2) **버전 관리 범위 명확화**
    - `document_revision.data`에 포함되는 필드 정의 (title, content, tags, summary 여부)
 3) **태그/요약 스키마 정합성**
-   - `document_tag`는 1:N 관계 전제로 설계 (예: unique(document_revision_id, name))
+   - 태그는 전역(`tag`)으로 관리하고 문서-태그는 매핑 테이블(`document_tag_map`)로 관리
    - `document_summary`는 1:1 유지
 4) **삭제 정책 정의**
    - 소프트 삭제 기준 및 조회 기본 필터(삭제 제외) 규칙 명시
@@ -100,18 +100,26 @@ B. AI 지능형 기능
     * document_id
     * created_by
 
-* document_tag
+* tag
   * id: pk long auto_increment
-  * name: text not null "태그 정보"
-  * document_revision_id: long not null "글 개정 정보 id"
+  * name: varchar(100) unique "전역 태그 이름"
+  * created_at: datetime not null '생성 일시'
+  * index list
+    * name
+
+* document_tag_map
+  * id: pk long auto_increment
+  * tag_id: long not null "tag id"
   * document_id: long not null "글 id"
+  * document_revision_id: long "글 개정 정보 id (옵션)"
   * created_at: datetime not null '생성 일시'
   * id description
     * document_id: document와 1:n 관계
-    * document_revision_id: document_revision과 1:n 관계
-    * document_id, document_revision_id: document와 1:n 관계
+    * tag_id: tag와 1:n 관계
   * index list
-    * document_id, document_revision_id
+    * document_id
+    * tag_id
+    * document_id, tag_id (unique)
 
 * document_summary
   * id: pk long auto_increment
@@ -217,7 +225,7 @@ C. AI & Search API (지능형 기능)
 > **주제:** 다중 DB(MySQL, Postgres) 및 메시지 브로커(Kafka)를 포함한 AI 서비스 인프라 구축
 > **환경:** Docker Compose (로컬 개발 환경 타겟)
 > **상세 구성 요구사항:**
-> 1. **MySQL 8.0:** 서비스 메타데이터 및 유저 정보 저장용. ERD 기반 초기 스키마 포함. 테이블: `user`, `document`, `document_revision`, `document_tag`, `document_summary`, `ai_agent_log`.
+> 1. **MySQL 8.0:** 서비스 메타데이터 및 유저 정보 저장용. ERD 기반 초기 스키마 포함. 테이블: `user`, `document`, `document_revision`, `tag`, `document_tag_map`, `document_summary`, `ai_agent_log`.
 > 2. **PostgreSQL 16 + pgvector:** 벡터 데이터 저장용.
 >    - `ankane/pgvector` 이미지를 사용하여 컨테이너 실행 시 자동으로 `CREATE EXTENSION vector;`가 수행되도록 설정.
 >    - 테이블: `document_embeddings`. HNSW 인덱스 포함.

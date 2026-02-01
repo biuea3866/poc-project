@@ -18,13 +18,28 @@ class DocumentSummary(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_revision_id", nullable = false)
-    val documentRevision: DocumentRevision,
+    var documentRevision: DocumentRevision,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id", nullable = false)
-    val document: Document,
+    var document: Document,
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
-)
+) {
+    fun mappedBy(document: Document, documentRevision: DocumentRevision) {
+        this.document = document
+        this.documentRevision = documentRevision
+    }
+
+    companion object {
+        fun create(content: String, document: Document, documentRevision: DocumentRevision): DocumentSummary {
+            return DocumentSummary(
+                content = content,
+                documentRevision = documentRevision,
+                document = document
+            )
+        }
+    }
+}
