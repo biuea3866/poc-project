@@ -1,5 +1,7 @@
-package com.biuea.wiki.domain.ai
+package com.biuea.wiki.presentation.ai
 
+import com.biuea.wiki.domain.ai.AgentType
+import com.biuea.wiki.domain.ai.AiAgentLog
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

@@ -1,13 +1,18 @@
 package com.biuea.wiki.domain.document
 
+import com.biuea.wiki.domain.ai.AiAgentLog
 import com.biuea.wiki.domain.common.BaseTimeEntity
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EnumType
 import jakarta.persistence.Enumerated
+import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
+import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
@@ -24,8 +29,9 @@ class Document(
     @Column(nullable = false, length = 20)
     var status: DocumentStatus = DocumentStatus.PENDING,
 
-    @Column(name = "parent_id")
-    var parentId: Long? = null,
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    var parent: Document? = null,
 
     @Column(name = "deleted_at")
     var deletedAt: LocalDateTime? = null,
@@ -40,6 +46,21 @@ class Document(
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
 ) : BaseTimeEntity() {
+
+    @OneToMany(mappedBy = "parent", fetch = FetchType.LAZY)
+    val children: MutableList<Document> = mutableListOf()
+
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    val revisions: MutableList<DocumentRevision> = mutableListOf()
+
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    val tags: MutableList<DocumentTag> = mutableListOf()
+
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    val summaries: MutableList<DocumentSummary> = mutableListOf()
+
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY)
+    val agentLogs: MutableList<AiAgentLog> = mutableListOf()
 
     fun softDelete() {
         this.status = DocumentStatus.DELETED
