@@ -1,0 +1,40 @@
+---
+### 2026-02-01 17:00
+- **Agent:** Claude
+- **Task:** 백엔드 기본 구성 (라이브러리, 엔티티, Repository, 설정)
+- **Changes:**
+  - `wiki/build.gradle.kts`: kotlin-jpa 플러그인 추가, Web/JPA/Security/Kafka/JWT 의존성 추가
+  - `wiki/src/main/resources/application.yml`: MySQL, JPA, Kafka 설정 (application.properties 대체)
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/common/BaseTimeEntity.kt`: JPA Auditing 기반 공통 타임스탬프
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/user/User.kt`: 유저 엔티티
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/user/UserRepository.kt`: 유저 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/Document.kt`: 문서 엔티티 (soft delete 포함)
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentStatus.kt`: 문서 상태 Enum
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentRepository.kt`: 문서 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentRevision.kt`: 문서 개정 엔티티
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentRevisionRepository.kt`: 개정 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentTag.kt`: 태그 엔티티
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentTagRepository.kt`: 태그 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentSummary.kt`: AI 요약 엔티티
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentSummaryRepository.kt`: 요약 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/ai/AgentType.kt`: 에이전트 타입 Enum
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/ai/AgentLogStatus.kt`: 로그 상태 Enum
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/ai/AiAgentLog.kt`: AI 에이전트 로그 엔티티
+  - `wiki/src/main/kotlin/com/biuea/wiki/domain/ai/AiAgentLogRepository.kt`: 로그 Repository
+  - `wiki/src/main/kotlin/com/biuea/wiki/infrastructure/config/JpaConfig.kt`: JPA Auditing 활성화
+- **Decisions:**
+  - `application.properties` → `application.yml`로 전환하여 가독성 향상
+  - 서버 포트 8081 사용 (Redpanda Console이 8080 사용)
+  - `globally_quoted_identifiers: true` 설정으로 `user` 테이블 예약어 문제 해결
+  - 엔티티 FK는 `@ManyToOne` 관계 대신 Long ID로 관리 (성능, 유연성)
+  - `ddl-auto: validate` — 스키마는 init.sql로 관리, Hibernate는 검증만 수행
+  - `BaseTimeEntity` (createdAt, updatedAt)는 User, Document만 상속. 나머지는 필요한 필드만 개별 선언
+  - DocumentStatus는 현재 init.sql 스키마 기준 (PENDING, COMPLETED, FAILED, DELETED)
+- **Issues:**
+  - requirement.md 1-1 항목에서 document.status와 ai_status 분리를 MVP 필수로 명시하나, 현재 init.sql에는 반영 안 됨. 추후 마이그레이션 필요.
+- **Next:**
+  - Auth API 구현 (회원가입/로그인/토큰 재발급 — Spring Security + JWT)
+  - Document API 구현 (CRUD + 계층형 조회)
+  - SecurityConfig 작성 (인증 필터, 권한 설정)
+  - document.status / ai_status 분리 마이그레이션
+---
