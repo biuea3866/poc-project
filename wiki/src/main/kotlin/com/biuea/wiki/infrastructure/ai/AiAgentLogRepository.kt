@@ -1,4 +1,4 @@
-package com.biuea.wiki.presentation.ai
+package com.biuea.wiki.infrastructure.ai
 
 import com.biuea.wiki.domain.ai.AgentType
 import com.biuea.wiki.domain.ai.AiAgentLog

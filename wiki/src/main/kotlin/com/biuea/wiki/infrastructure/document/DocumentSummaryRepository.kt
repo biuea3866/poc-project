@@ -1,4 +1,4 @@
-package com.biuea.wiki.presentation.document
+package com.biuea.wiki.infrastructure.document
 
 import com.biuea.wiki.domain.document.entity.DocumentSummary
 import org.springframework.data.jpa.repository.JpaRepository

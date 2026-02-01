@@ -1,4 +1,4 @@
-package com.biuea.wiki.presentation.user
+package com.biuea.wiki.infrastructure.user
 
 import com.biuea.wiki.domain.user.User
 import org.springframework.data.jpa.repository.JpaRepository
