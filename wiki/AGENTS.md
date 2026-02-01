@@ -55,6 +55,7 @@ make -C wiki worktree-list                   # 전체 목록 확인
 
 ## Pull Request Workflow
 작업이 완료되면 PR을 생성하고 링크를 공유한다.
+이 규칙은 **문서에 추가된 시점 이후의 작업부터 적용**한다.
 
 ### 기본 흐름
 1. 변경 사항 커밋
@@ -68,6 +69,11 @@ make -C wiki worktree-list                   # 전체 목록 확인
 - 베이스 브랜치: `main`
 - 로그 파일: `wiki/logs/feat-<feature-name>.md` 업데이트 확인
 - 필요 시 스크린샷/설명 포함
+
+## Personal Workflow (biuea)
+개인 작업이 완료되면 CLI에 `biuea 작업 완료`를 입력한다.
+이 입력은 다른 에이전트의 작업 완료 플로우와 동일하게 처리하며,
+작업 기록을 `wiki/logs/main.md`에 append로 남긴다.
 
 ## Conventions
 - API endpoint는 복수형 사용: `/api/v1/documents`
