@@ -1,4 +1,4 @@
-package com.biuea.wiki.domain.document
+package com.biuea.wiki.domain.document.entity
 
 import com.biuea.wiki.domain.ai.AiAgentLog
 import com.biuea.wiki.domain.common.BaseTimeEntity
@@ -15,7 +15,7 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "document")
@@ -35,7 +35,7 @@ class Document(
     var parent: Document? = null,
 
     @Column(name = "deleted_at")
-    var deletedAt: LocalDateTime? = null,
+    var deletedAt: ZonedDateTime? = null,
 
     @Column(name = "created_by", nullable = false, updatable = false)
     val createdBy: Long,
@@ -70,7 +70,7 @@ class Document(
 
     fun softDelete() {
         this.status = DocumentStatus.DELETED
-        this.deletedAt = LocalDateTime.now()
+        this.deletedAt = ZonedDateTime.now()
     }
 
     fun isDeleted(): Boolean = status == DocumentStatus.DELETED

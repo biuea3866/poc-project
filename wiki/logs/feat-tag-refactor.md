@@ -16,3 +16,12 @@
 - **Issues:** 없음
 - **Next:** FE에서 tag type 목록 조회 API 추가 고려
 ---
+---
+### 2026-02-01 17:09
+- **Agent:** Codex
+- **Task:** DocumentRevision 엔티티 구조를 entity 패키지로 이동하고 JSON 타입 스냅샷으로 정렬
+- **Changes:** wiki/src/main/kotlin/com/biuea/wiki/domain/document/entity/*, wiki/src/main/kotlin/com/biuea/wiki/domain/document/DocumentService*.kt, wiki/src/main/kotlin/com/biuea/wiki/presentation/document/*, wiki/src/main/kotlin/com/biuea/wiki/domain/ai/AiAgentLog.kt, wiki/logs/feat-tag-refactor.md
+- **Decisions:** Document 관련 엔티티를 entity 패키지로 통합하고 DocumentRevisionData를 JSON 타입으로 저장
+- **Issues:** 없음
+- **Next:** 엔티티 패키지 변경에 따른 스프링 스캔 확인
+---

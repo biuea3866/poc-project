@@ -1,6 +1,6 @@
 package com.biuea.wiki.presentation.document
 
-import com.biuea.wiki.domain.document.DocumentTagMap
+import com.biuea.wiki.domain.document.entity.DocumentTagMap
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface DocumentTagMapRepository : JpaRepository<DocumentTagMap, Long> {

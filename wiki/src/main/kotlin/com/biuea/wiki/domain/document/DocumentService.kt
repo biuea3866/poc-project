@@ -1,10 +1,14 @@
 package com.biuea.wiki.domain.document
 
+import com.biuea.wiki.domain.document.entity.Document
+import com.biuea.wiki.domain.document.entity.DocumentRevision
+import com.biuea.wiki.domain.document.entity.DocumentTagMap
+import com.biuea.wiki.domain.document.entity.Tag
+import com.biuea.wiki.domain.document.entity.TagType
 import com.biuea.wiki.presentation.document.DocumentRepository
 import com.biuea.wiki.presentation.document.DocumentTagMapRepository
 import com.biuea.wiki.presentation.document.TagRepository
 import com.biuea.wiki.presentation.document.TagTypeRepository
-import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -13,8 +17,7 @@ class DocumentService(
     private val documentRepository: DocumentRepository,
     private val tagRepository: TagRepository,
     private val tagTypeRepository: TagTypeRepository,
-    private val documentTagMapRepository: DocumentTagMapRepository,
-    private val objectMapper: ObjectMapper
+    private val documentTagMapRepository: DocumentTagMapRepository
 ) {
     @Transactional
     fun saveDocument(command: SaveDocumentCommand): Document {
@@ -28,22 +31,7 @@ class DocumentService(
             updatedBy = command.createdBy
         )
 
-        val revisionData = objectMapper.writeValueAsString(
-            mapOf(
-                "title" to document.title,
-                "content" to document.content,
-                "status" to document.status.name,
-                "parentId" to parent?.id,
-                "createdBy" to document.createdBy,
-                "updatedBy" to document.updatedBy
-            )
-        )
-
-        val revision = DocumentRevision(
-            data = revisionData,
-            document = document,
-            createdBy = command.createdBy
-        )
+        val revision = DocumentRevision.create(document)
         document.addRevision(revision)
 
         val normalizedTags = command.tags

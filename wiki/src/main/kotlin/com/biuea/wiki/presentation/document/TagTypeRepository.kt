@@ -1,6 +1,6 @@
 package com.biuea.wiki.presentation.document
 
-import com.biuea.wiki.domain.document.TagType
+import com.biuea.wiki.domain.document.entity.TagType
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface TagTypeRepository : JpaRepository<TagType, Long> {

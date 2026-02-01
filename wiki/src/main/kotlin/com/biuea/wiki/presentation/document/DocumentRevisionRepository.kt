@@ -1,6 +1,6 @@
 package com.biuea.wiki.presentation.document
 
-import com.biuea.wiki.domain.document.DocumentRevision
+import com.biuea.wiki.domain.document.entity.DocumentRevision
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository

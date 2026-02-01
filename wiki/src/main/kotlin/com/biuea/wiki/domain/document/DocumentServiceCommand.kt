@@ -1,5 +1,7 @@
 package com.biuea.wiki.domain.document
 
+import com.biuea.wiki.domain.document.entity.DocumentStatus
+
 data class SaveDocumentCommand(
     val title: String,
     val content: String?,

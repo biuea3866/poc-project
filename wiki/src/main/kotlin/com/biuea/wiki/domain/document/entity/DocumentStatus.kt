@@ -1,4 +1,4 @@
-package com.biuea.wiki.domain.document
+package com.biuea.wiki.domain.document.entity
 
 enum class DocumentStatus {
     PENDING,

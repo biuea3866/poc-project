@@ -1,7 +1,7 @@
 package com.biuea.wiki.domain.ai
 
-import com.biuea.wiki.domain.document.Document
-import com.biuea.wiki.domain.document.DocumentRevision
+import com.biuea.wiki.domain.document.entity.Document
+import com.biuea.wiki.domain.document.entity.DocumentRevision
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
