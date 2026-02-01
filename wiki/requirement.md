@@ -9,6 +9,40 @@
 
 ---
 
+## 1-1. 우선순위 (즉시 해결 vs 이후 로드맵)
+
+### 지금 당장 해결 (MVP 필수)
+1) **상태 모델 정리**
+   - `document.status`는 문서 생명주기(예: ACTIVE/DELETED)로 한정
+   - AI 처리 상태는 별도 필드(`ai_status`)로 분리: PENDING/PROCESSING/COMPLETED/FAILED
+2) **버전 관리 범위 명확화**
+   - `document_revision.data`에 포함되는 필드 정의 (title, content, tags, summary 여부)
+3) **태그/요약 스키마 정합성**
+   - `document_tag`는 1:N 관계 전제로 설계 (예: unique(document_revision_id, name))
+   - `document_summary`는 1:1 유지
+4) **삭제 정책 정의**
+   - 소프트 삭제 기준 및 조회 기본 필터(삭제 제외) 규칙 명시
+5) **AI 파이프라인 기본 규칙**
+   - 이벤트 발행/소비 순서, 재시도/중복 처리(idempotency) 기본 룰 정리
+6) **SSE 규격 확정**
+   - `/ai-status/stream` 이벤트 포맷, heartbeat, 재연결 정책 정의
+
+### 앞으로 천천히 해결 (로드맵)
+1) **권한/공유 모델**
+   - 팀/조직/공유 링크, ACL 정책 수립
+2) **검색 고도화**
+   - MySQL 풀텍스트 vs 외부 검색엔진 결정
+   - 통합 검색 랭킹/스코어링 정책
+3) **임베딩 버전/차원 관리**
+   - 모델별 차원/버전 관리 전략, 재인덱싱 정책
+4) **운영/보안 강화**
+   - Refresh 토큰 저장/회전 정책
+   - 로그 보관 기간, 감사 추적, 비용 모니터링
+5) **협업 기능**
+   - 코멘트, 변경 이력 비교(diff), 알림/웹훅
+6) **멀티 에이전트 확장**
+   - RAG/검색 에이전트 플러그인화, 정책 기반 실행
+
 A. 글 및 지식 관리
 * Markdown 지원: 사용자는 마크다운 형식으로 글을 작성할 수 있습니다.
 * 버전 관리: AI가 요약을 갱신할 때 원본의 변경 이력을 추적할 수 있습니다.
@@ -75,7 +109,7 @@ B. AI 지능형 기능
   * id description
     * document_id: document와 1:n 관계
     * document_revision_id: document_revision과 1:n 관계
-    * document_id, document_revision_id: document와 1:1 관계
+    * document_id, document_revision_id: document와 1:n 관계
   * index list
     * document_id, document_revision_id
 
@@ -104,7 +138,7 @@ B. AI 지능형 기능
   * id description
     * document_id: document와 1:n 관계
     * document_revision_id: document_revision과 1:n 관계
-    * document_id, document_revision_id: document와 1:1 관계
+    * document_id, document_revision_id: document와 1:n 관계
   * index list
       * document_id, document_revision_id
       * executor_id
