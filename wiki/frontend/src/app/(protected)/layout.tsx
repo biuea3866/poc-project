@@ -2,6 +2,7 @@
 
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import AppShell from "@/components/AppShell";
 import { getAccessToken } from "@/lib/auth";
 
 export default function ProtectedLayout({
@@ -17,11 +18,5 @@ export default function ProtectedLayout({
     }
   }, [router]);
 
-  return (
-    <div className="min-h-screen px-6 py-10">
-      <div className="mx-auto w-full max-w-6xl rounded-2xl border border-white/10 bg-coal/70 p-8 shadow-glow">
-        {children}
-      </div>
-    </div>
-  );
+  return <AppShell>{children}</AppShell>;
 }
