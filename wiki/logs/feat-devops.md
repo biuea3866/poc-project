@@ -1,0 +1,32 @@
+---
+### 2026-02-01 15:45
+- **Agent:** Gemini
+- **Task:** 초기 DevOps 인프라 구축 (Docker Compose)
+- **Changes:** 
+  - `wiki/docker-compose.yml`: MySQL, PostgreSQL, Kafka, Redpanda Console 구성
+  - `wiki/docker/mysql/init.sql`: MySQL 초기 스키마 (User, Document 등)
+  - `wiki/docker/postgres/init.sql`: PostgreSQL pgvector 확장 및 초기 스키마
+  - `wiki/.env.example`: Spring Boot 연동용 환경변수 예시
+- **Decisions:** 
+  - Kafka는 KRaft 모드로 구성하여 Zookeeper 의존성 제거.
+  - `kafka-init` 컨테이너를 사용하여 토픽 자동 생성 로직 구현.
+  - PostgreSQL은 `ankane/pgvector` 이미지를 사용하여 벡터 검색 지원.
+- **Issues:** 없음
+- **Next:** Backend 개발 에이전트가 `docker-compose up`으로 인프라 실행 후 Spring Boot 프로젝트 설정 진행
+---
+
+---
+### 2026-02-01 16:05
+- **Agent:** Gemini
+- **Task:** 인프라 실행 및 검증 완료
+- **Changes:**
+  - `wiki/docker-compose.yml`: Kafka 리스너 설정 수정 (내부: 9092, 외부: 9094)
+  - `wiki/.env.example`: KAFKA_BOOTSTRAP_SERVERS 포트 수정 (9094)
+- **Decisions:**
+  - `docker-compose up` 실행 시 `kafka-init` 컨테이너가 브로커에 접근하지 못하는 문제 해결을 위해 리스너 분리.
+  - 외부용 포트를 9094로 할당하여 호스트(Spring Boot) 환경에서 접근 가능하도록 설정.
+- **Issues:** 
+  - Docker Credential Helper 관련 에러 발생 -> 임시 config 수정으로 해결.
+  - Kafka 리스너 설정 오류로 토픽 생성 지연 -> 리스너 명시적 분리로 해결.
+- **Next:** Backend 프로젝트에서 DB 연결 테스트 및 도메인 엔티티 구현 시작
+---
