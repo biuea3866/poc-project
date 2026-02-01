@@ -1,0 +1,17 @@
+---
+### 2026-02-01 16:10
+- **Agent:** Gemini (Design Lead)
+- **Task:** 디자인 시스템 및 FE 프로젝트 초기화
+- **Goal:** Notion/Linear 스타일의 미니멀하고 깔끔한 다크모드 지원 UI 기반 마련
+- **Changes:** 
+  - `wiki/frontend/`: Next.js 14 (App Router) 프로젝트 초기화
+  - `wiki/frontend/tailwind.config.ts`: 디자인 토큰 (Colors, Spacing, Typography) 정의
+  - `wiki/frontend/app/globals.css`: 글로벌 스타일 및 CSS Variables 설정
+- **Decisions:**
+  - **Framework:** Next.js 14 (App Router) - 최신 React 기능 활용
+  - **Styling:** Tailwind CSS - 빠른 개발 및 디자인 시스템 적용 용이
+  - **Icons:** Lucide React - 깔끔한 라인 아이콘 (Linear 스타일)
+  - **Color Palette:** Slate/Zinc 계열의 뉴트럴 톤을 메인으로 사용하며, 다크모드를 기본으로 고려.
+- **Issues:** 없음
+- **Next:** 컴포넌트 구현 및 페이지 개발
+---

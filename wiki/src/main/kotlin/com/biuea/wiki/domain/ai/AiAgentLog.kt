@@ -36,13 +36,11 @@ class AiAgentLog(
     @Column(name = "reference_data", columnDefinition = "TEXT")
     val referenceData: String? = null,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_revision_id", nullable = false)
-    val documentRevision: DocumentRevision,
+    @Column(name = "document_revision_id", nullable = false)
+    val documentRevisionId: Long,
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id", nullable = false)
-    val document: Document,
+    @Column(name = "document_id", nullable = false)
+    val documentId: Long,
 
     @Column(name = "executor_id", nullable = false)
     val executorId: Long,
