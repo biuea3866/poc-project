@@ -11,7 +11,6 @@ import org.springframework.transaction.annotation.Transactional
 @Service
 class DocumentService(
     private val documentRepository: DocumentRepository,
-    private val tagService: TagService
 ) {
     @Transactional
     fun saveDocument(command: SaveDocumentCommand): Document {
@@ -29,20 +28,6 @@ class DocumentService(
         document.addRevision(revision)
         document.validate()
 
-        val savedDocument = documentRepository.save(document)
-
-        if (command.tags.isNotEmpty()) {
-            val documentRevisionId = savedDocument.latestRevisionId
-                ?: throw IllegalStateException("Document revision must exist to save tags.")
-            tagService.saveTags(
-                SaveTagCommand(
-                    tags = command.tags.map { SaveTagCommand.TagInput(it.name, it.tagConstant) },
-                    documentId = savedDocument.id,
-                    documentRevisionId = documentRevisionId
-                )
-            )
-        }
-
-        return savedDocument
+        return documentRepository.save(document)
     }
 }
