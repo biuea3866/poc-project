@@ -1,6 +1,7 @@
 package com.biuea.wiki.domain.document
 
 import com.biuea.wiki.domain.document.entity.DocumentStatus
+import com.biuea.wiki.domain.tag.entity.TagConstant
 
 data class SaveDocumentCommand(
     val title: String,
@@ -13,5 +14,5 @@ data class SaveDocumentCommand(
 
 data class TagInput(
     val name: String,
-    val type: String
+    val tagConstant: TagConstant
 )

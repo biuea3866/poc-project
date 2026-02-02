@@ -24,29 +24,23 @@ import java.time.ZonedDateTime
 @EntityListeners(AuditingEntityListener::class)
 class DocumentRevision(
     @Type(JsonStringType::class)
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "data")
     val data: DocumentRevisionData,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id", nullable = false)
+    @JoinColumn(name = "document_id")
     var document: Document,
 
-    @Column(name = "created_by", nullable = false, updatable = false)
+    @Column(name = "created_by")
     val createdBy: Long,
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     var createdAt: ZonedDateTime = ZonedDateTime.now(),
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
 ) {
-
-    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
-    var tagMaps: MutableList<DocumentTagMap> = mutableListOf()
-        protected set
-
     @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
     var summaries: MutableList<DocumentSummary> = mutableListOf()
         protected set
@@ -59,15 +53,11 @@ class DocumentRevision(
         this.document = document
     }
 
-    fun addTagMaps(tagMaps: List<DocumentTagMap>) {
-        tagMaps.forEach { it.mappedBy(document, this) }
-        this.tagMaps.addAll(tagMaps)
-    }
-
     fun addSummary(summary: DocumentSummary) {
         summaries.add(summary)
         summary.mappedBy(document, this)
     }
+
 
     companion object {
         fun create(document: Document): DocumentRevision {

@@ -36,9 +36,10 @@ CREATE TABLE IF NOT EXISTS `document_revision` (
 
 CREATE TABLE IF NOT EXISTS `tag_type` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
-    `name` VARCHAR(100) NOT NULL UNIQUE COMMENT '태그 타입 (예: TECH, DOMAIN, TEAM 등)',
+    `tag_type` VARCHAR(100) NOT NULL COMMENT '태그 타입 (enum 문자열)',
     `created_at` DATETIME NOT NULL COMMENT '생성 일시',
-    INDEX `idx_tag_type_name` (`name`)
+    `updated_at` DATETIME NOT NULL COMMENT '수정 일시',
+    `deleted_at` DATETIME NULL COMMENT '삭제 일시'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `tag` (
@@ -46,30 +47,16 @@ CREATE TABLE IF NOT EXISTS `tag` (
     `name` VARCHAR(100) NOT NULL COMMENT '전역 태그 이름',
     `tag_type_id` BIGINT NOT NULL COMMENT '태그 타입 id',
     `created_at` DATETIME NOT NULL COMMENT '생성 일시',
-    UNIQUE KEY `uq_tag_name_type` (`name`, `tag_type_id`),
-    INDEX `idx_tag_name` (`name`),
-    INDEX `idx_tag_type_id` (`tag_type_id`)
+    `updated_at` DATETIME NOT NULL COMMENT '수정 일시',
+    `deleted_at` DATETIME NULL COMMENT '삭제 일시'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-INSERT IGNORE INTO `tag_type` (`name`, `created_at`) VALUES
-('TECH', NOW()),
-('DOMAIN', NOW()),
-('TEAM', NOW()),
-('PROJECT', NOW()),
-('TOPIC', NOW()),
-('STATUS', NOW()),
-('PROCESS', NOW()),
-('CUSTOM', NOW());
-
-CREATE TABLE IF NOT EXISTS `document_tag_map` (
+CREATE TABLE IF NOT EXISTS `tag_document_mapping` (
     `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
     `tag_id` BIGINT NOT NULL COMMENT 'tag id',
     `document_id` BIGINT NOT NULL COMMENT '글 id',
-    `document_revision_id` BIGINT NULL COMMENT '글 개정 정보 id',
-    `created_at` DATETIME NOT NULL COMMENT '생성 일시',
-    UNIQUE KEY `uq_document_tag_map` (`document_id`, `tag_id`),
-    INDEX `idx_document_tag_map_document_id` (`document_id`),
-    INDEX `idx_document_tag_map_tag_id` (`tag_id`)
+    `document_revision_id` BIGINT NOT NULL COMMENT '글 개정 정보 id',
+    `created_at` DATETIME NOT NULL COMMENT '생성 일시'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS `document_summary` (

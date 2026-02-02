@@ -1,5 +1,7 @@
-package com.biuea.wiki.domain.document.entity
+package com.biuea.wiki.domain.tag.entity
 
+import com.biuea.wiki.domain.document.entity.Document
+import com.biuea.wiki.domain.document.entity.DocumentRevision
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
 import jakarta.persistence.EntityListeners
@@ -10,42 +12,39 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
-import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "document_tag_map")
+@Table(name = "tag_document_mapping")
 @EntityListeners(AuditingEntityListener::class)
-class DocumentTagMap(
+class TagDocumentMapping(
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "tag_id", nullable = false)
-    val tag: Tag,
+    @JoinColumn(name = "tag_id")
+    var tag: Tag,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id", nullable = false)
+    @JoinColumn(name = "document_id")
     var document: Document,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_revision_id")
-    var documentRevision: DocumentRevision? = null,
+    var documentRevision: DocumentRevision,
 
-    @CreatedDate
-    @Column(name = "created_at", nullable = false, updatable = false)
+    @Column(name = "created_at")
     val createdAt: ZonedDateTime = ZonedDateTime.now(),
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0L,
 ) {
-    fun mappedBy(document: Document, documentRevision: DocumentRevision? = null) {
-        this.document = document
-        this.documentRevision = documentRevision
-    }
-
     companion object {
-        fun create(tag: Tag, document: Document, documentRevision: DocumentRevision? = null): DocumentTagMap {
-            return DocumentTagMap(
+        fun create(
+            tag: Tag,
+            document: Document,
+            documentRevision: DocumentRevision
+        ): TagDocumentMapping {
+            return TagDocumentMapping(
                 tag = tag,
                 document = document,
                 documentRevision = documentRevision

@@ -2,22 +2,16 @@ package com.biuea.wiki.domain.document
 
 import com.biuea.wiki.domain.document.entity.Document
 import com.biuea.wiki.domain.document.entity.DocumentRevision
-import com.biuea.wiki.domain.document.entity.DocumentTagMap
-import com.biuea.wiki.domain.document.entity.Tag
-import com.biuea.wiki.domain.document.entity.TagType
-import com.biuea.wiki.presentation.document.DocumentRepository
-import com.biuea.wiki.presentation.document.DocumentTagMapRepository
-import com.biuea.wiki.presentation.document.TagRepository
-import com.biuea.wiki.presentation.document.TagTypeRepository
+import com.biuea.wiki.domain.tag.SaveTagCommand
+import com.biuea.wiki.domain.tag.TagService
+import com.biuea.wiki.infrastructure.document.DocumentRepository
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class DocumentService(
     private val documentRepository: DocumentRepository,
-    private val tagRepository: TagRepository,
-    private val tagTypeRepository: TagTypeRepository,
-    private val documentTagMapRepository: DocumentTagMapRepository
+    private val tagService: TagService
 ) {
     @Transactional
     fun saveDocument(command: SaveDocumentCommand): Document {
@@ -33,38 +27,22 @@ class DocumentService(
 
         val revision = DocumentRevision.create(document)
         document.addRevision(revision)
+        document.validate()
 
-        val normalizedTags = command.tags
-            .map { TagInput(name = it.name.trim(), type = it.type.trim().uppercase()) }
-            .filter { it.name.isNotBlank() && it.type.isNotBlank() }
+        val savedDocument = documentRepository.save(document)
 
-        if (normalizedTags.isNotEmpty()) {
-            val typeNames = normalizedTags.map { it.type }.toSet()
-            val existingTypes = tagTypeRepository.findByNameIn(typeNames).associateBy { it.name }
-            val newTypes = typeNames
-                .filterNot { existingTypes.containsKey(it) }
-                .map { TagType.create(it) }
-            val savedTypes = if (newTypes.isNotEmpty()) tagTypeRepository.saveAll(newTypes) else emptyList()
-            val allTypes = existingTypes.values.associateBy { it.name } + savedTypes.associateBy { it.name }
-
-            val tagMaps = mutableListOf<DocumentTagMap>()
-            val tagsToSave = mutableListOf<Tag>()
-
-            normalizedTags.forEach { input ->
-                val tagType = allTypes[input.type] ?: return@forEach
-                val existingTag = tagRepository.findByNameAndTagType(input.name, tagType)
-                val tag = existingTag ?: Tag.create(input.name, tagType).also { tagsToSave.add(it) }
-                tagMaps.add(DocumentTagMap.create(tag, document, revision))
-            }
-
-            if (tagsToSave.isNotEmpty()) {
-                tagRepository.saveAll(tagsToSave)
-            }
-
-            document.addTagMaps(tagMaps, revision)
-            documentTagMapRepository.saveAll(tagMaps)
+        if (command.tags.isNotEmpty()) {
+            val documentRevisionId = savedDocument.latestRevisionId
+                ?: throw IllegalStateException("Document revision must exist to save tags.")
+            tagService.saveTags(
+                SaveTagCommand(
+                    tags = command.tags.map { SaveTagCommand.TagInput(it.name, it.tagConstant) },
+                    documentId = savedDocument.id,
+                    documentRevisionId = documentRevisionId
+                )
+            )
         }
 
-        return documentRepository.save(document)
+        return savedDocument
     }
 }

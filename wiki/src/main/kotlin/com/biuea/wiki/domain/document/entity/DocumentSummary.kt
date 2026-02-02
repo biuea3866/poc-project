@@ -13,15 +13,15 @@ import jakarta.persistence.Table
 @Entity
 @Table(name = "document_summary")
 class DocumentSummary(
-    @Column(nullable = false, columnDefinition = "TEXT")
+    @Column(name = "content")
     var content: String,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_revision_id", nullable = false)
+    @JoinColumn(name = "document_revision_id")
     var documentRevision: DocumentRevision,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id", nullable = false)
+    @JoinColumn(name = "document_id")
     var document: Document,
 
     @Id
