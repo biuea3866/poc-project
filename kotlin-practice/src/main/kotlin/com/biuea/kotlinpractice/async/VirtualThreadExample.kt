@@ -1,5 +1,7 @@
 package com.biuea.kotlinpractice.async
 
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.RestController
 import java.util.concurrent.Executors
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
@@ -57,20 +59,36 @@ object VirtualThreadExample {
     fun virtualThreadExecutorExample() {
         println("\n=== 버추얼 스레드 Executor 예제 ===")
 
-        Executors.newVirtualThreadPerTaskExecutor().use { executor ->
+        val factory = Thread.ofVirtual()
+            .name("VirtualExecutor-", 0)
+            .factory()
+
+        Executors.newThreadPerTaskExecutor(factory).use { executor ->
             val time = measureTimeMillis {
-                val futures = List(10_000) {
+                val futures = List(5) {
                     executor.submit {
+                        println("[$it] 스레드: ${Thread.currentThread().name}")
                         Thread.sleep(100)
-                        1
                     }
                 }
 
                 futures.forEach { it.get() }
-                println("10,000개 버추얼 스레드 실행 완료")
+                println("5개 버추얼 스레드 실행 완료")
             }
 
             println("총 소요 시간: ${time}ms")
+        }
+    }
+
+    /**
+     * 버추얼 스레드 전역 설정 사용
+     */
+    fun globalVirtualThreadExecutorExample() {
+        println("\n=== spring.virtual.threads.enabled=true Executor 예제 ===")
+
+        List(5) {
+            println("[$it] 스레드: ${Thread.currentThread().name}")
+            Thread.sleep(100)
         }
     }
 
@@ -408,6 +426,7 @@ fun main() {
     VirtualThreadExample.basicVirtualThreadExample()
     VirtualThreadExample.virtualThreadFactoryExample()
     VirtualThreadExample.virtualThreadExecutorExample()
+    VirtualThreadExample.globalVirtualThreadExecutorExample()
 
     println("\n=== Pinning 비교 (synchronized vs ReentrantLock) ===")
     VirtualThreadExample.pinningWithSynchronizedExample()
@@ -421,4 +440,14 @@ fun main() {
     VirtualThreadExample.massiveConcurrencyExample()
     VirtualThreadExample.creationCostExample()
     VirtualThreadExample.checkIsVirtualExample()
+}
+
+@RestController
+class VirtualThreadController {
+    // Spring Boot에서 spring.virtual.threads.enabled=true 설정 시
+    // 모든 @Async, Web 요청이 버추얼 스레드로 처리됩니다.
+    @GetMapping("/virtual-thread-test")
+    fun virtualThreadTest(): String {
+        return "스레드: ${Thread.currentThread().name}, isVirtual: ${Thread.currentThread().isVirtual}"
+    }
 }
