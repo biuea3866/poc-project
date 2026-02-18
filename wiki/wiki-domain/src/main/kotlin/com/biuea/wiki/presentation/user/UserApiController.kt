@@ -2,11 +2,10 @@ package com.biuea.wiki.presentation.user
 
 import com.biuea.wiki.application.DeleteUserInput
 import com.biuea.wiki.application.LoginUserInput
+import com.biuea.wiki.application.LogoutUserInput
 import com.biuea.wiki.application.SignUpUserInput
 import com.biuea.wiki.application.UserAuthFacade
 import com.biuea.wiki.infrastructure.security.AuthenticatedUser
-import com.biuea.wiki.infrastructure.security.JwtTokenBlacklist
-import com.biuea.wiki.infrastructure.security.JwtTokenProvider
 import com.biuea.wiki.presentation.user.request.LoginRequest
 import com.biuea.wiki.presentation.user.request.SignUpRequest
 import com.biuea.wiki.presentation.user.response.LoginResponse
@@ -26,8 +25,6 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/users")
 class UserApiController(
     private val userAuthFacade: UserAuthFacade,
-    private val jwtTokenProvider: JwtTokenProvider,
-    private val jwtTokenBlacklist: JwtTokenBlacklist,
 ) {
 
     @PostMapping("/signup")
@@ -58,21 +55,14 @@ class UserApiController(
             )
         )
 
-        val authenticatedUser = AuthenticatedUser(
-            id = output.id,
-            email = output.email,
-            name = output.name,
-        )
-        val accessToken = jwtTokenProvider.createAccessToken(authenticatedUser)
-
         return ResponseEntity.ok(
             LoginResponse(
-                accessToken = accessToken,
-                tokenType = "Bearer",
+                accessToken = output.accessToken,
+                tokenType = output.tokenType,
                 user = UserResponse(
-                    id = output.id,
-                    email = output.email,
-                    name = output.name,
+                    id = output.user.id,
+                    email = output.user.email,
+                    name = output.user.name,
                 ),
             )
         )
@@ -82,13 +72,7 @@ class UserApiController(
     fun logout(
         @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) authorizationHeader: String?,
     ): ResponseEntity<Void> {
-        val token = jwtTokenProvider.resolveToken(authorizationHeader)
-        if (token != null) {
-            val expiresAt = jwtTokenProvider.getExpirationTimeMillis(token)
-            if (expiresAt != null) {
-                jwtTokenBlacklist.blacklist(token, expiresAt)
-            }
-        }
+        userAuthFacade.logout(LogoutUserInput(authorizationHeader = authorizationHeader))
 
         return ResponseEntity.noContent().build()
     }
