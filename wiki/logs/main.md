@@ -48,3 +48,20 @@
 - **Issues:** 없음
 - **Next:** 없음
 ---
+
+---
+### 2026-02-18 19:30
+- **Agent:** Gemini
+- **Task:** Frontend 기능 병합 및 conflict 해결 (SSE + Docs Management)
+- **Changes:** 
+  - `wiki/frontend/src/app/(protected)/documents/[id]/page.tsx`: SSE 기반 실시간 AI 상태 연동과 문서 수정/삭제/히스토리 기능 통합
+  - `wiki/frontend/src/hooks/useAiStatus.ts`: SSE 연동 훅 추가
+  - `wiki/frontend/src/app/(protected)/documents/[id]/revisions/page.tsx`: 히스토리 페이지 추가
+  - `wiki/frontend/src/app/(protected)/trash/page.tsx`: 휴지통 페이지 추가
+  - `wiki/frontend/src/types/document.ts`: 관련 타입 정의 추가
+- **Decisions:** 
+  - 로컬의 백엔드 refactoring 사항을 제외하고 Frontend 기능(feat/fe-ai-sse, feat/fe-docs-management)만 main 브랜치로 병합 완료
+  - `page.tsx`에서 발생한 conflict를 해결하여 두 기능이 모두 정상 작동하도록 통합
+- **Issues:** 없음
+- **Next:** 백엔드 SSE 엔드포인트 구현 확인 및 통합 테스트
+---
