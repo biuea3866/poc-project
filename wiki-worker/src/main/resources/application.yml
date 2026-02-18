@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: wiki-worker
+
+  datasource:
+    url: ${MYSQL_URL:jdbc:mysql://localhost:3306/wiki?serverTimezone=UTC&characterEncoding=UTF-8}
+    username: ${MYSQL_USERNAME:wiki}
+    password: ${MYSQL_PASSWORD:wiki}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        globally_quoted_identifiers: true
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9094}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+    consumer:
+      group-id: wiki-worker
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+
+  ai:
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY}
+      chat:
+        options:
+          model: claude-haiku-4-5-20251001
+          max-tokens: 1024
+    openai:
+      api-key: ${OPENAI_API_KEY}
+      embedding:
+        options:
+          model: text-embedding-3-small
+
+# PostgreSQL (벡터 저장)
+datasource-vector:
+  url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/wiki}
+  username: ${POSTGRES_USERNAME:wiki}
+  password: ${POSTGRES_PASSWORD:wiki}
