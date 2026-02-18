@@ -1,0 +1,33 @@
+server:
+  port: 8093
+
+spring:
+  application:
+    name: kafka-retry-scheduler
+  datasource:
+    url: jdbc:mysql://localhost:3307/kafka_retry?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 5
+      minimum-idle: 2
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+    open-in-view: false
+  kafka:
+    bootstrap-servers: localhost:9093
+
+retry:
+  scheduler:
+    interval-ms: 30000
+
+logging:
+  level:
+    root: INFO
+    com.biuea.kafkaretry: DEBUG
