@@ -16,16 +16,47 @@
    - `document.status`는 문서 생명주기(예: ACTIVE/DELETED)로 한정
    - AI 처리 상태는 별도 필드(`ai_status`)로 분리: PENDING/PROCESSING/COMPLETED/FAILED
 2) **버전 관리 범위 명확화**
-   - `document_revision.data`에 포함되는 필드 정의 (title, content, tags, summary 여부)
+   - `document_revision.data`에 포함되는 필드: title, content, tags, summary 여부 (모든 문서 필드 포함)
+   - 생성 트리거: 사용자가 문서를 수정할 때마다 새로운 revision 생성
 3) **태그/요약 스키마 정합성**
    - 태그는 전역(`tag`)으로 관리하고 문서-태그는 매핑 테이블(`tag_document_mapping`)로 관리
    - `document_summary`는 1:1 유지
 4) **삭제 정책 정의**
-   - 소프트 삭제 기준 및 조회 기본 필터(삭제 제외) 규칙 명시
+   - 소프트 삭제: `status = DELETED`, `deleted_at` 기록. 기본 조회는 DELETED 제외
+   - 부모 문서 삭제 시 모든 하위 문서도 재귀적으로 함께 소프트 삭제 (cascade)
+   - 복구 가능: Trash에서 ACTIVE 상태로 되돌릴 수 있음. 단, 부모 문서가 삭제된 경우 루트 레벨로 복구
+   - Trash 전용 조회 API 제공 (`status = DELETED` 필터)
 5) **AI 파이프라인 기본 규칙**
-   - 이벤트 발행/소비 순서, 재시도/중복 처리(idempotency) 기본 룰 정리
+   - 이벤트 순서: 순차 실행 (SUMMARY → TAGGER → EMBEDDING)
+     ```
+     document-created
+         └→ [SUMMARY 에이전트] → ai-summary-finished
+                └→ [TAGGER 에이전트] → ai-tagging-finished
+                       └→ [EMBEDDING 에이전트] → ai-embedding-finished
+     ```
+   - ai_status 전이: 문서 생성 시 PENDING → SUMMARY 소비 시점 PROCESSING → EMBEDDING 완료 시 COMPLETED
+   - 재시도: 각 에이전트 실패 시 최대 3회 재시도. 3회 모두 실패 시 `ai-processing-failed` 발행 → `ai_status = FAILED`
+   - 멱등성(idempotency): 각 에이전트는 `document_revision_id` 기준으로 중복 처리 방지
+   - 수동 재요청: `POST /api/v1/documents/{id}/analyze` 호출 시 `ai_status = PENDING`으로 리셋 후 `document-created` 재발행
 6) **SSE 규격 확정**
-   - `/ai-status/stream` 이벤트 포맷, heartbeat, 재연결 정책 정의
+   - 이벤트 포맷: `event:` 타입 명시 + `data:` JSON 페이로드
+     ```
+     event: ai-status-update
+     data: {"documentId": 1, "status": "PROCESSING"}
+
+     event: ai-status-update
+     data: {"documentId": 1, "status": "COMPLETED"}
+
+     event: heartbeat
+     data: {}
+     ```
+   - Heartbeat: 30초 주기로 서버에서 클라이언트로 전송 (연결 유지 확인용)
+   - 재연결: 클라이언트는 연결 끊김 시 최대 3회 재연결 시도 (1초 간격)
+   - 종료 조건: `COMPLETED` 또는 `FAILED` 이벤트 수신 시 클라이언트가 스트림 자동 종료
+7) **Refresh 토큰 기본 구현**
+   - Access 토큰 만료 시 Refresh 토큰으로 자동 재발급 (`POST /api/v1/auth/refresh`)
+   - 기본 정책: Refresh 토큰은 Redis 또는 DB 저장, 만료 시간 7일
+   - 고도화(회전, 단일 사용 등)는 Next 마일스톤으로 분리
 
 ### 앞으로 천천히 해결 (로드맵)
 1) **권한/공유 모델**
@@ -36,12 +67,36 @@
 3) **임베딩 버전/차원 관리**
    - 모델별 차원/버전 관리 전략, 재인덱싱 정책
 4) **운영/보안 강화**
-   - Refresh 토큰 저장/회전 정책
+   - Refresh 토큰 회전(rotation) 및 단일 사용(one-time) 정책 고도화
    - 로그 보관 기간, 감사 추적, 비용 모니터링
 5) **협업 기능**
    - 코멘트, 변경 이력 비교(diff), 알림/웹훅
 6) **멀티 에이전트 확장**
    - RAG/검색 에이전트 플러그인화, 정책 기반 실행
+
+## 1-2. 기능 상세 정의
+
+### 문서 요약
+* 문서 요약의 목적은 크게 2가지이다.
+  * 첫째, 문서 리스트 오버뷰에서의 카드 뷰에 들어갈 요약 정보 제공
+  * 둘째, 문서 상세 페이지에서 문서 내용을 간략히 보여주는 역할
+  * 요약은 문서의 핵심 내용을 간결하게 전달하는 것이 중요하며, 문서의 전체 내용을 대표할 수 있어야 한다.
+  * 단, AI 요약은 비동기 처리이고, 문서가 생성된 직후에는 요약이 존재하지 않을 수 있다. 이 경우, 프론트엔드에서는 "요약 생성 중..."과 같은 플레이스홀더를 보여줄 수 있다.
+
+### 태그
+* 태그는 문서의 주요 주제나 키워드를 나타내며, 문서 리스트에서 필터링과 검색에 활용된다.
+* 태그는 1:N 관계로, 하나의 문서가 여러 개의 태그를 가질 수 있다. 예를 들어, "AI 기술"이라는 문서는 "인공지능", "머신 러닝", "딥 러닝" 등의 태그를 가질 수 있다.
+* 태그는 전역적으로 관리되며, 문서-태그 매핑 테이블을 통해 문서와 태그 간의 관계를 관리한다. 이는 태그의 중복을 방지하고, 태그의 일관성을 유지하는 데 도움이 된다.
+
+### 버전 관리
+* 버전 관리는 문서의 변경 이력을 추적하는 기능으로, 문서가 수정될 때마다 새로운 버전이 생성된다.
+* 버전 관리의 범위는 모든 문서 필드(제목, 내용, 태그, 요약 여부 등)를 포함한다. 이는 문서의 모든 변경 사항을 기록하여, 필요할 때 이전 버전으로 롤백하거나 변경 이력을 확인할 수 있게 한다.
+
+### 댓글
+* 댓글은 특정 문서에 대한 의견이나 피드백을 남기는 기능으로, ACTIVE 상태의 문서에만 작성 가능하다.
+* 1단계 대댓글을 지원한다. 즉, 댓글에 댓글을 달 수 있지만, 대댓글에는 다시 댓글을 달 수 없다.
+* 댓글은 소프트 삭제를 적용하며, 삭제된 댓글은 "삭제된 댓글입니다."와 같은 플레이스홀더로 표시한다. 단, 해당 댓글의 대댓글이 모두 삭제된 경우 댓글 자체를 숨길 수 있다.
+* 댓글 작성자만 수정 및 삭제가 가능하다.
 
 A. 글 및 지식 관리
 * Markdown 지원: 사용자는 마크다운 형식으로 글을 작성할 수 있습니다.
@@ -77,15 +132,20 @@ B. AI 지능형 기능
   * id: pk long auto_increment
   * title: varchar(255) not null "제목"
   * content: text "글 내용"
-  * status: varchar(20) not null '상태(PENDING, COMPLETED, FAILED, DELETED)'
+  * status: varchar(20) not null '문서 생명주기 상태(DRAFT, ACTIVE, DELETED)' default DRAFT
+    * DRAFT: 작성 중. 본인만 조회 가능. AI 처리 미실행
+    * ACTIVE: 발행됨. 기본 조회 대상. 발행 시점에 AI 파이프라인 실행
+    * DELETED: 소프트 삭제. 기본 조회 제외, Trash에서만 조회 가능
+  * ai_status: varchar(20) not null 'AI 처리 상태(PENDING, PROCESSING, COMPLETED, FAILED)' default PENDING
   * parent_id: long
   * created_at: datetime not null '생성 일시'
   * updated_at: datetime not null '수정 일시'
   * deleted_at: datetime '삭제 일시'
   * created_by: long not null '생성 유저 id'
   * updated_by: long not null '수정 유저 Id'
-  * index list 
+  * index list
     * parent_id
+    * status, created_at
     * id, created_at
 
 * document_revision: 글 개정 정보
@@ -134,6 +194,23 @@ B. AI 지능형 기능
   * index list
     * document_id, document_revision_id
   
+* comment: 댓글
+  * id: pk long auto_increment
+  * document_id: long not null "글 id"
+  * content: text not null "댓글 내용"
+  * parent_id: long "대댓글 시 상위 댓글 id (null이면 최상위 댓글)"
+  * created_by: long not null "작성 유저 id"
+  * updated_by: long not null "수정 유저 id"
+  * created_at: datetime not null "생성 일시"
+  * updated_at: datetime not null "수정 일시"
+  * deleted_at: datetime "삭제 일시"
+  * id description
+    * document_id: document와 1:n 관계
+    * parent_id: comment와 self 1:n 관계 (최대 1단계 대댓글)
+  * index list
+    * document_id
+    * parent_id
+
 * ai_agent_log
   * id: pk long auto_increment
   * agent_type: varchar(50) not null "에이전트 타입 (SUMMARY, TAGGER, WEB_SEARCH, RAG)"
@@ -180,7 +257,9 @@ B. Document API (글 및 계층 관리)
 |POST|/api/v1/documents|새 글 작성 (Markdown). parent_id 전달 시 하위 문서로 생성|
 |GET|/api/v1/documents/{id}|특정 글의 상세 내용, AI 요약, 태그 정보 반환|
 |PUT|/api/v1/documents/{id}|글 수정. 기존 내용은 document_revision 테이블로 아카이빙|
-|DELETE|/api/v1/documents/{id}|글 소프트 삭제. status를 DELETED로 변경하고 deleted_at 기록|
+|DELETE|/api/v1/documents/{id}|글 소프트 삭제. status를 DELETED로 변경하고 deleted_at 기록. 하위 문서도 재귀적으로 함께 삭제|
+|POST|/api/v1/documents/{id}/restore|삭제된 글 복구. status를 ACTIVE로 변경. 부모가 삭제 상태면 루트 레벨로 복구|
+|GET|/api/v1/documents/trash|삭제된 글 목록 조회 (Trash). 쿼리 파라미터: `page`, `size`|
 |GET|/api/v1/documents/{id}/revisions|해당 글의 변경 이력 목록 조회. 쿼리 파라미터: `page`, `size`|
 |GET|/api/v1/documents/{id}/tags|해당 글의 태그 목록 조회|
 
@@ -188,14 +267,23 @@ C. AI & Search API (지능형 기능)
 
 |Method|Endpoint|Description|
 |--|--|--|
-|GET|/api/v1/search/integrated|제목/내용 LIKE 검색 + AI 의미 기반 검색 통합 결과. 쿼리 파라미터: `q`, `page`, `size`|
-|GET|/api/v1/search/web|외부 웹 사이트 실시간 검색 (Perplexity 스타일). 쿼리 파라미터: `q`|
+|GET|/api/v1/search/integrated|제목/내용 LIKE 검색. 쿼리 파라미터: `q`, `page`, `size`. **MVP: LIKE 검색만 제공. RAG 벡터 검색은 Next 마일스톤에서 추가**|
+|GET|/api/v1/search/web|외부 웹 사이트 실시간 검색. 쿼리 파라미터: `q`. 사용자가 명시적으로 '웹 검색' 탭/버튼을 선택할 때만 호출|
 |POST|/api/v1/documents/{id}/analyze|AI에게 재요약 및 태깅 수동 요청|
 |GET|/api/v1/documents/{id}/ai-status|해당 글의 AI 처리 상태 조회 (Polling용). 응답: status(PENDING, PROCESSING, COMPLETED, FAILED)|
 |GET|/api/v1/documents/{id}/ai-status/stream|해당 글의 AI 처리 상태 실시간 스트림 (SSE)|
 |GET|/api/v1/ai/logs|에이전트들이 남긴 업데이트 및 참조 기록 확인. 쿼리 파라미터: `documentId`, `agentType`, `page`, `size`|
 
-D. Tag API
+D. Comment API
+
+|Method|Endpoint|Description|
+|--|--|--|
+|GET|/api/v1/documents/{id}/comments|댓글 목록 조회. 최상위 댓글과 대댓글 포함. 쿼리 파라미터: `page`, `size`|
+|POST|/api/v1/documents/{id}/comments|댓글 작성. ACTIVE 상태 문서에만 가능. body: `content`, `parentId`(대댓글 시)|
+|PUT|/api/v1/comments/{commentId}|댓글 수정. 작성자 본인만 가능. body: `content`|
+|DELETE|/api/v1/comments/{commentId}|댓글 소프트 삭제. 작성자 본인만 가능|
+
+E. Tag API
 
 |Method|Endpoint|Description|
 |--|--|--|
