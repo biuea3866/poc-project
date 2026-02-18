@@ -142,11 +142,11 @@
   - 로그 보관 기간, 감사 추적, 비용 모니터링
 
 - **관측성(Observability)**
-  - [ ] Spring Boot Actuator 지표/헬스 엔드포인트 표준화
-  - [ ] OpenTelemetry SDK/Exporter 연동 (trace, metric, log correlation)
-  - [ ] Prometheus 스크랩 구성 및 대시보드 기본 지표 구성
-  - [ ] Loki 로그 수집 파이프라인(promtail/otel collector) 구성
-  - [ ] Grafana 통합 대시보드 (Trace/Metric/Log 연계 탐색)
+  - [x] Spring Boot Actuator 지표/헬스 엔드포인트 표준화
+  - [x] OpenTelemetry SDK/Exporter 연동 (trace, metric, log correlation)
+  - [x] Prometheus 스크랩 구성 및 대시보드 기본 지표 구성
+  - [x] Loki 로그 수집 파이프라인(promtail/otel collector) 구성
+  - [x] Grafana 통합 대시보드 (Trace/Metric/Log 연계 탐색)
   - [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의
 
 ---

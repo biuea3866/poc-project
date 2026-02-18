@@ -19,9 +19,13 @@ dependencies {
     implementation(project(":wiki-domain"))
 
     implementation("org.springframework.boot:spring-boot-starter-web")
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("io.micrometer:micrometer-tracing-bridge-otel")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+    runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
     testImplementation(platform("org.testcontainers:testcontainers-bom:1.20.4"))
     testImplementation("org.springframework.boot:spring-boot-starter-test")
