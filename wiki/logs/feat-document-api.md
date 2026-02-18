@@ -1,0 +1,56 @@
+---
+### 2026-02-18 00:00
+- **Agent:** Claude (claude-sonnet-4-6)
+- **Task:** Document API 전체 구현 — wiki-api 모듈 신규 생성, wiki-domain 모듈 완성, 11개 Document API 엔드포인트 구현
+- **Changes:**
+  - `wiki-domain/build.gradle.kts` — 신규 생성 (라이브러리 모듈, Querydsl kapt 포함)
+  - `wiki-domain/src/.../infrastructure/config/QuerydslConfig.kt` — JPAQueryFactory Bean
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepositoryCustom.kt` — LIKE 검색 인터페이스
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepositoryImpl.kt` — Querydsl 검색 구현
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepositoryCustom.kt` — 태그 조회 인터페이스
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepositoryImpl.kt` — Querydsl 태그 조회
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepository.kt` — DocumentRepositoryCustom 상속 추가
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepository.kt` — Custom 상속 + @Query 제거
+  - `wiki-domain/src/.../domain/document/DocumentService.kt` — findByIdAndStatusIsNot 오타 수정
+  - `wiki-domain/src/.../application/GetDocumentFacade.kt` — 신규 (상세/목록/Trash)
+  - `wiki-domain/src/.../application/UpdateDocumentFacade.kt` — 신규 (수정 + revision 아카이빙)
+  - `wiki-domain/src/.../application/DeleteDocumentFacade.kt` — 신규 (재귀 cascade 소프트 삭제)
+  - `wiki-domain/src/.../application/RestoreDocumentFacade.kt` — 신규 (복구, 부모 삭제 시 루트)
+  - `wiki-domain/src/.../application/GetDocumentRevisionsFacade.kt` — 신규
+  - `wiki-domain/src/.../application/GetDocumentTagsFacade.kt` — 신규
+  - `wiki-domain/src/.../application/GetDocumentAiStatusFacade.kt` — 신규
+  - `wiki-domain/src/.../application/AnalyzeDocumentFacade.kt` — 신규 (aiStatus 리셋 + 재발행)
+  - `wiki-domain/src/.../application/SearchDocumentFacade.kt` — 신규 (키워드 LIKE)
+  - `wiki-domain/src/.../application/GetAiLogsFacade.kt` — 신규
+  - `wiki-domain/src/...` — User/Auth/Tag/AI 엔티티·서비스·리포지토리 마이그레이션 (wiki/wiki-domain → wiki-domain)
+  - `wiki-api/build.gradle.kts` — 신규 생성 (Spring Boot app, wiki-domain 의존)
+  - `wiki-api/src/.../WikiApiApplication.kt` — 신규
+  - `wiki-api/src/.../config/SecurityConfig.kt` — 신규 (SSE 엔드포인트 permitAll 포함)
+  - `wiki-api/src/.../security/JwtAuthenticationFilter.kt` — 신규
+  - `wiki-api/src/.../presentation/common/ApiExceptionHandler.kt` — 신규 (IllegalArgument/State 핸들러 추가)
+  - `wiki-api/src/.../presentation/document/DocumentApiController.kt` — 신규 (11개 엔드포인트)
+  - `wiki-api/src/.../presentation/document/SseEmitterManager.kt` — 신규 (30초 Heartbeat, COMPLETED/FAILED 자동 종료)
+  - `wiki-api/src/.../presentation/document/request/DocumentApiControllerRequest.kt` — 신규
+  - `wiki-api/src/.../presentation/document/response/DocumentApiControllerResponse.kt` — 신규
+  - `wiki-api/src/.../presentation/search/SearchApiController.kt` — 신규
+  - `wiki-api/src/.../presentation/ai/AiApiController.kt` — 신규
+  - `wiki-api/src/.../presentation/user/` — wiki/wiki-api 마이그레이션
+  - `wiki-api/src/main/resources/application.yml` — 신규
+- **Decisions:**
+  - **Querydsl 도입**: @Query 대신 Querydsl JPAQueryFactory 사용. LIKE 검색, 태그 페치조인 쿼리에 적용
+  - **wiki-domain 라이브러리화**: bootJar 비활성화, jar 활성화. wiki-api/wiki-worker가 의존
+  - **feat/ai-pipeline → feat/document-api rebase**: AI 파이프라인 변경사항(AiStatus, Document 엔티티 등)을 document-api 브랜치에 포함시킴
+  - **SseEmitterManager 컴포넌트화**: SSE 연결 풀을 컨트롤러에서 분리. DDD 원칙에 따라 인프라 관심사 분리
+  - **SecurityConfig**: `/api/v1/documents/*/ai-status/stream` (SSE)는 인증 없이 접근 허용 (FE 훅 패턴 고려)
+- **Issues:**
+  - `wiki-api/` 디렉토리가 루트 레벨에 없었음 → wiki/wiki-api/ 마이그레이션 + 신규 생성으로 해결
+  - `DocumentService.findByIdAndStatusIsNot` 오타 → `findByIdAndStatusNot`으로 수정
+- **Next:**
+  - **DDD/OOP 리팩토링**: 도메인 서비스·엔티티의 풍부한 행위 강화 (Rich Domain Model)
+    - DocumentService의 updateDocument 로직을 Document 엔티티 메서드로 이동
+    - DeleteDocumentFacade의 재귀 삭제 로직을 Document.deleteWithChildren() 등의 도메인 메서드로 이동
+  - **Querydsl 확장**: 현재 LIKE 검색과 태그 조회만 Querydsl 적용 → 추후 복잡한 조회는 모두 Querydsl로
+  - **ROADMAP 업데이트**: 완료된 Document API 체크리스트 [x] 표시
+  - **DB 마이그레이션**: ai_status 컬럼 추가, status enum 값 변경, comment 테이블 추가
+  - **SSE 브로드캐스트**: wiki-worker가 AiStatus 변경 시 SseEmitterManager.broadcast() 호출하는 연동 구현
+---
