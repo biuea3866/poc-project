@@ -1,7 +1,6 @@
 package com.biuea.wiki.domain.document.entity
 
 import com.biuea.wiki.domain.ai.AiAgentLog
-import io.hypersistence.utils.hibernate.type.json.JsonStringType
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -14,7 +13,8 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import org.hibernate.annotations.Type
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.ZonedDateTime
@@ -23,7 +23,7 @@ import java.time.ZonedDateTime
 @Table(name = "document_revision")
 @EntityListeners(AuditingEntityListener::class)
 class DocumentRevision(
-    @Type(JsonStringType::class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data")
     val data: DocumentRevisionData,
 

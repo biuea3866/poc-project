@@ -35,8 +35,6 @@ dependencies {
 	// Database
 	runtimeOnly("com.mysql:mysql-connector-j")
 
-    implementation("io.hypersistence:hypersistence-utils-hibernate-62:3.6.0")
-
 	// Kafka
 	implementation("org.springframework.kafka:spring-kafka")
 

@@ -16,7 +16,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 @Entity
@@ -39,11 +38,11 @@ class AiAgentLog(
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_revision_id")
-    val documentRevisionId: DocumentRevision,
+    val documentRevision: DocumentRevision,
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "document_id")
-    val documentId: Document,
+    val document: Document,
 
     @Column(name = "executor_id")
     val executorId: Long,
