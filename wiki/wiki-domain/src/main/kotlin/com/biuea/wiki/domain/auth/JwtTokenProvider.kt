@@ -58,7 +58,6 @@ class JwtTokenProvider(
     fun resolveToken(authorizationHeader: String?): String? {
         if (authorizationHeader.isNullOrBlank()) return null
         if (!authorizationHeader.startsWith("Bearer ")) return null
-
         return authorizationHeader.substring(7).trim().ifBlank { null }
     }
 
@@ -85,12 +84,7 @@ class JwtTokenProvider(
         val email = claims["email"]?.toString() ?: return null
         val name = claims["name"]?.toString() ?: return null
 
-        val principal = AuthenticatedUser(
-            id = userId,
-            email = email,
-            name = name,
-        )
-
+        val principal = AuthenticatedUser(id = userId, email = email, name = name)
         return UsernamePasswordAuthenticationToken(
             principal,
             null,
