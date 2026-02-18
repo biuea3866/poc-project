@@ -1,4 +1,4 @@
-package com.biuea.wiki.infrastructure.security
+package com.biuea.wiki.domain.auth
 
 import java.io.Serializable
 

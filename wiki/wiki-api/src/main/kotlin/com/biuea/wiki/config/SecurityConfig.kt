@@ -1,6 +1,6 @@
-package com.biuea.wiki.infrastructure.config
+package com.biuea.wiki.config
 
-import com.biuea.wiki.infrastructure.security.JwtAuthenticationFilter
+import com.biuea.wiki.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
@@ -26,7 +26,12 @@ class SecurityConfig(
                 it.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             }
             .authorizeHttpRequests {
-                it.requestMatchers(HttpMethod.POST, "/api/users/signup", "/api/users/login").permitAll()
+                it.requestMatchers(
+                    HttpMethod.POST,
+                    "/api/v1/auth/signup",
+                    "/api/v1/auth/login",
+                    "/api/v1/auth/refresh",
+                ).permitAll()
                 it.anyRequest().authenticated()
             }
             .httpBasic { it.disable() }

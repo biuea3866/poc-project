@@ -1,5 +1,7 @@
-package com.biuea.wiki.infrastructure.security
+package com.biuea.wiki.security
 
+import com.biuea.wiki.domain.auth.JwtTokenProvider
+import com.biuea.wiki.infrastructure.auth.RedisAuthTokenStore
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
@@ -11,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 @Component
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
-    private val jwtTokenBlacklist: JwtTokenBlacklist,
+    private val redisAuthTokenStore: RedisAuthTokenStore,
 ) : OncePerRequestFilter() {
 
     override fun doFilterInternal(
@@ -21,7 +23,7 @@ class JwtAuthenticationFilter(
     ) {
         val token = jwtTokenProvider.resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION))
 
-        if (token != null && !jwtTokenBlacklist.isBlacklisted(token) && jwtTokenProvider.validateToken(token)) {
+        if (token != null && !redisAuthTokenStore.isAccessTokenBlacklisted(token) && jwtTokenProvider.validateToken(token)) {
             val authentication = jwtTokenProvider.getAuthentication(token)
             if (authentication != null) {
                 SecurityContextHolder.getContext().authentication = authentication

@@ -26,3 +26,12 @@ data class LoginRequest(
     @field:NotBlank
     val password: String,
 )
+
+data class RefreshRequest(
+    @field:NotBlank
+    val refreshToken: String,
+)
+
+data class LogoutRequest(
+    val refreshToken: String?,
+)
