@@ -1,5 +1,6 @@
-package com.biuea.wiki.infrastructure.security
+package com.biuea.wiki.domain.auth
 
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
@@ -10,6 +11,8 @@ import org.springframework.security.core.Authentication
 import org.springframework.security.core.authority.SimpleGrantedAuthority
 import org.springframework.stereotype.Component
 import java.nio.charset.StandardCharsets
+import java.time.LocalDateTime
+import java.time.ZoneId
 import java.util.Date
 import javax.crypto.SecretKey
 
@@ -19,6 +22,8 @@ class JwtTokenProvider(
     secret: String,
     @Value("\${security.jwt.access-token-expiration-ms:3600000}")
     private val accessTokenExpirationMs: Long,
+    @Value("\${security.jwt.refresh-token-expiration-ms:604800000}")
+    private val refreshTokenExpirationMs: Long,
 ) {
     private val secretKey: SecretKey = Keys.hmacShaKeyFor(secret.toByteArray(StandardCharsets.UTF_8))
 
@@ -28,8 +33,22 @@ class JwtTokenProvider(
 
         return Jwts.builder()
             .subject(authenticatedUser.id.toString())
+            .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_ACCESS)
             .claim("email", authenticatedUser.email)
             .claim("name", authenticatedUser.name)
+            .issuedAt(issuedAt)
+            .expiration(expiration)
+            .signWith(secretKey)
+            .compact()
+    }
+
+    fun createRefreshToken(userId: Long): String {
+        val issuedAt = Date()
+        val expiration = Date(issuedAt.time + refreshTokenExpirationMs)
+
+        return Jwts.builder()
+            .subject(userId.toString())
+            .claim(CLAIM_TOKEN_TYPE, TOKEN_TYPE_REFRESH)
             .issuedAt(issuedAt)
             .expiration(expiration)
             .signWith(secretKey)
@@ -54,8 +73,14 @@ class JwtTokenProvider(
         }
     }
 
+    fun isRefreshToken(token: String): Boolean {
+        return parseClaims(token)?.get(CLAIM_TOKEN_TYPE)?.toString() == TOKEN_TYPE_REFRESH
+    }
+
     fun getAuthentication(token: String): Authentication? {
         val claims = parseClaims(token) ?: return null
+        if (claims[CLAIM_TOKEN_TYPE]?.toString() != TOKEN_TYPE_ACCESS) return null
+
         val userId = claims.subject?.toLongOrNull() ?: return null
         val email = claims["email"]?.toString() ?: return null
         val name = claims["name"]?.toString() ?: return null
@@ -73,11 +98,16 @@ class JwtTokenProvider(
         )
     }
 
-    fun getExpirationTimeMillis(token: String): Long? {
-        return parseClaims(token)?.expiration?.time
+    fun getExpirationTime(token: String): LocalDateTime? {
+        val expiration = parseClaims(token)?.expiration ?: return null
+        return LocalDateTime.ofInstant(expiration.toInstant(), ZoneId.systemDefault())
     }
 
-    private fun parseClaims(token: String): io.jsonwebtoken.Claims? {
+    fun getUserId(token: String): Long? {
+        return parseClaims(token)?.subject?.toLongOrNull()
+    }
+
+    private fun parseClaims(token: String): Claims? {
         return try {
             Jwts.parser().verifyWith(secretKey).build().parseSignedClaims(token).payload
         } catch (expiredJwtException: ExpiredJwtException) {
@@ -87,5 +117,11 @@ class JwtTokenProvider(
         } catch (_: IllegalArgumentException) {
             null
         }
+    }
+
+    companion object {
+        private const val CLAIM_TOKEN_TYPE = "token_type"
+        private const val TOKEN_TYPE_ACCESS = "ACCESS"
+        private const val TOKEN_TYPE_REFRESH = "REFRESH"
     }
 }

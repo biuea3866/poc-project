@@ -3,12 +3,16 @@ package com.biuea.wiki.presentation.user
 import com.biuea.wiki.application.DeleteUserInput
 import com.biuea.wiki.application.LoginUserInput
 import com.biuea.wiki.application.LogoutUserInput
+import com.biuea.wiki.application.RefreshUserInput
 import com.biuea.wiki.application.SignUpUserInput
 import com.biuea.wiki.application.UserAuthFacade
-import com.biuea.wiki.infrastructure.security.AuthenticatedUser
+import com.biuea.wiki.domain.auth.AuthenticatedUser
 import com.biuea.wiki.presentation.user.request.LoginRequest
+import com.biuea.wiki.presentation.user.request.LogoutRequest
+import com.biuea.wiki.presentation.user.request.RefreshRequest
 import com.biuea.wiki.presentation.user.request.SignUpRequest
 import com.biuea.wiki.presentation.user.response.LoginResponse
+import com.biuea.wiki.presentation.user.response.RefreshResponse
 import com.biuea.wiki.presentation.user.response.UserResponse
 import jakarta.validation.Valid
 import org.springframework.http.HttpHeaders
@@ -22,7 +26,7 @@ import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/auth")
 class UserApiController(
     private val userAuthFacade: UserAuthFacade,
 ) {
@@ -58,6 +62,7 @@ class UserApiController(
         return ResponseEntity.ok(
             LoginResponse(
                 accessToken = output.accessToken,
+                refreshToken = output.refreshToken,
                 tokenType = output.tokenType,
                 user = UserResponse(
                     id = output.user.id,
@@ -68,11 +73,31 @@ class UserApiController(
         )
     }
 
+    @PostMapping("/refresh")
+    fun refresh(@RequestBody @Valid request: RefreshRequest): ResponseEntity<RefreshResponse> {
+        val output = userAuthFacade.refresh(
+            RefreshUserInput(refreshToken = request.refreshToken)
+        )
+
+        return ResponseEntity.ok(
+            RefreshResponse(
+                accessToken = output.accessToken,
+                tokenType = output.tokenType,
+            )
+        )
+    }
+
     @PostMapping("/logout")
     fun logout(
         @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) authorizationHeader: String?,
+        @RequestBody(required = false) request: LogoutRequest?,
     ): ResponseEntity<Void> {
-        userAuthFacade.logout(LogoutUserInput(authorizationHeader = authorizationHeader))
+        userAuthFacade.logout(
+            LogoutUserInput(
+                authorizationHeader = authorizationHeader,
+                refreshToken = request?.refreshToken,
+            )
+        )
 
         return ResponseEntity.noContent().build()
     }

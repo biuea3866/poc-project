@@ -31,6 +31,14 @@ services:
     networks:
       - wiki-network
 
+  redis:
+    image: redis:7-alpine
+    container_name: wiki-redis
+    ports:
+      - "6379:6379"
+    networks:
+      - wiki-network
+
   kafka:
     image: apache/kafka:latest
     container_name: wiki-kafka
