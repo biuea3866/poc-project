@@ -1,0 +1,53 @@
+---
+### 2026-02-18 00:00
+- **Agent:** Claude (claude-sonnet-4-6)
+- **Task:** AI 파이프라인 구현 — wiki-worker 멀티모듈 신규 생성, Kafka 기반 순차 에이전트 파이프라인(SUMMARY → TAGGER → EMBEDDING) 구축
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/.../entity/DocumentStatus.kt` — DRAFT, ACTIVE, DELETED로 변경
+  - `wiki-domain/src/main/kotlin/.../entity/AiStatus.kt` — 신규 생성 (PENDING, PROCESSING, COMPLETED, FAILED)
+  - `wiki-domain/src/main/kotlin/.../entity/Document.kt` — aiStatus 필드 추가, publish/startAiProcessing/completeAiProcessing/failAiProcessing/resetAiProcessing/restore/isDraft/isActive 메서드 추가
+  - `wiki-domain/src/main/kotlin/.../entity/DocumentRevision.kt` — DocumentRevisionData 순환 참조 제거 (parent: Document? → parentId: Long?)
+  - `wiki-domain/src/main/kotlin/.../document/DocumentServiceCommand.kt` — status 필드 제거 (항상 DRAFT로 생성)
+  - `wiki-domain/src/main/kotlin/.../document/DocumentService.kt` — Pair<Document, DocumentRevision> 반환으로 변경
+  - `wiki-domain/src/main/kotlin/.../infrastructure/document/DocumentRepository.kt` — 상태 기반 조회 쿼리 추가
+  - `wiki-domain/src/main/kotlin/.../application/SaveDocumentFacade.kt` — 태그 관련 입출력 제거 (AI 자동 생성으로 전환)
+  - `wiki-domain/src/main/kotlin/.../application/PublishDocumentFacade.kt` — 신규 생성 (DRAFT→ACTIVE + Kafka 이벤트 발행)
+  - `wiki-domain/src/main/kotlin/.../domain/event/DocumentEvents.kt` — 신규 생성 (DocumentCreatedEvent, AiTaggingRequestEvent, AiEmbeddingRequestEvent, AiProcessingFailedEvent)
+  - `wiki-domain/src/main/kotlin/.../domain/event/DocumentEventPublisher.kt` — 신규 생성 (인터페이스)
+  - `wiki-domain/src/main/kotlin/.../infrastructure/kafka/KafkaDocumentEventPublisher.kt` — 신규 생성 (KafkaTopic 상수 포함)
+  - `settings.gradle.kts` — :wiki-worker 모듈 추가
+  - `wiki-worker/build.gradle.kts` — 신규 생성
+  - `wiki-worker/src/main/kotlin/.../WikiWorkerApplication.kt` — 신규 생성
+  - `wiki-worker/src/main/kotlin/.../config/KafkaConsumerConfig.kt` — MANUAL ack, FixedBackOff(1000L, 3L)
+  - `wiki-worker/src/main/kotlin/.../consumer/SummaryConsumer.kt` — event.document 컨슘 → queue.ai.tagging 발행
+  - `wiki-worker/src/main/kotlin/.../consumer/TaggerConsumer.kt` — queue.ai.tagging 컨슘 → queue.ai.embedding 발행
+  - `wiki-worker/src/main/kotlin/.../consumer/EmbeddingConsumer.kt` — queue.ai.embedding 컨슘 → PostgreSQL upsert → COMPLETED
+  - `wiki-worker/src/main/kotlin/.../consumer/AiFailedConsumer.kt` — event.ai.failed 컨슘 → ai_status=FAILED
+  - `wiki-worker/src/main/kotlin/.../service/SummaryService.kt` — Spring AI ChatClient (Claude Haiku)
+  - `wiki-worker/src/main/kotlin/.../service/TaggerService.kt` — Spring AI ChatClient, JSON 태그 응답 파싱
+  - `wiki-worker/src/main/kotlin/.../service/EmbeddingService.kt` — Spring AI EmbeddingModel (OpenAI) + JdbcClient upsert
+  - `wiki-worker/src/main/resources/application.yml` — Anthropic/OpenAI API 키, MySQL + PostgreSQL 이중 DB
+- **Decisions:**
+  - **Kafka 토픽 네이밍 컨벤션**: `event.{domain}` = 이벤트성(여러 컨슈머 그룹 구독), `queue.{domain}.{action}` = 목적성(단일 컨슈머 그룹). 파이프라인 내부 토픽은 queue.*, 외부에 공개되는 토픽은 event.*
+    - `event.document` — 문서 발행 이벤트 (여러 컨슈머 그룹이 구독 가능)
+    - `queue.ai.tagging` — SUMMARY → TAGGER 전달용 (단일 컨슈머)
+    - `queue.ai.embedding` — TAGGER → EMBEDDING 전달용 (단일 컨슈머)
+    - `event.ai.failed` — AI 실패 이벤트 (여러 컨슈머 그룹이 구독 가능)
+  - **ApplicationEvent vs Kafka**: ApplicationEvent = 도메인 내부 internal event, Kafka = 도메인 외부 external event
+  - **DocumentRevisionData 순환 참조 제거**: parent: Document? 대신 parentId: Long?만 스냅샷으로 저장. JSON 직렬화 시 StackOverflowError 방지
+  - **DocumentStatus 분리**: 문서 라이프사이클(DRAFT/ACTIVE/DELETED)과 AI 처리 상태(PENDING/PROCESSING/COMPLETED/FAILED)를 별도 컬럼으로 분리
+  - **태그는 AI 자동 생성**: SaveDocumentFacade에서 사용자 입력 태그 제거. TaggerService가 LLM으로 자동 추출
+- **Issues:**
+  - DocumentRepository에 `findByCreatedByAndStatus` 중복 시그니처 발생 → 단일 메서드로 통합
+  - 토픽 네이밍을 작업 중 변경 (event.ai.summary → queue.ai.tagging 등): 처음엔 모든 AI 파이프라인 토픽을 event.*로 설계했으나, event.*는 여러 컨슈머 그룹이 구독하는 팬아웃 패턴이므로 파이프라인 내부 토픽은 queue.*로 변경
+- **Next:**
+  - **Document API 구현** (wiki-api 모듈)
+    - `POST /api/v1/documents` (DRAFT 생성)
+    - `POST /api/v1/documents/{id}/publish` (ACTIVE 전환 + Kafka 이벤트)
+    - 목록/상세/수정/삭제/복구 API
+    - `GET /api/v1/documents/{id}/ai-status` (폴링)
+    - `GET /api/v1/documents/{id}/ai-status/stream` (SSE)
+  - **DB 마이그레이션**: document 테이블에 `ai_status` 컬럼 추가, status enum 값 변경 (DRAFT/ACTIVE/DELETED)
+  - **SecurityConfig 경로 수정**: `/api/users/*` → `/api/v1/auth/*`
+  - **수동 재분석 API**: `POST /api/v1/documents/{id}/analyze`
+---

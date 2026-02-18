@@ -28,7 +28,7 @@
 | 인프라 (Docker Compose) | ✅ 완료 | MySQL, PostgreSQL, Kafka, Redpanda Console |
 | Auth API | ✅ 완료 | 회원가입/로그인/로그아웃. Refresh 토큰 미구현 |
 | Document API | ❌ 미구현 | Facade·엔티티만 존재, 컨트롤러 없음 |
-| AI 파이프라인 | ❌ 미구현 | Kafka Producer/Consumer, 에이전트 없음 |
+| AI 파이프라인 | ✅ 완료 | wiki-worker 모듈, Kafka 순차 파이프라인 (SUMMARY→TAGGER→EMBEDDING) |
 | SSE 엔드포인트 | ❌ 미구현 | FE 훅(`useAiStatus`)은 준비됨 |
 | FE Auth | ✅ 완료 | 로그인/회원가입 페이지 |
 | FE 문서 상세 | ⚠️ 부분 완료 | SSE 연동·히스토리·휴지통 페이지 있음. 에디터·트리 미구현 |
@@ -77,13 +77,13 @@
   - [ ] 버전 목록 조회 (`GET /api/v1/documents/{id}/revisions`)
   - [ ] 태그 목록 조회 (`GET /api/v1/documents/{id}/tags`)
 
-- [ ] **AI 파이프라인**
-  - [ ] 문서 발행 시 `document-created` 이벤트 발행 (Kafka Producer)
-  - [ ] SUMMARY 에이전트 (Kafka Consumer → LLM 요약 → `ai-summary-finished` 발행)
-  - [ ] TAGGER 에이전트 (Kafka Consumer → LLM 태깅 → `ai-tagging-finished` 발행)
-  - [ ] EMBEDDING 에이전트 (Kafka Consumer → 벡터화 → PostgreSQL 저장 → `ai-embedding-finished` 발행)
-  - [ ] `ai_status` 상태 전이 관리 (PENDING → PROCESSING → COMPLETED / FAILED)
-  - [ ] 실패 처리: 3회 재시도 후 `ai-processing-failed` 발행
+- [x] **AI 파이프라인**
+  - [x] 문서 발행 시 `event.document` 이벤트 발행 (Kafka Producer, PublishDocumentFacade)
+  - [x] SUMMARY 에이전트 (wiki-worker, `event.document` 컨슘 → LLM 요약 → `queue.ai.tagging` 발행)
+  - [x] TAGGER 에이전트 (wiki-worker, `queue.ai.tagging` 컨슘 → LLM 태깅 → `queue.ai.embedding` 발행)
+  - [x] EMBEDDING 에이전트 (wiki-worker, `queue.ai.embedding` 컨슘 → 벡터화 → PostgreSQL upsert → COMPLETED)
+  - [x] `ai_status` 상태 전이 관리 (PENDING → PROCESSING → COMPLETED / FAILED)
+  - [x] 실패 처리: FixedBackOff 3회 재시도 후 `event.ai.failed` 발행 → FAILED 전이
   - [ ] 수동 재분석 (`POST /api/v1/documents/{id}/analyze`)
 
 - [ ] **SSE / 상태 조회**
@@ -115,6 +115,20 @@
 ---
 
 ## Next (1~2 마일스톤)
+
+- **아웃박스 패턴 (Transactional Outbox)**
+  - 목표: Kafka 발행 신뢰성 보장 (at-least-once delivery, 장애 시 유실 방지)
+  - 구조:
+    1. Kafka 메시지 발행 시 비동기 스레드에서 시도, ErrorHandler 기본 3회 재시도
+    2. 재시도 모두 실패 시 `outbox` 테이블에 미발행 이벤트 적재 (status = PENDING)
+    3. 컨슈머가 이벤트 처리 성공 시 outbox 로우에 성공 표시 (status = SUCCESS)
+    4. 실패 시 스케줄러(자동 재처리) 또는 어드민 API를 통한 수동 재처리 지원
+  - 구현 범위:
+    - [ ] `outbox` 테이블 스키마 (id, topic, payload, status, retry_count, created_at, processed_at)
+    - [ ] Kafka 발행 실패 시 outbox 적재 로직
+    - [ ] 컨슈머 성공/실패 시 outbox 상태 업데이트
+    - [ ] 스케줄러: 미처리 outbox 주기적 재발행
+    - [ ] 어드민 API: `GET /api/admin/outbox` (목록), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
 
 - **RAG 벡터 검색 도입**
   - 통합 검색에 벡터 유사도 결과 섹션 추가
