@@ -223,8 +223,10 @@ services:
     command:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
     volumes:
       - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/observability/prometheus-rules.yml:/etc/prometheus/rules/wiki-alert-rules.yml:ro
       - prometheus_data:/prometheus
     ports:
       - "9090:9090"
@@ -236,6 +238,21 @@ services:
       - mysqld-exporter
       - kafka-exporter
       - kafka-jmx-exporter
+      - alertmanager
+    networks:
+      - wiki-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: wiki-alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "19093:9093"
     networks:
       - wiki-network
 
@@ -312,3 +329,4 @@ volumes:
   loki_data:
   tempo_data:
   grafana_data:
+  alertmanager_data:

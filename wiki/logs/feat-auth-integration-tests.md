@@ -23,3 +23,11 @@
 - **Issues:** mysqld-exporter 인증 방식 변경(v0.16), kafka-jmx-exporter jar URL 404, cAdvisor/node-exporter mount 제약 이슈가 있어 compose 설정 보정.
 - **Next:** 필요 시 대시보드 패널/알람(SLO) 세부 튜닝 및 Alertmanager 연동.
 ---
+### 2026-02-18 23:05
+- **Agent:** Codex
+- **Task:** Prometheus SLO/인프라 알람 룰 및 Alertmanager 연동 구축
+- **Changes:** wiki/docker/observability/prometheus.yml, wiki/docker/observability/prometheus-rules.yml, wiki/docker/observability/alertmanager.yml, wiki/docker-compose.yml, wiki/docker/observability/README.md, wiki/logs/feat-auth-integration-tests.md
+- **Decisions:** 알람 파이프라인은 Prometheus rule_files + Alertmanager 기본 라우팅으로 구성. host 포트 충돌(9093)로 Alertmanager를 19093에 노출, Prometheus 내부 타깃은 서비스명(alertmanager:9093) 유지.
+- **Issues:** Alertmanager 9093 포트 점유로 기동 실패가 있어 compose 포트 매핑 변경으로 해결.
+- **Next:** Slack/Email/PagerDuty receiver 및 Alertmanager route 고도화, SLO 임계치 실사용 트래픽 기준 튜닝.
+---

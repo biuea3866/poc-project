@@ -1,0 +1,128 @@
+groups:
+  - name: wiki-slo-alerts
+    rules:
+      - alert: WikiApiDown
+        expr: up{job="wiki-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+          service: wiki-api
+        annotations:
+          summary: "wiki-api is down"
+          description: "Prometheus scrape for wiki-api has been failing for more than 1 minute."
+
+      - alert: WikiApiHigh5xxRate
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 0.001)
+          ) > 0.05
+        for: 5m
+        labels:
+          severity: warning
+          service: wiki-api
+        annotations:
+          summary: "wiki-api 5xx error rate is high"
+          description: "5xx ratio has been above 5% over 5 minutes."
+
+      - alert: WikiApiHighP95Latency
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket[5m]))
+          ) > 1.5
+        for: 10m
+        labels:
+          severity: warning
+          service: wiki-api
+        annotations:
+          summary: "wiki-api latency p95 is high"
+          description: "HTTP p95 latency is above 1.5 seconds for 10 minutes."
+
+      - alert: WikiJvmHighHeapUsage
+        expr: |
+          (
+            sum(jvm_memory_used_bytes{area="heap"})
+            /
+            clamp_min(sum(jvm_memory_max_bytes{area="heap"}), 1)
+          ) > 0.85
+        for: 10m
+        labels:
+          severity: warning
+          service: wiki-api
+        annotations:
+          summary: "wiki-api JVM heap usage is high"
+          description: "Heap usage has been above 85% for 10 minutes."
+
+      - alert: WikiJvmHighThreadCount
+        expr: jvm_threads_live_threads > 300
+        for: 10m
+        labels:
+          severity: warning
+          service: wiki-api
+        annotations:
+          summary: "wiki-api JVM thread count is high"
+          description: "Live thread count has exceeded 300 for 10 minutes."
+
+  - name: wiki-infra-alerts
+    rules:
+      - alert: HostHighCpuUsage
+        expr: (100 - (avg by(instance) (irate(node_cpu_seconds_total{mode="idle"}[5m])) * 100)) > 85
+        for: 10m
+        labels:
+          severity: warning
+          service: infra
+        annotations:
+          summary: "Host CPU usage is high"
+          description: "Host CPU usage has been above 85% for 10 minutes."
+
+      - alert: HostHighMemoryUsage
+        expr: ((1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100) > 90
+        for: 10m
+        labels:
+          severity: warning
+          service: infra
+        annotations:
+          summary: "Host memory usage is high"
+          description: "Host memory usage has been above 90% for 10 minutes."
+
+      - alert: MysqlExporterDown
+        expr: up{job="mysqld-exporter"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: mysql
+        annotations:
+          summary: "mysqld-exporter is down"
+          description: "MySQL exporter scrape target is down."
+
+      - alert: MysqlTooManyConnections
+        expr: mysql_global_status_threads_connected > 200
+        for: 5m
+        labels:
+          severity: warning
+          service: mysql
+        annotations:
+          summary: "MySQL connections are high"
+          description: "Connected MySQL threads exceeded 200 for 5 minutes."
+
+      - alert: KafkaConsumerLagHigh
+        expr: sum(kafka_consumergroup_lag) > 1000
+        for: 10m
+        labels:
+          severity: warning
+          service: kafka
+        annotations:
+          summary: "Kafka consumer lag is high"
+          description: "Total consumer lag is above 1000 for 10 minutes."
+
+      - alert: KafkaJvmHighThreadCount
+        expr: kafka_jvm_threads_threadcount > 500
+        for: 10m
+        labels:
+          severity: warning
+          service: kafka
+        annotations:
+          summary: "Kafka JVM thread count is high"
+          description: "Kafka JVM thread count exceeded 500 for 10 minutes."

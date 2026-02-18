@@ -16,6 +16,7 @@ docker compose up -d --build \
 - Prometheus: `http://localhost:9090`
 - Loki API: `http://localhost:3100`
 - Tempo API: `http://localhost:3200`
+- Alertmanager: `http://localhost:19093`
 - Node Exporter: `http://localhost:9100/metrics`
 - cAdvisor: `http://localhost:8088/metrics`
 - MySQL Exporter: `http://localhost:9104/metrics`
@@ -45,3 +46,9 @@ docker compose up -d --build \
 - `kafka_consumergroup_lag`
 - `kafka_jvm_threads_threadcount`
 - `container_memory_usage_bytes{name!=""}`
+
+## Alert checks
+
+- Loaded rules: `http://localhost:9090/api/v1/rules`
+- Active alerts: `http://localhost:9090/api/v1/alerts`
+- Alertmanager alerts: `http://localhost:19093/api/v2/alerts`
