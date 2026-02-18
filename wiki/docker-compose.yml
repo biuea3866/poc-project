@@ -57,8 +57,43 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka
+      KAFKA_OPTS: "-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9999"
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks:
+      - wiki-network
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.8.0
+    container_name: wiki-kafka-exporter
+    command:
+      - --kafka.server=kafka:9092
+      - --web.listen-address=:9308
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+    networks:
+      - wiki-network
+
+  kafka-jmx-exporter:
+    image: eclipse-temurin:21-jre
+    container_name: wiki-kafka-jmx-exporter
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -fsSL -o /tmp/jmx_prometheus_httpserver.jar https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/1.0.1/jmx_prometheus_httpserver-1.0.1.jar
+        java -jar /tmp/jmx_prometheus_httpserver.jar 5556 /etc/jmx/kafka-jmx-exporter.yml
+    volumes:
+      - ./docker/observability/kafka-jmx-exporter.yml:/etc/jmx/kafka-jmx-exporter.yml:ro
+    ports:
+      - "5556:5556"
+    depends_on:
+      - kafka
     networks:
       - wiki-network
 
@@ -67,20 +102,16 @@ services:
     container_name: wiki-kafka-init
     depends_on:
       - kafka
-    entrypoint: [ "/bin/sh", "-c" ]
+    entrypoint: ["/bin/sh", "-c"]
     command: |
       "
-      # Wait for Kafka to be ready
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
-      
       echo -e 'Creating kafka topics'
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic document-created --replication-factor 1 --partitions 1
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ai-summary-finished --replication-factor 1 --partitions 1
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ai-tagging-finished --replication-factor 1 --partitions 1
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ai-embedding-finished --replication-factor 1 --partitions 1
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --create --if-not-exists --topic ai-processing-failed --replication-factor 1 --partitions 1
-      
-      echo -e 'Successfully created the following topics:'
       /opt/kafka/bin/kafka-topics.sh --bootstrap-server kafka:9092 --list
       "
     networks:
@@ -98,6 +129,193 @@ services:
     networks:
       - wiki-network
 
+  wiki-api:
+    build:
+      context: .
+      dockerfile: ./docker/wiki-api/Dockerfile
+    container_name: wiki-api
+    ports:
+      - "8081:8081"
+    environment:
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: wiki
+      MYSQL_USER: wiki_user
+      MYSQL_PASSWORD: wiki_password
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      JWT_SECRET: this-is-a-local-dev-secret-key-change-in-production
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://otel-collector:4318/v1/traces
+      LOGGING_FILE_NAME: /var/log/wiki/wiki-api.log
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+    depends_on:
+      - mysql
+      - redis
+      - kafka
+      - otel-collector
+    volumes:
+      - wiki_api_logs:/var/log/wiki
+    networks:
+      - wiki-network
+
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.16.0
+    container_name: wiki-mysqld-exporter
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=root
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: root
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+    networks:
+      - wiki-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: wiki-node-exporter
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - wiki-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: wiki-cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8088:8080"
+    networks:
+      - wiki-network
+
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.121.0
+    container_name: wiki-otel-collector
+    command: ["--config=/etc/otelcol/config.yaml"]
+    volumes:
+      - ./docker/observability/otel-collector-config.yml:/etc/otelcol/config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+      - "8889:8889"
+    depends_on:
+      - tempo
+    networks:
+      - wiki-network
+
+  prometheus:
+    image: prom/prometheus:v3.2.1
+    container_name: wiki-prometheus
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --web.enable-remote-write-receiver
+      - --web.enable-lifecycle
+    volumes:
+      - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./docker/observability/prometheus-rules.yml:/etc/prometheus/rules/wiki-alert-rules.yml:ro
+      - prometheus_data:/prometheus
+    ports:
+      - "9090:9090"
+    depends_on:
+      - wiki-api
+      - otel-collector
+      - node-exporter
+      - cadvisor
+      - mysqld-exporter
+      - kafka-exporter
+      - kafka-jmx-exporter
+      - alertmanager
+    networks:
+      - wiki-network
+
+  alertmanager:
+    image: prom/alertmanager:v0.28.1
+    container_name: wiki-alertmanager
+    command:
+      - --config.file=/etc/alertmanager/alertmanager.yml
+      - --storage.path=/alertmanager
+    volumes:
+      - ./docker/observability/alertmanager.yml:/etc/alertmanager/alertmanager.yml:ro
+      - alertmanager_data:/alertmanager
+    ports:
+      - "19093:9093"
+    networks:
+      - wiki-network
+
+  loki:
+    image: grafana/loki:3.4.2
+    container_name: wiki-loki
+    command: -config.file=/etc/loki/config.yaml
+    volumes:
+      - ./docker/observability/loki-config.yml:/etc/loki/config.yaml:ro
+      - loki_data:/loki
+    ports:
+      - "3100:3100"
+    networks:
+      - wiki-network
+
+  promtail:
+    image: grafana/promtail:3.4.2
+    container_name: wiki-promtail
+    command: -config.file=/etc/promtail/config.yml
+    volumes:
+      - ./docker/observability/promtail-config.yml:/etc/promtail/config.yml:ro
+      - wiki_api_logs:/var/log/wiki:ro
+    depends_on:
+      - loki
+      - wiki-api
+    networks:
+      - wiki-network
+
+  tempo:
+    image: grafana/tempo:2.7.1
+    container_name: wiki-tempo
+    user: "0:0"
+    command: ["-config.file=/etc/tempo/tempo.yaml"]
+    volumes:
+      - ./docker/observability/tempo.yml:/etc/tempo/tempo.yaml:ro
+      - tempo_data:/tmp/tempo
+    ports:
+      - "3200:3200"
+      - "4319:4317"
+    networks:
+      - wiki-network
+
+  grafana:
+    image: grafana/grafana:11.6.0
+    container_name: wiki-grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_USERS_DEFAULT_THEME: light
+    volumes:
+      - grafana_data:/var/lib/grafana
+      - ./docker/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./docker/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+      - loki
+      - tempo
+    networks:
+      - wiki-network
+
 networks:
   wiki-network:
     driver: bridge
@@ -106,3 +324,9 @@ volumes:
   mysql_data:
   postgres_data:
   kafka_data:
+  wiki_api_logs:
+  prometheus_data:
+  loki_data:
+  tempo_data:
+  grafana_data:
+  alertmanager_data:

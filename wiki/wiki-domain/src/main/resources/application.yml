@@ -1,6 +1,6 @@
 spring:
   application:
-    name: wiki
+    name: wiki-api
 
   datasource:
     url: jdbc:mysql://${MYSQL_HOST:localhost}:${MYSQL_PORT:3306}/${MYSQL_DATABASE:wiki}?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&characterEncoding=UTF-8
@@ -28,6 +28,10 @@ spring:
     producer:
       key-serializer: org.apache.kafka.common.serialization.StringSerializer
       value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    listener:
+      observation-enabled: true
+    template:
+      observation-enabled: true
 
   data:
     redis:
@@ -42,3 +46,28 @@ security:
     secret: ${JWT_SECRET:wiki-default-jwt-secret-key-for-local-dev-only-please-change}
     access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
     refresh-token-expiration-ms: ${JWT_REFRESH_TOKEN_EXPIRATION_MS:604800000}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+  prometheus:
+    metrics:
+      export:
+        enabled: true
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: ${OTEL_EXPORTER_OTLP_TRACES_ENDPOINT:http://localhost:4318/v1/traces}
+
+logging:
+  file:
+    name: ${LOGGING_FILE_NAME:./logs/wiki-api.log}
+  pattern:
+    correlation: "[traceId=%X{traceId:-},spanId=%X{spanId:-}] "

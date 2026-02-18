@@ -26,7 +26,7 @@
 | 영역 | 상태 | 비고 |
 |---|---|---|
 | 인프라 (Docker Compose) | ✅ 완료 | MySQL, PostgreSQL, Kafka, Redpanda Console |
-| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃. Refresh 토큰 미구현 |
+| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃/토큰 재발급(Refresh) |
 | Document API | ✅ 완료 | wiki-api 모듈, 11개 엔드포인트, Querydsl 검색 |
 | AI 파이프라인 | ✅ 완료 | wiki-worker 모듈, Kafka 순차 파이프라인 (SUMMARY→TAGGER→EMBEDDING) |
 | SSE 엔드포인트 | ✅ 완료 | SseEmitterManager, 30초 Heartbeat, COMPLETED/FAILED 자동 종료 |
@@ -64,7 +64,8 @@
 
 - [ ] **Auth API**
   - [x] 회원가입 / 로그인 / 로그아웃
-  - [ ] Refresh 토큰 재발급 (`POST /api/v1/auth/refresh`)
+  - [x] Refresh 토큰 재발급 (`POST /api/v1/auth/refresh`)
+  - [x] Testcontainers 기반 엔드포인트 통합 시나리오 테스트 (`signup/login/refresh/logout/delete`)
 
 - [x] **Document API**
   - [x] 문서 생성 (`POST /api/v1/documents`) — DRAFT 상태로 생성
@@ -140,6 +141,14 @@
   - 회전(rotation) 및 단일 사용(one-time) 정책
 - **운영/보안**
   - 로그 보관 기간, 감사 추적, 비용 모니터링
+
+- **관측성(Observability)**
+  - [x] Spring Boot Actuator 지표/헬스 엔드포인트 표준화
+  - [x] OpenTelemetry SDK/Exporter 연동 (trace, metric, log correlation)
+  - [x] Prometheus 스크랩 구성 및 대시보드 기본 지표 구성
+  - [x] Loki 로그 수집 파이프라인(promtail/otel collector) 구성
+  - [x] Grafana 통합 대시보드 (Trace/Metric/Log 연계 탐색)
+  - [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의
 
 ---
 

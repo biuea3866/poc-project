@@ -16,7 +16,6 @@ import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 @Entity
@@ -24,31 +23,31 @@ import java.time.ZonedDateTime
 @EntityListeners(AuditingEntityListener::class)
 class AiAgentLog(
     @Enumerated(EnumType.STRING)
-    @Column(name = "agent_type")
+    @Column(name = "agent_type", nullable = false)
     val agentType: AgentType,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
+    @Column(name = "status", nullable = false)
     val status: AgentLogStatus,
 
-    @Column(name = "action_detail")
+    @Column(name = "action_detail", nullable = false)
     val actionDetail: String,
 
     @Column(name = "reference_data")
     val referenceData: String?,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_revision_id")
-    val documentRevisionId: DocumentRevision,
+    @JoinColumn(name = "document_revision_id", nullable = false)
+    val documentRevision: DocumentRevision,
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "document_id")
-    val documentId: Document,
+    @JoinColumn(name = "document_id", nullable = false)
+    val document: Document,
 
-    @Column(name = "executor_id")
+    @Column(name = "executor_id", nullable = false)
     val executorId: Long,
 
-    @Column(name = "created_at")
+    @Column(name = "created_at", nullable = false)
     var createdAt: ZonedDateTime = ZonedDateTime.now(),
 
     @Id

@@ -24,6 +24,7 @@ class SecurityConfig(
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
                 it.requestMatchers(HttpMethod.POST, "/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
+                it.requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                 it.anyRequest().authenticated()
             }
             .httpBasic { it.disable() }
