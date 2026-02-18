@@ -22,7 +22,7 @@ class AnalyzeDocumentFacade(
         document.resetAiProcessing()
         documentRepository.save(document)
 
-        val latestRevision = document.revisions.lastOrNull()
+        val latestRevision = document.latestRevision()
             ?: throw IllegalStateException("리비전이 없습니다. documentId=${input.documentId}")
 
         documentEventPublisher.publishDocumentCreated(

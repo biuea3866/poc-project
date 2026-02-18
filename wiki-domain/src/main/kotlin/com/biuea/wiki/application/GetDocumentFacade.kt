@@ -22,12 +22,11 @@ class GetDocumentFacade(
         val document = documentRepository.findByIdAndStatusNot(documentId)
             ?: throw IllegalArgumentException("문서를 찾을 수 없습니다. id=$documentId")
 
-        // DRAFT는 작성자 본인만 조회 가능
-        if (document.isDraft() && document.createdBy != requestUserId) {
+        if (!document.isViewableBy(requestUserId)) {
             throw IllegalArgumentException("문서를 찾을 수 없습니다. id=$documentId")
         }
 
-        val latestRevision = document.revisions.lastOrNull()
+        val latestRevision = document.latestRevision()
         val summary = latestRevision?.let {
             documentSummaryRepository.findByDocumentIdAndDocumentRevisionId(document.id, it.id)
         }
