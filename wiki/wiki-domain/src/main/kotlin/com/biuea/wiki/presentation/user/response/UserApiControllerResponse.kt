@@ -5,3 +5,9 @@ data class UserResponse(
     val email: String,
     val name: String,
 )
+
+data class LoginResponse(
+    val accessToken: String,
+    val tokenType: String,
+    val user: UserResponse,
+)

@@ -31,3 +31,8 @@ spring:
 
 server:
   port: 8081
+
+security:
+  jwt:
+    secret: ${JWT_SECRET:wiki-default-jwt-secret-key-for-local-dev-only-please-change}
+    access-token-expiration-ms: ${JWT_ACCESS_TOKEN_EXPIRATION_MS:3600000}
