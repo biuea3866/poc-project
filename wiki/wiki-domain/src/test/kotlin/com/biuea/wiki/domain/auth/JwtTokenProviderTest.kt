@@ -1,4 +1,4 @@
-package com.biuea.wiki.infrastructure.security
+package com.biuea.wiki.domain.auth
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -12,6 +12,7 @@ class JwtTokenProviderTest {
         val tokenProvider = JwtTokenProvider(
             secret = "this-is-a-test-jwt-secret-key-at-least-32-bytes-long",
             accessTokenExpirationMs = 60_000,
+            refreshTokenExpirationMs = 604_800_000,
         )
 
         val token = tokenProvider.createAccessToken(

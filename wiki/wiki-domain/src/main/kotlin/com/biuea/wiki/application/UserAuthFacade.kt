@@ -1,12 +1,13 @@
 package com.biuea.wiki.application
 
+import com.biuea.wiki.domain.auth.AuthenticatedUser
+import com.biuea.wiki.domain.auth.JwtTokenProvider
+import com.biuea.wiki.domain.auth.exception.InvalidRefreshTokenException
 import com.biuea.wiki.domain.user.DeleteUserCommand
 import com.biuea.wiki.domain.user.LoginUserCommand
 import com.biuea.wiki.domain.user.SignUpUserCommand
 import com.biuea.wiki.domain.user.UserService
-import com.biuea.wiki.infrastructure.security.AuthenticatedUser
-import com.biuea.wiki.infrastructure.security.JwtTokenBlacklist
-import com.biuea.wiki.infrastructure.security.JwtTokenProvider
+import com.biuea.wiki.infrastructure.auth.RedisAuthTokenStore
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -14,7 +15,7 @@ import org.springframework.transaction.annotation.Transactional
 class UserAuthFacade(
     private val userService: UserService,
     private val jwtTokenProvider: JwtTokenProvider,
-    private val jwtTokenBlacklist: JwtTokenBlacklist,
+    private val redisAuthTokenStore: RedisAuthTokenStore,
 ) {
     @Transactional
     fun signUp(input: SignUpUserInput): UserOutput {
@@ -29,7 +30,7 @@ class UserAuthFacade(
         return UserOutput.of(user)
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun login(input: LoginUserInput): LoginOutput {
         val user = userService.login(
             LoginUserCommand(
@@ -38,6 +39,44 @@ class UserAuthFacade(
             )
         )
         val userOutput = UserOutput.of(user)
+
+        val accessToken = jwtTokenProvider.createAccessToken(
+            AuthenticatedUser(
+                id = userOutput.id,
+                email = userOutput.email,
+                name = userOutput.name,
+            )
+        )
+        val refreshToken = jwtTokenProvider.createRefreshToken(userOutput.id)
+        val refreshTokenExpiration = requireNotNull(jwtTokenProvider.getExpirationTime(refreshToken))
+
+        redisAuthTokenStore.saveRefreshToken(
+            userId = userOutput.id,
+            refreshToken = refreshToken,
+            expiresAt = refreshTokenExpiration,
+        )
+
+        return LoginOutput(
+            accessToken = accessToken,
+            refreshToken = refreshToken,
+            tokenType = "Bearer",
+            user = userOutput,
+        )
+    }
+
+    @Transactional(readOnly = true)
+    fun refresh(input: RefreshUserInput): RefreshOutput {
+        if (!jwtTokenProvider.validateToken(input.refreshToken) || !jwtTokenProvider.isRefreshToken(input.refreshToken)) {
+            throw InvalidRefreshTokenException()
+        }
+        if (!redisAuthTokenStore.validateRefreshToken(input.refreshToken)) {
+            throw InvalidRefreshTokenException()
+        }
+
+        val userId = jwtTokenProvider.getUserId(input.refreshToken) ?: throw InvalidRefreshTokenException()
+        val user = userService.findById(userId)
+        val userOutput = UserOutput.of(user)
+
         val accessToken = jwtTokenProvider.createAccessToken(
             AuthenticatedUser(
                 id = userOutput.id,
@@ -46,27 +85,31 @@ class UserAuthFacade(
             )
         )
 
-        return LoginOutput(
+        return RefreshOutput(
             accessToken = accessToken,
             tokenType = "Bearer",
-            user = userOutput,
         )
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun logout(input: LogoutUserInput) {
         jwtTokenProvider.resolveToken(input.authorizationHeader)
-            ?.let { token ->
-                jwtTokenProvider.getExpirationTimeMillis(token)
-                    ?.let { expiresAtMillis ->
-                        jwtTokenBlacklist.blacklist(token, expiresAtMillis)
+            ?.let { accessToken ->
+                jwtTokenProvider.getExpirationTime(accessToken)
+                    ?.let { expiresAt ->
+                        redisAuthTokenStore.blacklistAccessToken(accessToken, expiresAt)
                     }
             }
+
+        input.refreshToken?.let {
+            redisAuthTokenStore.revokeRefreshToken(it)
+        }
     }
 
     @Transactional
     fun delete(input: DeleteUserInput) {
         userService.delete(DeleteUserCommand(userId = input.userId))
+        redisAuthTokenStore.revokeAllRefreshTokensByUserId(input.userId)
     }
 }
 
@@ -81,12 +124,17 @@ data class LoginUserInput(
     val password: String,
 )
 
+data class RefreshUserInput(
+    val refreshToken: String,
+)
+
 data class DeleteUserInput(
     val userId: Long,
 )
 
 data class LogoutUserInput(
     val authorizationHeader: String?,
+    val refreshToken: String?,
 )
 
 data class UserOutput(
@@ -107,6 +155,12 @@ data class UserOutput(
 
 data class LoginOutput(
     val accessToken: String,
+    val refreshToken: String,
     val tokenType: String,
     val user: UserOutput,
+)
+
+data class RefreshOutput(
+    val accessToken: String,
+    val tokenType: String,
 )

@@ -44,6 +44,12 @@ class UserService(
         return user
     }
 
+    @Transactional(readOnly = true)
+    fun findById(userId: Long): User {
+        return userRepository.findByIdAndDeletedAtIsNull(userId)
+            ?: throw UserNotFoundException(userId)
+    }
+
     @Transactional
     fun delete(command: DeleteUserCommand) {
         val user = userRepository.findByIdAndDeletedAtIsNull(command.userId)
