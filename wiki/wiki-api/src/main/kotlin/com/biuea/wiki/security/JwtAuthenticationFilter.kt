@@ -15,21 +15,18 @@ class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
     private val redisAuthTokenStore: RedisAuthTokenStore,
 ) : OncePerRequestFilter() {
-
     override fun doFilterInternal(
         request: HttpServletRequest,
         response: HttpServletResponse,
         filterChain: FilterChain,
     ) {
         val token = jwtTokenProvider.resolveToken(request.getHeader(HttpHeaders.AUTHORIZATION))
-
         if (token != null && !redisAuthTokenStore.isAccessTokenBlacklisted(token) && jwtTokenProvider.validateToken(token)) {
             val authentication = jwtTokenProvider.getAuthentication(token)
             if (authentication != null) {
                 SecurityContextHolder.getContext().authentication = authentication
             }
         }
-
         filterChain.doFilter(request, response)
     }
 }

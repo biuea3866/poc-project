@@ -26,26 +26,16 @@ class UserAuthFacade(
                 name = input.name,
             )
         )
-
         return UserOutput.of(user)
     }
 
     @Transactional
     fun login(input: LoginUserInput): LoginOutput {
-        val user = userService.login(
-            LoginUserCommand(
-                email = input.email,
-                password = input.password,
-            )
-        )
+        val user = userService.login(LoginUserCommand(email = input.email, password = input.password))
         val userOutput = UserOutput.of(user)
 
         val accessToken = jwtTokenProvider.createAccessToken(
-            AuthenticatedUser(
-                id = userOutput.id,
-                email = userOutput.email,
-                name = userOutput.name,
-            )
+            AuthenticatedUser(id = userOutput.id, email = userOutput.email, name = userOutput.name)
         )
         val refreshToken = jwtTokenProvider.createRefreshToken(userOutput.id)
         val refreshTokenExpiration = requireNotNull(jwtTokenProvider.getExpirationTime(refreshToken))
@@ -78,17 +68,10 @@ class UserAuthFacade(
         val userOutput = UserOutput.of(user)
 
         val accessToken = jwtTokenProvider.createAccessToken(
-            AuthenticatedUser(
-                id = userOutput.id,
-                email = userOutput.email,
-                name = userOutput.name,
-            )
+            AuthenticatedUser(id = userOutput.id, email = userOutput.email, name = userOutput.name)
         )
 
-        return RefreshOutput(
-            accessToken = accessToken,
-            tokenType = "Bearer",
-        )
+        return RefreshOutput(accessToken = accessToken, tokenType = "Bearer")
     }
 
     @Transactional
@@ -100,10 +83,7 @@ class UserAuthFacade(
                         redisAuthTokenStore.blacklistAccessToken(accessToken, expiresAt)
                     }
             }
-
-        input.refreshToken?.let {
-            redisAuthTokenStore.revokeRefreshToken(it)
-        }
+        input.refreshToken?.let { redisAuthTokenStore.revokeRefreshToken(it) }
     }
 
     @Transactional
@@ -113,43 +93,16 @@ class UserAuthFacade(
     }
 }
 
-data class SignUpUserInput(
-    val email: String,
-    val password: String,
-    val name: String,
-)
+data class SignUpUserInput(val email: String, val password: String, val name: String)
+data class LoginUserInput(val email: String, val password: String)
+data class RefreshUserInput(val refreshToken: String)
+data class DeleteUserInput(val userId: Long)
+data class LogoutUserInput(val authorizationHeader: String?, val refreshToken: String?)
 
-data class LoginUserInput(
-    val email: String,
-    val password: String,
-)
-
-data class RefreshUserInput(
-    val refreshToken: String,
-)
-
-data class DeleteUserInput(
-    val userId: Long,
-)
-
-data class LogoutUserInput(
-    val authorizationHeader: String?,
-    val refreshToken: String?,
-)
-
-data class UserOutput(
-    val id: Long,
-    val email: String,
-    val name: String,
-) {
+data class UserOutput(val id: Long, val email: String, val name: String) {
     companion object {
-        fun of(user: com.biuea.wiki.domain.user.User): UserOutput {
-            return UserOutput(
-                id = user.id,
-                email = user.email,
-                name = user.name,
-            )
-        }
+        fun of(user: com.biuea.wiki.domain.user.User): UserOutput =
+            UserOutput(id = user.id, email = user.email, name = user.name)
     }
 }
 

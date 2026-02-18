@@ -13,7 +13,6 @@ class UserService(
     private val userRepository: UserRepository,
     private val passwordEncoder: PasswordEncoder,
 ) {
-
     @Transactional
     fun signUp(command: SignUpUserCommand): User {
         val normalizedEmail = command.email.trim().lowercase()
@@ -21,14 +20,13 @@ class UserService(
             throw UserAlreadyExistsException(normalizedEmail)
         }
         val encodedPassword = requireNotNull(passwordEncoder.encode(command.password))
-
-        val user = User(
-            email = normalizedEmail,
-            password = encodedPassword,
-            name = command.name.trim(),
+        return userRepository.save(
+            User(
+                email = normalizedEmail,
+                password = encodedPassword,
+                name = command.name.trim(),
+            )
         )
-
-        return userRepository.save(user)
     }
 
     @Transactional(readOnly = true)
@@ -40,7 +38,6 @@ class UserService(
         if (!passwordEncoder.matches(command.password, user.password)) {
             throw InvalidCredentialsException()
         }
-
         return user
     }
 
@@ -54,7 +51,6 @@ class UserService(
     fun delete(command: DeleteUserCommand) {
         val user = userRepository.findByIdAndDeletedAtIsNull(command.userId)
             ?: throw UserNotFoundException(command.userId)
-
         user.softDelete()
     }
 }

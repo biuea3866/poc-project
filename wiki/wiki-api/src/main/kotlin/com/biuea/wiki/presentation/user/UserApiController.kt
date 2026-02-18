@@ -30,61 +30,29 @@ import org.springframework.web.bind.annotation.RestController
 class UserApiController(
     private val userAuthFacade: UserAuthFacade,
 ) {
-
     @PostMapping("/signup")
     fun signUp(@RequestBody @Valid request: SignUpRequest): ResponseEntity<UserResponse> {
-        val output = userAuthFacade.signUp(
-            SignUpUserInput(
-                email = request.email,
-                password = request.password,
-                name = request.name,
-            )
-        )
-
-        return ResponseEntity.ok(
-            UserResponse(
-                id = output.id,
-                email = output.email,
-                name = output.name,
-            )
-        )
+        val output = userAuthFacade.signUp(SignUpUserInput(request.email, request.password, request.name))
+        return ResponseEntity.ok(UserResponse(output.id, output.email, output.name))
     }
 
     @PostMapping("/login")
     fun login(@RequestBody @Valid request: LoginRequest): ResponseEntity<LoginResponse> {
-        val output = userAuthFacade.login(
-            LoginUserInput(
-                email = request.email,
-                password = request.password,
-            )
-        )
-
+        val output = userAuthFacade.login(LoginUserInput(request.email, request.password))
         return ResponseEntity.ok(
             LoginResponse(
                 accessToken = output.accessToken,
                 refreshToken = output.refreshToken,
                 tokenType = output.tokenType,
-                user = UserResponse(
-                    id = output.user.id,
-                    email = output.user.email,
-                    name = output.user.name,
-                ),
+                user = UserResponse(output.user.id, output.user.email, output.user.name),
             )
         )
     }
 
     @PostMapping("/refresh")
     fun refresh(@RequestBody @Valid request: RefreshRequest): ResponseEntity<RefreshResponse> {
-        val output = userAuthFacade.refresh(
-            RefreshUserInput(refreshToken = request.refreshToken)
-        )
-
-        return ResponseEntity.ok(
-            RefreshResponse(
-                accessToken = output.accessToken,
-                tokenType = output.tokenType,
-            )
-        )
+        val output = userAuthFacade.refresh(RefreshUserInput(request.refreshToken))
+        return ResponseEntity.ok(RefreshResponse(output.accessToken, output.tokenType))
     }
 
     @PostMapping("/logout")
@@ -92,21 +60,14 @@ class UserApiController(
         @RequestHeader(HttpHeaders.AUTHORIZATION, required = false) authorizationHeader: String?,
         @RequestBody(required = false) request: LogoutRequest?,
     ): ResponseEntity<Void> {
-        userAuthFacade.logout(
-            LogoutUserInput(
-                authorizationHeader = authorizationHeader,
-                refreshToken = request?.refreshToken,
-            )
-        )
-
+        userAuthFacade.logout(LogoutUserInput(authorizationHeader, request?.refreshToken))
         return ResponseEntity.noContent().build()
     }
 
     @DeleteMapping("/me")
     fun deleteMe(authentication: Authentication): ResponseEntity<Void> {
         val principal = authentication.principal as AuthenticatedUser
-        userAuthFacade.delete(DeleteUserInput(userId = principal.id))
-
+        userAuthFacade.delete(DeleteUserInput(principal.id))
         return ResponseEntity.noContent().build()
     }
 }

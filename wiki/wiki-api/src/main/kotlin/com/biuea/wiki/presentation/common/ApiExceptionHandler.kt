@@ -11,32 +11,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class ApiExceptionHandler {
-
     @ExceptionHandler(UserAlreadyExistsException::class)
-    fun handleUserAlreadyExists(ex: UserAlreadyExistsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.CONFLICT)
-            .body(ErrorResponse(message = ex.message ?: "User already exists"))
-    }
+    fun handleUserAlreadyExists(ex: UserAlreadyExistsException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.CONFLICT).body(ErrorResponse(ex.message ?: "User already exists"))
 
     @ExceptionHandler(InvalidCredentialsException::class)
-    fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(ErrorResponse(message = ex.message ?: "Invalid credentials"))
-    }
+    fun handleInvalidCredentials(ex: InvalidCredentialsException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Invalid credentials"))
 
     @ExceptionHandler(UserNotFoundException::class)
-    fun handleUserNotFound(ex: UserNotFoundException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.NOT_FOUND)
-            .body(ErrorResponse(message = ex.message ?: "User not found"))
-    }
+    fun handleUserNotFound(ex: UserNotFoundException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse(ex.message ?: "User not found"))
 
     @ExceptionHandler(InvalidRefreshTokenException::class)
-    fun handleInvalidRefreshToken(ex: InvalidRefreshTokenException): ResponseEntity<ErrorResponse> {
-        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-            .body(ErrorResponse(message = ex.message ?: "Invalid refresh token"))
-    }
+    fun handleInvalidRefreshToken(ex: InvalidRefreshTokenException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Invalid refresh token"))
 }
 
-data class ErrorResponse(
-    val message: String,
-)
+data class ErrorResponse(val message: String)

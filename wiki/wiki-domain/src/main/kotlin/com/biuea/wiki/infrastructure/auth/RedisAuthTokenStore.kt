@@ -10,7 +10,6 @@ import java.time.ZoneId
 class RedisAuthTokenStore(
     private val redisTemplate: StringRedisTemplate,
 ) {
-
     fun saveRefreshToken(userId: Long, refreshToken: String, expiresAt: LocalDateTime) {
         val ttl = ttlUntil(expiresAt)
         redisTemplate.opsForValue().set(refreshTokenKey(refreshToken), userId.toString(), ttl)
@@ -34,7 +33,6 @@ class RedisAuthTokenStore(
     fun revokeRefreshToken(refreshToken: String) {
         val userId = redisTemplate.opsForValue().get(refreshTokenKey(refreshToken))?.toLongOrNull()
         redisTemplate.delete(refreshTokenKey(refreshToken))
-
         if (userId != null) {
             redisTemplate.opsForSet().remove(refreshUserSetKey(userId), refreshToken)
         }
@@ -58,8 +56,6 @@ class RedisAuthTokenStore(
     }
 
     private fun refreshTokenKey(token: String): String = "auth:refresh:token:$token"
-
     private fun refreshUserSetKey(userId: Long): String = "auth:refresh:user:$userId"
-
     private fun accessBlacklistKey(token: String): String = "auth:blacklist:access:$token"
 }
