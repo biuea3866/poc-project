@@ -1,4 +1,31 @@
 ---
+### 2026-02-18 02:00
+- **Agent:** Claude (claude-sonnet-4-6)
+- **Task:** DDD 원칙 기반 도메인 레이어 전면 리팩토링 — Rich Domain Model, 책임 재배치, 캡슐화 강화
+- **Changes:**
+  - `wiki-domain/src/.../domain/document/entity/Document.kt` — 생성자 파라미터를 클래스 바디 프로퍼티로 이전 후 `private set` 적용. 행위 메서드 추가: `update()`, `deleteWithDescendants()`, `latestRevision()`, `isViewableBy()`, `resolveActiveParent()`
+  - `wiki-domain/src/.../domain/document/DocumentService.kt` — `updateDocument`, `publishDocument`, `deleteDocument`, `restoreDocument` 도메인 연산 추가
+  - `wiki-domain/src/.../domain/document/DocumentServiceCommand.kt` — `UpdateDocumentCommand`, `PublishDocumentCommand`, `DeleteDocumentCommand`, `RestoreDocumentCommand` 추가
+  - `wiki-domain/src/.../application/UpdateDocumentFacade.kt` — 직접 필드 접근 제거, `DocumentService` 위임
+  - `wiki-domain/src/.../application/PublishDocumentFacade.kt` — `DocumentRevision.create()` 직접 호출 제거, `DocumentRevisionRepository` 의존 제거, `DocumentService` 위임
+  - `wiki-domain/src/.../application/DeleteDocumentFacade.kt` — `softDeleteRecursive()`, `collectAll()` 제거 → `Document.deleteWithDescendants()`로 이전
+  - `wiki-domain/src/.../application/RestoreDocumentFacade.kt` — 부모 ACTIVE 체크 → `Document.resolveActiveParent()`로 이전
+  - `wiki-domain/src/.../application/GetDocumentFacade.kt` — `isViewableBy()`, `latestRevision()` 사용으로 교체
+  - `wiki-domain/src/.../application/AnalyzeDocumentFacade.kt` — `latestRevision()` 사용으로 교체
+  - `build.gradle.kts` — 워크트리 루트 빌드 파일 추가 (repositories, allprojects 설정)
+- **Decisions:**
+  - **생성자 파라미터 → 클래스 바디**: Kotlin에서 `private set`은 클래스 바디 프로퍼티에만 적용 가능. 기존 named constructor call 패턴은 유지됨
+  - **DocumentService 책임 확장**: Facade가 직접 수행하던 도메인 연산(권한 체크, 상태 전이, revision 생성)을 DocumentService로 이전. Facade는 순수 오케스트레이터
+  - **Document.deleteWithDescendants()**: 재귀 cascade 삭제 로직을 엔티티로 이전. 엔티티가 자신의 불변식을 보호
+  - **kapt 호환성 이슈**: `DocumentRevision`의 `@Type(JsonStringType)` 애노테이션이 Hibernate 버전과 충돌하는 기존 문제 존재. 내 변경과 무관
+- **Issues:**
+  - 워크트리에 루트 `build.gradle.kts` 없어 `kapt` 의존성 해소 불가 → 루트 `build.gradle.kts` 생성으로 해결 (단, kapt 호환성 이슈는 기존 문제)
+- **Next:**
+  - **SSE 브로드캐스트**: wiki-worker가 AiStatus 변경 시 SseEmitterManager.broadcast() 호출하는 연동 구현
+  - **DB 마이그레이션**: ai_status 컬럼, status enum 값 (DRAFT/ACTIVE/DELETED), 스키마 최신화
+  - **FE 미구현 항목**: 사이드바 계층형 문서 트리, Markdown 에디터, 문서 상세 페이지, 검색 페이지
+
+---
 ### 2026-02-18 00:00
 - **Agent:** Claude (claude-sonnet-4-6)
 - **Task:** Document API 전체 구현 — wiki-api 모듈 신규 생성, wiki-domain 모듈 완성, 11개 Document API 엔드포인트 구현
