@@ -5,9 +5,8 @@ import com.biuea.wiki.domain.document.entity.DocumentStatus
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 
-interface DocumentRepository : JpaRepository<Document, Long> {
+interface DocumentRepository : JpaRepository<Document, Long>, DocumentRepositoryCustom {
 
     // 삭제되지 않은 문서 단건 조회
     fun findByIdAndStatusNot(id: Long, status: DocumentStatus = DocumentStatus.DELETED): Document?

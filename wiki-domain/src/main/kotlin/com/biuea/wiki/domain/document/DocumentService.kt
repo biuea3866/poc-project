@@ -13,7 +13,7 @@ class DocumentService(
     @Transactional
     fun saveDocument(command: SaveDocumentCommand): Pair<Document, DocumentRevision> {
         val parent = command.parentId?.let {
-            documentRepository.findByIdAndStatusIsNot(it)
+            documentRepository.findByIdAndStatusNot(it)
                 ?: throw IllegalArgumentException("부모 문서를 찾을 수 없습니다. id=$it")
         }
         val document = Document(
