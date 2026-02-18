@@ -15,3 +15,11 @@
 - **Issues:** 초기 기동 시 Docker credential helper 및 Tempo volume 권한, JPA schema validate 불일치로 wiki-api/tempo가 종료되어 각각 Dockerfile/tempo user/DDL 설정으로 보정.
 - **Next:** PR #15에서 observability 변경 검토 후 main 반영. 이후 대시보드/알람(SLO) 구체화.
 ---
+### 2026-02-18 22:59
+- **Agent:** Codex
+- **Task:** 외부 인프라 지표(node/cadvisor/mysql/kafka/kafka-jvm) 수집 및 Grafana 대시보드 자동 프로비저닝 구축
+- **Changes:** wiki/docker-compose.yml, wiki/docker/observability/prometheus.yml, wiki/docker/observability/kafka-jmx-exporter.yml, wiki/docker/observability/README.md, wiki/docker/observability/grafana/provisioning/dashboards/dashboards.yml, wiki/docker/observability/grafana/dashboards/wiki-app-jvm.json, wiki/docker/observability/grafana/dashboards/wiki-infra-host-container.json, wiki/docker/observability/grafana/dashboards/wiki-mysql.json, wiki/docker/observability/grafana/dashboards/wiki-kafka.json, wiki/logs/feat-auth-integration-tests.md
+- **Decisions:** Kafka consumer/producer trace는 Spring Kafka observation 설정 유지, Kafka JVM 메트릭은 JMX exporter 사이드카로 수집. Mac Docker mount 제약으로 node-exporter volume propagation 옵션 제거.
+- **Issues:** mysqld-exporter 인증 방식 변경(v0.16), kafka-jmx-exporter jar URL 404, cAdvisor/node-exporter mount 제약 이슈가 있어 compose 설정 보정.
+- **Next:** 필요 시 대시보드 패널/알람(SLO) 세부 튜닝 및 Alertmanager 연동.
+---

@@ -57,8 +57,43 @@ services:
       KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_NUM_PARTITIONS: 3
+      KAFKA_JMX_PORT: 9999
+      KAFKA_JMX_HOSTNAME: kafka
+      KAFKA_OPTS: "-Dcom.sun.management.jmxremote=true -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Djava.rmi.server.hostname=kafka -Dcom.sun.management.jmxremote.rmi.port=9999"
     volumes:
       - kafka_data:/var/lib/kafka/data
+    networks:
+      - wiki-network
+
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.8.0
+    container_name: wiki-kafka-exporter
+    command:
+      - --kafka.server=kafka:9092
+      - --web.listen-address=:9308
+    ports:
+      - "9308:9308"
+    depends_on:
+      - kafka
+    networks:
+      - wiki-network
+
+  kafka-jmx-exporter:
+    image: eclipse-temurin:21-jre
+    container_name: wiki-kafka-jmx-exporter
+    command:
+      - /bin/sh
+      - -c
+      - |
+        set -e
+        curl -fsSL -o /tmp/jmx_prometheus_httpserver.jar https://repo1.maven.org/maven2/io/prometheus/jmx/jmx_prometheus_httpserver/1.0.1/jmx_prometheus_httpserver-1.0.1.jar
+        java -jar /tmp/jmx_prometheus_httpserver.jar 5556 /etc/jmx/kafka-jmx-exporter.yml
+    volumes:
+      - ./docker/observability/kafka-jmx-exporter.yml:/etc/jmx/kafka-jmx-exporter.yml:ro
+    ports:
+      - "5556:5556"
+    depends_on:
+      - kafka
     networks:
       - wiki-network
 
@@ -124,6 +159,49 @@ services:
     networks:
       - wiki-network
 
+  mysqld-exporter:
+    image: prom/mysqld-exporter:v0.16.0
+    container_name: wiki-mysqld-exporter
+    command:
+      - --mysqld.address=mysql:3306
+      - --mysqld.username=root
+    environment:
+      MYSQLD_EXPORTER_PASSWORD: root
+    ports:
+      - "9104:9104"
+    depends_on:
+      - mysql
+    networks:
+      - wiki-network
+
+  node-exporter:
+    image: prom/node-exporter:v1.8.2
+    container_name: wiki-node-exporter
+    command:
+      - --path.rootfs=/host
+    volumes:
+      - /:/host:ro
+    ports:
+      - "9100:9100"
+    networks:
+      - wiki-network
+
+  cadvisor:
+    image: gcr.io/cadvisor/cadvisor:v0.49.1
+    container_name: wiki-cadvisor
+    privileged: true
+    devices:
+      - /dev/kmsg:/dev/kmsg
+    volumes:
+      - /:/rootfs:ro
+      - /var/run:/var/run:rw
+      - /sys:/sys:ro
+      - /var/lib/docker/:/var/lib/docker:ro
+    ports:
+      - "8088:8080"
+    networks:
+      - wiki-network
+
   otel-collector:
     image: otel/opentelemetry-collector-contrib:0.121.0
     container_name: wiki-otel-collector
@@ -153,6 +231,11 @@ services:
     depends_on:
       - wiki-api
       - otel-collector
+      - node-exporter
+      - cadvisor
+      - mysqld-exporter
+      - kafka-exporter
+      - kafka-jmx-exporter
     networks:
       - wiki-network
 
@@ -207,6 +290,8 @@ services:
     volumes:
       - grafana_data:/var/lib/grafana
       - ./docker/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
+      - ./docker/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
+      - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
     depends_on:
       - prometheus
       - loki

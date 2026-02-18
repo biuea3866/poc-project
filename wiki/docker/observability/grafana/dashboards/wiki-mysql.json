@@ -1,0 +1,41 @@
+{
+  "id": null,
+  "uid": "wiki-mysql",
+  "title": "MySQL Metrics",
+  "tags": ["wiki", "mysql"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Threads Connected",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "mysql_global_status_threads_connected" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Queries/s",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "rate(mysql_global_status_questions[1m])" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Slow Queries/s",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "rate(mysql_global_status_slow_queries[5m])" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "InnoDB Buffer Pool Pages",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "mysql_global_status_innodb_buffer_pool_pages_data" }]
+    }
+  ]
+}
