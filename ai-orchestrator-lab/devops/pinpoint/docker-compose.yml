@@ -1,0 +1,39 @@
+services:
+  pinpoint-hbase:
+    image: ${PINPOINT_HBASE_IMAGE}
+    container_name: pinpoint-hbase
+    restart: unless-stopped
+    networks:
+      - pinpoint-net
+    ports:
+      - "16010:16010"
+      - "9090:9090"
+
+  pinpoint-collector:
+    image: ${PINPOINT_COLLECTOR_IMAGE}
+    container_name: pinpoint-collector
+    restart: unless-stopped
+    depends_on:
+      - pinpoint-hbase
+    networks:
+      - pinpoint-net
+    ports:
+      - "${PINPOINT_COLLECTOR_PORT}:9994"
+    environment:
+      CLUSTER_ENABLE: "true"
+
+  pinpoint-web:
+    image: ${PINPOINT_WEB_IMAGE}
+    container_name: pinpoint-web
+    restart: unless-stopped
+    depends_on:
+      - pinpoint-hbase
+      - pinpoint-collector
+    networks:
+      - pinpoint-net
+    ports:
+      - "${PINPOINT_WEB_PORT}:8080"
+
+networks:
+  pinpoint-net:
+    name: ${PINPOINT_NETWORK}
