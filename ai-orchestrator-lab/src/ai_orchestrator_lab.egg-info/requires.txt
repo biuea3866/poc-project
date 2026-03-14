@@ -1,0 +1,5 @@
+
+[live]
+python-dotenv>=1.0.1
+claude-agent-sdk
+anyio>=4.0.0
