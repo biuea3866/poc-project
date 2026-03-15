@@ -4,6 +4,8 @@ import com.biuea.wiki.domain.user.exception.InvalidCredentialsException
 import com.biuea.wiki.domain.user.exception.UserAlreadyExistsException
 import com.biuea.wiki.domain.user.exception.UserNotFoundException
 import com.biuea.wiki.infrastructure.user.UserRepository
+import org.springframework.cache.annotation.CacheEvict
+import org.springframework.cache.annotation.Cacheable
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -16,7 +18,7 @@ class UserService(
     @Transactional
     fun signUp(command: SignUpUserCommand): User {
         val normalizedEmail = command.email.trim().lowercase()
-        if (userRepository.findByEmail(normalizedEmail) != null) {
+        if (userRepository.findByEmailAndDeletedAtIsNull(normalizedEmail) != null) {
             throw UserAlreadyExistsException(normalizedEmail)
         }
         val encodedPassword = requireNotNull(passwordEncoder.encode(command.password))
@@ -41,12 +43,14 @@ class UserService(
         return user
     }
 
+    @Cacheable(value = ["userDetails"], key = "#userId")
     @Transactional(readOnly = true)
     fun findById(userId: Long): User {
         return userRepository.findByIdAndDeletedAtIsNull(userId)
             ?: throw UserNotFoundException(userId)
     }
 
+    @CacheEvict(value = ["userDetails"], key = "#command.userId")
     @Transactional
     fun delete(command: DeleteUserCommand) {
         val user = userRepository.findByIdAndDeletedAtIsNull(command.userId)

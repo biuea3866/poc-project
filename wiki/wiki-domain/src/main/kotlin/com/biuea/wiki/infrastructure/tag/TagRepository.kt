@@ -6,4 +6,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 
 interface TagRepository : JpaRepository<Tag, Long> {
     fun findByNameAndTagType(name: String, tagType: TagType): Tag?
+    fun findByNameInAndTagTypeIn(names: List<String>, tagTypes: List<TagType>): List<Tag>
 }

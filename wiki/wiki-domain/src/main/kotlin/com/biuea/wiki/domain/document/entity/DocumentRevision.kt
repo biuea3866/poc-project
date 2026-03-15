@@ -1,7 +1,6 @@
 package com.biuea.wiki.domain.document.entity
 
 import com.biuea.wiki.domain.ai.AiAgentLog
-import io.hypersistence.utils.hibernate.type.json.JsonStringType
 import jakarta.persistence.CascadeType
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
@@ -10,20 +9,27 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
-import org.hibernate.annotations.Type
-import org.springframework.data.annotation.CreatedDate
+import org.hibernate.annotations.JdbcTypeCode
+import org.hibernate.type.SqlTypes
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "document_revision")
+@Table(
+    name = "document_revision",
+    indexes = [
+        Index(name = "idx_doc_revision_document_id", columnList = "document_id"),
+        Index(name = "idx_doc_revision_document_id_created_at", columnList = "document_id, created_at DESC"),
+    ]
+)
 @EntityListeners(AuditingEntityListener::class)
 class DocumentRevision(
-    @Type(JsonStringType::class)
+    @JdbcTypeCode(SqlTypes.JSON)
     @Column(name = "data")
     val data: DocumentRevisionData,
 
@@ -45,7 +51,7 @@ class DocumentRevision(
     var summaries: MutableList<DocumentSummary> = mutableListOf()
         protected set
 
-    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "documentRevision", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     var agentLogs: MutableList<AiAgentLog> = mutableListOf()
         protected set
 
@@ -74,8 +80,8 @@ data class DocumentRevisionData(
     val title: String,
     val content: String?,
     val status: DocumentStatus,
-    val parent: Document?,
-    val children: List<Document>,
+    val parentId: Long?,
+    val childrenIds: List<Long>,
     val deletedAt: ZonedDateTime?,
     val createdBy: Long,
     val updatedBy: Long,
@@ -86,8 +92,8 @@ data class DocumentRevisionData(
                 title = document.title,
                 content = document.content,
                 status = document.status,
-                parent = document.parent,
-                children = document.children,
+                parentId = document.parent?.id,
+                childrenIds = document.children.map { it.id },
                 deletedAt = document.deletedAt,
                 createdBy = document.createdBy,
                 updatedBy = document.updatedBy,

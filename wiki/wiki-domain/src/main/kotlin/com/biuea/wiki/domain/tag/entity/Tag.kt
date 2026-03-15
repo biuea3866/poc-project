@@ -9,6 +9,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
@@ -19,7 +20,13 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "tag")
+@Table(
+    name = "tag",
+    indexes = [
+        Index(name = "idx_tag_name_tag_type_id", columnList = "name, tag_type_id"),
+        Index(name = "idx_tag_tag_type_id", columnList = "tag_type_id"),
+    ]
+)
 @EntityListeners(AuditingEntityListener::class)
 class Tag(
     @Column(name = "name")
