@@ -260,19 +260,19 @@
 > ACTIVE 상태의 문서에 댓글·대댓글 작성 가능. 1단계 대댓글만 지원.
 
 **백엔드 구현 목록**
-- [ ] Comment 엔티티 & Repository
-- [ ] 댓글 목록 조회 (`GET /api/v1/documents/{id}/comments`) — 대댓글 포함 트리 구조 반환
-- [ ] 댓글 작성 (`POST /api/v1/documents/{id}/comments`) — `parentId` 전달 시 대댓글
-- [ ] 댓글 수정 (`PUT /api/v1/comments/{commentId}`) — 작성자 본인만
-- [ ] 댓글 삭제 (`DELETE /api/v1/comments/{commentId}`) — 소프트 삭제, 작성자 본인만
-- [ ] 삭제된 댓글 플레이스홀더 처리 (대댓글이 남아 있으면 "삭제된 댓글입니다." 표시)
+- [x] Comment 엔티티 & Repository _(NAW-131)_
+- [x] 댓글 목록 조회 (`GET /api/v1/documents/{id}/comments`) — 대댓글 포함 트리 구조 반환 _(NAW-131)_
+- [x] 댓글 작성 (`POST /api/v1/documents/{id}/comments`) — `parentId` 전달 시 대댓글 _(NAW-131)_
+- [x] 댓글 수정 (`PUT /api/v1/comments/{commentId}`) — 작성자 본인만 _(NAW-131)_
+- [x] 댓글 삭제 (`DELETE /api/v1/comments/{commentId}`) — 소프트 삭제, 작성자 본인만 _(NAW-131)_
+- [x] 삭제된 댓글 플레이스홀더 처리 (대댓글이 남아 있으면 "삭제된 댓글입니다." 표시) _(NAW-131)_
 
 **프론트엔드 구현 목록**
-- [ ] 문서 상세 페이지 — 댓글 목록 렌더링
-- [ ] 댓글 작성 폼
-- [ ] 대댓글 UI (1단계 인덴트)
-- [ ] 삭제된 댓글 플레이스홀더 표시
-- [ ] 수정/삭제 버튼 — 본인 댓글에만 노출
+- [x] 문서 상세 페이지 — 댓글 목록 렌더링 _(NAW-132)_
+- [x] 댓글 작성 폼 _(NAW-132)_
+- [x] 대댓글 UI (1단계 인덴트) _(NAW-132)_
+- [x] 삭제된 댓글 플레이스홀더 표시 _(NAW-132)_
+- [x] 수정/삭제 버튼 — 본인 댓글에만 노출 _(NAW-132)_
 
 ---
 
