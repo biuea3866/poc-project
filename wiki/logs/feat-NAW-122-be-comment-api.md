@@ -1,0 +1,26 @@
+---
+### 2026-03-15 14:00
+- **Agent:** Claude Sonnet 4.6
+- **Task:** BE: 댓글/토론 API 구현 (Comment CRUD + 대댓글) — NAW-121
+- **Changes:**
+  - `wiki-domain/.../domain/comment/entity/Comment.kt` — Comment JPA 엔티티 (소프트 삭제, 대댓글 self-join)
+  - `wiki-domain/.../domain/comment/exception/CommentNotFoundException.kt`
+  - `wiki-domain/.../domain/comment/exception/CommentNotOwnedException.kt`
+  - `wiki-domain/.../domain/comment/exception/CommentOnInactiveDocumentException.kt`
+  - `wiki-domain/.../domain/comment/CommentServiceCommand.kt` — 커맨드 DTO
+  - `wiki-domain/.../domain/comment/CommentService.kt` — CRUD 서비스 로직
+  - `wiki-domain/.../infrastructure/comment/CommentRepository.kt` — JPA 리포지토리
+  - `wiki-api/.../presentation/comment/request/CommentApiControllerRequest.kt`
+  - `wiki-api/.../presentation/comment/response/CommentApiControllerResponse.kt`
+  - `wiki-api/.../presentation/comment/CommentApiController.kt`
+  - `wiki-api/.../presentation/common/ApiExceptionHandler.kt` — 댓글 예외 3종 추가
+  - `docker/mysql/init.sql` — comment 테이블 DDL 추가
+  - `ROADMAP.md` — 백엔드 댓글 체크리스트 완료 표시
+- **Decisions:**
+  - Document의 "ACTIVE" 상태는 코드베이스에서 `DocumentStatus.COMPLETED`로 표현되므로, 댓글 작성 가능 조건을 `status == COMPLETED`로 구현함
+  - 대댓글은 1단계만 지원 (replies 필드는 빈 리스트 반환)
+  - 삭제된 댓글은 content=null, isDeleted=true로 응답 (플레이스홀더 처리는 FE 담당)
+  - CommentNotOwnedException → HTTP 403 FORBIDDEN 매핑
+  - CommentOnInactiveDocumentException → HTTP 422 UNPROCESSABLE_ENTITY 매핑
+- **Next:** FE 댓글 UI 구현 (문서 상세 페이지 댓글 목록, 작성 폼, 대댓글 인덴트, 삭제 플레이스홀더)
+---
