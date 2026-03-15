@@ -248,6 +248,8 @@ A. Auth API (인증)
 |POST|/api/v1/auth/signup|회원가입. email, password, name 전달|
 |POST|/api/v1/auth/login|로그인. JWT 토큰(access, refresh) 반환|
 |POST|/api/v1/auth/refresh|Refresh 토큰으로 Access 토큰 재발급|
+|POST|/api/v1/auth/logout|로그아웃. Access 토큰 블랙리스트 등록 + Refresh 토큰 폐기|
+|DELETE|/api/v1/auth/me|회원 탈퇴. 인증된 사용자 본인 soft delete|
 
 B. Document API (글 및 계층 관리)
 

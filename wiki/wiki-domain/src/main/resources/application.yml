@@ -44,7 +44,7 @@ spring:
       spec: maximumSize=1000,expireAfterWrite=300s
 
 server:
-  port: 8081
+  port: 8080
 
 security:
   jwt:
