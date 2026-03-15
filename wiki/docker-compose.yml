@@ -175,7 +175,9 @@ services:
       POSTGRES_PASSWORD: wiki_vector_password
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
-      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+      # wiki-worker는 스키마 관리 불필요 (wiki-api가 담당)
+      # Hibernate 7.x nullable 타입 추론 변경으로 validate 대신 none 사용
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
     depends_on:
       - mysql
       - kafka

@@ -2,14 +2,14 @@ package com.biuea.wiki.worker.service
 
 import com.biuea.wiki.infrastructure.document.DocumentRepository
 import com.biuea.wiki.infrastructure.document.DocumentRevisionRepository
-import org.springframework.ai.embedding.EmbeddingModel
+import com.biuea.wiki.worker.client.OpenAiEmbeddingClient
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
 @Service
 class EmbeddingService(
-    private val embeddingModel: EmbeddingModel,
+    private val openAiEmbeddingClient: OpenAiEmbeddingClient,
     private val documentRepository: DocumentRepository,
     private val documentRevisionRepository: DocumentRevisionRepository,
     private val jdbcClient: JdbcClient,
@@ -28,7 +28,7 @@ class EmbeddingService(
             document.content?.let { append("\n\n").append(it) }
         }
 
-        val vector = embeddingModel.embed(textToEmbed)
+        val vector = openAiEmbeddingClient.embed(textToEmbed)
         val tokenCount = textToEmbed.split(" ").size  // 간단 추정
 
         // PostgreSQL document_embeddings 테이블에 upsert
@@ -45,7 +45,7 @@ class EmbeddingService(
         """)
             .param("documentId", documentId)
             .param("documentRevisionId", documentRevisionId)
-            .param("embedding", vector.toList().toString().replace("[", "[").replace("]", "]"))
+            .param("embedding", vector.toList().toString())
             .param("chunkContent", textToEmbed)
             .param("tokenCount", tokenCount)
             .update()

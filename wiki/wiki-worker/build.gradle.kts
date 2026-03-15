@@ -15,13 +15,6 @@ java {
     }
 }
 
-extra["springAiVersion"] = "1.0.0"
-
-dependencyManagement {
-    imports {
-        mavenBom("org.springframework.ai:spring-ai-bom:${property("springAiVersion")}")
-    }
-}
 
 dependencies {
     implementation(project(":wiki-domain"))
@@ -37,16 +30,13 @@ dependencies {
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
 
-    // Spring AI — ChatClient 빌더 API (org.springframework.ai.chat.client)
-    // spring-ai-starter-* 는 RestClientAutoConfiguration(Spring Boot 3.x only)을 참조하여 Spring Boot 4.x 충돌
-    // → 스타터 대신 코어/클라이언트 모듈 직접 사용
-    implementation("org.springframework.ai:spring-ai-client-chat")
+    // Spring Web (RestClient for Anthropic/OpenAI HTTP calls)
+    // Spring AI 1.0.0 은 Spring Framework 6.x 전용 → Spring Boot 4.x(Framework 7.x)와 바이너리 비호환
+    // 직접 HTTP 구현으로 대체
+    implementation("org.springframework.boot:spring-boot-starter-web")
 
-    // Spring AI — Anthropic (요약/태깅) : 스타터 제외, 모델 구현체만
-    implementation("org.springframework.ai:spring-ai-anthropic")
-
-    // Spring AI — OpenAI (임베딩) : 스타터 제외, 모델 구현체만
-    implementation("org.springframework.ai:spring-ai-openai")
+    // wiki-domain의 UserService가 PasswordEncoder를 의존 → SecurityConfig 빈 제공용
+    implementation("org.springframework.boot:spring-boot-starter-security")
 
     // PostgreSQL (벡터 저장)
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
