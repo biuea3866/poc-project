@@ -216,6 +216,8 @@ class AuthApiScenarioIntegrationTest {
             registry.add("security.jwt.secret") { "this-is-an-integration-test-jwt-secret-key-at-least-32-bytes" }
             registry.add("security.jwt.access-token-expiration-ms") { "1800000" }
             registry.add("security.jwt.refresh-token-expiration-ms") { "3600000" }
+            // Kafka: 통합 테스트에서는 실제 Kafka 연결 불필요 — 더미 bootstrap-servers로 Bean 초기화만 수행
+            registry.add("spring.kafka.bootstrap-servers") { "localhost:9092" }
         }
     }
 }
