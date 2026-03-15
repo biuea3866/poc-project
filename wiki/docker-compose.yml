@@ -251,6 +251,8 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-remote-write-receiver
       - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
     volumes:
       - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/observability/prometheus-rules.yml:/etc/prometheus/rules/wiki-alert-rules.yml:ro
@@ -332,6 +334,8 @@ services:
       - ./docker/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./docker/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3030:3000"   # 3000은 FE Next.js가 사용 중 → 3030으로 매핑
     depends_on:
       - prometheus
       - loki
