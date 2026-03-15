@@ -1,6 +1,10 @@
 name: Jira Branch & PR Sync
 
 on:
+  push:
+    branches:
+      - 'feat/**'
+      - main
   pull_request:
     types: [opened, reopened, closed, synchronize]
   create:

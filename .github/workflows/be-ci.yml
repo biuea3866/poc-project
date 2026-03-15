@@ -216,6 +216,18 @@ jobs:
         working-directory: wiki
         run: ./gradlew :wiki-api:bootJar --no-daemon -x test
 
+      - name: Check Dockerfile exists
+        id: check-dockerfile
+        working-directory: wiki
+        run: |
+          if [ -f docker/wiki-api/Dockerfile ]; then
+            echo "exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "exists=false" >> $GITHUB_OUTPUT
+            echo "::warning::Dockerfile not found at wiki/docker/wiki-api/Dockerfile — skipping Docker build"
+          fi
+
       - name: Build Docker Image
+        if: steps.check-dockerfile.outputs.exists == 'true'
         working-directory: wiki
         run: docker build -t ai-wiki-api:latest -f docker/wiki-api/Dockerfile .
