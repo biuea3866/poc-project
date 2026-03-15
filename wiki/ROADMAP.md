@@ -22,17 +22,21 @@
 2. **`requirement.md`** — 전체 요구사항, ERD, API 명세
 3. **`logs/{현재 브랜치명}.md`** — 이전 에이전트가 남긴 작업 이력 (반드시 이어서 작업)
 
-### 현재 구현 상태 (2026-02-18 기준)
+### 현재 구현 상태 (2026-03-15 기준)
 | 영역 | 상태 | 비고 |
 |---|---|---|
 | 인프라 (Docker Compose) | ✅ 완료 | MySQL, PostgreSQL, Kafka, Redpanda Console |
-| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃/토큰 재발급(Refresh) |
+| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃/토큰 재발급(Refresh), 통합 시나리오 테스트 |
 | Document API | ✅ 완료 | wiki-api 모듈, 11개 엔드포인트, Querydsl 검색 |
 | AI 파이프라인 | ✅ 완료 | wiki-worker 모듈, Kafka 순차 파이프라인 (SUMMARY→TAGGER→EMBEDDING) |
 | SSE 엔드포인트 | ✅ 완료 | SseEmitterManager, 30초 Heartbeat, COMPLETED/FAILED 자동 종료 |
+| 관측성 (Observability) | ✅ 완료 | Actuator, OpenTelemetry, Prometheus, Loki, Grafana 대시보드 |
+| CI/CD | ✅ 완료 | GitHub Actions (be-ci, docker-build, jira-sync) |
+| Tag API | ✅ 완료 | 태그 타입 목록 조회 (NAW-105) |
 | FE Auth | ✅ 완료 | 로그인/회원가입 페이지 |
-| FE 문서 상세 | ⚠️ 부분 완료 | SSE 연동·히스토리·휴지통 페이지 있음. 에디터·트리 미구현 |
-| FE 검색 | ⚠️ 페이지만 존재 | API 미연동 |
+| FE 사이드바/에디터 | ✅ 완료 | 계층형 트리, Markdown 에디터, 검색/Trash 연동 (NAW-106) |
+| FE 문서 상세 | ✅ 완료 | AI 상태 분기, SSE 연동, 히스토리, 휴지통, 복구 |
+| FE 검색 | ✅ 완료 | LIKE 검색 연동 (NAW-106) |
 
 ### 작업 우선순위
 ```
@@ -62,7 +66,7 @@
 
 ### 백엔드 구현 목록
 
-- [ ] **Auth API**
+- [x] **Auth API** _(NAW-105)_
   - [x] 회원가입 / 로그인 / 로그아웃
   - [x] Refresh 토큰 재발급 (`POST /api/v1/auth/refresh`)
   - [x] Testcontainers 기반 엔드포인트 통합 시나리오 테스트 (`signup/login/refresh/logout/delete`)
@@ -96,8 +100,8 @@
   - [x] 제목/내용 LIKE 검색 (`GET /api/v1/search/integrated`) — Querydsl
   - [ ] 웹 검색 연동 (`GET /api/v1/search/web`)
 
-- [ ] **태그 API**
-  - [ ] 태그 타입 목록 조회 (`GET /api/v1/tags/types`)
+- [x] **태그 API** _(NAW-105)_
+  - [x] 태그 타입 목록 조회 (`GET /api/v1/tags/types`)
 
 - [x] **AI 로그**
   - [x] 에이전트 로그 조회 (`GET /api/v1/ai/logs`)
@@ -105,50 +109,129 @@
 ### 프론트엔드 구현 목록
 
 - [x] Auth (로그인 / 회원가입)
-- [ ] 사이드바 계층형 문서 트리 (API 연동)
-- [ ] Markdown 에디터 (작성 / 수정 / DRAFT→ACTIVE 발행)
-- [ ] 문서 상세 페이지 — AI 상태별 UI 분기 (스켈레톤 / 요약·태그 노출 / 재시도 버튼)
+- [x] 사이드바 계층형 문서 트리 (API 연동) _(NAW-106)_
+- [x] Markdown 에디터 (작성 / 수정 / DRAFT→ACTIVE 발행) _(NAW-106)_
+- [x] 문서 상세 페이지 — AI 상태별 UI 분기 (스켈레톤 / 요약·태그 노출 / 재시도 버튼) _(NAW-106)_
 - [x] SSE 기반 AI 상태 실시간 연동 (`useAiStatus`)
 - [x] 버전 히스토리 페이지
 - [x] Trash(휴지통) 페이지
-- [ ] Trash에서 복구 버튼 연동
-- [ ] 검색 페이지 (LIKE 검색 결과 / 웹 검색 탭)
+- [x] Trash에서 복구 버튼 연동 _(NAW-106)_
+- [x] 검색 페이지 (LIKE 검색 결과) _(NAW-106)_
 
 ---
 
-## Next (1~2 마일스톤)
+## Next 마일스톤 (Sprint 2026-03-17 ~ 2026-03-28)
 
-- **아웃박스 패턴 (Transactional Outbox)**
-  - 목표: Kafka 발행 신뢰성 보장 (at-least-once delivery, 장애 시 유실 방지)
-  - 구조:
-    1. Kafka 메시지 발행 시 비동기 스레드에서 시도, ErrorHandler 기본 3회 재시도
-    2. 재시도 모두 실패 시 `outbox` 테이블에 미발행 이벤트 적재 (status = PENDING)
-    3. 컨슈머가 이벤트 처리 성공 시 outbox 로우에 성공 표시 (status = SUCCESS)
-    4. 실패 시 스케줄러(자동 재처리) 또는 어드민 API를 통한 수동 재처리 지원
-  - 구현 범위:
-    - [ ] `outbox` 테이블 스키마 (id, topic, payload, status, retry_count, created_at, processed_at)
-    - [ ] Kafka 발행 실패 시 outbox 적재 로직
-    - [ ] 컨슈머 성공/실패 시 outbox 상태 업데이트
-    - [ ] 스케줄러: 미처리 outbox 주기적 재발행
-    - [ ] 어드민 API: `GET /api/admin/outbox` (목록), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
+> 핵심 목표: MVP 안정성 강화 + AI 검색 고도화. Outbox 패턴으로 이벤트 신뢰성을 확보하고, RAG 벡터 검색으로 지식 탐색 경험을 업그레이드한다.
 
-- **RAG 벡터 검색 도입**
-  - 통합 검색에 벡터 유사도 결과 섹션 추가
-  - 검색 랭킹/스코어링 정책 수립
-- **임베딩 관리 전략**
-  - 모델 버전/차원 관리, 재인덱싱 정책
-- **Refresh 토큰 고도화**
-  - 회전(rotation) 및 단일 사용(one-time) 정책
-- **운영/보안**
-  - 로그 보관 기간, 감사 추적, 비용 모니터링
+### N-1. 아웃박스 패턴 (Transactional Outbox)
 
-- **관측성(Observability)**
-  - [x] Spring Boot Actuator 지표/헬스 엔드포인트 표준화
-  - [x] OpenTelemetry SDK/Exporter 연동 (trace, metric, log correlation)
-  - [x] Prometheus 스크랩 구성 및 대시보드 기본 지표 구성
-  - [x] Loki 로그 수집 파이프라인(promtail/otel collector) 구성
-  - [x] Grafana 통합 대시보드 (Trace/Metric/Log 연계 탐색)
-  - [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의
+**목표:** Kafka 발행 신뢰성 보장 (at-least-once delivery, 장애 시 이벤트 유실 방지)
+
+**구조:**
+1. Kafka 메시지 발행 시 비동기 스레드에서 시도, ErrorHandler 기본 3회 재시도
+2. 재시도 모두 실패 시 `outbox` 테이블에 미발행 이벤트 적재 (status = PENDING)
+3. 컨슈머가 이벤트 처리 성공 시 outbox 로우에 성공 표시 (status = SUCCESS)
+4. 실패 시 스케줄러(자동 재처리) 또는 어드민 API를 통한 수동 재처리 지원
+
+**인수 기준 (Acceptance Criteria):**
+- [ ] Kafka 발행 실패 시 outbox 테이블에 이벤트가 정확히 기록된다
+- [ ] 스케줄러가 PENDING 상태의 outbox 이벤트를 1분 주기로 재발행한다
+- [ ] 재발행 성공 시 outbox 상태가 SUCCESS로 전이된다
+- [ ] 재시도 5회 초과 시 DEAD_LETTER 상태로 전이되고 알림이 발생한다
+- [ ] 어드민 API로 실패 이벤트 조회 및 수동 재처리가 가능하다
+- [ ] 기존 AI 파이프라인 동작에 영향을 주지 않는다 (하위 호환)
+
+**구현 체크리스트:**
+- [ ] `outbox` 테이블 스키마 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, created_at, processed_at, error_message)
+- [ ] OutboxEvent 엔티티 & Repository
+- [ ] Kafka 발행 실패 시 outbox 적재 로직 (KafkaProducer 래퍼)
+- [ ] 컨슈머 성공/실패 시 outbox 상태 업데이트
+- [ ] 스케줄러: 미처리 outbox 주기적 재발행 (`@Scheduled`, 1분 간격)
+- [ ] DEAD_LETTER 전이 로직 (retry_count > max_retries)
+- [ ] 어드민 API: `GET /api/admin/outbox` (목록, 필터: status), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
+- [ ] 통합 테스트: Kafka 장애 시뮬레이션 → outbox 적재 → 스케줄러 재발행 검증
+
+### N-2. RAG 벡터 검색 도입
+
+**목표:** 기존 LIKE 검색에 벡터 유사도 기반 시맨틱 검색을 추가하여 지식 탐색 품질 향상
+
+**사용자 스토리:**
+- 사용자가 "머신러닝 모델 배포 방법"을 검색하면, 정확히 해당 키워드가 없더라도 "ML 모델 서빙", "모델 인퍼런스 파이프라인" 등 의미적으로 유사한 문서가 검색된다
+- 검색 결과에서 키워드 매칭 결과와 시맨틱 매칭 결과가 탭으로 구분되어 표시된다
+- 각 검색 결과에 유사도 점수가 표시되어 관련성을 파악할 수 있다
+
+**API 스펙 (초안):**
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/v1/search/semantic` | 벡터 유사도 기반 시맨틱 검색. 쿼리 파라미터: `q`, `threshold`(기본 0.7), `page`, `size` |
+| GET | `/api/v1/search/integrated` | 기존 LIKE + 시맨틱 통합 검색. 쿼리 파라미터: `q`, `mode`(keyword/semantic/hybrid), `page`, `size` |
+
+**응답 스펙 (시맨틱 검색):**
+```json
+{
+  "items": [
+    {
+      "documentId": 1,
+      "title": "...",
+      "snippet": "... 매칭된 chunk 텍스트 ...",
+      "similarity": 0.89,
+      "tags": ["AI", "배포"]
+    }
+  ],
+  "page": 0,
+  "size": 10,
+  "totalElements": 42
+}
+```
+
+**구현 체크리스트:**
+- [ ] pgvector 코사인 유사도 검색 쿼리 구현 (PostgreSQL Repository)
+- [ ] 시맨틱 검색 API 엔드포인트 (`GET /api/v1/search/semantic`)
+- [ ] 통합 검색 API에 `mode` 파라미터 추가 (keyword/semantic/hybrid)
+- [ ] Hybrid 검색 랭킹: RRF (Reciprocal Rank Fusion) 알고리즘 적용
+- [ ] 검색 결과 snippet 생성 (매칭 chunk에서 주변 텍스트 추출)
+- [ ] FE: 검색 결과 페이지에 시맨틱 탭 추가
+- [ ] FE: 유사도 점수 시각화 (프로그레스 바 또는 백분율)
+- [ ] FE: 검색 모드 전환 UI (키워드 / 시맨틱 / 하이브리드)
+
+### N-3. Refresh 토큰 고도화
+
+**목표:** Refresh 토큰 보안 강화 — 토큰 탈취 시 피해 최소화
+
+**회전(Rotation) 정책:**
+- Refresh 토큰 사용 시 기존 토큰을 무효화하고 새 Refresh 토큰을 함께 발급 (단일 사용)
+- 이미 사용된(무효화된) Refresh 토큰으로 재발급 요청 시 → 해당 사용자의 모든 Refresh 토큰 무효화 (토큰 탈취 감지)
+- Refresh 토큰 Family 개념 도입: 같은 로그인 세션에서 발급된 토큰 체인을 추적
+
+**구현 체크리스트:**
+- [ ] `refresh_token` 테이블 스키마 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at)
+- [ ] 토큰 발급 시 family_id 부여 및 체인 추적
+- [ ] 토큰 사용 시 회전: 기존 토큰 revoke + 새 토큰 발급
+- [ ] 탈취 감지: revoked 토큰 재사용 시 같은 family 전체 무효화
+- [ ] FE: 자동 재발급 시 새 Refresh 토큰 저장 로직 업데이트
+- [ ] 통합 테스트: 정상 회전, 탈취 감지, 만료 시나리오
+
+### N-4. 운영/보안 강화
+
+**구현 체크리스트:**
+- [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의 (Grafana)
+- [ ] 로그 보관 정책 수립 (30일 hot, 90일 cold)
+- [ ] AI 파이프라인 비용 모니터링 대시보드 (LLM API 호출 횟수/토큰 사용량)
+- [ ] 감사 로그(Audit Trail) 기본 구현 — 로그인/문서 변경/삭제 이력
+
+### 스프린트 역할 배분
+
+| 기능 | 담당 | 예상 티켓 수 | 우선순위 |
+|---|---|---|---|
+| N-1. Outbox 패턴 | BE | 4 | P0 (안정성) |
+| N-2. RAG 벡터 검색 — BE | BE | 4 | P0 (핵심 가치) |
+| N-2. RAG 벡터 검색 — FE | FE | 3 | P1 |
+| N-3. Refresh 토큰 고도화 | BE + FE | 3 | P1 (보안) |
+| N-4. SLO/알람/모니터링 | DevOps | 2 | P2 |
+| N-4. 감사 로그 | BE | 1 | P2 |
+| 디자인 핸드오프 | Design | - | P1 |
 
 ---
 
