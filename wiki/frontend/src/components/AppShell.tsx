@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import DocumentTree from "@/components/DocumentTree";
 
 type NavItem = {
   label: string;
@@ -25,14 +26,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       {/* Header */}
       <header className="sticky top-0 z-50 h-16 border-b border-line bg-white shadow-sm">
         <div className="mx-auto flex h-full w-full max-w-7xl items-center justify-between px-6">
-          {/* Logo */}
           <Link href="/dashboard" className="text-xl font-extrabold">
             <span className="bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent">
               AI Wiki
             </span>
           </Link>
 
-          {/* Search Bar */}
           <div className="mx-8 flex flex-1 max-w-xl items-center">
             <div className="relative w-full">
               <svg
@@ -45,16 +44,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               </svg>
               <input
                 type="text"
-                placeholder="Search documents..."
+                placeholder="문서 검색..."
                 className="w-full rounded-lg border border-line bg-surface py-2 pl-10 pr-4 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent"
               />
             </div>
           </div>
 
-          {/* Actions */}
           <div className="flex items-center gap-3">
             <Link
-              href="/dashboard"
+              href="/documents/new"
               className="rounded-lg bg-gradient-to-r from-accent to-accent-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
             >
               새 문서
@@ -69,12 +67,12 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <div className="mx-auto flex w-full max-w-7xl flex-1">
         {/* Sidebar */}
         <aside className="hidden w-60 flex-col border-r border-line bg-white lg:flex">
-          <nav className="flex flex-1 flex-col gap-1 p-4">
+          <nav className="flex flex-col gap-1 p-4">
             <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
               Menu
             </p>
             {navItems.map((item) => {
-              const isActive = pathname === item.href;
+              const isActive = pathname === item.href || (item.href === "/dashboard" && pathname === "/dashboard");
               return (
                 <Link
                   key={item.href}
@@ -98,6 +96,14 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
               );
             })}
           </nav>
+
+          {/* Document Tree */}
+          <div className="flex-1 overflow-y-auto border-t border-line px-2 py-3">
+            <p className="mb-2 px-3 text-xs font-semibold uppercase tracking-wider text-muted">
+              문서 트리
+            </p>
+            <DocumentTree />
+          </div>
 
           {/* AI Status */}
           <div className="border-t border-line p-4">

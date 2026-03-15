@@ -1,4 +1,4 @@
-export type DocumentStatus = "ACTIVE" | "DELETED";
+export type DocumentStatus = "DRAFT" | "ACTIVE" | "DELETED";
 export type AiStatus = "PENDING" | "PROCESSING" | "COMPLETED" | "FAILED";
 
 export interface Document {
@@ -34,4 +34,20 @@ export interface Tag {
   id: number;
   name: string;
   tagType: string;
+}
+
+export interface SearchResult {
+  id: number;
+  title: string;
+  content: string;
+  summary?: string;
+  tags: Tag[];
+  relevanceScore?: number;
+}
+
+export interface PaginatedResponse<T> {
+  results: T[];
+  page: number;
+  size: number;
+  total: number;
 }
