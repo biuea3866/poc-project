@@ -44,6 +44,7 @@ abstract class BaseIntegrationTest {
             .withPassword("wiki_vector_password")
 
         private fun initPostgresSchema() {
+            Class.forName("org.postgresql.Driver")
             DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password).use { conn ->
                 conn.createStatement().use { stmt ->
                     stmt.execute("CREATE EXTENSION IF NOT EXISTS vector")
