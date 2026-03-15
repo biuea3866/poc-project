@@ -4,6 +4,8 @@ import com.biuea.wiki.domain.search.SearchMode
 import com.biuea.wiki.domain.search.SearchResponse
 import com.biuea.wiki.domain.search.SemanticSearchResult
 import com.biuea.wiki.domain.search.SemanticSearchService
+import com.biuea.wiki.infrastructure.kafka.OutboxKafkaPublisher
+import com.biuea.wiki.infrastructure.kafka.OutboxScheduler
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito.`when`
 import org.springframework.beans.factory.annotation.Autowired
@@ -20,6 +22,7 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders
 import org.springframework.web.context.WebApplicationContext
 import org.junit.jupiter.api.BeforeEach
 import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity
+import com.biuea.wiki.WikiApiApplication
 
 /**
  * 시맨틱 검색 API 통합 테스트 (NAW-130)
@@ -33,7 +36,7 @@ import org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfig
  * TC-I-5: q 파라미터 누락 시 400 Bad Request
  * TC-I-6: mode 파라미터 기본값 HYBRID 적용 확인
  */
-@SpringBootTest
+@SpringBootTest(classes = [WikiApiApplication::class])
 @TestPropertySource(properties = [
     "spring.datasource.url=jdbc:h2:mem:testdb_semantic;DB_CLOSE_DELAY=-1",
     "spring.datasource.driver-class-name=org.h2.Driver",
@@ -58,6 +61,12 @@ class SemanticSearchIntegrationTest {
 
     @MockitoBean
     private lateinit var semanticSearchService: SemanticSearchService
+
+    @MockitoBean
+    private lateinit var outboxKafkaPublisher: OutboxKafkaPublisher
+
+    @MockitoBean
+    private lateinit var outboxScheduler: OutboxScheduler
 
     private lateinit var mockMvc: MockMvc
 
