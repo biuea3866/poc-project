@@ -1,0 +1,31 @@
+# feat/NAW-113-be-outbox-pattern 작업 로그
+
+---
+### 2026-03-15 00:00
+- **Agent:** Claude
+- **Task:** Transactional Outbox 패턴 전체 구현 (NAW-113)
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/outbox/entity/OutboxEvent.kt` — Outbox 엔티티 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, processed_at, error_message)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/outbox/entity/OutboxStatus.kt` — PENDING, SUCCESS, FAILED, DEAD_LETTER 상태 enum
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/outbox/OutboxService.kt` — Outbox CRUD 및 상태 전이 서비스
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/outbox/OutboxEventRepository.kt` — JPA Repository (status 기반 조회)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/kafka/KafkaTopic.kt` — Kafka 토픽 상수 (main에 없어 별도 생성)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/kafka/OutboxKafkaPublisher.kt` — Kafka 발행 래퍼 (실패 시 outbox 적재)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/kafka/OutboxScheduler.kt` — 1분 주기 미처리 outbox 재발행 스케줄러
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/config/SchedulingConfig.kt` — @EnableScheduling 설정
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/admin/outbox/OutboxAdminController.kt` — GET /api/admin/outbox, POST /api/admin/outbox/{id}/retry
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/admin/outbox/response/OutboxEventResponse.kt` — 응답 DTO
+  - `wiki-api/build.gradle.kts` — spring-boot-starter-data-jpa 의존성 추가
+- **Decisions:**
+  - OutboxEvent는 BaseTimeEntity 상속하여 created_at/updated_at 자동 감사
+  - Kafka 발행 실패 시 동기 대기(future.get()) 후 outbox 적재 — 트랜잭션 내 원자성 보장
+  - 재시도 5회 초과 시 DEAD_LETTER 상태 전이, 로그 경고 출력
+  - OutboxScheduler는 wiki-domain 인프라 레이어에 배치 (KafkaTemplate 의존)
+  - 어드민 API는 /api/admin/outbox 경로로 분리 (기존 /api/v1 리소스와 구분)
+- **Issues:** 없음
+- **Next:**
+  - 컨슈머 성공/실패 시 outbox 상태 업데이트 로직 연동 (wiki-worker 컨슈머에 OutboxService 주입)
+  - 통합 테스트 작성 (TestContainers + Kafka 장애 시뮬레이션)
+  - DEAD_LETTER 알림 연동 (Slack/이메일 등)
+  - Security 설정: /api/admin/** 경로에 ADMIN 역할 제한
+---
