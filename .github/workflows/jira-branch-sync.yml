@@ -4,54 +4,66 @@ on:
   pull_request:
     types: [opened, reopened, closed, synchronize]
   create:
-    # branch created
 
 jobs:
   # ──────────────────────────────────────────────
-  # Branch created → Jira 티켓에 개발 브랜치 링크
+  # Branch created → Jira 티켓 진행 중 + 브랜치 링크
   # ──────────────────────────────────────────────
   link-branch-to-jira:
     if: github.event_name == 'create' && github.event.ref_type == 'branch'
     runs-on: ubuntu-latest
+    env:
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_DOMAIN: ${{ secrets.JIRA_DOMAIN }}
     steps:
       - name: Extract Jira ticket from branch name
         id: extract
         run: |
           BRANCH="${{ github.event.ref }}"
-          # 브랜치명 패턴: feat/NAW-123-description 또는 feat/NAW-123
           TICKET=$(echo "$BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1)
           echo "ticket=$TICKET" >> $GITHUB_OUTPUT
-          echo "Extracted Jira ticket: $TICKET from branch: $BRANCH"
+          echo "branch=$BRANCH" >> $GITHUB_OUTPUT
+          echo "Extracted: $TICKET from $BRANCH"
 
-      - name: Transition Jira to In Progress (브랜치 생성 시)
+      - name: Transition Jira to In Progress
         if: steps.extract.outputs.ticket != ''
+        continue-on-error: true
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          echo "Linking branch ${{ github.event.ref }} to Jira ticket $TICKET"
-
-          # Jira transition: 해야 할 일 → 진행 중 (transition id: 21)
-          curl -s -o /dev/null -w "%{http_code}" \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
             -d '{"transition":{"id":"21"}}' \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/transitions"
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${{ steps.extract.outputs.ticket }}/transitions"
 
       - name: Add branch comment to Jira
         if: steps.extract.outputs.ticket != ''
+        continue-on-error: true
+        env:
+          TICKET: ${{ steps.extract.outputs.ticket }}
+          BRANCH: ${{ steps.extract.outputs.branch }}
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          BRANCH="${{ github.event.ref }}"
-          REPO_URL="https://github.com/${{ github.repository }}"
-
-          curl -s -o /dev/null \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          REPO="https://github.com/${{ github.repository }}"
+          BODY=$(python3 -c "
+          import json, os
+          b = os.environ['BRANCH']
+          repo = os.environ['REPO']
+          payload = {'body': {'type': 'doc', 'version': 1, 'content': [{'type': 'paragraph', 'content': [
+            {'type': 'text', 'text': 'Branch created: '},
+            {'type': 'text', 'text': b, 'marks': [{'type': 'code'}]},
+            {'type': 'text', 'text': ' -- ' + repo + '/tree/' + b}
+          ]}]}}
+          print(json.dumps(payload))
+          " REPO="$REPO")
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
-            -d "{\"body\":{\"type\":\"doc\",\"version\":1,\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"🌿 Branch created: \"},\
-{\"type\":\"text\",\"text\":\"$BRANCH\",\"marks\":[{\"type\":\"code\"}]},\
-{\"type\":\"text\",\"text\":\" — $REPO_URL/tree/$BRANCH\"}]}]}}" \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/comment"
+            -d "${BODY}" \
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${TICKET}/comment"
 
   # ──────────────────────────────────────────────
   # PR 상태 → Jira 티켓 상태 자동 전환
@@ -59,82 +71,90 @@ jobs:
   sync-pr-status-to-jira:
     if: github.event_name == 'pull_request'
     runs-on: ubuntu-latest
+    env:
+      JIRA_EMAIL: ${{ secrets.JIRA_EMAIL }}
+      JIRA_API_TOKEN: ${{ secrets.JIRA_API_TOKEN }}
+      JIRA_DOMAIN: ${{ secrets.JIRA_DOMAIN }}
     steps:
       - name: Extract Jira ticket from PR
         id: extract
         run: |
-          # PR 제목, 본문, 브랜치명에서 Jira 티켓 추출
-          TITLE="${{ github.event.pull_request.title }}"
-          BODY="${{ github.event.pull_request.body }}"
-          BRANCH="${{ github.event.pull_request.head.ref }}"
-
-          TICKET=$(echo "$TITLE $BODY $BRANCH" | grep -oE '[A-Z]+-[0-9]+' | head -1)
+          TICKET=$(echo \
+            "${{ github.event.pull_request.title }} \
+             ${{ github.event.pull_request.body }} \
+             ${{ github.event.pull_request.head.ref }}" \
+            | grep -oE '[A-Z]+-[0-9]+' | head -1)
           echo "ticket=$TICKET" >> $GITHUB_OUTPUT
-          echo "Extracted Jira ticket: $TICKET"
+          echo "Extracted: $TICKET"
 
-      - name: PR Opened/Reopened → Jira 진행 중
+      - name: PR Opened/Reopened → 진행 중
         if: |
           steps.extract.outputs.ticket != '' &&
           (github.event.action == 'opened' || github.event.action == 'reopened')
+        continue-on-error: true
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          echo "Transitioning $TICKET to 진행 중"
-
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
             -d '{"transition":{"id":"21"}}' \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/transitions")
-          echo "Response: $HTTP_CODE"
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${{ steps.extract.outputs.ticket }}/transitions"
 
-      - name: PR Merged → Jira 완료
+      - name: PR Merged → 완료
         if: |
           steps.extract.outputs.ticket != '' &&
           github.event.action == 'closed' &&
           github.event.pull_request.merged == true
+        continue-on-error: true
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          echo "Transitioning $TICKET to 완료"
-
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
             -d '{"transition":{"id":"31"}}' \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/transitions")
-          echo "Response: $HTTP_CODE"
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${{ steps.extract.outputs.ticket }}/transitions"
 
-      - name: PR Closed without Merge → Jira 해야 할 일
+      - name: PR Closed without Merge → 해야 할 일
         if: |
           steps.extract.outputs.ticket != '' &&
           github.event.action == 'closed' &&
           github.event.pull_request.merged == false
+        continue-on-error: true
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          echo "Transitioning $TICKET back to 해야 할 일"
-
-          HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
             -d '{"transition":{"id":"11"}}' \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/transitions")
-          echo "Response: $HTTP_CODE"
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${{ steps.extract.outputs.ticket }}/transitions"
 
       - name: Add PR link comment to Jira
         if: |
           steps.extract.outputs.ticket != '' &&
           github.event.action == 'opened'
+        continue-on-error: true
+        env:
+          TICKET: ${{ steps.extract.outputs.ticket }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          TICKET="${{ steps.extract.outputs.ticket }}"
-          PR_URL="${{ github.event.pull_request.html_url }}"
-          PR_TITLE="${{ github.event.pull_request.title }}"
-
-          curl -s -o /dev/null \
+          AUTH=$(echo -n "${JIRA_EMAIL}:${JIRA_API_TOKEN}" | base64)
+          BODY=$(python3 -c "
+          import json, os
+          title = os.environ['PR_TITLE']
+          url   = os.environ['PR_URL']
+          payload = {'body': {'type': 'doc', 'version': 1, 'content': [{'type': 'paragraph', 'content': [
+            {'type': 'text', 'text': 'PR opened: '},
+            {'type': 'text', 'text': title, 'marks': [{'type': 'link', 'attrs': {'href': url}}]}
+          ]}]}}
+          print(json.dumps(payload))
+          ")
+          curl -s -o /dev/null -w "HTTP %{http_code}\n" \
             -X POST \
-            -H "Authorization: Basic $(echo -n '${{ secrets.JIRA_EMAIL }}:${{ secrets.JIRA_API_TOKEN }}' | base64)" \
+            -H "Authorization: Basic ${AUTH}" \
             -H "Content-Type: application/json" \
-            -d "{\"body\":{\"type\":\"doc\",\"version\":1,\"content\":[{\"type\":\"paragraph\",\"content\":[{\"type\":\"text\",\"text\":\"🔗 PR opened: \"},\
-{\"type\":\"text\",\"text\":\"$PR_TITLE\",\"marks\":[{\"type\":\"link\",\"attrs\":{\"href\":\"$PR_URL\"}}]}]}]}}" \
-            "https://${{ secrets.JIRA_DOMAIN }}/rest/api/3/issue/$TICKET/comment"
+            -d "${BODY}" \
+            "https://${JIRA_DOMAIN}/rest/api/3/issue/${TICKET}/comment"

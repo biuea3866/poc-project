@@ -218,4 +218,4 @@ jobs:
 
       - name: Build Docker Image
         working-directory: wiki
-        run: docker build -t ai-wiki-api:latest -f docker/Dockerfile .
+        run: docker build -t ai-wiki-api:latest -f docker/wiki-api/Dockerfile .
