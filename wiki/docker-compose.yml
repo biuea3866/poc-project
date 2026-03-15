@@ -158,6 +158,7 @@ services:
       - wiki_api_logs:/var/log/wiki
     networks:
       - wiki-network
+      - pinpoint-net
 
   mysqld-exporter:
     image: prom/mysqld-exporter:v0.16.0
@@ -315,6 +316,8 @@ services:
 networks:
   wiki-network:
     driver: bridge
+  pinpoint-net:
+    external: true
 
 volumes:
   mysql_data:
