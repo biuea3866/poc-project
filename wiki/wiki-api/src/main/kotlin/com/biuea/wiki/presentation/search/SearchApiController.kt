@@ -16,11 +16,11 @@ class SearchApiController(
 ) {
     @GetMapping("/integrated")
     fun searchIntegrated(
-        @RequestParam q: String,
+        @RequestParam query: String,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<SearchResultResponse> {
-        val result = searchService.searchIntegrated(q, page, size)
+        val result = searchService.searchIntegrated(query, page, size)
         return ResponseEntity.ok(SearchResultResponse.from(result))
     }
 

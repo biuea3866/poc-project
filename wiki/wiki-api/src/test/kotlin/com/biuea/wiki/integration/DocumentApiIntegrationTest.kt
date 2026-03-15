@@ -1,35 +1,21 @@
 package com.biuea.wiki.integration
 
-import com.biuea.wiki.WikiApiApplication
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.cache.CacheManager
-import org.springframework.test.context.DynamicPropertyRegistry
-import org.springframework.test.context.DynamicPropertySource
-import org.testcontainers.containers.GenericContainer
-import org.testcontainers.containers.MySQLContainer
-import org.testcontainers.junit.jupiter.Container
-import org.testcontainers.junit.jupiter.Testcontainers
-import org.testcontainers.utility.DockerImageName
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.util.UUID
 
-@Testcontainers
-@SpringBootTest(
-    classes = [WikiApiApplication::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT,
-)
 class DocumentApiIntegrationTest(
     @Value("\${local.server.port}") private val port: Int,
-) {
+) : BaseIntegrationTest() {
     @Autowired
     private lateinit var cacheManager: CacheManager
 
@@ -309,33 +295,5 @@ class DocumentApiIntegrationTest(
     private fun extractJsonValue(json: String, field: String): String {
         val regex = Regex("\"$field\"\\s*:\\s*\"?([^,\"\\}]+)\"?")
         return regex.find(json)?.groupValues?.get(1)?.trim() ?: ""
-    }
-
-    companion object {
-        @Container
-        @JvmStatic
-        private val mysql: MySQLContainer<*> = MySQLContainer("mysql:8.0.36")
-            .withDatabaseName("wiki")
-            .withUsername("wiki_user")
-            .withPassword("wiki_password")
-
-        @Container
-        @JvmStatic
-        private val redis: GenericContainer<*> = GenericContainer(DockerImageName.parse("redis:7.2-alpine"))
-            .withExposedPorts(6379)
-
-        @DynamicPropertySource
-        @JvmStatic
-        fun registerProperties(registry: DynamicPropertyRegistry) {
-            registry.add("spring.datasource.url", mysql::getJdbcUrl)
-            registry.add("spring.datasource.username", mysql::getUsername)
-            registry.add("spring.datasource.password", mysql::getPassword)
-            registry.add("spring.jpa.hibernate.ddl-auto") { "create" }
-            registry.add("spring.data.redis.host", redis::getHost)
-            registry.add("spring.data.redis.port") { redis.getMappedPort(6379) }
-            registry.add("security.jwt.secret") { "this-is-an-integration-test-jwt-secret-key-at-least-32-bytes" }
-            registry.add("security.jwt.access-token-expiration-ms") { "1800000" }
-            registry.add("security.jwt.refresh-token-expiration-ms") { "3600000" }
-        }
     }
 }
