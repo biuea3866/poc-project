@@ -11,6 +11,13 @@ data class SaveDocumentCommand(
     val createdBy: Long,
 )
 
+data class UpdateDocumentCommand(
+    val id: Long,
+    val title: String,
+    val content: String?,
+    val updatedBy: Long,
+)
+
 data class TagInput(
     val name: String,
     val tagConstant: TagConstant
