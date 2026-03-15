@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import DocumentTree from "@/components/DocumentTree";
+import NotificationBell from "@/components/NotificationBell";
 
 type NavItem = {
   label: string;
@@ -51,6 +52,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           </div>
 
           <div className="flex items-center gap-3">
+            <NotificationBell />
             <Link
               href="/documents/new"
               className="rounded-lg bg-gradient-to-r from-accent to-accent-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"

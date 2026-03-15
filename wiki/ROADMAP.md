@@ -281,19 +281,19 @@
 > 내 문서 변경, 댓글, AI 완료 이벤트를 인앱 알림으로 수신
 
 **백엔드 구현 목록**
-- [ ] Notification 엔티티 & Repository (type, target_user_id, ref_id, is_read, created_at)
-- [ ] 알림 생성 이벤트: 댓글 작성 / 내 문서 수정 / AI 완료 / AI 실패
-- [ ] 알림 목록 조회 (`GET /api/v1/notifications`) — 페이지네이션, 읽음 필터
-- [ ] 알림 읽음 처리 (`PATCH /api/v1/notifications/{id}/read`)
-- [ ] 전체 읽음 처리 (`PATCH /api/v1/notifications/read-all`)
-- [ ] 미읽음 카운트 (`GET /api/v1/notifications/unread-count`)
-- [ ] SSE 기반 실시간 알림 스트림 (`GET /api/v1/notifications/stream`)
+- [x] Notification 엔티티 & Repository (type, target_user_id, ref_id, is_read, created_at) _(NAW-133)_
+- [x] 알림 생성 이벤트: AI 완료 / AI 실패 _(NAW-133)_ — 댓글/문서 수정 알림은 S3-1 이후 연동
+- [x] 알림 목록 조회 (`GET /api/v1/notifications`) — 페이지네이션, 읽음 필터 _(NAW-133)_
+- [x] 알림 읽음 처리 (`PATCH /api/v1/notifications/{id}/read`) _(NAW-133)_
+- [x] 전체 읽음 처리 (`PATCH /api/v1/notifications/read-all`) _(NAW-133)_
+- [x] 미읽음 카운트 (`GET /api/v1/notifications/unread-count`) _(NAW-133)_
+- [x] SSE 기반 실시간 알림 스트림 (`GET /api/v1/notifications/stream`) _(NAW-133)_
 
 **프론트엔드 구현 목록**
-- [ ] 헤더 알림 벨 아이콘 + 미읽음 뱃지
-- [ ] 알림 드롭다운 목록 (최근 20건)
-- [ ] 알림 클릭 시 해당 문서/댓글로 이동
-- [ ] SSE 연결로 실시간 알림 수신
+- [x] 헤더 알림 벨 아이콘 + 미읽음 뱃지 _(NAW-134)_
+- [x] 알림 드롭다운 목록 (최근 20건) _(NAW-134)_
+- [x] 알림 클릭 시 해당 문서/댓글로 이동 _(NAW-134)_
+- [x] SSE 연결로 실시간 알림 수신 (30초 polling fallback 병행) _(NAW-134)_
 
 ---
 

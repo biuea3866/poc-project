@@ -9,6 +9,7 @@ package com.biuea.wiki.infrastructure.kafka
 object KafkaTopic {
     const val EVENT_DOCUMENT = "event.document"
     const val EVENT_AI_FAILED = "event.ai.failed"
+    const val EVENT_AI_COMPLETED = "event.ai.completed"
     const val QUEUE_AI_TAGGING = "queue.ai.tagging"
     const val QUEUE_AI_EMBEDDING = "queue.ai.embedding"
 }

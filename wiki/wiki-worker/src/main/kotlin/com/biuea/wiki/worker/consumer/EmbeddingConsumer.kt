@@ -2,6 +2,7 @@ package com.biuea.wiki.worker.consumer
 
 import com.biuea.wiki.domain.document.entity.DocumentStatus
 import com.biuea.wiki.domain.event.AiEmbeddingRequestEvent
+import com.biuea.wiki.domain.event.AiProcessingCompletedEvent
 import com.biuea.wiki.domain.event.AiProcessingFailedEvent
 import com.biuea.wiki.domain.outbox.OutboxService
 import com.biuea.wiki.infrastructure.document.DocumentRepository
@@ -65,6 +66,15 @@ class EmbeddingConsumer(
             documentRepository.save(document)
             log.info("[EMBEDDING] 완료 → ai_status=COMPLETED documentId=${event.documentId}")
             outboxEventId?.toLongOrNull()?.let { outboxService.markSuccessById(it) }
+            kafkaTemplate.send(
+                KafkaTopic.EVENT_AI_COMPLETED,
+                event.documentId.toString(),
+                AiProcessingCompletedEvent(
+                    documentId = event.documentId,
+                    documentRevisionId = event.documentRevisionId,
+                    targetUserId = document.createdBy,
+                )
+            )
         }.onFailure { e ->
             log.error("[EMBEDDING] 실패 documentId=${event.documentId}", e)
             document.failAiProcessing()
