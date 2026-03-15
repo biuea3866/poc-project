@@ -23,6 +23,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.kafka:spring-kafka")
     implementation("io.micrometer:micrometer-tracing-bridge-otel")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
