@@ -102,6 +102,22 @@ jobs:
           SPRING_DATASOURCE_USERNAME: wiki_user
           SPRING_DATASOURCE_PASSWORD: wiki_password
 
+      - name: Generate JaCoCo coverage report
+        run: ./gradlew jacocoTestReport --no-daemon
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/wiki_test
+          SPRING_DATASOURCE_USERNAME: wiki_user
+          SPRING_DATASOURCE_PASSWORD: wiki_password
+
+      - name: Upload coverage reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-coverage-reports
+          path: |
+            **/build/reports/jacoco/
+          retention-days: 7
+
       - name: Upload test results
         uses: actions/upload-artifact@v4
         if: always()
