@@ -1,4 +1,7 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
+// 서버 사이드(SSR)에서는 직접 BE 주소, 클라이언트 사이드에서는 Next.js 프록시 통해서 호출
+const API_BASE = typeof window === "undefined"
+  ? (process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080")
+  : "";
 
 export type ApiError = {
   message: string;
