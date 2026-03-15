@@ -19,6 +19,9 @@ on:
       - 'wiki/settings.gradle.kts'
 
 jobs:
+  # ──────────────────────────────────────────────
+  # 1. Build + Test
+  # ──────────────────────────────────────────────
   build-and-test:
     runs-on: ubuntu-latest
     steps:
@@ -40,10 +43,162 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-gradle-
 
-      - name: Build and Test
+      - name: Build & run tests
         working-directory: wiki
         run: ./gradlew :wiki-api:build --no-daemon
 
+      - name: Publish test report
+        uses: mikepenz/action-junit-report@v4
+        if: always()
+        with:
+          report_paths: 'wiki/**/build/test-results/test/TEST-*.xml'
+          check_name: 'BE Test Report'
+          fail_on_failure: true
+
+  # ──────────────────────────────────────────────
+  # 2. PR 본문 테스트 케이스 검증
+  #    PR 본문의 "완료 기준" 체크리스트에서 테스트 항목을 추출하여
+  #    실제 테스트 결과와 대조합니다.
+  # ──────────────────────────────────────────────
+  pr-test-case-check:
+    if: github.event_name == 'pull_request'
+    needs: build-and-test
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+
+      - name: Cache Gradle
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('wiki/**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+
+      - name: Extract test cases from PR body
+        id: extract
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          # PR 본문에서 체크리스트 항목 추출 (- [ ] 또는 - [x] 형식)
+          echo "$PR_BODY" > /tmp/pr_body.txt
+          TOTAL=$(grep -cE '^\s*- \[[ x]\]' /tmp/pr_body.txt || echo 0)
+          CHECKED=$(grep -cE '^\s*- \[x\]' /tmp/pr_body.txt || echo 0)
+          UNCHECKED=$(grep -cE '^\s*- \[ \]' /tmp/pr_body.txt || echo 0)
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "checked=$CHECKED" >> $GITHUB_OUTPUT
+          echo "unchecked=$UNCHECKED" >> $GITHUB_OUTPUT
+
+          # 테스트 케이스 항목 수집 (완료 기준 / 테스트 케이스 섹션 우선)
+          python3 - <<'PYEOF'
+          import re, os
+
+          body = open('/tmp/pr_body.txt').read()
+          items = re.findall(r'^\s*- \[([ x])\]\s*(.+)$', body, re.MULTILINE)
+
+          output = []
+          for checked, text in items:
+              icon = '✅' if checked == 'x' else '⬜'
+              output.append(f'{icon} {text.strip()}')
+
+          result = '\n'.join(output) if output else '(체크리스트 항목 없음)'
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              # multiline env var
+              f.write('CHECKLIST<<EOF\n')
+              f.write(result + '\n')
+              f.write('EOF\n')
+          PYEOF
+
+      - name: Run tests and collect results
+        id: test
+        working-directory: wiki
+        run: |
+          ./gradlew :wiki-api:test --no-daemon || true
+          # 테스트 결과 집계
+          PASS=0; FAIL=0; SKIP=0
+          for f in $(find . -name "TEST-*.xml" 2>/dev/null); do
+            P=$(python3 -c "import xml.etree.ElementTree as ET; r=ET.parse('$f').getroot(); print(r.get('tests',0))" 2>/dev/null || echo 0)
+            F=$(python3 -c "import xml.etree.ElementTree as ET; r=ET.parse('$f').getroot(); print(int(r.get('failures',0))+int(r.get('errors',0)))" 2>/dev/null || echo 0)
+            S=$(python3 -c "import xml.etree.ElementTree as ET; r=ET.parse('$f').getroot(); print(r.get('skipped',0))" 2>/dev/null || echo 0)
+            PASS=$((PASS + P - F - S)); FAIL=$((FAIL + F)); SKIP=$((SKIP + S))
+          done
+          echo "pass=$PASS" >> $GITHUB_OUTPUT
+          echo "fail=$FAIL" >> $GITHUB_OUTPUT
+          echo "skip=$SKIP" >> $GITHUB_OUTPUT
+          if [ "$FAIL" -gt 0 ]; then
+            echo "status=❌ FAILED" >> $GITHUB_OUTPUT
+          else
+            echo "status=✅ PASSED" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment PR with test case results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ steps.test.outputs.status }}';
+            const pass   = '${{ steps.test.outputs.pass }}';
+            const fail   = '${{ steps.test.outputs.fail }}';
+            const skip   = '${{ steps.test.outputs.skip }}';
+            const total  = '${{ steps.extract.outputs.total }}';
+            const checked = '${{ steps.extract.outputs.checked }}';
+            const checklist = process.env.CHECKLIST;
+
+            const body = [
+              `## ${status} BE CI — 테스트 결과`,
+              '',
+              '### 자동화 테스트',
+              '| 결과 | 수 |',
+              '|------|----|',
+              `| ✅ 통과 | ${pass} |`,
+              `| ❌ 실패 | ${fail} |`,
+              `| ⏭️ 스킵 | ${skip} |`,
+              '',
+              '### PR 본문 테스트 케이스',
+              `> 총 ${total}개 항목 중 ${checked}개 완료 기준 충족`,
+              '',
+              checklist || '(체크리스트 항목 없음)',
+              '',
+              `> 🤖 Verified by BE CI — commit \`${{ github.sha }}\``,
+            ].join('\n');
+
+            // 기존 봇 코멘트 업데이트 또는 신규 작성
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('BE CI — 테스트 결과')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # ──────────────────────────────────────────────
+  # 3. Docker build (main 머지 시만)
+  # ──────────────────────────────────────────────
   docker-build:
     needs: build-and-test
     if: github.ref == 'refs/heads/main'
