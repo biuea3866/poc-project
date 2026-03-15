@@ -2,11 +2,21 @@ name: BE CI
 
 on:
   push:
-    branches: [main]
-    paths: ['be/**']
+    branches:
+      - 'feat/**'
+      - main
+    paths:
+      - 'wiki/wiki-domain/**'
+      - 'wiki/wiki-api/**'
+      - 'wiki/build.gradle.kts'
+      - 'wiki/settings.gradle.kts'
   pull_request:
     branches: [main]
-    paths: ['be/**']
+    paths:
+      - 'wiki/wiki-domain/**'
+      - 'wiki/wiki-api/**'
+      - 'wiki/build.gradle.kts'
+      - 'wiki/settings.gradle.kts'
 
 jobs:
   build-and-test:
@@ -26,11 +36,13 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('be/**/*.gradle.kts') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('wiki/**/*.gradle.kts') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
 
       - name: Build and Test
-        working-directory: be
-        run: ./gradlew build --no-daemon
+        working-directory: wiki
+        run: ./gradlew :wiki-api:build --no-daemon
 
   docker-build:
     needs: build-and-test
@@ -46,9 +58,9 @@ jobs:
           distribution: 'temurin'
 
       - name: Build JAR
-        working-directory: be
-        run: ./gradlew :apps:api:bootJar --no-daemon
+        working-directory: wiki
+        run: ./gradlew :wiki-api:bootJar --no-daemon -x test
 
       - name: Build Docker Image
-        working-directory: be
-        run: docker build -t ai-wiki-api:latest -f apps/api/Dockerfile .
+        working-directory: wiki
+        run: docker build -t ai-wiki-api:latest -f docker/Dockerfile .
