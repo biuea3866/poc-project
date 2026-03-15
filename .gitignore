@@ -17,3 +17,7 @@
 
 # Git worktrees
 wiki/worktrees/
+
+# Secrets
+**/.env
+ai-orchestrator-lab/.env
