@@ -1,0 +1,494 @@
+name: QA Release Gate
+
+on:
+  pull_request:
+    branches:
+      - development
+      - main
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  API_BASE: http://localhost:8081
+  FRONTEND_BASE: http://localhost:3000
+
+jobs:
+  # ─────────────────────────────────────────────
+  # Job 1: Build Check (Kotlin + Next.js)
+  # ─────────────────────────────────────────────
+  build-check:
+    name: Build Check
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Kotlin compile check
+        run: ./gradlew compileKotlin compileTestKotlin --no-daemon
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: npm ci
+
+      - name: Next.js build check
+        working-directory: frontend
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8081
+
+  # ─────────────────────────────────────────────
+  # Job 2: Backend Unit Tests
+  # ─────────────────────────────────────────────
+  backend-unit-tests:
+    name: Backend Unit Tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: root
+          MYSQL_DATABASE: wiki_test
+          MYSQL_USER: wiki_user
+          MYSQL_PASSWORD: wiki_password
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h localhost"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Run unit tests
+        run: ./gradlew test --no-daemon
+        env:
+          SPRING_DATASOURCE_URL: jdbc:mysql://localhost:3306/wiki_test
+          SPRING_DATASOURCE_USERNAME: wiki_user
+          SPRING_DATASOURCE_PASSWORD: wiki_password
+
+      - name: Upload test results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: backend-test-results
+          path: |
+            **/build/reports/tests/
+            **/build/test-results/
+          retention-days: 7
+
+  # ─────────────────────────────────────────────
+  # Job 3: E2E Tests (Playwright)
+  # ─────────────────────────────────────────────
+  e2e-tests:
+    name: E2E Tests (Playwright)
+    runs-on: ubuntu-latest
+    needs: [build-check]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Build Docker image
+        run: docker build -t wiki-api:test -f docker/wiki-api/Dockerfile .
+
+      - name: Start infrastructure services
+        run: |
+          docker compose -f docker-compose.yml up -d mysql redis kafka postgres
+          echo "Waiting for services to be healthy..."
+          sleep 30
+
+      - name: Check MySQL health
+        run: |
+          for i in {1..30}; do
+            if docker exec wiki-mysql mysqladmin ping -h localhost --silent 2>/dev/null; then
+              echo "MySQL is ready"
+              break
+            fi
+            echo "Waiting for MySQL... ($i/30)"
+            sleep 3
+          done
+
+      - name: Start wiki-api
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.development.yml up -d wiki-api
+          echo "Waiting for wiki-api to start..."
+          for i in {1..40}; do
+            if curl -sf http://localhost:8081/actuator/health > /dev/null 2>&1; then
+              echo "wiki-api is ready"
+              break
+            fi
+            echo "Waiting for wiki-api... ($i/40)"
+            sleep 5
+          done
+
+      - name: Start frontend
+        working-directory: frontend
+        run: |
+          npm ci
+          npm run build
+          nohup npm run start &
+          echo "Waiting for frontend to start..."
+          for i in {1..20}; do
+            if curl -sf http://localhost:3000 > /dev/null 2>&1; then
+              echo "Frontend is ready"
+              break
+            fi
+            echo "Waiting for frontend... ($i/20)"
+            sleep 3
+          done
+        env:
+          NEXT_PUBLIC_API_URL: http://localhost:8081
+          PORT: 3000
+
+      - name: Install Playwright & dependencies
+        working-directory: tests/e2e
+        run: |
+          npm init -y
+          npm install -D @playwright/test
+          npx playwright install chromium --with-deps
+
+      - name: Run Playwright E2E tests
+        working-directory: tests/e2e
+        run: npx playwright test --reporter=html,json
+        env:
+          BASE_URL: http://localhost:3000
+          API_BASE: http://localhost:8081
+          CI: true
+
+      - name: Upload E2E screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: e2e-screenshots
+          path: tests/e2e/screenshots/
+          retention-days: 7
+
+      - name: Upload E2E videos
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: e2e-videos
+          path: tests/e2e/test-results/
+          retention-days: 7
+
+      - name: Upload Playwright report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: playwright-report
+          path: tests/e2e/playwright-report/
+          retention-days: 7
+
+      - name: Collect docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs wiki-api > /tmp/wiki-api.log 2>&1 || true
+          docker compose logs mysql > /tmp/mysql.log 2>&1 || true
+
+      - name: Upload docker logs
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: docker-logs-e2e
+          path: /tmp/*.log
+          retention-days: 3
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+
+  # ─────────────────────────────────────────────
+  # Job 4: k6 Load Tests
+  # ─────────────────────────────────────────────
+  k6-load-tests:
+    name: k6 Load Tests
+    runs-on: ubuntu-latest
+    needs: [e2e-tests]
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install k6
+        run: |
+          curl https://github.com/grafana/k6/releases/download/v0.55.0/k6-v0.55.0-linux-amd64.tar.gz -L | tar xvz --strip-components 1
+          sudo mv k6 /usr/local/bin/k6
+          k6 version
+
+      - name: Set up JDK 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: gradle
+
+      - name: Make gradlew executable
+        run: chmod +x ./gradlew
+
+      - name: Start infrastructure services
+        run: |
+          docker compose -f docker-compose.yml up -d mysql redis kafka postgres
+          sleep 30
+
+      - name: Check MySQL health
+        run: |
+          for i in {1..30}; do
+            if docker exec wiki-mysql mysqladmin ping -h localhost --silent 2>/dev/null; then
+              echo "MySQL is ready"
+              break
+            fi
+            sleep 3
+          done
+
+      - name: Start wiki-api
+        run: |
+          docker compose -f docker-compose.yml -f docker-compose.development.yml up -d wiki-api
+          echo "Waiting for wiki-api..."
+          for i in {1..40}; do
+            if curl -sf http://localhost:8081/actuator/health > /dev/null 2>&1; then
+              echo "wiki-api is ready"
+              break
+            fi
+            echo "Waiting... ($i/40)"
+            sleep 5
+          done
+
+      - name: Create k6 results directory
+        run: mkdir -p tests/k6/results
+
+      - name: Run k6 auth scenario
+        run: |
+          k6 run \
+            --env API_BASE=http://localhost:8081 \
+            --out json=tests/k6/results/01-auth.json \
+            tests/k6/scenarios/01-auth.js
+        continue-on-error: false
+
+      - name: Run k6 documents scenario
+        run: |
+          k6 run \
+            --env API_BASE=http://localhost:8081 \
+            --out json=tests/k6/results/02-documents.json \
+            tests/k6/scenarios/02-documents.js
+        continue-on-error: false
+
+      - name: Run k6 search scenario
+        run: |
+          k6 run \
+            --env API_BASE=http://localhost:8081 \
+            --out json=tests/k6/results/03-search.json \
+            tests/k6/scenarios/03-search.js
+        continue-on-error: false
+
+      - name: Run k6 full user journey
+        run: |
+          k6 run \
+            --env API_BASE=http://localhost:8081 \
+            --out json=tests/k6/results/04-full-user-journey.json \
+            tests/k6/scenarios/04-full-user-journey.js
+        continue-on-error: false
+
+      - name: Run k6 load test
+        run: |
+          k6 run \
+            --env API_BASE=http://localhost:8081 \
+            --out json=tests/k6/results/load-test.json \
+            tests/k6/load-test.js
+        continue-on-error: false
+
+      - name: Upload k6 results
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: k6-results
+          path: tests/k6/results/
+          retention-days: 7
+
+      - name: Collect docker logs on failure
+        if: failure()
+        run: |
+          docker compose logs wiki-api > /tmp/wiki-api-k6.log 2>&1 || true
+
+      - name: Upload docker logs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: docker-logs-k6
+          path: /tmp/*.log
+          retention-days: 3
+
+      - name: Stop services
+        if: always()
+        run: docker compose down -v
+
+  # ─────────────────────────────────────────────
+  # Job 5: QA Gate — 모든 job 통과 확인
+  # ─────────────────────────────────────────────
+  qa-gate:
+    name: QA Gate
+    runs-on: ubuntu-latest
+    needs:
+      - build-check
+      - backend-unit-tests
+      - e2e-tests
+      - k6-load-tests
+    if: always()
+
+    steps:
+      - name: Check all jobs passed
+        id: check-jobs
+        run: |
+          echo "build_check=${{ needs.build-check.result }}"
+          echo "backend_unit_tests=${{ needs.backend-unit-tests.result }}"
+          echo "e2e_tests=${{ needs.e2e-tests.result }}"
+          echo "k6_load_tests=${{ needs.k6-load-tests.result }}"
+
+          FAILED_JOBS=""
+
+          if [ "${{ needs.build-check.result }}" != "success" ]; then
+            FAILED_JOBS="${FAILED_JOBS} build-check(${{ needs.build-check.result }})"
+          fi
+          if [ "${{ needs.backend-unit-tests.result }}" != "success" ]; then
+            FAILED_JOBS="${FAILED_JOBS} backend-unit-tests(${{ needs.backend-unit-tests.result }})"
+          fi
+          if [ "${{ needs.e2e-tests.result }}" != "success" ]; then
+            FAILED_JOBS="${FAILED_JOBS} e2e-tests(${{ needs.e2e-tests.result }})"
+          fi
+          if [ "${{ needs.k6-load-tests.result }}" != "success" ]; then
+            FAILED_JOBS="${FAILED_JOBS} k6-load-tests(${{ needs.k6-load-tests.result }})"
+          fi
+
+          if [ -n "$FAILED_JOBS" ]; then
+            echo "FAILED_JOBS=${FAILED_JOBS}" >> $GITHUB_ENV
+            echo "qa_passed=false" >> $GITHUB_OUTPUT
+          else
+            echo "qa_passed=true" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Comment on PR — QA Failed
+        if: steps.check-jobs.outputs.qa_passed == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const failedJobs = process.env.FAILED_JOBS || 'unknown';
+            const body = [
+              '## QA Release Gate — FAILED',
+              '',
+              '다음 QA 체크가 실패했습니다. **머지가 차단됩니다.**',
+              '',
+              '| Job | 결과 |',
+              '|-----|------|',
+              `| Build Check | ${{ needs.build-check.result }} |`,
+              `| Backend Unit Tests | ${{ needs.backend-unit-tests.result }} |`,
+              `| E2E Tests (CSS/UI/Auth/Docs/Search) | ${{ needs.e2e-tests.result }} |`,
+              `| k6 Load Tests | ${{ needs.k6-load-tests.result }} |`,
+              '',
+              `**실패한 Job:** \`${failedJobs}\``,
+              '',
+              '### 확인 항목',
+              '- [ ] CSS 깨짐 여부 (E2E CSS Check)',
+              '- [ ] UI/UX 시나리오 (E2E Auth/Documents/Search)',
+              '- [ ] 사용자 트래픽 시나리오 (k6 부하테스트)',
+              '- [ ] API 단위 테스트 (Backend Unit Tests)',
+              '',
+              '> Artifacts(스크린샷, 비디오, k6 결과)를 확인하여 원인을 파악하세요.',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Comment on PR — QA Passed
+        if: steps.check-jobs.outputs.qa_passed == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const body = [
+              '## QA Release Gate — PASSED',
+              '',
+              '모든 QA 체크를 통과했습니다.',
+              '',
+              '| Job | 결과 |',
+              '|-----|------|',
+              `| Build Check | ${{ needs.build-check.result }} |`,
+              `| Backend Unit Tests | ${{ needs.backend-unit-tests.result }} |`,
+              `| E2E Tests (CSS/UI/Auth/Docs/Search) | ${{ needs.e2e-tests.result }} |`,
+              `| k6 Load Tests | ${{ needs.k6-load-tests.result }} |`,
+              '',
+              '### 통과 항목',
+              '- [x] CSS 깨짐 여부 (E2E CSS Check)',
+              '- [x] UI/UX 시나리오 (E2E Auth/Documents/Search)',
+              '- [x] 사용자 트래픽 시나리오 (k6 부하테스트)',
+              '- [x] API 단위 테스트 (Backend Unit Tests)',
+            ].join('\n');
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body,
+            });
+
+      - name: Fail if QA gate did not pass
+        if: steps.check-jobs.outputs.qa_passed == 'false'
+        run: |
+          echo "QA Gate FAILED. The following jobs did not pass: $FAILED_JOBS"
+          exit 1
