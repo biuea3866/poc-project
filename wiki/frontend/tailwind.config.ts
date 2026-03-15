@@ -5,16 +5,22 @@ const config: Config = {
   theme: {
     extend: {
       colors: {
-        ink: "#0b0e13",
-        coal: "#111720",
-        steel: "#1b2330",
-        linen: "#f4efe6",
-        sand: "#d5c8b0",
-        ember: "#f97316",
-        mint: "#34d399"
+        surface: "#f8f9fa",
+        card: "#ffffff",
+        line: "#e9ecef",
+        primary: "#212529",
+        secondary: "#495057",
+        muted: "#868e96",
+        accent: "#6366f1",
+        "accent-purple": "#8b5cf6",
+        "accent-light": "#eef2ff",
+        success: "#12b886",
+        warning: "#f59e0b",
+        danger: "#ef4444"
       },
       boxShadow: {
-        glow: "0 0 0 1px rgba(249,115,22,0.3), 0 12px 40px rgba(0,0,0,0.35)"
+        sm: "0 1px 2px rgba(0,0,0,0.05)",
+        card: "0 2px 8px rgba(0,0,0,0.08)"
       },
       borderRadius: {
         xl: "1rem",
