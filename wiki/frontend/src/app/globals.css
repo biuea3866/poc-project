@@ -2,29 +2,112 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
-  color-scheme: dark;
+@layer base {
+  :root {
+    color-scheme: light;
+  }
+
+  .dark {
+    color-scheme: dark;
+  }
+
+  body {
+    @apply bg-surface text-secondary antialiased;
+    font-feature-settings: "ss01", "ss02";
+  }
+
+  /* Scrollbar styling */
+  ::-webkit-scrollbar {
+    width: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply rounded-full bg-disabled/40;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted/50;
+  }
 }
 
-body {
-  background: radial-gradient(1200px circle at 20% 10%, rgba(249,115,22,0.15), transparent 60%),
-    radial-gradient(900px circle at 90% 15%, rgba(52,211,153,0.12), transparent 55%),
-    linear-gradient(180deg, #0b0e13 0%, #0f141c 40%, #0b0e13 100%);
-  color: #f4efe6;
+@layer components {
+  /* Gradient accent text */
+  .text-accent-gradient {
+    @apply bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent;
+  }
+
+  /* Gradient accent button */
+  .btn-accent {
+    @apply rounded-lg bg-gradient-to-r from-accent to-accent-purple px-4 py-2 text-sm font-semibold text-white transition;
+    @apply hover:opacity-90 hover:shadow-lg hover:shadow-accent/25 hover:-translate-y-px;
+    @apply disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-none;
+  }
+
+  /* Ghost button */
+  .btn-ghost {
+    @apply rounded-lg px-3 py-2 text-sm font-medium text-secondary transition;
+    @apply hover:bg-surface hover:text-primary;
+  }
+
+  /* Input field */
+  .input-field {
+    @apply w-full rounded-xl border border-border-line bg-surface px-4 py-3 text-base text-primary;
+    @apply placeholder:text-disabled;
+    @apply focus:border-accent focus:ring-2 focus:ring-accent/20 focus:outline-none;
+    @apply transition;
+  }
+
+  /* Card */
+  .card {
+    @apply rounded-xl border border-border-line bg-card p-5;
+    @apply transition-all duration-200;
+    @apply hover:shadow-card hover:border-border-hover hover:-translate-y-0.5;
+  }
+
+  /* AI status dot */
+  .ai-dot-idle {
+    @apply h-2 w-2 rounded-full bg-success;
+  }
+  .ai-dot-processing {
+    @apply h-2 w-2 rounded-full bg-warning animate-pulse;
+  }
+  .ai-dot-off {
+    @apply h-2 w-2 rounded-full bg-disabled;
+  }
 }
 
-body::before {
-  content: "";
-  position: fixed;
-  inset: 0;
-  background-image: linear-gradient(rgba(255,255,255,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-  background-size: 36px 36px;
-  pointer-events: none;
-  opacity: 0.25;
-  z-index: -1;
+@layer utilities {
+  .animate-in {
+    animation: animateIn 0.5s ease forwards;
+  }
+
+  @keyframes animateIn {
+    from {
+      opacity: 0;
+      transform: translateY(8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
 }
 
-a {
-  color: inherit;
+/* Dark mode overrides */
+.dark body {
+  @apply bg-[#0f172a] text-[#94a3b8];
+}
+
+.dark .card,
+.dark .bg-card {
+  @apply bg-[#1e293b] border-[#334155];
+}
+
+.dark .bg-surface {
+  @apply bg-[#0f172a];
+}
+
+.dark .input-field {
+  @apply bg-[#1e293b] border-[#334155] text-[#f1f5f9] placeholder:text-[#475569];
 }
