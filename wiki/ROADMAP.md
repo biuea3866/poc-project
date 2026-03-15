@@ -208,12 +208,12 @@
 - Refresh 토큰 Family 개념 도입: 같은 로그인 세션에서 발급된 토큰 체인을 추적
 
 **구현 체크리스트:**
-- [ ] `refresh_token` 테이블 스키마 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at)
-- [ ] 토큰 발급 시 family_id 부여 및 체인 추적
-- [ ] 토큰 사용 시 회전: 기존 토큰 revoke + 새 토큰 발급
-- [ ] 탈취 감지: revoked 토큰 재사용 시 같은 family 전체 무효화
-- [ ] FE: 자동 재발급 시 새 Refresh 토큰 저장 로직 업데이트
-- [ ] 통합 테스트: 정상 회전, 탈취 감지, 만료 시나리오
+- [x] `refresh_token` 테이블 스키마 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at)
+- [x] 토큰 발급 시 family_id 부여 및 체인 추적
+- [x] 토큰 사용 시 회전: 기존 토큰 revoke + 새 토큰 발급
+- [x] 탈취 감지: revoked 토큰 재사용 시 같은 family 전체 무효화
+- [x] FE: 자동 재발급 시 새 Refresh 토큰 저장 로직 업데이트
+- [x] 통합 테스트: 정상 회전, 탈취 감지, 만료 시나리오
 
 ### N-4. 운영/보안 강화
 
