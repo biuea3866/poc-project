@@ -8,7 +8,7 @@ data class CreateDocumentRequest(
     val title: String,
     val content: String? = null,
     val parentId: Long? = null,
-    val tags: List<TagInputRequest> = emptyList(),
+    val tags: List<TagInputRequest>? = null,
 )
 
 data class UpdateDocumentRequest(
