@@ -11,6 +11,7 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
+import org.testcontainers.utility.MountableFile
 @Testcontainers
 @EmbeddedKafka(partitions = 1, topics = ["event.document", "event.ai.failed", "queue.ai.tagging", "queue.ai.embedding"])
 @SpringBootTest(
@@ -40,7 +41,10 @@ abstract class BaseIntegrationTest {
             .withDatabaseName("wiki")
             .withUsername("wiki_vector_user")
             .withPassword("wiki_vector_password")
-            .withInitScript("init-vector.sql")
+            .withCopyFileToContainer(
+                MountableFile.forClasspathResource("init-vector.sql"),
+                "/docker-entrypoint-initdb.d/init-vector.sql"
+            )
 
         @DynamicPropertySource
         @JvmStatic
