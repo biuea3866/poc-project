@@ -7,9 +7,28 @@ route:
   group_interval: 1m
   repeat_interval: 30m
   receiver: default-log
+  routes:
+    # SLO 위반 알림은 즉시 전달 (짧은 group_wait)
+    - matchers:
+        - slo=~".+"
+      receiver: slo-critical
+      group_wait: 5s
+      group_interval: 30s
+      repeat_interval: 15m
+      continue: false
+
+    # critical 알림은 빠르게 전달
+    - matchers:
+        - severity="critical"
+      receiver: critical-log
+      group_wait: 5s
+      repeat_interval: 10m
+      continue: false
 
 receivers:
   - name: default-log
+  - name: slo-critical
+  - name: critical-log
 
 inhibit_rules:
   - source_matchers:
@@ -17,3 +36,10 @@ inhibit_rules:
     target_matchers:
       - severity="warning"
     equal: ["alertname", "service"]
+
+  # SLO breach가 활성화되면 같은 서비스의 일반 warning 억제
+  - source_matchers:
+      - slo=~".+"
+    target_matchers:
+      - severity="warning"
+    equal: ["service"]

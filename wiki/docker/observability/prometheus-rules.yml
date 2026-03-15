@@ -1,6 +1,39 @@
 groups:
   - name: wiki-slo-alerts
     rules:
+      # ── SLO: API 가용성 99% (5xx < 1%) ──
+      - alert: WikiApiAvailabilitySLOBreach
+        expr: |
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m]))
+            /
+            clamp_min(sum(rate(http_server_requests_seconds_count[5m])), 0.001)
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+          service: wiki-api
+          slo: availability
+        annotations:
+          summary: "SLO 위반: API 가용성 99% 미달"
+          description: "5xx 비율이 1%를 초과했습니다 (SLO: 99% 가용성). 현재 값: {{ $value | humanizePercentage }}"
+
+      # ── SLO: 레이턴시 p95 < 500ms ──
+      - alert: WikiApiLatencySLOBreach
+        expr: |
+          histogram_quantile(
+            0.95,
+            sum by (le) (rate(http_server_requests_seconds_bucket[5m]))
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: critical
+          service: wiki-api
+          slo: latency
+        annotations:
+          summary: "SLO 위반: API p95 레이턴시 500ms 초과"
+          description: "HTTP p95 레이턴시가 500ms를 초과했습니다. 현재 값: {{ $value | humanizeDuration }}"
+
       - alert: WikiApiDown
         expr: up{job="wiki-api"} == 0
         for: 1m
@@ -108,14 +141,15 @@ groups:
           description: "Connected MySQL threads exceeded 200 for 5 minutes."
 
       - alert: KafkaConsumerLagHigh
-        expr: sum(kafka_consumergroup_lag) > 1000
-        for: 10m
+        expr: sum(kafka_consumergroup_lag) > 100
+        for: 5m
         labels:
           severity: warning
           service: kafka
+          slo: consumer-lag
         annotations:
-          summary: "Kafka consumer lag is high"
-          description: "Total consumer lag is above 1000 for 10 minutes."
+          summary: "Kafka consumer lag SLO 위반: lag > 100"
+          description: "Total consumer lag이 100을 초과했습니다. 현재 값: {{ $value }}"
 
       - alert: KafkaJvmHighThreadCount
         expr: kafka_jvm_threads_threadcount > 500
