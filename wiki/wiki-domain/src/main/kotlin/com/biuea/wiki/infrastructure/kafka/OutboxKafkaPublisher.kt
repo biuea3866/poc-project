@@ -13,7 +13,7 @@ import org.springframework.transaction.annotation.Transactional
  */
 @Component
 class OutboxKafkaPublisher(
-    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val kafkaTemplate: KafkaTemplate<Any, Any>,
     private val outboxService: OutboxService,
     private val objectMapper: ObjectMapper,
 ) {

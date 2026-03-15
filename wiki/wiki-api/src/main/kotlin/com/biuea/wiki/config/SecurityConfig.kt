@@ -23,8 +23,20 @@ class SecurityConfig(
     fun securityFilterChain(http: HttpSecurity): SecurityFilterChain {
         http
             .csrf { it.disable() }
+            .cors { cors ->
+                cors.configurationSource {
+                    val config = org.springframework.web.cors.CorsConfiguration()
+                    config.allowedOrigins = listOf("http://localhost:3001", "http://localhost:3002")
+                    config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
+                    config.allowedHeaders = listOf("*")
+                    config.allowCredentials = true
+                    config.maxAge = 3600L
+                    config
+                }
+            }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
             .authorizeHttpRequests {
+                it.requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                 it.requestMatchers(HttpMethod.POST, "/api/v1/auth/signup", "/api/v1/auth/login", "/api/v1/auth/refresh").permitAll()
                 it.requestMatchers(HttpMethod.GET, "/api/v1/tags/types").permitAll()
                 it.requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
