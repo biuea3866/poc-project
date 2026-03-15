@@ -146,6 +146,17 @@ class AuthApiScenarioIntegrationTest(
         assertEquals(401, loginAfterDeleteResponse.statusCode())
     }
 
+    @Test
+    fun `GET tag types returns all tag constants`() {
+        val response = request(method = "GET", path = "/api/v1/tags/types")
+        assertEquals(200, response.statusCode())
+        val body = response.body()
+        assertTrue(body.contains("TECH"))
+        assertTrue(body.contains("BACKEND"))
+        assertTrue(body.contains("FRONTEND"))
+        assertTrue(body.contains("AI"))
+    }
+
     private fun request(
         method: String,
         path: String,
@@ -162,6 +173,7 @@ class AuthApiScenarioIntegrationTest(
         }
 
         when (method) {
+            "GET" -> builder.GET()
             "POST" -> builder.POST(HttpRequest.BodyPublishers.ofString(body ?: "{}"))
             "DELETE" -> builder.DELETE()
             else -> error("Unsupported method: $method")
