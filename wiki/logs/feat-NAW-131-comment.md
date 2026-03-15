@@ -1,0 +1,22 @@
+---
+### 2026-03-16 01:24
+- **Agent:** Claude Sonnet 4.6
+- **Task:** S3-1 댓글/대댓글 CRUD API + UI 구현 (NAW-131, NAW-132)
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/comment/Comment.kt` — 신규
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/comment/CommentRepository.kt` — 신규
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/comment/CommentController.kt` — 신규
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/comment/CommentService.kt` — 신규
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/comment/CommentDtos.kt` — 신규
+  - `wiki-api/src/test/kotlin/com/biuea/wiki/comment/CommentServiceTest.kt` — 신규 (8개 테스트)
+  - `wiki-api/build.gradle.kts` — mockito-kotlin:5.4.0 testImplementation 추가
+  - `frontend/src/lib/comments.ts` — 신규
+  - `frontend/src/components/CommentSection.tsx` — 신규
+  - `frontend/src/app/(protected)/documents/[id]/page.tsx` — CommentSection 통합
+  - `frontend/src/__tests__/CommentSection.test.tsx` — 신규 (7개 테스트)
+- **Decisions:**
+  - CommentService를 wiki-domain이 아닌 wiki-api presentation 레이어에 배치. 기존 DocumentService 패턴(wiki-domain)과 다르지만, 댓글은 간단한 CRUD로 도메인 로직이 적어 wiki-api 내에서 직접 처리하는 것이 더 적합하다고 판단.
+  - CommentTreeResponse의 companions object 반환 타입을 명시적으로 선언하여 Kotlin 재귀 타입 추론 문제 해결.
+  - userId를 localStorage에서 읽어 본인 댓글 여부 판단 (기존 FE 인증 패턴과 동일).
+- **Next:** PR #62 리뷰 후 development 브랜치에 머지
+---
