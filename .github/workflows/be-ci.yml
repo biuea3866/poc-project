@@ -94,13 +94,17 @@ jobs:
           PR_BODY: ${{ github.event.pull_request.body }}
         run: |
           # PR 본문에서 체크리스트 항목 추출 (- [ ] 또는 - [x] 형식)
-          echo "$PR_BODY" > /tmp/pr_body.txt
-          TOTAL=$(grep -cE '^\s*- \[[ x]\]' /tmp/pr_body.txt || echo 0)
-          CHECKED=$(grep -cE '^\s*- \[x\]' /tmp/pr_body.txt || echo 0)
-          UNCHECKED=$(grep -cE '^\s*- \[ \]' /tmp/pr_body.txt || echo 0)
-          echo "total=$TOTAL" >> $GITHUB_OUTPUT
-          echo "checked=$CHECKED" >> $GITHUB_OUTPUT
-          echo "unchecked=$UNCHECKED" >> $GITHUB_OUTPUT
+          printf '%s' "$PR_BODY" > /tmp/pr_body.txt
+          TOTAL=$(grep -cE '^\s*- \[[ x]\]' /tmp/pr_body.txt 2>/dev/null || echo 0)
+          CHECKED=$(grep -cE '^\s*- \[x\]' /tmp/pr_body.txt 2>/dev/null || echo 0)
+          UNCHECKED=$(grep -cE '^\s*- \[ \]' /tmp/pr_body.txt 2>/dev/null || echo 0)
+          # strip any non-numeric characters to ensure clean integer output to GITHUB_OUTPUT
+          TOTAL=$(printf '%s' "$TOTAL" | tr -dc '0-9'); TOTAL=${TOTAL:-0}
+          CHECKED=$(printf '%s' "$CHECKED" | tr -dc '0-9'); CHECKED=${CHECKED:-0}
+          UNCHECKED=$(printf '%s' "$UNCHECKED" | tr -dc '0-9'); UNCHECKED=${UNCHECKED:-0}
+          printf 'total=%s\n' "$TOTAL" >> "$GITHUB_OUTPUT"
+          printf 'checked=%s\n' "$CHECKED" >> "$GITHUB_OUTPUT"
+          printf 'unchecked=%s\n' "$UNCHECKED" >> "$GITHUB_OUTPUT"
 
           # 테스트 케이스 항목 수집 (완료 기준 / 테스트 케이스 섹션 우선)
           python3 - <<'PYEOF'
