@@ -1,0 +1,12 @@
+.gradle/
+.idea/
+build/
+out/
+node_modules/
+.next/
+dist/
+.venv/
+*.log
+be/**/build/
+fe/.next/
+ai-orchestrator-lab/worktrees/

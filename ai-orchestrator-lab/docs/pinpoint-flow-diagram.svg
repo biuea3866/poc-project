@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="540" viewBox="0 0 1200 540">
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #12263a; }
+      .step { fill: #fff; stroke: #486581; stroke-width: 2.5; rx: 16; ry: 16; }
+      .decision { fill: #fff7ed; stroke: #dd6b20; stroke-width: 2.5; }
+      .label { font: 600 17px sans-serif; fill: #102a43; }
+      .small { font: 500 14px sans-serif; fill: #486581; }
+      .line { stroke: #243b53; stroke-width: 3.5; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#243b53"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="540" fill="#f4f7fb"/>
+  <text x="60" y="55" class="title">Pinpoint 구축 플로우</text>
+
+  <rect x="80" y="110" width="210" height="80" class="step"/>
+  <text x="120" y="150" class="label">1. DevOps 배포 준비</text>
+  <text x="118" y="173" class="small">compose / env / network</text>
+
+  <rect x="360" y="110" width="210" height="80" class="step"/>
+  <text x="390" y="150" class="label">2. Pinpoint 기동</text>
+  <text x="398" y="173" class="small">collector / web / hbase</text>
+
+  <polygon points="710,100 820,150 710,200 600,150" class="decision"/>
+  <text x="662" y="147" class="label">기동 검증 통과?</text>
+  <text x="692" y="170" class="small">포트 / 로그 / 연결</text>
+
+  <rect x="870" y="110" width="230" height="80" class="step"/>
+  <text x="900" y="150" class="label">3. BE agent 주입</text>
+  <text x="904" y="173" class="small">-javaagent / appName / agentId</text>
+
+  <rect x="870" y="280" width="230" height="80" class="step"/>
+  <text x="902" y="320" class="label">4. Trace 확인</text>
+  <text x="905" y="343" class="small">Web UI / collector 수집</text>
+
+  <rect x="360" y="280" width="260" height="90" class="step"/>
+  <text x="395" y="320" class="label">실패 시 원인 정리</text>
+  <text x="393" y="345" class="small">예: Zookeeper / HBase / 포트 / env</text>
+
+  <path d="M290 150 H360" class="line"/>
+  <path d="M570 150 H602" class="line"/>
+  <path d="M818 150 H870" class="line"/>
+  <path d="M985 190 V280" class="line"/>
+  <path d="M710 200 V280 H620" class="line"/>
+  <path d="M360 325 H240 V190" class="line"/>
+
+  <text x="830" y="138" class="small">예</text>
+  <text x="690" y="245" class="small">아니오</text>
+</svg>

@@ -1,0 +1,77 @@
+{
+  "tickets": [
+    {
+      "id": "NAW-AI-101",
+      "title": "Pinpoint 기술 설계 문서 작성 및 적용 방향 결정",
+      "priority": "P1",
+      "lane": "common",
+      "owner_role": "tech_lead",
+      "reviewer_role": "architect",
+      "requirement": "Pinpoint 구축 전 BE/DevOps가 공통 설계 문서를 기준으로 의사결정해야 한다.",
+      "description": "Pinpoint 기술 문서를 작성하고 Confluence에 게시한다. 문서에는 agent 주입 방식, trace 범위, collector 연결 정보, 로컬/운영 rollout 계획을 포함한다.",
+      "design_markdown": "## 개요\n- Pinpoint 구축의 초기 의사결정 문서를 만든다.\n\n## 목표\n- BE와 DevOps가 같은 설계 기준을 사용하게 한다.\n\n## 설계\n### 데이터 흐름\n- Backend -> Pinpoint Agent -> Collector -> Storage -> Web\n\n### ERD\n- 애플리케이션 DB 변경 없음\n\n### 컴포넌트 다이어그램\n- Backend service / Pinpoint agent / Collector / Web / Storage\n\n### 플로우 다이어그램\n- 문서 작성 -> Confluence 게시 -> BE/DevOps 참조",
+      "acceptance_criteria": [
+        "Confluence에 기술 문서가 생성된다.",
+        "문서가 개요, 목표, 설계(데이터 흐름, ERD, 컴포넌트 다이어그램, 플로우 다이어그램)을 포함한다.",
+        "BE와 DevOps가 참조할 수 있는 결정 사항과 미결 사항이 기록된다."
+      ],
+      "dependencies": [],
+      "risk_score": 2,
+      "complexity_score": 2,
+      "daily_capacity_cost": 1,
+      "cross_lane": true,
+      "recommended_day_bucket": "single-day",
+      "worktree_name": "common-pinpoint-tech-doc"
+    },
+    {
+      "id": "NAW-AI-102",
+      "title": "백엔드 Pinpoint 부트스트랩 계약 정의",
+      "priority": "P1",
+      "lane": "be",
+      "owner_role": "be_engineer",
+      "reviewer_role": "qa",
+      "requirement": "백엔드 서비스가 Pinpoint agent 연동에 필요한 기동/설정 포인트를 명확히 제공해야 한다.",
+      "description": "Pinpoint agent bootstrap을 위한 JVM 옵션, applicationName/agentId 규칙, collector 연결 설정 포인트를 백엔드 기준으로 정리하고 첫 구현 범위를 정의한다.",
+      "design_markdown": "## 개요\n- 백엔드 서비스의 Pinpoint 연동 경계를 정의한다.\n\n## 목표\n- JVM 옵션과 설정 포인트를 표준화한다.\n\n## 설계\n### 데이터 흐름\n- Application startup -> Java agent attach -> Trace emit\n\n### ERD\n- DB 스키마 변경 없음\n\n### 컴포넌트 다이어그램\n- Spring Boot app / Pinpoint agent / Collector\n\n### 플로우 다이어그램\n- JVM 기동 -> agent 주입 -> 설정 확인 -> trace 전송",
+      "acceptance_criteria": [
+        "BE 기준 agent 주입 방식이 문서화된다.",
+        "서비스 이름과 agent id 규칙이 정의된다.",
+        "민감 정보 추적 제한 원칙이 명시된다."
+      ],
+      "dependencies": [
+        "NAW-AI-101"
+      ],
+      "risk_score": 3,
+      "complexity_score": 4,
+      "daily_capacity_cost": 4,
+      "cross_lane": false,
+      "recommended_day_bucket": "single-day",
+      "worktree_name": "be-pinpoint-bootstrap"
+    },
+    {
+      "id": "NAW-AI-103",
+      "title": "DevOps Pinpoint 로컬 배포 기준선 정리",
+      "priority": "P1",
+      "lane": "devops",
+      "owner_role": "devops_engineer",
+      "reviewer_role": "qa",
+      "requirement": "DevOps는 Pinpoint를 로컬/개발 환경에서 기동할 수 있는 배포 기준을 제공해야 한다.",
+      "description": "Pinpoint docker compose 스캐폴드를 기준으로 환경 변수, 네트워크, collector/web 포트, 운영 체크리스트를 정리하고 첫 실행 기준을 정의한다.",
+      "design_markdown": "## 개요\n- Pinpoint 로컬 배포의 최소 기준을 정의한다.\n\n## 목표\n- DevOps가 반복 가능한 로컬 구성을 제공한다.\n\n## 설계\n### 데이터 흐름\n- Agent -> Collector -> Storage -> Web UI\n\n### ERD\n- 애플리케이션 DB 변경 없음\n\n### 컴포넌트 다이어그램\n- Docker compose / Collector / Web / Storage / Network\n\n### 플로우 다이어그램\n- env 준비 -> compose 기동 -> collector 확인 -> web 확인",
+      "acceptance_criteria": [
+        "Pinpoint 로컬 배포 변수 목록이 정리된다.",
+        "collector/web 접근 포트와 네트워크 규칙이 명시된다.",
+        "BE와 연동 시 필요한 환경 변수와 런타임 요구사항이 정리된다."
+      ],
+      "dependencies": [
+        "NAW-AI-101"
+      ],
+      "risk_score": 2,
+      "complexity_score": 3,
+      "daily_capacity_cost": 3,
+      "cross_lane": false,
+      "recommended_day_bucket": "single-day",
+      "worktree_name": "devops-pinpoint-baseline"
+    }
+  ]
+}

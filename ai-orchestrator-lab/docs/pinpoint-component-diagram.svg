@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="520" viewBox="0 0 1200 520">
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #12263a; }
+      .group { stroke-width: 3; rx: 24; ry: 24; fill-opacity: 0.9; }
+      .label { font: 700 20px sans-serif; fill: #102a43; }
+      .box { stroke-width: 2.5; rx: 16; ry: 16; }
+      .text { font: 600 15px sans-serif; fill: #243b53; }
+      .line { stroke: #243b53; stroke-width: 3.5; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#243b53"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="520" fill="#f4f7fb"/>
+  <text x="60" y="55" class="title">Pinpoint 컴포넌트 다이어그램</text>
+
+  <rect x="50" y="90" width="330" height="360" class="group" fill="#fff7ed" stroke="#dd6b20"/>
+  <text x="80" y="130" class="label">BE 레인</text>
+  <rect x="90" y="170" width="250" height="80" class="box" fill="#fff" stroke="#c05621"/>
+  <text x="130" y="205" class="text">Spring Boot Service</text>
+  <text x="122" y="230" class="text">Hexagonal / Application Core</text>
+  <rect x="90" y="290" width="250" height="80" class="box" fill="#fff" stroke="#c05621"/>
+  <text x="148" y="325" class="text">Pinpoint Agent</text>
+  <text x="120" y="350" class="text">JVM -javaagent bootstrap</text>
+
+  <rect x="435" y="90" width="330" height="360" class="group" fill="#ecfccb" stroke="#65a30d"/>
+  <text x="465" y="130" class="label">DevOps 레인</text>
+  <rect x="475" y="160" width="250" height="70" class="box" fill="#fff" stroke="#4d7c0f"/>
+  <text x="555" y="200" class="text">Collector</text>
+  <rect x="475" y="260" width="250" height="70" class="box" fill="#fff" stroke="#4d7c0f"/>
+  <text x="582" y="300" class="text">Web</text>
+  <rect x="475" y="360" width="250" height="70" class="box" fill="#fff" stroke="#4d7c0f"/>
+  <text x="573" y="400" class="text">HBase</text>
+
+  <rect x="820" y="90" width="320" height="360" class="group" fill="#e0f2fe" stroke="#0284c7"/>
+  <text x="850" y="130" class="label">공통 규칙</text>
+  <rect x="860" y="180" width="240" height="80" class="box" fill="#fff" stroke="#0369a1"/>
+  <text x="895" y="215" class="text">applicationName 규칙</text>
+  <text x="928" y="240" class="text">agentId 규칙</text>
+  <rect x="860" y="300" width="240" height="80" class="box" fill="#fff" stroke="#0369a1"/>
+  <text x="909" y="335" class="text">샘플링 정책</text>
+  <text x="893" y="360" class="text">민감정보 추적 제한</text>
+
+  <path d="M215 250 V290" class="line"/>
+  <path d="M340 330 H475" class="line"/>
+  <path d="M725 195 H860" class="line"/>
+  <path d="M725 295 H860" class="line"/>
+</svg>

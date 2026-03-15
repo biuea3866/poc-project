@@ -1,0 +1,263 @@
+{
+  "prd_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/input/prd.md",
+  "runtime_config": {
+    "output_root": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs",
+    "worktree_root": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/worktrees",
+    "confluence_site_name": "biuea3866.atlassian.net",
+    "confluence_space_key": "~712020644ded435fe54d5ca2541745ace94a12",
+    "jira_site_name": "biuea3866.atlassian.net",
+    "jira_project_key": "NAW",
+    "jira_board_id": "34"
+  },
+  "pipeline_definition": {
+    "agents": [
+      {
+        "key": "pm",
+        "role": "시니어 프로덕트 매니저(PM)",
+        "goal": "PRD, 요구사항, 로드맵을 최신 상태로 유지하고 Confluence를 Single Source of Truth로 관리한다.",
+        "backstory": "당신은 비즈니스 가치와 기술 제약을 함께 다루는 PM입니다. 문서 초안을 끝내지 않고, 공식 문서 시스템까지 갱신해야 완료로 간주합니다.",
+        "llm": "google"
+      },
+      {
+        "key": "architect",
+        "role": "시스템 아키텍트",
+        "goal": "멀티 모듈 구조와 데이터 흐름, 통합 포인트, 운영 제약을 설계한다.",
+        "backstory": "당신은 api, batch, worker, application, domain, infra 경계를 엄격하게 분리하고 단방향 의존성과 확장 가능한 구조를 선호하는 아키텍트입니다. 특히 백엔드에서는 헥사고날 구조와 JPA Entity/도메인 POJO 분리를 강하게 요구합니다.",
+        "llm": "anthropic"
+      },
+      {
+        "key": "tech_lead",
+        "role": "테크 리드",
+        "goal": "병렬 구현 전략, 티켓 분해, 리스크와 복잡도 기반 우선순위 조정을 담당한다.",
+        "backstory": "당신은 FE, BE, DevOps가 서로 막히지 않도록 인터페이스를 선제적으로 정의하고 worktree 기반 병렬 작업 계획을 수립하는 데 능숙합니다. 특히 Pinpoint 구축 같은 cross-lane 작업은 별도 공동 티켓으로 분리합니다.",
+        "llm": "anthropic"
+      },
+      {
+        "key": "developer",
+        "role": "자율형 시니어 엔지니어",
+        "goal": "테스트 우선 설계와 lane별 코드 생성을 통해 구현 산출물을 만든다.",
+        "backstory": "당신은 Kotlin Spring Boot 3.x, Next.js App Router, DevOps 자동화에 능숙하며 각 lane의 구현물을 독립 worktree에서 작업 가능한 단위로 산출합니다. 백엔드에서는 객체지향, 클린 코드, 디자인 패턴, 헥사고날 아키텍처를 지키고 JPA Entity와 도메인 POJO를 분리합니다.",
+        "llm": "anthropic"
+      },
+      {
+        "key": "qa",
+        "role": "품질 및 보안 감사관",
+        "goal": "정적 분석, 보안 점검, 상태 머신과 동시성 정합성 검토를 통해 품질 게이트를 운영한다.",
+        "backstory": "당신은 단순 리뷰어가 아니라 승인 권한을 가진 품질 게이트입니다. CRITICAL 또는 MAJOR 이슈가 있으면 반드시 이전 단계로 되돌립니다.",
+        "llm": "openai"
+      }
+    ],
+    "tasks": [
+      {
+        "key": "ambiguity",
+        "stage_id": "01_ambiguity",
+        "description": "입력된 PRD에서 개발 착수 전 반드시 확인해야 할 모호성을 검출하세요. 로직 모순, 데이터 정의 누락, 기술적 제약 사항을 확인하고 HIGH impact 항목을 우선 정리하세요.",
+        "expected_output": "모호성 질문 리스트와 기본 가정(JSON)",
+        "agent_key": "pm",
+        "context_keys": [],
+        "output_json_schema": "AmbiguityItem[]",
+        "human_input": true
+      },
+      {
+        "key": "requirements_analysis",
+        "stage_id": "02_requirements_analysis",
+        "description": "모호성 답변을 반영해 기능 요구사항, 비기능 요구사항, 제약사항, 성공 지표를 구조화하세요.",
+        "expected_output": "구조화된 요구사항 분석 문서",
+        "agent_key": "pm",
+        "context_keys": [
+          "ambiguity"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "roadmap_update",
+        "stage_id": "03_roadmap_update",
+        "description": "요구사항 분석 결과를 바탕으로 PRD, 요구사항 문서, 릴리즈 로드맵을 최신화하세요.",
+        "expected_output": "최신 PRD, 요구사항, 로드맵 문서",
+        "agent_key": "pm",
+        "context_keys": [
+          "requirements_analysis"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "confluence_sync",
+        "stage_id": "04_confluence_sync",
+        "description": "PRD, 요구사항, 로드맵 결과를 공식 Confluence 페이지에 반영하세요. 게시 대상 페이지, 변경 요약, 게시 성공 여부를 기록하세요.",
+        "expected_output": "Confluence 게시 결과와 변경 로그",
+        "agent_key": "pm",
+        "context_keys": [
+          "roadmap_update"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "technical_analysis",
+        "stage_id": "05_technical_analysis",
+        "description": "요구사항을 구현하기 위한 기술 스택 적합성, 통합 포인트, 외부 의존성, 운영 제약을 분석하세요.",
+        "expected_output": "기술 분석 문서",
+        "agent_key": "architect",
+        "context_keys": [
+          "roadmap_update"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "architecture",
+        "stage_id": "06_architecture",
+        "description": "멀티 모듈 구조, 데이터 흐름, 시스템 경계, 인프라 의존성을 정의하세요.",
+        "expected_output": "아키텍처 보고서와 의존성 맵",
+        "agent_key": "architect",
+        "context_keys": [
+          "technical_analysis"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "parallel_plan",
+        "stage_id": "07_parallel_plan",
+        "description": "FE, BE, DevOps lane을 기준으로 병렬 구현 전략을 세우고 worktree 생성 규칙과 병합 순서를 정의하세요. Pinpoint 모니터링 구축처럼 BE와 DevOps가 함께 수행해야 하는 cross-lane 작업도 식별하세요.",
+        "expected_output": "lane별 병렬 작업 계획",
+        "agent_key": "tech_lead",
+        "context_keys": [
+          "architecture"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "ticket_breakdown",
+        "stage_id": "08_ticket_breakdown",
+        "description": "구현 티켓을 하나의 PR로 완결 가능한 단위로 나누고 id, lane, acceptance criteria, dependencies를 부여하세요. Pinpoint 구축은 BE와 DevOps 공동 작업 티켓으로 명시하세요. 모든 티켓은 Jira 프로젝트 NAW에 등록 가능한 형태로 작성하세요. 각 티켓에 risk_score, complexity_score, daily_capacity_cost, recommended_day_bucket을 함께 제안하세요.",
+        "expected_output": "구조화된 티켓 리스트(JSON)",
+        "agent_key": "tech_lead",
+        "context_keys": [
+          "parallel_plan"
+        ],
+        "output_json_schema": "Ticket[]",
+        "human_input": false
+      },
+      {
+        "key": "risk_scoring",
+        "stage_id": "09_risk_scoring",
+        "description": "각 티켓의 리스크와 복잡도를 1~5로 평가하고 병렬 구현 순서를 재정렬하세요. 또한 lane별 하루 capacity(be 4, fe 4, devops 3) 안에서 배치 가능한 일일 계획 기준을 제안하세요.",
+        "expected_output": "리스크/복잡도 스코어가 포함된 티켓 우선순위 문서",
+        "agent_key": "tech_lead",
+        "context_keys": [
+          "ticket_breakdown"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "test_design",
+        "stage_id": "10_test_design",
+        "description": "티켓별 Given/When/Then 테스트 시나리오와 경계 조건을 설계하세요. FE, BE, DevOps 각각의 검증 포인트를 분리하세요.",
+        "expected_output": "티켓별 테스트 설계 문서",
+        "agent_key": "developer",
+        "context_keys": [
+          "risk_scoring"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "fe_codegen",
+        "stage_id": "11_fe_codegen",
+        "description": "FE lane 티켓을 기준으로 Next.js App Router, TypeScript, Tailwind, React Query 코드를 생성하세요. SSE 상태 전이와 API client 연동을 포함하세요.",
+        "expected_output": "FE 코드 산출물과 변경 파일 목록",
+        "agent_key": "developer",
+        "context_keys": [
+          "test_design"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "be_codegen",
+        "stage_id": "12_be_codegen",
+        "description": "BE lane 티켓을 기준으로 Kotlin Spring Boot 3.x 코드를 생성하세요. ai_status 상태 머신, 낙관적 잠금, analyze API 제약을 반영하세요. 반드시 객체지향, 클린 코드, 디자인 패턴 원칙을 따르고 JPA Entity와 도메인 POJO를 분리하며, 헥사고날 아키텍처 구조로 작성하세요. 또한 Pinpoint 에이전트 연동 지점과 운영에 필요한 백엔드 설정 포인트를 포함하세요. 구현 방식 또는 기술 선택 논의가 필요하면 Confluence에 기술 문서를 생성하세요. 문서 포맷은 개요, 목표, 설계(데이터 흐름, ERD, 컴포넌트 다이어그램, 플로우 다이어그램)을 따르세요.",
+        "expected_output": "BE 코드 산출물과 변경 파일 목록",
+        "agent_key": "developer",
+        "context_keys": [
+          "test_design"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "devops_codegen",
+        "stage_id": "13_devops_codegen",
+        "description": "DevOps lane 티켓을 기준으로 Docker, CI/CD, 환경 변수, 배포 자동화 구성을 생성하세요. Pinpoint 서버/수집/운영 구성을 포함하고, BE lane과의 연동 조건을 문서화하세요. 구현 방식 또는 기술 선택 논의가 필요하면 Confluence에 기술 문서를 생성하세요. 문서 포맷은 개요, 목표, 설계(데이터 흐름, ERD, 컴포넌트 다이어그램, 플로우 다이어그램)을 따르세요.",
+        "expected_output": "DevOps 산출물과 운영 메모",
+        "agent_key": "developer",
+        "context_keys": [
+          "test_design"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "static_analysis",
+        "stage_id": "14_static_analysis",
+        "description": "생성된 FE, BE, DevOps 산출물에 대해 빌드, 테스트, 린트, 정적 분석 결과를 정리하고 CRITICAL 이슈를 식별하세요.",
+        "expected_output": "정적 분석 리포트",
+        "agent_key": "qa",
+        "context_keys": [
+          "fe_codegen",
+          "be_codegen",
+          "devops_codegen"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "review_gate",
+        "stage_id": "15_review_gate",
+        "description": "정적 분석 결과와 구현 산출물을 바탕으로 보안, 동시성, 상태 머신, 회귀 위험을 리뷰하고 APPROVE, MINOR, MAJOR 중 하나를 판정하세요.",
+        "expected_output": "최종 리뷰 리포트와 verdict",
+        "agent_key": "qa",
+        "context_keys": [
+          "static_analysis"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      },
+      {
+        "key": "docs",
+        "stage_id": "16_docs",
+        "description": "전체 결과물을 종합해 최종 기술 문서와 운영 문서를 Markdown으로 작성하고 Confluence 게시 체크리스트를 정리하세요.",
+        "expected_output": "최종 기술 문서와 게시 체크리스트",
+        "agent_key": "pm",
+        "context_keys": [
+          "roadmap_update",
+          "architecture",
+          "review_gate"
+        ],
+        "output_json_schema": null,
+        "human_input": false
+      }
+    ],
+    "loop_policies": [
+      {
+        "trigger_stage_id": "14_static_analysis",
+        "condition": "CRITICAL 또는 빌드/테스트 실패",
+        "target_stage_id": "11_fe_codegen",
+        "max_retries": 3,
+        "note": "분석 결과를 기준으로 FE/BE/DevOps 코드 생성 단계를 재실행한다."
+      },
+      {
+        "trigger_stage_id": "15_review_gate",
+        "condition": "verdict == MAJOR",
+        "target_stage_id": "08_ticket_breakdown",
+        "max_retries": 2,
+        "note": "리뷰에서 구조적 문제가 확인되면 티켓 분해부터 다시 시작한다."
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ai-orchestrator-lab"
+version = "0.1.0"
+description = "PRD-driven AI orchestration playground"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
+
+[project.optional-dependencies]
+live = [
+  "python-dotenv>=1.0.1",
+  "claude-agent-sdk",
+  "anyio>=4.0.0",
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]

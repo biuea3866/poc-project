@@ -1,0 +1,3 @@
+{"timestamp": "2026-03-14T14:56:45", "type": "run_prepared", "payload": {"run_id": "20260314-145645-400371", "prd_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/input/prd.md"}}
+{"timestamp": "2026-03-14T14:56:45", "type": "sdk_started", "payload": {}}
+{"timestamp": "2026-03-14T14:56:49", "type": "sdk_failed", "payload": {"error": "Command failed with exit code 1 (exit code: 1)\nError output: Check stderr output for details"}}
