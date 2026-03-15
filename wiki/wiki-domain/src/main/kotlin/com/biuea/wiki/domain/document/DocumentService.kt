@@ -83,6 +83,15 @@ class DocumentService(
         return document
     }
 
+    @CacheEvict(value = ["documents", "documentList"], allEntries = true)
+    @Transactional
+    fun publishDocument(id: Long, userId: Long): Document {
+        val document = documentRepository.findByIdAndDeletedAtIsNull(id)
+            ?: throw IllegalArgumentException("Document not found: $id")
+        document.publish()
+        return documentRepository.save(document)
+    }
+
     @Cacheable(value = ["documents"], key = "#id")
     @Transactional(readOnly = true)
     fun getDocument(id: Long): Document {

@@ -46,7 +46,7 @@ class DocumentApiController(
                 status = DocumentStatus.PENDING,
                 parentId = request.parentId,
                 createdBy = user.id,
-                tags = request.tags.map {
+                tags = request.tags.orEmpty().map {
                     SaveDocumentInput.TagInput(name = it.name, tagConstant = it.tagConstant)
                 }
             )
@@ -162,6 +162,16 @@ class DocumentApiController(
     ): ResponseEntity<AiStatusResponse> {
         val result = documentService.getAiStatus(id, page, size)
         return ResponseEntity.ok(AiStatusResponse.from(id, result.content))
+    }
+
+    @PostMapping("/{id}/publish")
+    fun publishDocument(
+        @PathVariable id: Long,
+        authentication: Authentication,
+    ): ResponseEntity<DocumentResponse> {
+        val principal = authentication.principal as AuthenticatedUser
+        val document = documentService.publishDocument(id, principal.id)
+        return ResponseEntity.ok(DocumentResponse.from(document))
     }
 
     @PostMapping("/{id}/analyze")

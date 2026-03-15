@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component
 @Component
 class OutboxScheduler(
     private val outboxService: OutboxService,
-    private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val kafkaTemplate: KafkaTemplate<Any, Any>,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)

@@ -38,11 +38,13 @@ export default function AuthForm({ mode }: { mode: Mode }) {
     try {
       if (mode === "signup") {
         await signup({ name, email, password });
+        setStatus("success");
+        router.replace("/login");
       } else {
         await login({ email, password });
+        setStatus("success");
+        router.replace("/dashboard");
       }
-      setStatus("success");
-      router.replace("/dashboard");
     } catch (err) {
       setStatus("error");
       setError(err instanceof Error ? err.message : "문제가 발생했습니다. 다시 시도해주세요.");

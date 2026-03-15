@@ -4,11 +4,11 @@ on:
   push:
     branches:
       - 'feat/**'
-      - main
+      - development
     paths:
       - 'wiki/frontend/**'
   pull_request:
-    branches: [main]
+    branches: [development, main]
     paths:
       - 'wiki/frontend/**'
 

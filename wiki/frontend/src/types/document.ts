@@ -45,6 +45,21 @@ export interface SearchResult {
   relevanceScore?: number;
 }
 
+export interface VectorSearchResult {
+  id: number;
+  title: string;
+  content: string;
+  snippet?: string;
+  similarityScore: number;
+  tags?: Tag[];
+}
+
+export interface VectorSearchResponse {
+  results: VectorSearchResult[];
+  query: string;
+  total: number;
+}
+
 export interface PaginatedResponse<T> {
   results: T[];
   page: number;

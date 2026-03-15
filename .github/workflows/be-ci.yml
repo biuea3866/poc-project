@@ -4,14 +4,14 @@ on:
   push:
     branches:
       - 'feat/**'
-      - main
+      - development
     paths:
       - 'wiki/wiki-domain/**'
       - 'wiki/wiki-api/**'
       - 'wiki/build.gradle.kts'
       - 'wiki/settings.gradle.kts'
   pull_request:
-    branches: [main]
+    branches: [development, main]
     paths:
       - 'wiki/wiki-domain/**'
       - 'wiki/wiki-api/**'
@@ -204,7 +204,7 @@ jobs:
   # ──────────────────────────────────────────────
   docker-build:
     needs: build-and-test
-    if: github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/development'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4

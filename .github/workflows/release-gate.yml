@@ -1,0 +1,149 @@
+name: Release Gate (development → main)
+
+# development → main PR 시 QA 체크리스트 검증 + 릴리즈 노트 생성
+on:
+  pull_request:
+    branches: [main]
+    types: [opened, reopened, synchronize, closed]
+
+jobs:
+  # ──────────────────────────────────────────────
+  # 릴리즈 PR 검증
+  # development → main PR만 허용
+  # ──────────────────────────────────────────────
+  validate-release-pr:
+    if: github.event.pull_request.head.ref == 'development'
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Check source branch
+        id: check
+        run: |
+          HEAD="${{ github.event.pull_request.head.ref }}"
+          if [ "$HEAD" != "development" ]; then
+            echo "❌ main 브랜치는 development에서만 머지 가능합니다. (현재 소스: $HEAD)"
+            exit 1
+          fi
+          echo "✅ 소스 브랜치 확인: $HEAD"
+
+      - name: Extract QA checklist from PR body
+        id: qa
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+        run: |
+          echo "$PR_BODY" > /tmp/pr_body.txt
+          TOTAL=$(grep -cE '^\s*- \[[ x]\]' /tmp/pr_body.txt || echo 0)
+          CHECKED=$(grep -cE '^\s*- \[x\]' /tmp/pr_body.txt || echo 0)
+          echo "total=$TOTAL" >> $GITHUB_OUTPUT
+          echo "checked=$CHECKED" >> $GITHUB_OUTPUT
+
+          python3 - <<'PYEOF'
+          import re, os
+
+          body = open('/tmp/pr_body.txt').read()
+          items = re.findall(r'^\s*- \[([ x])\]\s*(.+)$', body, re.MULTILINE)
+
+          output = []
+          all_checked = True
+          for checked, text in items:
+              icon = '✅' if checked == 'x' else '⬜'
+              if checked != 'x':
+                  all_checked = False
+              output.append(f'{icon} {text.strip()}')
+
+          result = '\n'.join(output) if output else '(QA 체크리스트 없음)'
+          with open(os.environ['GITHUB_ENV'], 'a') as f:
+              f.write('QA_CHECKLIST<<EOF\n')
+              f.write(result + '\n')
+              f.write('EOF\n')
+              f.write(f'ALL_CHECKED={"true" if all_checked else "false"}\n')
+          PYEOF
+
+      - name: Comment release gate status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const total   = '${{ steps.qa.outputs.total }}';
+            const checked = '${{ steps.qa.outputs.checked }}';
+            const qaChecklist = process.env.QA_CHECKLIST;
+            const allChecked  = process.env.ALL_CHECKED === 'true';
+
+            const status = allChecked && parseInt(total) > 0
+              ? '✅ RELEASE READY'
+              : '⚠️ QA 미완료 — 릴리즈 보류';
+
+            const body = [
+              `## ${status}`,
+              '',
+              '> 이 PR은 **development → main** 릴리즈 PR입니다.',
+              '',
+              '### QA 릴리즈 체크리스트',
+              `> 총 ${total}개 항목 중 ${checked}개 통과`,
+              '',
+              qaChecklist || '⚠️ QA 체크리스트가 비어있습니다. PR 본문에 릴리즈 체크리스트를 작성해주세요.',
+              '',
+              '### 릴리즈 절차',
+              '1. QA 엔지니어가 development 환경에서 전체 테스트 완료',
+              '2. 모든 체크리스트 항목 `[x]` 체크',
+              '3. 팀 리드 승인 후 머지 → main 자동 배포',
+              '',
+              `> 🤖 Release Gate — commit \`${{ github.sha }}\``,
+            ].join('\n');
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            const existing = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Release Gate')
+            );
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existing.id,
+                body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body,
+              });
+            }
+
+  # ──────────────────────────────────────────────
+  # feat/* → main 직접 PR 차단
+  # ──────────────────────────────────────────────
+  block-direct-feat-to-main:
+    if: |
+      github.event.pull_request.head.ref != 'development' &&
+      startsWith(github.event.pull_request.head.ref, 'feat/')
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Block PR and comment
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const branch = '${{ github.event.pull_request.head.ref }}';
+            await github.rest.issues.createComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+              body: [
+                '## ❌ 직접 머지 차단',
+                '',
+                `\`${branch}\` → \`main\` 직접 머지는 허용되지 않습니다.`,
+                '',
+                '**올바른 절차:**',
+                `1. \`${branch}\` → \`development\` PR 생성`,
+                '2. CI 통과 + 리뷰 후 development에 머지',
+                '3. QA 검증 완료 후 \`development\` → \`main\` 릴리즈 PR',
+              ].join('\n'),
+            });
+            core.setFailed(`feat/* → main 직접 머지 차단: ${branch}`);

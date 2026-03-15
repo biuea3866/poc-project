@@ -271,6 +271,7 @@ C. AI & Search API (지능형 기능)
 |--|--|--|
 |GET|/api/v1/search/integrated|제목/내용 LIKE 검색. 쿼리 파라미터: `q`, `page`, `size`. **MVP: LIKE 검색만 제공. RAG 벡터 검색은 Next 마일스톤에서 추가**|
 |GET|/api/v1/search/web|외부 웹 사이트 실시간 검색. 쿼리 파라미터: `q`. 사용자가 명시적으로 '웹 검색' 탭/버튼을 선택할 때만 호출|
+|POST|/api/v1/search/vector|pgvector 기반 유사도 검색. body: `embedding`(float 배열, 1536차원) 또는 `query`(텍스트 fallback), `limit`. 응답: documentId, chunkContent, similarity|
 |POST|/api/v1/documents/{id}/analyze|AI에게 재요약 및 태깅 수동 요청|
 |GET|/api/v1/documents/{id}/ai-status|해당 글의 AI 처리 상태 조회 (Polling용). 응답: status(PENDING, PROCESSING, COMPLETED, FAILED)|
 |GET|/api/v1/documents/{id}/ai-status/stream|해당 글의 AI 처리 상태 실시간 스트림 (SSE)|
