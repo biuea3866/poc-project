@@ -52,7 +52,7 @@ class UserApiController(
     @PostMapping("/refresh")
     fun refresh(@RequestBody @Valid request: RefreshRequest): ResponseEntity<RefreshResponse> {
         val output = userAuthFacade.refresh(RefreshUserInput(request.refreshToken))
-        return ResponseEntity.ok(RefreshResponse(output.accessToken, output.tokenType))
+        return ResponseEntity.ok(RefreshResponse(output.accessToken, output.refreshToken, output.tokenType))
     }
 
     @PostMapping("/logout")

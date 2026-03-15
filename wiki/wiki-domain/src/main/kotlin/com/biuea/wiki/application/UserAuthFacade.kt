@@ -2,20 +2,25 @@ package com.biuea.wiki.application
 
 import com.biuea.wiki.domain.auth.AuthenticatedUser
 import com.biuea.wiki.domain.auth.JwtTokenProvider
+import com.biuea.wiki.domain.auth.RefreshToken
 import com.biuea.wiki.domain.auth.exception.InvalidRefreshTokenException
 import com.biuea.wiki.domain.user.DeleteUserCommand
 import com.biuea.wiki.domain.user.LoginUserCommand
 import com.biuea.wiki.domain.user.SignUpUserCommand
 import com.biuea.wiki.domain.user.UserService
 import com.biuea.wiki.infrastructure.auth.RedisAuthTokenStore
+import com.biuea.wiki.infrastructure.auth.RefreshTokenRepository
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneId
+import java.util.UUID
 
 @Component
 class UserAuthFacade(
     private val userService: UserService,
     private val jwtTokenProvider: JwtTokenProvider,
     private val redisAuthTokenStore: RedisAuthTokenStore,
+    private val refreshTokenRepository: RefreshTokenRepository,
 ) {
     @Transactional
     fun signUp(input: SignUpUserInput): UserOutput {
@@ -34,16 +39,21 @@ class UserAuthFacade(
         val user = userService.login(LoginUserCommand(email = input.email, password = input.password))
         val userOutput = UserOutput.of(user)
 
+        val familyId = UUID.randomUUID().toString()
         val accessToken = jwtTokenProvider.createAccessToken(
             AuthenticatedUser(id = userOutput.id, email = userOutput.email, name = userOutput.name)
         )
         val refreshToken = jwtTokenProvider.createRefreshToken(userOutput.id)
         val refreshTokenExpiration = requireNotNull(jwtTokenProvider.getExpirationTime(refreshToken))
 
-        redisAuthTokenStore.saveRefreshToken(
-            userId = userOutput.id,
-            refreshToken = refreshToken,
-            expiresAt = refreshTokenExpiration,
+        // DB에 refresh token 저장 (rotation 정책)
+        refreshTokenRepository.save(
+            RefreshToken(
+                tokenHash = RefreshToken.hashToken(refreshToken),
+                userId = userOutput.id,
+                familyId = familyId,
+                expiresAt = refreshTokenExpiration,
+            )
         )
 
         return LoginOutput(
@@ -54,12 +64,24 @@ class UserAuthFacade(
         )
     }
 
-    @Transactional(readOnly = true)
+    @Transactional
     fun refresh(input: RefreshUserInput): RefreshOutput {
         if (!jwtTokenProvider.validateToken(input.refreshToken) || !jwtTokenProvider.isRefreshToken(input.refreshToken)) {
             throw InvalidRefreshTokenException()
         }
-        if (!redisAuthTokenStore.validateRefreshToken(input.refreshToken)) {
+
+        val tokenHash = RefreshToken.hashToken(input.refreshToken)
+        val storedToken = refreshTokenRepository.findByTokenHash(tokenHash)
+            ?: throw InvalidRefreshTokenException()
+
+        // 탈취 감지: revoked 토큰 재사용 시 동일 family 전체 무효화
+        if (storedToken.isRevoked) {
+            refreshTokenRepository.revokeAllByFamilyId(storedToken.familyId)
+            throw InvalidRefreshTokenException()
+        }
+
+        if (storedToken.isExpired()) {
+            storedToken.revoke()
             throw InvalidRefreshTokenException()
         }
 
@@ -67,11 +89,31 @@ class UserAuthFacade(
         val user = userService.findById(userId)
         val userOutput = UserOutput.of(user)
 
+        // 기존 토큰 revoke
+        storedToken.revoke()
+
+        // 새 토큰 발급 (같은 family_id 유지 — rotation)
+        val newRefreshToken = jwtTokenProvider.createRefreshToken(userOutput.id)
+        val newRefreshTokenExpiration = requireNotNull(jwtTokenProvider.getExpirationTime(newRefreshToken))
+
+        refreshTokenRepository.save(
+            RefreshToken(
+                tokenHash = RefreshToken.hashToken(newRefreshToken),
+                userId = userOutput.id,
+                familyId = storedToken.familyId,
+                expiresAt = newRefreshTokenExpiration,
+            )
+        )
+
         val accessToken = jwtTokenProvider.createAccessToken(
             AuthenticatedUser(id = userOutput.id, email = userOutput.email, name = userOutput.name)
         )
 
-        return RefreshOutput(accessToken = accessToken, tokenType = "Bearer")
+        return RefreshOutput(
+            accessToken = accessToken,
+            refreshToken = newRefreshToken,
+            tokenType = "Bearer",
+        )
     }
 
     @Transactional
@@ -83,13 +125,16 @@ class UserAuthFacade(
                         redisAuthTokenStore.blacklistAccessToken(accessToken, expiresAt)
                     }
             }
-        input.refreshToken?.let { redisAuthTokenStore.revokeRefreshToken(it) }
+        input.refreshToken?.let { refreshToken ->
+            val tokenHash = RefreshToken.hashToken(refreshToken)
+            refreshTokenRepository.findByTokenHash(tokenHash)?.revoke()
+        }
     }
 
     @Transactional
     fun delete(input: DeleteUserInput) {
         userService.delete(DeleteUserCommand(userId = input.userId))
-        redisAuthTokenStore.revokeAllRefreshTokensByUserId(input.userId)
+        refreshTokenRepository.revokeAllByUserId(input.userId)
     }
 }
 
@@ -115,5 +160,6 @@ data class LoginOutput(
 
 data class RefreshOutput(
     val accessToken: String,
+    val refreshToken: String,
     val tokenType: String,
 )
