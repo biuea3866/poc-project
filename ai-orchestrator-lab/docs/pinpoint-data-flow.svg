@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="340" viewBox="0 0 1200 340">
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #12263a; }
+      .label { font: 600 18px sans-serif; fill: #12263a; }
+      .small { font: 500 14px sans-serif; fill: #486581; }
+      .box { rx: 18; ry: 18; stroke-width: 3; }
+      .line { stroke: #243b53; stroke-width: 4; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#243b53"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="340" fill="#f4f7fb"/>
+  <text x="60" y="55" class="title">Pinpoint 데이터 흐름</text>
+
+  <rect x="60" y="120" width="170" height="90" class="box" fill="#d9e2ec" stroke="#486581"/>
+  <text x="118" y="165" class="label">Client</text>
+  <text x="88" y="190" class="small">웹/앱 요청</text>
+
+  <rect x="280" y="120" width="210" height="90" class="box" fill="#ffe3a3" stroke="#f0b429"/>
+  <text x="318" y="165" class="label">Backend Service</text>
+  <text x="324" y="190" class="small">Spring Boot API</text>
+
+  <rect x="540" y="120" width="180" height="90" class="box" fill="#ffd0b5" stroke="#d64545"/>
+  <text x="578" y="165" class="label">Pinpoint Agent</text>
+  <text x="590" y="190" class="small">Java Agent</text>
+
+  <rect x="770" y="120" width="180" height="90" class="box" fill="#c6f7e2" stroke="#2f855a"/>
+  <text x="797" y="165" class="label">Collector</text>
+  <text x="797" y="190" class="small">Trace 수집</text>
+
+  <rect x="1000" y="80" width="150" height="90" class="box" fill="#e9d8fd" stroke="#6b46c1"/>
+  <text x="1051" y="125" class="label">HBase</text>
+  <text x="1035" y="150" class="small">Trace 저장소</text>
+
+  <rect x="1000" y="200" width="150" height="90" class="box" fill="#bee3f8" stroke="#2b6cb0"/>
+  <text x="1058" y="245" class="label">Web</text>
+  <text x="1020" y="270" class="small">조회 / 시각화</text>
+
+  <path d="M230 165 H280" class="line"/>
+  <path d="M490 165 H540" class="line"/>
+  <path d="M720 165 H770" class="line"/>
+  <path d="M950 145 H1000" class="line"/>
+  <path d="M860 210 V245 H1000" class="line"/>
+
+  <text x="247" y="150" class="small">HTTP 요청</text>
+  <text x="500" y="150" class="small">-javaagent</text>
+  <text x="731" y="150" class="small">TCP 9994</text>
+  <text x="960" y="132" class="small">Trace Write</text>
+  <text x="900" y="236" class="small">Trace Query</text>
+</svg>

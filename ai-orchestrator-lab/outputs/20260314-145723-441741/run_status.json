@@ -1,0 +1,179 @@
+{
+  "run_id": "20260314-145723-441741",
+  "prd_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/input/prd.md",
+  "status": "failed",
+  "created_at": "2026-03-14T14:57:23",
+  "updated_at": "2026-03-14T14:57:31",
+  "current_stage_id": null,
+  "crew_execution_enabled": true,
+  "observability_level": "run-level",
+  "stages": [
+    {
+      "stage_id": "01_ambiguity",
+      "title": "Ambiguity Review",
+      "lane": "common",
+      "owner": "pm",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "02_requirements_analysis",
+      "title": "Requirements Analysis",
+      "lane": "common",
+      "owner": "pm",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "03_roadmap_update",
+      "title": "Roadmap Update",
+      "lane": "common",
+      "owner": "pm",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "04_confluence_sync",
+      "title": "Confluence Sync",
+      "lane": "common",
+      "owner": "pm",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "05_technical_analysis",
+      "title": "Technical Analysis",
+      "lane": "common",
+      "owner": "architect",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "06_architecture",
+      "title": "Architecture Draft",
+      "lane": "common",
+      "owner": "architect",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "07_parallel_plan",
+      "title": "Parallel Worktree Plan",
+      "lane": "common",
+      "owner": "tech_lead",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "08_ticket_breakdown",
+      "title": "Ticket Breakdown",
+      "lane": "common",
+      "owner": "tech_lead",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "09_risk_scoring",
+      "title": "Risk And Complexity Scoring",
+      "lane": "common",
+      "owner": "tech_lead",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "10_test_design",
+      "title": "Ticket Test Design",
+      "lane": "common",
+      "owner": "developer",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "11_fe_codegen",
+      "title": "FE Code Generation",
+      "lane": "fe",
+      "owner": "developer",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "12_be_codegen",
+      "title": "BE Code Generation",
+      "lane": "be",
+      "owner": "developer",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "13_devops_codegen",
+      "title": "DevOps Implementation",
+      "lane": "devops",
+      "owner": "developer",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "14_static_analysis",
+      "title": "Static Analysis Gate",
+      "lane": "common",
+      "owner": "qa",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "15_review_gate",
+      "title": "Quality Review Gate",
+      "lane": "common",
+      "owner": "qa",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    },
+    {
+      "stage_id": "16_docs",
+      "title": "Delivery Docs",
+      "lane": "common",
+      "owner": "pm",
+      "status": "pending",
+      "started_at": null,
+      "finished_at": null,
+      "note": null
+    }
+  ],
+  "notes": [
+    "Claude Agent SDK 기반 파이프라인입니다.",
+    "각 단계 완료 시 stage_completed 이벤트가 events.ndjson에 기록됩니다.",
+    "Command failed with exit code 1 (exit code: 1)\nError output: Check stderr output for details"
+  ],
+  "events_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145723-441741/events.ndjson",
+  "runtime_definition_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145723-441741/live_runtime_definition.json"
+}

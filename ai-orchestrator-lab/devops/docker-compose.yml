@@ -1,0 +1,58 @@
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: aiwiki-postgres
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aiwiki}
+      POSTGRES_USER: ${POSTGRES_USER:-aiwiki}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aiwiki}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+    networks:
+      - aiwiki-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aiwiki}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ../be
+      dockerfile: apps/api/Dockerfile
+    container_name: aiwiki-api
+    depends_on:
+      postgres:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/${POSTGRES_DB:-aiwiki}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-aiwiki}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-aiwiki}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      PINPOINT_COLLECTOR_HOST: ${PINPOINT_COLLECTOR_HOST:-pinpoint-collector}
+      PINPOINT_APPLICATION_NAME: ${PINPOINT_APPLICATION_NAME:-ai-wiki-api}
+      PINPOINT_AGENT_ID: ${PINPOINT_AGENT_ID:-api-001}
+    ports:
+      - "${API_PORT:-8080}:8080"
+    networks:
+      - aiwiki-net
+      - pinpoint-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/v1/documents/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  postgres-data:
+
+networks:
+  aiwiki-net:
+    name: aiwiki-net
+  pinpoint-net:
+    name: pinpoint-net
+    external: true

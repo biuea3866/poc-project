@@ -1,0 +1,41 @@
+{
+  "id": null,
+  "uid": "wiki-infra-host-container",
+  "title": "Infra - Host & Containers",
+  "tags": ["wiki", "infra", "node", "container"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Host CPU Usage %",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "100 - (avg by(instance) (irate(node_cpu_seconds_total{mode=\"idle\"}[5m])) * 100)" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Host Memory Usage %",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "(1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container CPU (cores)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by(name) (rate(container_cpu_usage_seconds_total{name!=\"\"}[5m]))" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Container Memory (bytes)",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by(name) (container_memory_usage_bytes{name!=\"\"})" }]
+    }
+  ]
+}

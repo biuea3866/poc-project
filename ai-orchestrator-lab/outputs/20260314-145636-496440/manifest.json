@@ -1,0 +1,199 @@
+{
+  "prd_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/input/prd.md",
+  "run_dir": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440",
+  "confluence_targets": [
+    {
+      "title": "AI Wiki PRD",
+      "page_id_env": "AI_ORCHESTRATOR_PRD_PAGE_ID",
+      "purpose": "제품 요구사항과 주요 제약사항의 공식 문서"
+    },
+    {
+      "title": "AI Wiki Roadmap",
+      "page_id_env": "AI_ORCHESTRATOR_ROADMAP_PAGE_ID",
+      "purpose": "릴리즈 계획과 우선순위 조정 이력"
+    },
+    {
+      "title": "AI Wiki Requirements",
+      "page_id_env": "AI_ORCHESTRATOR_REQUIREMENTS_PAGE_ID",
+      "purpose": "기능/비기능 요구사항과 acceptance criteria 기준"
+    }
+  ],
+  "stages": [
+    {
+      "stage_id": "01_ambiguity",
+      "title": "Ambiguity Review",
+      "owner": "pm",
+      "lane": "common",
+      "kind": "analysis",
+      "summary": "PRD에서 설계 결정을 막는 모호성과 누락을 식별하고 HIGH impact 질문을 추출한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/01_ambiguity.md",
+      "next_input_hint": "Read 01_ambiguity.md before executing the next stage."
+    },
+    {
+      "stage_id": "02_requirements_analysis",
+      "title": "Requirements Analysis",
+      "owner": "pm",
+      "lane": "common",
+      "kind": "analysis",
+      "summary": "기능, 비기능, 제약사항, 성공 지표를 구조화해 요구사항을 정리한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/02_requirements_analysis.md",
+      "next_input_hint": "Read 02_requirements_analysis.md before executing the next stage."
+    },
+    {
+      "stage_id": "03_roadmap_update",
+      "title": "Roadmap Update",
+      "owner": "pm",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "요구사항 분석 결과를 반영해 PRD, 요구사항, 릴리즈 로드맵을 최신화한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/03_roadmap_update.md",
+      "next_input_hint": "Read 03_roadmap_update.md before executing the next stage."
+    },
+    {
+      "stage_id": "04_confluence_sync",
+      "title": "Confluence Sync",
+      "owner": "pm",
+      "lane": "common",
+      "kind": "documentation",
+      "summary": "PM이 Confluence에 PRD, 요구사항, 로드맵 페이지를 직접 업데이트한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/04_confluence_sync.md",
+      "next_input_hint": "Read 04_confluence_sync.md before executing the next stage."
+    },
+    {
+      "stage_id": "05_technical_analysis",
+      "title": "Technical Analysis",
+      "owner": "architect",
+      "lane": "common",
+      "kind": "analysis",
+      "summary": "기술 스택 적합성, 통합 포인트, 외부 의존성, 운영 제약을 분석한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/05_technical_analysis.md",
+      "next_input_hint": "Read 05_technical_analysis.md before executing the next stage."
+    },
+    {
+      "stage_id": "06_architecture",
+      "title": "Architecture Draft",
+      "owner": "architect",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "멀티 모듈 구조, 데이터 흐름, 시스템 경계, 모듈 의존성을 설계한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/06_architecture.md",
+      "next_input_hint": "Read 06_architecture.md before executing the next stage."
+    },
+    {
+      "stage_id": "07_parallel_plan",
+      "title": "Parallel Worktree Plan",
+      "owner": "tech_lead",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "fe, be, devops lane으로 작업을 분리하고 worktree 기반 병렬 전략을 정의하며 Pinpoint 같은 cross-lane 협업 범위를 식별한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/07_parallel_plan.md",
+      "next_input_hint": "Read 07_parallel_plan.md before executing the next stage."
+    },
+    {
+      "stage_id": "08_ticket_breakdown",
+      "title": "Ticket Breakdown",
+      "owner": "tech_lead",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "독립 PR이 가능한 크기로 티켓을 쪼개고 lane과 선행 의존성을 할당하며 Pinpoint 구축 같은 cross-lane 티켓을 분리하고 Jira 등록 기준으로 정리한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/08_ticket_breakdown.md",
+      "next_input_hint": "Read 08_ticket_breakdown.md before executing the next stage."
+    },
+    {
+      "stage_id": "09_risk_scoring",
+      "title": "Risk And Complexity Scoring",
+      "owner": "tech_lead",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "각 티켓의 리스크와 복잡도를 수치화해 우선순위와 병렬 실행 순서를 재정렬한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/09_risk_scoring.md",
+      "next_input_hint": "Read 09_risk_scoring.md before executing the next stage."
+    },
+    {
+      "stage_id": "10_test_design",
+      "title": "Ticket Test Design",
+      "owner": "developer",
+      "lane": "common",
+      "kind": "planning",
+      "summary": "티켓별 Given/When/Then 테스트 시나리오와 검증 케이스를 먼저 정의한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/10_test_design.md",
+      "next_input_hint": "Read 10_test_design.md before executing the next stage."
+    },
+    {
+      "stage_id": "11_fe_codegen",
+      "title": "FE Code Generation",
+      "owner": "developer",
+      "lane": "fe",
+      "kind": "execution",
+      "summary": "FE lane 티켓을 기준으로 Next.js 코드를 생성하고 FE worktree 계획을 남긴다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/11_fe_codegen.md",
+      "next_input_hint": "Read 11_fe_codegen.md before executing the next stage."
+    },
+    {
+      "stage_id": "12_be_codegen",
+      "title": "BE Code Generation",
+      "owner": "developer",
+      "lane": "be",
+      "kind": "execution",
+      "summary": "BE lane 티켓을 기준으로 객체지향, 클린 코드, 헥사고날 아키텍처 원칙에 맞는 Kotlin 코드를 생성하고 BE worktree 계획을 남긴다. 기술 논의가 필요하면 Confluence 기술 문서를 생성한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/12_be_codegen.md",
+      "next_input_hint": "Read 12_be_codegen.md before executing the next stage."
+    },
+    {
+      "stage_id": "13_devops_codegen",
+      "title": "DevOps Implementation",
+      "owner": "developer",
+      "lane": "devops",
+      "kind": "execution",
+      "summary": "DevOps lane 티켓을 기준으로 인프라와 자동화 구성을 생성한다. 기술 논의가 필요하면 Confluence 기술 문서를 생성한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/13_devops_codegen.md",
+      "next_input_hint": "Read 13_devops_codegen.md before executing the next stage."
+    },
+    {
+      "stage_id": "14_static_analysis",
+      "title": "Static Analysis Gate",
+      "owner": "qa",
+      "lane": "common",
+      "kind": "gate",
+      "summary": "빌드, 테스트, 린트, 정적 분석을 수행해 CRITICAL 이슈를 검출한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/14_static_analysis.md",
+      "next_input_hint": "Read 14_static_analysis.md before executing the next stage."
+    },
+    {
+      "stage_id": "15_review_gate",
+      "title": "Quality Review Gate",
+      "owner": "qa",
+      "lane": "common",
+      "kind": "gate",
+      "summary": "보안, 상태 머신, 동시성, 회귀 리스크를 검토해 APPROVE/MINOR/MAJOR를 판정한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/15_review_gate.md",
+      "next_input_hint": "Read 15_review_gate.md before executing the next stage."
+    },
+    {
+      "stage_id": "16_docs",
+      "title": "Delivery Docs",
+      "owner": "pm",
+      "lane": "common",
+      "kind": "documentation",
+      "summary": "최종 기술 문서, 운영 문서, Confluence 게시 체크리스트를 작성한다. Dry-run placeholder generated from input PRD.",
+      "output_path": "/Users/biuea/feature/flag_project/ai-orchestrator-lab/outputs/20260314-145636-496440/16_docs.md",
+      "next_input_hint": "Read 16_docs.md before executing the next stage."
+    }
+  ],
+  "loop_policies": [
+    {
+      "trigger_stage_id": "14_static_analysis",
+      "condition": "CRITICAL 또는 빌드/테스트 실패",
+      "target_stage_id": "11_fe_codegen",
+      "max_retries": 3,
+      "note": "분석 결과를 기준으로 FE/BE/DevOps 코드 생성 단계를 재실행한다."
+    },
+    {
+      "trigger_stage_id": "15_review_gate",
+      "condition": "verdict == MAJOR",
+      "target_stage_id": "08_ticket_breakdown",
+      "max_retries": 2,
+      "note": "리뷰에서 구조적 문제가 확인되면 티켓 분해부터 다시 시작한다."
+    }
+  ]
+}

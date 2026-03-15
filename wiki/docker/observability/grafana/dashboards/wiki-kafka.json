@@ -1,0 +1,48 @@
+{
+  "id": null,
+  "uid": "wiki-kafka",
+  "title": "Kafka & Kafka JVM",
+  "tags": ["wiki", "kafka", "jvm"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "10s",
+  "time": { "from": "now-30m", "to": "now" },
+  "panels": [
+    {
+      "type": "timeseries",
+      "title": "Brokers",
+      "gridPos": { "x": 0, "y": 0, "w": 6, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "kafka_brokers" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Topics",
+      "gridPos": { "x": 6, "y": 0, "w": 6, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "kafka_topics" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Consumer Group Lag",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "sum by(consumergroup, topic) (kafka_consumergroup_lag)" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka JVM Heap Used (bytes)",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "kafka_jvm_memory_heap_used_bytes" }]
+    },
+    {
+      "type": "timeseries",
+      "title": "Kafka JVM Thread Count",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "datasource": { "type": "prometheus", "uid": "prometheus" },
+      "targets": [{ "refId": "A", "expr": "kafka_jvm_threads_threadcount" }]
+    }
+  ]
+}

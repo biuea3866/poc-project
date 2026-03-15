@@ -1,15 +1,11 @@
 import type { Metadata } from "next";
-import { Space_Grotesk, Source_Serif_4 } from "next/font/google";
+import { Noto_Sans_KR } from "next/font/google";
 import "./globals.css";
 
-const space = Space_Grotesk({
+const notoSansKR = Noto_Sans_KR({
   subsets: ["latin"],
+  weight: ["400", "500", "600", "700", "800"],
   variable: "--font-sans"
-});
-
-const serif = Source_Serif_4({
-  subsets: ["latin"],
-  variable: "--font-serif"
 });
 
 export const metadata: Metadata = {
@@ -23,8 +19,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ko" className={`${space.variable} ${serif.variable}`}>
-      <body className="min-h-screen bg-ink font-[var(--font-sans)] text-linen antialiased">
+    <html lang="ko" className={notoSansKR.variable}>
+      <body className="min-h-screen bg-surface font-[family-name:var(--font-sans)] text-primary antialiased">
         {children}
       </body>
     </html>

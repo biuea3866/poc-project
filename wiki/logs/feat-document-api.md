@@ -1,0 +1,83 @@
+---
+### 2026-02-18 02:00
+- **Agent:** Claude (claude-sonnet-4-6)
+- **Task:** DDD 원칙 기반 도메인 레이어 전면 리팩토링 — Rich Domain Model, 책임 재배치, 캡슐화 강화
+- **Changes:**
+  - `wiki-domain/src/.../domain/document/entity/Document.kt` — 생성자 파라미터를 클래스 바디 프로퍼티로 이전 후 `private set` 적용. 행위 메서드 추가: `update()`, `deleteWithDescendants()`, `latestRevision()`, `isViewableBy()`, `resolveActiveParent()`
+  - `wiki-domain/src/.../domain/document/DocumentService.kt` — `updateDocument`, `publishDocument`, `deleteDocument`, `restoreDocument` 도메인 연산 추가
+  - `wiki-domain/src/.../domain/document/DocumentServiceCommand.kt` — `UpdateDocumentCommand`, `PublishDocumentCommand`, `DeleteDocumentCommand`, `RestoreDocumentCommand` 추가
+  - `wiki-domain/src/.../application/UpdateDocumentFacade.kt` — 직접 필드 접근 제거, `DocumentService` 위임
+  - `wiki-domain/src/.../application/PublishDocumentFacade.kt` — `DocumentRevision.create()` 직접 호출 제거, `DocumentRevisionRepository` 의존 제거, `DocumentService` 위임
+  - `wiki-domain/src/.../application/DeleteDocumentFacade.kt` — `softDeleteRecursive()`, `collectAll()` 제거 → `Document.deleteWithDescendants()`로 이전
+  - `wiki-domain/src/.../application/RestoreDocumentFacade.kt` — 부모 ACTIVE 체크 → `Document.resolveActiveParent()`로 이전
+  - `wiki-domain/src/.../application/GetDocumentFacade.kt` — `isViewableBy()`, `latestRevision()` 사용으로 교체
+  - `wiki-domain/src/.../application/AnalyzeDocumentFacade.kt` — `latestRevision()` 사용으로 교체
+  - `build.gradle.kts` — 워크트리 루트 빌드 파일 추가 (repositories, allprojects 설정)
+- **Decisions:**
+  - **생성자 파라미터 → 클래스 바디**: Kotlin에서 `private set`은 클래스 바디 프로퍼티에만 적용 가능. 기존 named constructor call 패턴은 유지됨
+  - **DocumentService 책임 확장**: Facade가 직접 수행하던 도메인 연산(권한 체크, 상태 전이, revision 생성)을 DocumentService로 이전. Facade는 순수 오케스트레이터
+  - **Document.deleteWithDescendants()**: 재귀 cascade 삭제 로직을 엔티티로 이전. 엔티티가 자신의 불변식을 보호
+  - **kapt 호환성 이슈**: `DocumentRevision`의 `@Type(JsonStringType)` 애노테이션이 Hibernate 버전과 충돌하는 기존 문제 존재. 내 변경과 무관
+- **Issues:**
+  - 워크트리에 루트 `build.gradle.kts` 없어 `kapt` 의존성 해소 불가 → 루트 `build.gradle.kts` 생성으로 해결 (단, kapt 호환성 이슈는 기존 문제)
+- **Next:**
+  - **SSE 브로드캐스트**: wiki-worker가 AiStatus 변경 시 SseEmitterManager.broadcast() 호출하는 연동 구현
+  - **DB 마이그레이션**: ai_status 컬럼, status enum 값 (DRAFT/ACTIVE/DELETED), 스키마 최신화
+  - **FE 미구현 항목**: 사이드바 계층형 문서 트리, Markdown 에디터, 문서 상세 페이지, 검색 페이지
+
+---
+### 2026-02-18 00:00
+- **Agent:** Claude (claude-sonnet-4-6)
+- **Task:** Document API 전체 구현 — wiki-api 모듈 신규 생성, wiki-domain 모듈 완성, 11개 Document API 엔드포인트 구현
+- **Changes:**
+  - `wiki-domain/build.gradle.kts` — 신규 생성 (라이브러리 모듈, Querydsl kapt 포함)
+  - `wiki-domain/src/.../infrastructure/config/QuerydslConfig.kt` — JPAQueryFactory Bean
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepositoryCustom.kt` — LIKE 검색 인터페이스
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepositoryImpl.kt` — Querydsl 검색 구현
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepositoryCustom.kt` — 태그 조회 인터페이스
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepositoryImpl.kt` — Querydsl 태그 조회
+  - `wiki-domain/src/.../infrastructure/document/DocumentRepository.kt` — DocumentRepositoryCustom 상속 추가
+  - `wiki-domain/src/.../infrastructure/tag/TagDocumentMappingRepository.kt` — Custom 상속 + @Query 제거
+  - `wiki-domain/src/.../domain/document/DocumentService.kt` — findByIdAndStatusIsNot 오타 수정
+  - `wiki-domain/src/.../application/GetDocumentFacade.kt` — 신규 (상세/목록/Trash)
+  - `wiki-domain/src/.../application/UpdateDocumentFacade.kt` — 신규 (수정 + revision 아카이빙)
+  - `wiki-domain/src/.../application/DeleteDocumentFacade.kt` — 신규 (재귀 cascade 소프트 삭제)
+  - `wiki-domain/src/.../application/RestoreDocumentFacade.kt` — 신규 (복구, 부모 삭제 시 루트)
+  - `wiki-domain/src/.../application/GetDocumentRevisionsFacade.kt` — 신규
+  - `wiki-domain/src/.../application/GetDocumentTagsFacade.kt` — 신규
+  - `wiki-domain/src/.../application/GetDocumentAiStatusFacade.kt` — 신규
+  - `wiki-domain/src/.../application/AnalyzeDocumentFacade.kt` — 신규 (aiStatus 리셋 + 재발행)
+  - `wiki-domain/src/.../application/SearchDocumentFacade.kt` — 신규 (키워드 LIKE)
+  - `wiki-domain/src/.../application/GetAiLogsFacade.kt` — 신규
+  - `wiki-domain/src/...` — User/Auth/Tag/AI 엔티티·서비스·리포지토리 마이그레이션 (wiki/wiki-domain → wiki-domain)
+  - `wiki-api/build.gradle.kts` — 신규 생성 (Spring Boot app, wiki-domain 의존)
+  - `wiki-api/src/.../WikiApiApplication.kt` — 신규
+  - `wiki-api/src/.../config/SecurityConfig.kt` — 신규 (SSE 엔드포인트 permitAll 포함)
+  - `wiki-api/src/.../security/JwtAuthenticationFilter.kt` — 신규
+  - `wiki-api/src/.../presentation/common/ApiExceptionHandler.kt` — 신규 (IllegalArgument/State 핸들러 추가)
+  - `wiki-api/src/.../presentation/document/DocumentApiController.kt` — 신규 (11개 엔드포인트)
+  - `wiki-api/src/.../presentation/document/SseEmitterManager.kt` — 신규 (30초 Heartbeat, COMPLETED/FAILED 자동 종료)
+  - `wiki-api/src/.../presentation/document/request/DocumentApiControllerRequest.kt` — 신규
+  - `wiki-api/src/.../presentation/document/response/DocumentApiControllerResponse.kt` — 신규
+  - `wiki-api/src/.../presentation/search/SearchApiController.kt` — 신규
+  - `wiki-api/src/.../presentation/ai/AiApiController.kt` — 신규
+  - `wiki-api/src/.../presentation/user/` — wiki/wiki-api 마이그레이션
+  - `wiki-api/src/main/resources/application.yml` — 신규
+- **Decisions:**
+  - **Querydsl 도입**: @Query 대신 Querydsl JPAQueryFactory 사용. LIKE 검색, 태그 페치조인 쿼리에 적용
+  - **wiki-domain 라이브러리화**: bootJar 비활성화, jar 활성화. wiki-api/wiki-worker가 의존
+  - **feat/ai-pipeline → feat/document-api rebase**: AI 파이프라인 변경사항(AiStatus, Document 엔티티 등)을 document-api 브랜치에 포함시킴
+  - **SseEmitterManager 컴포넌트화**: SSE 연결 풀을 컨트롤러에서 분리. DDD 원칙에 따라 인프라 관심사 분리
+  - **SecurityConfig**: `/api/v1/documents/*/ai-status/stream` (SSE)는 인증 없이 접근 허용 (FE 훅 패턴 고려)
+- **Issues:**
+  - `wiki-api/` 디렉토리가 루트 레벨에 없었음 → wiki/wiki-api/ 마이그레이션 + 신규 생성으로 해결
+  - `DocumentService.findByIdAndStatusIsNot` 오타 → `findByIdAndStatusNot`으로 수정
+- **Next:**
+  - **DDD/OOP 리팩토링**: 도메인 서비스·엔티티의 풍부한 행위 강화 (Rich Domain Model)
+    - DocumentService의 updateDocument 로직을 Document 엔티티 메서드로 이동
+    - DeleteDocumentFacade의 재귀 삭제 로직을 Document.deleteWithChildren() 등의 도메인 메서드로 이동
+  - **Querydsl 확장**: 현재 LIKE 검색과 태그 조회만 Querydsl 적용 → 추후 복잡한 조회는 모두 Querydsl로
+  - **ROADMAP 업데이트**: 완료된 Document API 체크리스트 [x] 표시
+  - **DB 마이그레이션**: ai_status 컬럼 추가, status enum 값 변경, comment 테이블 추가
+  - **SSE 브로드캐스트**: wiki-worker가 AiStatus 변경 시 SseEmitterManager.broadcast() 호출하는 연동 구현
+---

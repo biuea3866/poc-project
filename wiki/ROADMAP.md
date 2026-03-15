@@ -26,10 +26,10 @@
 | 영역 | 상태 | 비고 |
 |---|---|---|
 | 인프라 (Docker Compose) | ✅ 완료 | MySQL, PostgreSQL, Kafka, Redpanda Console |
-| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃. Refresh 토큰 미구현 |
-| Document API | ❌ 미구현 | Facade·엔티티만 존재, 컨트롤러 없음 |
+| Auth API | ✅ 완료 | 회원가입/로그인/로그아웃/토큰 재발급(Refresh) |
+| Document API | ✅ 완료 | wiki-api 모듈, 11개 엔드포인트, Querydsl 검색 |
 | AI 파이프라인 | ✅ 완료 | wiki-worker 모듈, Kafka 순차 파이프라인 (SUMMARY→TAGGER→EMBEDDING) |
-| SSE 엔드포인트 | ❌ 미구현 | FE 훅(`useAiStatus`)은 준비됨 |
+| SSE 엔드포인트 | ✅ 완료 | SseEmitterManager, 30초 Heartbeat, COMPLETED/FAILED 자동 종료 |
 | FE Auth | ✅ 완료 | 로그인/회원가입 페이지 |
 | FE 문서 상세 | ⚠️ 부분 완료 | SSE 연동·히스토리·휴지통 페이지 있음. 에디터·트리 미구현 |
 | FE 검색 | ⚠️ 페이지만 존재 | API 미연동 |
@@ -64,18 +64,20 @@
 
 - [ ] **Auth API**
   - [x] 회원가입 / 로그인 / 로그아웃
-  - [ ] Refresh 토큰 재발급 (`POST /api/v1/auth/refresh`)
+  - [x] Refresh 토큰 재발급 (`POST /api/v1/auth/refresh`)
+  - [x] Testcontainers 기반 엔드포인트 통합 시나리오 테스트 (`signup/login/refresh/logout/delete`)
 
-- [ ] **Document API**
-  - [ ] 문서 생성 (`POST /api/v1/documents`) — DRAFT 상태로 생성. 발행 시 ACTIVE 전환 및 Kafka 이벤트 발행
-  - [ ] 문서 목록/트리 조회 (`GET /api/v1/documents`)
-  - [ ] 문서 상세 조회 (`GET /api/v1/documents/{id}`) — 요약·태그 포함
-  - [ ] 문서 수정 (`PUT /api/v1/documents/{id}`) — revision 아카이빙
-  - [ ] 문서 삭제 (`DELETE /api/v1/documents/{id}`) — cascade soft delete
-  - [ ] 문서 복구 (`POST /api/v1/documents/{id}/restore`)
-  - [ ] Trash 조회 (`GET /api/v1/documents/trash`)
-  - [ ] 버전 목록 조회 (`GET /api/v1/documents/{id}/revisions`)
-  - [ ] 태그 목록 조회 (`GET /api/v1/documents/{id}/tags`)
+- [x] **Document API**
+  - [x] 문서 생성 (`POST /api/v1/documents`) — DRAFT 상태로 생성
+  - [x] 문서 발행 (`POST /api/v1/documents/{id}/publish`) — ACTIVE 전환 및 Kafka 이벤트 발행
+  - [x] 문서 목록/트리 조회 (`GET /api/v1/documents`)
+  - [x] 문서 상세 조회 (`GET /api/v1/documents/{id}`) — 요약·태그 포함
+  - [x] 문서 수정 (`PUT /api/v1/documents/{id}`) — revision 아카이빙
+  - [x] 문서 삭제 (`DELETE /api/v1/documents/{id}`) — cascade soft delete
+  - [x] 문서 복구 (`POST /api/v1/documents/{id}/restore`)
+  - [x] Trash 조회 (`GET /api/v1/documents/trash`)
+  - [x] 버전 목록 조회 (`GET /api/v1/documents/{id}/revisions`)
+  - [x] 태그 목록 조회 (`GET /api/v1/documents/{id}/tags`)
 
 - [x] **AI 파이프라인**
   - [x] 문서 발행 시 `event.document` 이벤트 발행 (Kafka Producer, PublishDocumentFacade)
@@ -84,21 +86,21 @@
   - [x] EMBEDDING 에이전트 (wiki-worker, `queue.ai.embedding` 컨슘 → 벡터화 → PostgreSQL upsert → COMPLETED)
   - [x] `ai_status` 상태 전이 관리 (PENDING → PROCESSING → COMPLETED / FAILED)
   - [x] 실패 처리: FixedBackOff 3회 재시도 후 `event.ai.failed` 발행 → FAILED 전이
-  - [ ] 수동 재분석 (`POST /api/v1/documents/{id}/analyze`)
+  - [x] 수동 재분석 (`POST /api/v1/documents/{id}/analyze`)
 
-- [ ] **SSE / 상태 조회**
-  - [ ] AI 상태 Polling (`GET /api/v1/documents/{id}/ai-status`)
-  - [ ] AI 상태 SSE 스트림 (`GET /api/v1/documents/{id}/ai-status/stream`)
+- [x] **SSE / 상태 조회**
+  - [x] AI 상태 Polling (`GET /api/v1/documents/{id}/ai-status`)
+  - [x] AI 상태 SSE 스트림 (`GET /api/v1/documents/{id}/ai-status/stream`) — SseEmitterManager (30초 Heartbeat)
 
-- [ ] **검색**
-  - [ ] 제목/내용 LIKE 검색 (`GET /api/v1/search/integrated`)
+- [x] **검색**
+  - [x] 제목/내용 LIKE 검색 (`GET /api/v1/search/integrated`) — Querydsl
   - [ ] 웹 검색 연동 (`GET /api/v1/search/web`)
 
 - [ ] **태그 API**
   - [ ] 태그 타입 목록 조회 (`GET /api/v1/tags/types`)
 
-- [ ] **AI 로그**
-  - [ ] 에이전트 로그 조회 (`GET /api/v1/ai/logs`)
+- [x] **AI 로그**
+  - [x] 에이전트 로그 조회 (`GET /api/v1/ai/logs`)
 
 ### 프론트엔드 구현 목록
 
@@ -139,6 +141,14 @@
   - 회전(rotation) 및 단일 사용(one-time) 정책
 - **운영/보안**
   - 로그 보관 기간, 감사 추적, 비용 모니터링
+
+- **관측성(Observability)**
+  - [x] Spring Boot Actuator 지표/헬스 엔드포인트 표준화
+  - [x] OpenTelemetry SDK/Exporter 연동 (trace, metric, log correlation)
+  - [x] Prometheus 스크랩 구성 및 대시보드 기본 지표 구성
+  - [x] Loki 로그 수집 파이프라인(promtail/otel collector) 구성
+  - [x] Grafana 통합 대시보드 (Trace/Metric/Log 연계 탐색)
+  - [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의
 
 ---
 

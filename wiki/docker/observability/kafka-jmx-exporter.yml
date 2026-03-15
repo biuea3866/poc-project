@@ -1,0 +1,29 @@
+startDelaySeconds: 0
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+ssl: false
+jmxUrl: service:jmx:rmi:///jndi/rmi://kafka:9999/jmxrmi
+
+rules:
+  - pattern: 'kafka.server<type=(.+), name=(.+)PerSec\w*, topic=(.+)><>Count'
+    name: kafka_server_$1_$2_total
+    type: COUNTER
+    labels:
+      topic: "$3"
+  - pattern: 'kafka.server<type=ReplicaManager, name=(.+)><>Value'
+    name: kafka_server_replicamanager_$1
+    type: GAUGE
+  - pattern: 'java.lang<type=Memory><HeapMemoryUsage>(\w+)'
+    name: kafka_jvm_memory_heap_$1_bytes
+    type: GAUGE
+  - pattern: 'java.lang<type=Memory><NonHeapMemoryUsage>(\w+)'
+    name: kafka_jvm_memory_nonheap_$1_bytes
+    type: GAUGE
+  - pattern: 'java.lang<type=Threading><>(ThreadCount|DaemonThreadCount|PeakThreadCount)'
+    name: kafka_jvm_threads_$1
+    type: GAUGE
+  - pattern: 'java.lang<type=GarbageCollector, name=(.+)><>(CollectionCount|CollectionTime)'
+    name: kafka_jvm_gc_$2
+    type: COUNTER
+    labels:
+      gc: "$1"

@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="420" viewBox="0 0 1200 420">
+  <defs>
+    <style>
+      .title { font: 700 28px sans-serif; fill: #12263a; }
+      .head { font: 700 18px sans-serif; fill: #102a43; }
+      .cell { font: 500 14px sans-serif; fill: #243b53; }
+      .entity { fill: #fff; stroke: #486581; stroke-width: 2.5; rx: 14; ry: 14; }
+      .line { stroke: #243b53; stroke-width: 3; fill: none; marker-end: url(#arrow); }
+    </style>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="8" markerHeight="8" orient="auto">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#243b53"/>
+    </marker>
+  </defs>
+  <rect width="1200" height="420" fill="#f4f7fb"/>
+  <text x="60" y="55" class="title">Pinpoint ERD / 저장 구조 관점</text>
+
+  <rect x="80" y="100" width="290" height="180" class="entity"/>
+  <text x="110" y="135" class="head">Application Runtime</text>
+  <text x="110" y="170" class="cell">- applicationName</text>
+  <text x="110" y="195" class="cell">- agentId</text>
+  <text x="110" y="220" class="cell">- request metadata</text>
+  <text x="110" y="245" class="cell">- span / transaction</text>
+
+  <rect x="460" y="100" width="290" height="180" class="entity"/>
+  <text x="490" y="135" class="head">Collector Event</text>
+  <text x="490" y="170" class="cell">- spanId</text>
+  <text x="490" y="195" class="cell">- parentSpanId</text>
+  <text x="490" y="220" class="cell">- endpoint</text>
+  <text x="490" y="245" class="cell">- timestamp</text>
+
+  <rect x="840" y="100" width="290" height="180" class="entity"/>
+  <text x="870" y="135" class="head">HBase Trace Store</text>
+  <text x="870" y="170" class="cell">- AgentInfo</text>
+  <text x="870" y="195" class="cell">- TraceV2</text>
+  <text x="870" y="220" class="cell">- ApplicationTraceIndex</text>
+  <text x="870" y="245" class="cell">- ApiMetaData / SqlMetaData</text>
+
+  <path d="M370 190 H460" class="line"/>
+  <path d="M750 190 H840" class="line"/>
+
+  <text x="392" y="176" class="cell">1:N Trace Event</text>
+  <text x="780" y="176" class="cell">N:1 Persist</text>
+
+  <rect x="80" y="315" width="1050" height="60" fill="#fff7ed" stroke="#dd6b20" stroke-width="2" rx="12" ry="12"/>
+  <text x="110" y="352" class="cell">현재 단계에서는 업무용 애플리케이션 DB ERD 변경은 없음. 이 다이어그램은 Pinpoint 관측 데이터의 저장 구조와 식별자 흐름을 시각화한 것이다.</text>
+</svg>
