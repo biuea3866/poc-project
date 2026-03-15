@@ -3,16 +3,19 @@ package com.biuea.wiki.worker.consumer
 import com.biuea.wiki.domain.event.AiEmbeddingRequestEvent
 import com.biuea.wiki.domain.event.AiProcessingFailedEvent
 import com.biuea.wiki.domain.event.AiTaggingRequestEvent
+import com.biuea.wiki.domain.outbox.OutboxService
 import com.biuea.wiki.domain.tag.SaveTagCommand
 import com.biuea.wiki.domain.tag.TagService
 import com.biuea.wiki.domain.tag.entity.TagConstant
 import com.biuea.wiki.infrastructure.kafka.KafkaTopic
+import com.biuea.wiki.infrastructure.kafka.OutboxScheduler
 import com.biuea.wiki.worker.service.TaggerService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
+import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -27,6 +30,7 @@ class TaggerConsumer(
     private val taggerService: TaggerService,
     private val tagService: TagService,
     private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val outboxService: OutboxService,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -37,7 +41,11 @@ class TaggerConsumer(
         containerFactory = "kafkaListenerContainerFactory",
     )
     @Transactional
-    fun consume(payload: Map<String, Any>, ack: Acknowledgment) {
+    fun consume(
+        payload: Map<String, Any>,
+        ack: Acknowledgment,
+        @Header(name = OutboxScheduler.HEADER_OUTBOX_EVENT_ID, required = false) outboxEventId: String?,
+    ) {
         val event = objectMapper.convertValue(payload, AiTaggingRequestEvent::class.java)
         log.info("[TAGGER] 시작 documentId=${event.documentId}")
 
@@ -67,8 +75,10 @@ class TaggerConsumer(
                 )
             )
             log.info("[TAGGER] 완료 → queue.ai.embedding 발행 documentId=${event.documentId}")
+            outboxEventId?.toLongOrNull()?.let { outboxService.markSuccessById(it) }
         }.onFailure { e ->
             log.error("[TAGGER] 실패 documentId=${event.documentId}", e)
+            outboxEventId?.toLongOrNull()?.let { outboxService.markFailedById(it, e.message ?: "unknown") }
             kafkaTemplate.send(
                 KafkaTopic.EVENT_AI_FAILED,
                 event.documentId.toString(),

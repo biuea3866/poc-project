@@ -3,14 +3,17 @@ package com.biuea.wiki.worker.consumer
 import com.biuea.wiki.domain.document.entity.DocumentStatus
 import com.biuea.wiki.domain.event.AiEmbeddingRequestEvent
 import com.biuea.wiki.domain.event.AiProcessingFailedEvent
+import com.biuea.wiki.domain.outbox.OutboxService
 import com.biuea.wiki.infrastructure.document.DocumentRepository
 import com.biuea.wiki.infrastructure.kafka.KafkaTopic
+import com.biuea.wiki.infrastructure.kafka.OutboxScheduler
 import com.biuea.wiki.worker.service.EmbeddingService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
+import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,6 +29,7 @@ class EmbeddingConsumer(
     private val embeddingService: EmbeddingService,
     private val documentRepository: DocumentRepository,
     private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val outboxService: OutboxService,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -36,7 +40,11 @@ class EmbeddingConsumer(
         containerFactory = "kafkaListenerContainerFactory",
     )
     @Transactional
-    fun consume(payload: Map<String, Any>, ack: Acknowledgment) {
+    fun consume(
+        payload: Map<String, Any>,
+        ack: Acknowledgment,
+        @Header(name = OutboxScheduler.HEADER_OUTBOX_EVENT_ID, required = false) outboxEventId: String?,
+    ) {
         val event = objectMapper.convertValue(payload, AiEmbeddingRequestEvent::class.java)
         log.info("[EMBEDDING] 시작 documentId=${event.documentId}")
 
@@ -56,10 +64,12 @@ class EmbeddingConsumer(
             document.completeAiProcessing()
             documentRepository.save(document)
             log.info("[EMBEDDING] 완료 → ai_status=COMPLETED documentId=${event.documentId}")
+            outboxEventId?.toLongOrNull()?.let { outboxService.markSuccessById(it) }
         }.onFailure { e ->
             log.error("[EMBEDDING] 실패 documentId=${event.documentId}", e)
             document.failAiProcessing()
             documentRepository.save(document)
+            outboxEventId?.toLongOrNull()?.let { outboxService.markFailedById(it, e.message ?: "unknown") }
             kafkaTemplate.send(
                 KafkaTopic.EVENT_AI_FAILED,
                 event.documentId.toString(),
