@@ -41,6 +41,7 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.GET, "/api/v1/tags/types").permitAll()
                 it.requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                 it.requestMatchers("/error").permitAll()
+                it.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 it.anyRequest().authenticated()
             }
             .exceptionHandling {

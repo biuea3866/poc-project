@@ -15,5 +15,6 @@ data class LoginResponse(
 
 data class RefreshResponse(
     val accessToken: String,
+    val refreshToken: String,
     val tokenType: String,
 )

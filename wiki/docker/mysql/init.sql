@@ -80,3 +80,17 @@ CREATE TABLE IF NOT EXISTS `ai_agent_log` (
     INDEX `idx_ai_agent_log_doc_rev` (`document_id`, `document_revision_id`),
     INDEX `idx_ai_agent_log_executor_id` (`executor_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS `refresh_tokens` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `token_hash` VARCHAR(64) NOT NULL COMMENT 'SHA-256 해시된 refresh token',
+    `user_id` BIGINT NOT NULL COMMENT '유저 id (FK)',
+    `family_id` VARCHAR(36) NOT NULL COMMENT '토큰 패밀리 UUID (회전 추적용)',
+    `is_revoked` TINYINT(1) NOT NULL DEFAULT 0 COMMENT '폐기 여부',
+    `expires_at` DATETIME NOT NULL COMMENT '만료 일시',
+    `created_at` DATETIME NOT NULL COMMENT '생성 일시',
+    UNIQUE KEY `uk_refresh_tokens_token_hash` (`token_hash`),
+    INDEX `idx_refresh_tokens_user_id` (`user_id`),
+    INDEX `idx_refresh_tokens_family_id` (`family_id`),
+    CONSTRAINT `fk_refresh_tokens_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Refresh 토큰 회전 정책 저장소';
