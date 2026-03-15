@@ -11,8 +11,6 @@ import org.testcontainers.containers.PostgreSQLContainer
 import org.testcontainers.junit.jupiter.Container
 import org.testcontainers.junit.jupiter.Testcontainers
 import org.testcontainers.utility.DockerImageName
-import java.sql.DriverManager
-
 @Testcontainers
 @EmbeddedKafka(partitions = 1, topics = ["event.document", "event.ai.failed", "queue.ai.tagging", "queue.ai.embedding"])
 @SpringBootTest(
@@ -37,38 +35,16 @@ abstract class BaseIntegrationTest {
         @Container
         @JvmStatic
         private val postgres: PostgreSQLContainer<*> = PostgreSQLContainer(
-            DockerImageName.parse("ankane/pgvector").asCompatibleSubstituteFor("postgres")
+            DockerImageName.parse("pgvector/pgvector:pg16").asCompatibleSubstituteFor("postgres")
         )
             .withDatabaseName("wiki")
             .withUsername("wiki_vector_user")
             .withPassword("wiki_vector_password")
-
-        private fun initPostgresSchema() {
-            Class.forName("org.postgresql.Driver")
-            DriverManager.getConnection(postgres.jdbcUrl, postgres.username, postgres.password).use { conn ->
-                conn.createStatement().use { stmt ->
-                    stmt.execute("CREATE EXTENSION IF NOT EXISTS vector")
-                    stmt.execute("""
-                        CREATE TABLE IF NOT EXISTS document_embeddings (
-                            id BIGSERIAL PRIMARY KEY,
-                            document_id BIGINT NOT NULL,
-                            document_revision_id BIGINT NOT NULL,
-                            embedding vector(1536),
-                            chunk_content TEXT NOT NULL,
-                            token_count INT,
-                            metadata JSONB
-                        )
-                    """)
-                }
-            }
-        }
+            .withInitScript("init-vector.sql")
 
         @DynamicPropertySource
         @JvmStatic
         fun registerProperties(registry: DynamicPropertyRegistry) {
-            // Initialize pgvector schema
-            initPostgresSchema()
-
             // MySQL
             registry.add("spring.datasource.url", mysql::getJdbcUrl)
             registry.add("spring.datasource.username", mysql::getUsername)
