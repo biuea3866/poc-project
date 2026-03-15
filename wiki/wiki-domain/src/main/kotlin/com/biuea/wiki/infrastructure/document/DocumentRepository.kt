@@ -4,6 +4,8 @@ import com.biuea.wiki.domain.document.entity.Document
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
 
 interface DocumentRepository : JpaRepository<Document, Long> {
 
@@ -14,4 +16,7 @@ interface DocumentRepository : JpaRepository<Document, Long> {
     fun findByParentIdAndDeletedAtIsNull(parentId: Long, pageable: Pageable): Page<Document>
 
     fun findByCreatedByAndDeletedAtIsNull(createdBy: Long, pageable: Pageable): Page<Document>
+
+    @Query("SELECT d FROM Document d WHERE d.deletedAt IS NULL AND (d.title LIKE %:keyword% OR d.content LIKE %:keyword%)")
+    fun searchByKeyword(@Param("keyword") keyword: String, pageable: Pageable): Page<Document>
 }
