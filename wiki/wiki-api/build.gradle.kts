@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.kafka:spring-kafka")
     implementation("io.micrometer:micrometer-tracing-bridge-otel")
     implementation("org.jetbrains.kotlin:kotlin-reflect")
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     runtimeOnly("io.micrometer:micrometer-registry-prometheus")
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 

@@ -36,3 +36,9 @@ data class AiProcessingFailedEvent(
     val agentType: String,
     val reason: String,
 )
+
+data class AiProcessingCompletedEvent(
+    val documentId: Long,
+    val documentRevisionId: Long,
+    val targetUserId: Long,
+)

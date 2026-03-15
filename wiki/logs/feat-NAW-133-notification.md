@@ -1,0 +1,36 @@
+---
+### 2026-03-16 10:00
+- **Agent:** Claude Sonnet 4.6
+- **Task:** S3-2 인앱 알림 시스템 구현 (BE + FE) — NAW-133, NAW-134
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/notification/entity/NotificationType.kt` — NotificationType enum (COMMENT, DOCUMENT_UPDATED, AI_COMPLETED, AI_FAILED)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/notification/entity/Notification.kt` — Notification JPA 엔티티
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/notification/NotificationRepository.kt` — JpaRepository + JPQL markAllAsReadByUserId
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/notification/service/NotificationService.kt` — 도메인 서비스 (CRUD + 읽음 처리)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/event/DomainEvents.kt` — AiProcessingCompletedEvent 추가
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/kafka/KafkaTopic.kt` — EVENT_AI_COMPLETED 토픽 추가
+  - `wiki-domain/build.gradle.kts` — mockito-kotlin 테스트 의존성 추가
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/consumer/EmbeddingConsumer.kt` — AI 완료 시 event.ai.completed 이벤트 발행 추가
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/config/KafkaConsumerConfig.kt` — wiki-api 전용 Kafka 컨슈머 설정
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/notification/NotificationSseManager.kt` — SSE 에미터 관리 (ConcurrentHashMap)
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/notification/NotificationAppService.kt` — 앱 서비스 (도메인 서비스 + SSE 연동)
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/notification/AiNotificationConsumer.kt` — Kafka AI 완료/실패 이벤트 소비 + 알림 생성
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/notification/response/NotificationResponse.kt` — 응답 DTO
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/notification/NotificationController.kt` — REST 컨트롤러 (5개 엔드포인트 + SSE 스트림)
+  - `wiki-api/build.gradle.kts` — jackson-module-kotlin 추가
+  - `frontend/src/lib/notifications.ts` — 알림 API 클라이언트
+  - `frontend/src/hooks/useNotifications.ts` — SSE + 30초 polling 복합 훅
+  - `frontend/src/components/NotificationBell.tsx` — 벨 아이콘 + 미읽음 뱃지 + 드롭다운 컴포넌트
+  - `frontend/src/components/AppShell.tsx` — NotificationBell 헤더에 추가
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/domain/notification/NotificationServiceTest.kt` — 단위 테스트 8개 (TC-1~TC-4)
+  - `frontend/src/__tests__/NotificationBell.test.tsx` — 컴포넌트 테스트 10개
+- **Decisions:**
+  - SSE 스트림 인증: EventSource는 커스텀 헤더 불가 → FE에서는 30초 polling fallback 병행. SSE 엔드포인트는 JwtAuthenticationFilter를 통해 Authorization 헤더 인증 적용 유지
+  - AI 완료 알림: EmbeddingConsumer에서 event.ai.completed 발행 → wiki-api의 AiNotificationConsumer가 소비하여 알림 생성 (wiki-worker에 NotificationService 의존성 추가 없이 분리)
+  - AI 실패 알림: event.ai.failed 토픽에 wiki-api 컨슈머 그룹 추가 (wiki-api-notification), 문서의 createdBy를 targetUserId로 사용
+  - NotificationSseManager: CopyOnWriteArrayList로 스레드 안전하게 에미터 관리
+- **Next:**
+  - SSE 스트림 인증 개선: 쿠키 기반 토큰 전달 또는 proxy 헤더 주입 방식 검토
+  - S3-1 댓글 작성 시 COMMENT 타입 알림 연동
+  - 문서 수정 시 DOCUMENT_UPDATED 알림 연동
+---
