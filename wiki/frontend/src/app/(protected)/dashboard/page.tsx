@@ -35,6 +35,12 @@ export default function DashboardPage() {
         <h1 className="text-3xl font-extrabold text-primary">문서</h1>
         <div className="flex items-center gap-3">
           <Link
+            href="/search"
+            className="rounded-lg border border-line px-4 py-2 text-sm font-medium text-secondary transition hover:border-accent hover:text-accent"
+          >
+            검색
+          </Link>
+          <Link
             href="/documents/new"
             className="rounded-lg bg-gradient-to-r from-accent to-accent-purple px-4 py-2 text-sm font-semibold text-white transition hover:opacity-90"
           >
