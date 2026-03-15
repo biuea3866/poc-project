@@ -1,15 +1,10 @@
 package com.biuea.wiki.config
 
-import com.fasterxml.jackson.databind.ObjectMapper
-import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
-import com.fasterxml.jackson.module.kotlin.kotlinModule
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
 import org.springframework.beans.factory.annotation.Value
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.context.annotation.Primary
 import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
@@ -19,13 +14,6 @@ import org.springframework.kafka.support.serializer.JsonSerializer
 class KafkaConfig(
     @Value("\${spring.kafka.bootstrap-servers:localhost:9092}") private val bootstrapServers: String,
 ) {
-    @Bean
-    @Primary
-    @ConditionalOnMissingBean(ObjectMapper::class)
-    fun objectMapper(): ObjectMapper = ObjectMapper()
-        .registerModule(kotlinModule())
-        .registerModule(JavaTimeModule())
-
     @Bean
     fun producerFactory(): ProducerFactory<Any, Any> {
         val config = mapOf(
