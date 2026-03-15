@@ -16,6 +16,11 @@ scrape_configs:
     static_configs:
       - targets: ["wiki-api:8081"]
 
+  - job_name: wiki-worker
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: ["wiki-worker:8082"]
+
   - job_name: tempo
     static_configs:
       - targets: ["tempo:3200"]

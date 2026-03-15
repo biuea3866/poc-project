@@ -54,6 +54,18 @@ security:
     access-token-expiration-ms: 3600000
     refresh-token-expiration-ms: 604800000
 
+# Actuator: Prometheus 메트릭 엔드포인트 노출
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  server:
+    port: 8082
+
 # PostgreSQL (벡터 저장)
 datasource-vector:
   url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/wiki}

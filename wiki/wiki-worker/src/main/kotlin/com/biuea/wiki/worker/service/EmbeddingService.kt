@@ -3,6 +3,7 @@ package com.biuea.wiki.worker.service
 import com.biuea.wiki.infrastructure.document.DocumentRepository
 import com.biuea.wiki.infrastructure.document.DocumentRevisionRepository
 import com.biuea.wiki.worker.client.OpenAiEmbeddingClient
+import com.biuea.wiki.worker.metrics.AiMetricsService
 import org.springframework.jdbc.core.simple.JdbcClient
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -13,6 +14,7 @@ class EmbeddingService(
     private val documentRepository: DocumentRepository,
     private val documentRevisionRepository: DocumentRevisionRepository,
     private val jdbcClient: JdbcClient,
+    private val aiMetricsService: AiMetricsService,
 ) {
     @Transactional
     fun embed(documentId: Long, documentRevisionId: Long) {
@@ -28,6 +30,7 @@ class EmbeddingService(
             document.content?.let { append("\n\n").append(it) }
         }
 
+        aiMetricsService.recordOpenAiCall()
         val vector = openAiEmbeddingClient.embed(textToEmbed)
         val tokenCount = textToEmbed.split(" ").size  // 간단 추정
 

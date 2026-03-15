@@ -3,6 +3,7 @@ package com.biuea.wiki.worker.service
 import com.biuea.wiki.domain.event.AiTaggingRequestEvent
 import com.biuea.wiki.domain.tag.entity.TagConstant
 import com.biuea.wiki.worker.client.AnthropicChatClient
+import com.biuea.wiki.worker.metrics.AiMetricsService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.springframework.stereotype.Service
 
@@ -10,6 +11,7 @@ import org.springframework.stereotype.Service
 class TaggerService(
     private val anthropicChatClient: AnthropicChatClient,
     private val objectMapper: ObjectMapper,
+    private val aiMetricsService: AiMetricsService,
 ) {
     private val allowedTagConstants = TagConstant.entries.joinToString(", ")
 
@@ -31,6 +33,7 @@ class TaggerService(
             - name은 구체적인 키워드 (예: "Spring Boot", "Kafka", "Redis")
         """.trimIndent()
 
+        aiMetricsService.recordAnthropicCall()
         val response = anthropicChatClient.chat(prompt) ?: return emptyList()
 
         return runCatching {
