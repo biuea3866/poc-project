@@ -26,3 +26,16 @@ worktree-remove:
 ## 워크트리 목록: make worktree-list
 worktree-list:
 	@cd $(PROJECT_ROOT) && git worktree list
+
+# ── Development Environment ───────────────────────────────────────
+dev-up: ## Start development environment (port 8081, 3307, 6380)
+	docker compose -f docker-compose.yml -f docker-compose.development.yml up --build -d
+
+dev-down: ## Stop development environment
+	docker compose -f docker-compose.yml -f docker-compose.development.yml down
+
+dev-logs: ## Follow development wiki-api logs
+	docker compose -f docker-compose.yml -f docker-compose.development.yml logs -f wiki-api
+
+dev-restart: ## Rebuild and restart wiki-api only
+	docker compose -f docker-compose.yml -f docker-compose.development.yml up --build -d wiki-api

@@ -1,0 +1,48 @@
+name: Deploy Development
+
+on:
+  workflow_dispatch:
+    inputs:
+      message:
+        description: 'Deploy reason'
+        required: false
+        default: 'Manual deploy to development'
+  push:
+    branches: [development]
+    paths:
+      - 'wiki/wiki-domain/**'
+      - 'wiki/wiki-api/**'
+      - 'wiki/frontend/**'
+      - 'wiki/docker-compose*.yml'
+
+jobs:
+  deploy-development:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Notify deploy started
+        run: |
+          echo "🚀 Development 배포 시작"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
+
+      - name: Development 배포 안내
+        run: |
+          cat <<'EOF'
+          ## 로컬 Development 배포 방법
+
+          self-hosted runner가 없으므로 아래 명령을 로컬에서 실행하세요:
+
+          ```bash
+          cd wiki
+          git pull origin development
+          make dev-up
+          # 또는
+          docker compose -f docker-compose.yml -f docker-compose.development.yml up --build -d
+          ```
+
+          ## 접속 주소
+          - wiki-api: http://localhost:8081
+          - MySQL:    localhost:3307
+          - Redis:    localhost:6380
+          EOF
