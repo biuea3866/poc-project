@@ -46,7 +46,7 @@ class DocumentApiController(
                 status = DocumentStatus.PENDING,
                 parentId = request.parentId,
                 createdBy = user.id,
-                tags = request.tags.orEmpty().map {
+                tags = request.tags.map {
                     SaveDocumentInput.TagInput(name = it.name, tagConstant = it.tagConstant)
                 }
             )
