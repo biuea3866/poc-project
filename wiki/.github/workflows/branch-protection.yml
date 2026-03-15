@@ -1,0 +1,85 @@
+name: Branch Protection
+
+# development, main에 직접 push 금지 — PR merge(merge commit)만 허용
+on:
+  push:
+    branches:
+      - development
+      - main
+
+jobs:
+  block-direct-push:
+    name: Block Direct Push to Protected Branch
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Detect direct push vs PR merge
+        run: |
+          BRANCH="${{ github.ref_name }}"
+          ACTOR="${{ github.actor }}"
+          COMMIT_MSG=$(git log -1 --pretty=%s)
+          PARENT_COUNT=$(git log -1 --pretty=%P | wc -w | tr -d ' ')
+
+          echo "Branch: $BRANCH"
+          echo "Actor: $ACTOR"
+          echo "Commit: ${{ github.sha }}"
+          echo "Commit message: $COMMIT_MSG"
+          echo "Parent count: $PARENT_COUNT"
+
+          # Merge commit은 부모가 2개 (PR merge)
+          if [ "$PARENT_COUNT" -ge 2 ]; then
+            echo "✅ PR merge commit detected (parents: $PARENT_COUNT) — allowed"
+            exit 0
+          fi
+
+          # GitHub Actions 자동화 커밋 허용 (릴리즈 봇 등)
+          if [ "$ACTOR" = "github-actions[bot]" ] || [ "$ACTOR" = "dependabot[bot]" ]; then
+            echo "✅ Automated bot push — allowed"
+            exit 0
+          fi
+
+          # 그 외 단일 부모 커밋 = 직접 push → 차단
+          echo ""
+          echo "=========================================="
+          echo "🚫 ERROR: $BRANCH 브랜치에 직접 push가 감지되었습니다."
+          echo ""
+          echo "  Actor : $ACTOR"
+          echo "  Branch: $BRANCH"
+          echo "  Commit: ${{ github.sha }}"
+          echo ""
+          echo "규칙: development/main에 직접 push는 금지입니다."
+          echo "반드시 feature 브랜치를 생성하고 Pull Request를 통해 머지하세요."
+          echo "=========================================="
+          exit 1
+
+      - name: Notify PR on direct push violation
+        if: failure()
+        uses: actions/github-script@v7
+        continue-on-error: true
+        with:
+          script: |
+            // Push 이벤트에는 PR이 없으므로 commit에 코멘트 달기
+            await github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: [
+                '## 🚫 Branch Protection Violation',
+                '',
+                `\`${{ github.ref_name }}\` 브랜치에 직접 push가 감지되었습니다.`,
+                '',
+                '**이 커밋은 정책 위반입니다.** feature 브랜치에서 PR을 생성하여 머지하세요.',
+                '',
+                '```',
+                'git checkout -b feat/my-feature',
+                'git cherry-pick ' + context.sha,
+                'git push origin feat/my-feature',
+                '# 그 다음 GitHub에서 PR 생성',
+                '```',
+              ].join('\n'),
+            });

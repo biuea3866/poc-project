@@ -2,6 +2,10 @@ spring:
   application:
     name: wiki-worker
 
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.web.client.RestClientAutoConfiguration
+
   datasource:
     url: ${MYSQL_URL:jdbc:mysql://localhost:3306/wiki?serverTimezone=UTC&characterEncoding=UTF-8}
     username: ${MYSQL_USERNAME:wiki}
@@ -10,7 +14,9 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: validate
+      # wiki-worker는 Kafka consumer로 스키마 관리 불필요 (wiki-api가 담당)
+      # Hibernate 7.x nullable 타입 추론 변경으로 validate 사용 불가
+      ddl-auto: none
     properties:
       hibernate:
         dialect: org.hibernate.dialect.MySQLDialect
@@ -40,6 +46,13 @@ spring:
       embedding:
         options:
           model: text-embedding-3-small
+
+# JWT (wiki-domain의 JwtTokenProvider가 요구, wiki-worker에서는 실제로 사용하지 않음)
+security:
+  jwt:
+    secret: ${JWT_SECRET:wiki-worker-dummy-secret-not-used-in-worker-context}
+    access-token-expiration-ms: 3600000
+    refresh-token-expiration-ms: 604800000
 
 # PostgreSQL (벡터 저장)
 datasource-vector:

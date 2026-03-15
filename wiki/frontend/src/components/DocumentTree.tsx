@@ -5,7 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { Document } from "@/types/document";
+import { Document, DocumentListResponse } from "@/types/document";
 
 function TreeNode({ doc, depth = 0 }: { doc: Document; depth?: number }) {
   const pathname = usePathname();
@@ -78,7 +78,7 @@ function TreeNode({ doc, depth = 0 }: { doc: Document; depth?: number }) {
 export default function DocumentTree() {
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["documents"],
-    queryFn: () => apiFetch<Document[]>("/api/v1/documents")
+    queryFn: () => apiFetch<DocumentListResponse>("/api/v1/documents").then(r => r.documents ?? [])
   });
 
   if (isLoading) {

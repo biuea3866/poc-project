@@ -25,3 +25,9 @@ services:
   grafana:
     ports:
       - "3002:3000"
+
+  wiki-worker:
+    ports:
+      - "8082:8082"
+    environment:
+      SPRING_PROFILES_ACTIVE: development

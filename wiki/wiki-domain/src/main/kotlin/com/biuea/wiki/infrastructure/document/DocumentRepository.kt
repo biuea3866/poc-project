@@ -12,6 +12,8 @@ interface DocumentRepository : JpaRepository<Document, Long> {
 
     fun findByIdAndDeletedAtIsNull(id: Long): Document?
 
+    fun findByIdAndStatus(id: Long, status: DocumentStatus): Document?
+
     fun findByParentIsNullAndDeletedAtIsNull(pageable: Pageable): Page<Document>
 
     fun findByParentIdAndDeletedAtIsNull(parentId: Long, pageable: Pageable): Page<Document>

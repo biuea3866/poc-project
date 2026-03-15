@@ -2,13 +2,13 @@ package com.biuea.wiki.worker.service
 
 import com.biuea.wiki.domain.event.AiTaggingRequestEvent
 import com.biuea.wiki.domain.tag.entity.TagConstant
+import com.biuea.wiki.worker.client.AnthropicChatClient
 import com.fasterxml.jackson.databind.ObjectMapper
-import org.springframework.ai.chat.client.ChatClient
 import org.springframework.stereotype.Service
 
 @Service
 class TaggerService(
-    private val chatClient: ChatClient,
+    private val anthropicChatClient: AnthropicChatClient,
     private val objectMapper: ObjectMapper,
 ) {
     private val allowedTagConstants = TagConstant.entries.joinToString(", ")
@@ -31,19 +31,16 @@ class TaggerService(
             - name은 구체적인 키워드 (예: "Spring Boot", "Kafka", "Redis")
         """.trimIndent()
 
-        val response = chatClient.prompt()
-            .user(prompt)
-            .call()
-            .content()
-            ?: return emptyList()
+        val response = anthropicChatClient.chat(prompt) ?: return emptyList()
 
         return runCatching {
             val jsonContent = response.trim()
                 .removePrefix("```json").removePrefix("```")
                 .removeSuffix("```").trim()
+            @Suppress("UNCHECKED_CAST")
             objectMapper.readValue(jsonContent, objectMapper.typeFactory.constructCollectionType(
                 List::class.java, AiTaggingRequestEvent.TagItem::class.java
-            ))
+            )) as List<AiTaggingRequestEvent.TagItem>
         }.getOrDefault(emptyList())
     }
 }

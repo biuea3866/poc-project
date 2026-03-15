@@ -66,3 +66,11 @@ export interface PaginatedResponse<T> {
   size: number;
   total: number;
 }
+
+export interface DocumentListResponse {
+  documents: Document[];
+  page: number;
+  size: number;
+  totalElements: number;
+  totalPages: number;
+}

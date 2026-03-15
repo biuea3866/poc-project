@@ -34,7 +34,7 @@ class AiFailedConsumer(
         val event = objectMapper.convertValue(payload, AiProcessingFailedEvent::class.java)
         log.error("[AI_FAILED] agentType=${event.agentType} documentId=${event.documentId} reason=${event.reason}")
 
-        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.ACTIVE)
+        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.PENDING)
         document?.let {
             it.failAiProcessing()
             documentRepository.save(it)

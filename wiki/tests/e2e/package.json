@@ -1,0 +1,20 @@
+{
+  "name": "wiki-e2e-tests",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Playwright E2E tests for AI Wiki",
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug",
+    "test:css": "playwright test specs/01-css-check.spec.ts",
+    "test:auth": "playwright test specs/02-auth.spec.ts",
+    "test:documents": "playwright test specs/03-documents.spec.ts",
+    "test:search": "playwright test specs/04-search.spec.ts",
+    "report": "playwright show-report playwright-report"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.0",
+    "@types/node": "^22.0.0"
+  }
+}

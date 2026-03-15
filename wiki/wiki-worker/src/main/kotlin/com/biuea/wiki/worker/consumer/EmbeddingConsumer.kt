@@ -48,7 +48,7 @@ class EmbeddingConsumer(
         val event = objectMapper.convertValue(payload, AiEmbeddingRequestEvent::class.java)
         log.info("[EMBEDDING] 시작 documentId=${event.documentId}")
 
-        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.ACTIVE)
+        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.PENDING)
             ?: run {
                 log.warn("[EMBEDDING] 문서 없음 documentId=${event.documentId}")
                 ack.acknowledge()
