@@ -15,7 +15,7 @@ class KafkaConfig(
     @Value("\${spring.kafka.bootstrap-servers:localhost:9092}") private val bootstrapServers: String,
 ) {
     @Bean
-    fun producerFactory(): ProducerFactory<String, Any> {
+    fun producerFactory(): ProducerFactory<Any, Any> {
         val config = mapOf(
             ProducerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
             ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG to StringSerializer::class.java,
@@ -25,6 +25,6 @@ class KafkaConfig(
     }
 
     @Bean
-    fun kafkaTemplate(producerFactory: ProducerFactory<String, Any>): KafkaTemplate<String, Any> =
+    fun kafkaTemplate(producerFactory: ProducerFactory<Any, Any>): KafkaTemplate<Any, Any> =
         KafkaTemplate(producerFactory)
 }
