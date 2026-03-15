@@ -68,7 +68,12 @@ jobs:
           done <<< "$CHANGED_FILES"
 
           echo "violations=$VIOLATIONS" >> $GITHUB_OUTPUT
-          echo "missing_tests=$MISSING_TESTS" >> $GITHUB_OUTPUT
+          # multiline 값은 heredoc 형식 사용 (GITHUB_OUTPUT 파싱 오류 방지)
+          {
+            echo "missing_tests<<DELIM"
+            echo -e "$MISSING_TESTS"
+            echo "DELIM"
+          } >> $GITHUB_OUTPUT
 
       - name: Check PR description has test cases
         id: pr-desc-check
