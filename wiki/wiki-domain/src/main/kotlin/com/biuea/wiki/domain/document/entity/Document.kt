@@ -79,9 +79,29 @@ class Document(
 
     val latestRevisionId get() = this.revisions.last().id
 
-    fun delete() {
+    fun softDelete() {
         this.status = DocumentStatus.DELETED
         this.deletedAt = ZonedDateTime.now()
+        this.children.forEach { it.softDelete() }
+    }
+
+    fun restore() {
+        check(isDeleted()) { "Document is not deleted: $id" }
+        this.status = DocumentStatus.PENDING
+        this.deletedAt = null
+        if (this.parent != null && this.parent!!.isDeleted()) {
+            this.parent = null
+        }
+    }
+
+    fun publish() {
+        this.status = DocumentStatus.COMPLETED
+    }
+
+    fun update(title: String, content: String?, updatedBy: Long) {
+        this.title = title
+        this.content = content
+        this.updatedBy = updatedBy
     }
 
     fun isDeleted(): Boolean = status == DocumentStatus.DELETED
