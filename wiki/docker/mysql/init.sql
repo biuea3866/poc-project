@@ -111,3 +111,19 @@ CREATE TABLE IF NOT EXISTS `outbox_event` (
     INDEX `idx_outbox_event_status` (`status`),
     INDEX `idx_outbox_event_status_created_at` (`status`, `created_at`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transactional Outbox 패턴 이벤트 저장소';
+
+CREATE TABLE IF NOT EXISTS `comment` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `document_id` BIGINT NOT NULL COMMENT '글 id',
+    `content` TEXT NOT NULL COMMENT '댓글 내용',
+    `parent_id` BIGINT NULL COMMENT '대댓글 시 상위 댓글 id (null이면 최상위 댓글)',
+    `created_by` BIGINT NOT NULL COMMENT '작성 유저 id',
+    `updated_by` BIGINT NOT NULL COMMENT '수정 유저 id',
+    `created_at` DATETIME NOT NULL COMMENT '생성 일시',
+    `updated_at` DATETIME NOT NULL COMMENT '수정 일시',
+    `deleted_at` DATETIME NULL COMMENT '소프트 삭제 일시',
+    INDEX `idx_comment_document_id` (`document_id`),
+    INDEX `idx_comment_parent_id` (`parent_id`),
+    CONSTRAINT `fk_comment_document_id` FOREIGN KEY (`document_id`) REFERENCES `document` (`id`),
+    CONSTRAINT `fk_comment_parent_id` FOREIGN KEY (`parent_id`) REFERENCES `comment` (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='댓글/대댓글';
