@@ -38,6 +38,8 @@ dependencies {
 
 	// Database
 	runtimeOnly("com.mysql:mysql-connector-j")
+	implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
+	runtimeOnly("org.postgresql:postgresql")
 
 	// Kafka
 	implementation("org.springframework.kafka:spring-kafka")

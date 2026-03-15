@@ -43,6 +43,12 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=300s
 
+datasource-vector:
+  url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/wiki}
+  username: ${POSTGRES_USERNAME:wiki_vector_user}
+  password: ${POSTGRES_PASSWORD:wiki_vector_password}
+  driver-class-name: org.postgresql.Driver
+
 server:
   port: 8080
 
