@@ -135,22 +135,24 @@
 4. 실패 시 스케줄러(자동 재처리) 또는 어드민 API를 통한 수동 재처리 지원
 
 **인수 기준 (Acceptance Criteria):**
-- [ ] Kafka 발행 실패 시 outbox 테이블에 이벤트가 정확히 기록된다
-- [ ] 스케줄러가 PENDING 상태의 outbox 이벤트를 1분 주기로 재발행한다
-- [ ] 재발행 성공 시 outbox 상태가 SUCCESS로 전이된다
-- [ ] 재시도 5회 초과 시 DEAD_LETTER 상태로 전이되고 알림이 발생한다
-- [ ] 어드민 API로 실패 이벤트 조회 및 수동 재처리가 가능하다
-- [ ] 기존 AI 파이프라인 동작에 영향을 주지 않는다 (하위 호환)
+- [x] Kafka 발행 실패 시 outbox 테이블에 이벤트가 정확히 기록된다
+- [x] 스케줄러가 PENDING 상태의 outbox 이벤트를 1분 주기로 재발행한다
+- [x] 재발행 성공 시 outbox 상태가 SUCCESS로 전이된다
+- [x] 재시도 5회 초과 시 DEAD_LETTER 상태로 전이되고 알림이 발생한다
+- [x] 어드민 API로 실패 이벤트 조회 및 수동 재처리가 가능하다
+- [x] 기존 AI 파이프라인 동작에 영향을 주지 않는다 (하위 호환)
 
 **구현 체크리스트:**
-- [ ] `outbox` 테이블 스키마 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, created_at, processed_at, error_message)
-- [ ] OutboxEvent 엔티티 & Repository
-- [ ] Kafka 발행 실패 시 outbox 적재 로직 (KafkaProducer 래퍼)
-- [ ] 컨슈머 성공/실패 시 outbox 상태 업데이트
-- [ ] 스케줄러: 미처리 outbox 주기적 재발행 (`@Scheduled`, 1분 간격)
-- [ ] DEAD_LETTER 전이 로직 (retry_count > max_retries)
-- [ ] 어드민 API: `GET /api/admin/outbox` (목록, 필터: status), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
-- [ ] 통합 테스트: Kafka 장애 시뮬레이션 → outbox 적재 → 스케줄러 재발행 검증
+- [x] `outbox_event` 테이블 스키마 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, created_at, processed_at, error_message) — `docker/mysql/init.sql` 추가
+- [x] OutboxEvent 엔티티 & Repository
+- [x] Kafka 발행 실패 시 outbox 적재 로직 (OutboxKafkaPublisher 래퍼)
+- [x] PublishDocumentFacade — DocumentApiController publish/analyze에서 OutboxKafkaPublisher 경유
+- [x] 컨슈머 성공/실패 시 outbox 상태 업데이트 (NAW-119)
+- [x] 스케줄러: 미처리 outbox 주기적 재발행 (`@Scheduled`, 1분 간격)
+- [x] DEAD_LETTER 전이 로직 (retry_count >= max_retries)
+- [x] 어드민 API: `GET /api/admin/outbox` (목록, 필터: status), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
+- [x] 단위 테스트: OutboxEventTest, OutboxServiceTest, OutboxKafkaPublisherTest, OutboxSchedulerTest, PublishDocumentFacadeTest
+- [ ] 통합 테스트: Kafka 장애 시뮬레이션 → outbox 적재 → 스케줄러 재발행 검증 (Testcontainers)
 
 ### N-2. RAG 벡터 검색 도입
 

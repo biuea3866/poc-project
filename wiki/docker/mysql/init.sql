@@ -94,3 +94,20 @@ CREATE TABLE IF NOT EXISTS `refresh_tokens` (
     INDEX `idx_refresh_tokens_family_id` (`family_id`),
     CONSTRAINT `fk_refresh_tokens_user_id` FOREIGN KEY (`user_id`) REFERENCES `user` (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Refresh 토큰 회전 정책 저장소';
+
+CREATE TABLE IF NOT EXISTS `outbox_event` (
+    `id` BIGINT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    `aggregate_type` VARCHAR(100) NOT NULL COMMENT 'Aggregate 타입 (예: Document)',
+    `aggregate_id` VARCHAR(100) NOT NULL COMMENT 'Aggregate ID',
+    `topic` VARCHAR(200) NOT NULL COMMENT 'Kafka 토픽',
+    `payload` TEXT NOT NULL COMMENT '직렬화된 이벤트 페이로드 (JSON)',
+    `status` VARCHAR(20) NOT NULL DEFAULT 'PENDING' COMMENT '처리 상태 (PENDING, SUCCESS, FAILED, DEAD_LETTER)',
+    `retry_count` INT NOT NULL DEFAULT 0 COMMENT '재시도 횟수',
+    `max_retries` INT NOT NULL DEFAULT 5 COMMENT '최대 재시도 횟수',
+    `processed_at` DATETIME(6) NULL COMMENT '처리 완료 일시',
+    `error_message` TEXT NULL COMMENT '마지막 오류 메시지',
+    `created_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) COMMENT '생성 일시',
+    `updated_at` DATETIME(6) NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6) COMMENT '수정 일시',
+    INDEX `idx_outbox_event_status` (`status`),
+    INDEX `idx_outbox_event_status_created_at` (`status`, `created_at`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Transactional Outbox 패턴 이벤트 저장소';
