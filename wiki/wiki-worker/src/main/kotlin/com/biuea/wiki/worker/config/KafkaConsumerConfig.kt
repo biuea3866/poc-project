@@ -38,7 +38,7 @@ class KafkaConsumerConfig(
     @Bean
     fun kafkaListenerContainerFactory(): ConcurrentKafkaListenerContainerFactory<String, Any> {
         val factory = ConcurrentKafkaListenerContainerFactory<String, Any>()
-        factory.consumerFactory = consumerFactory()
+        factory.setConsumerFactory(consumerFactory())
         factory.containerProperties.ackMode = ContainerProperties.AckMode.MANUAL
         // 실패 시 3회 재시도 (1초 간격), 이후 Dead Letter Queue로 보낼 수 있도록 errorHandler 연결
         factory.setCommonErrorHandler(

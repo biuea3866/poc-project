@@ -41,9 +41,10 @@ class TaggerService(
             val jsonContent = response.trim()
                 .removePrefix("```json").removePrefix("```")
                 .removeSuffix("```").trim()
+            @Suppress("UNCHECKED_CAST")
             objectMapper.readValue(jsonContent, objectMapper.typeFactory.constructCollectionType(
                 List::class.java, AiTaggingRequestEvent.TagItem::class.java
-            ))
+            )) as List<AiTaggingRequestEvent.TagItem>
         }.getOrDefault(emptyList())
     }
 }

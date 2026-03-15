@@ -160,6 +160,30 @@ services:
       - wiki-network
       - pinpoint-net
 
+  wiki-worker:
+    build:
+      context: .
+      dockerfile: ./docker/wiki-worker/Dockerfile
+    container_name: wiki-worker
+    environment:
+      MYSQL_URL: jdbc:mysql://mysql:3306/wiki?serverTimezone=UTC&characterEncoding=UTF-8
+      MYSQL_USERNAME: wiki_user
+      MYSQL_PASSWORD: wiki_password
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/wiki_vector
+      POSTGRES_USERNAME: wiki_vector_user
+      POSTGRES_PASSWORD: wiki_vector_password
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: validate
+    depends_on:
+      - mysql
+      - kafka
+      - postgres
+    networks:
+      - wiki-network
+      - pinpoint-net
+
   mysqld-exporter:
     image: prom/mysqld-exporter:v0.16.0
     container_name: wiki-mysqld-exporter
