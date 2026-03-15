@@ -7,4 +7,5 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface TagTypeRepository: JpaRepository<TagType, Long> {
     fun existsByTagConstant(tagConstant: TagConstant): Boolean
     fun findByTagConstant(tagConstant: TagConstant): TagType?
+    fun findByTagConstantIn(tagConstants: List<TagConstant>): List<TagType>
 }

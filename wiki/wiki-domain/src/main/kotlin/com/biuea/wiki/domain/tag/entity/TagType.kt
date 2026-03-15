@@ -9,12 +9,18 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.OneToMany
 import jakarta.persistence.Table
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "tag_type")
+@Table(
+    name = "tag_type",
+    indexes = [
+        Index(name = "idx_tag_type_tag_constant", columnList = "tag_type"),
+    ]
+)
 class TagType(
     @Column(name = "tag_type")
     @Enumerated(EnumType.STRING)

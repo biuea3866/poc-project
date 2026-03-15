@@ -21,10 +21,23 @@ class TagService(
     fun saveTags(command: SaveTagCommand): List<Tag> {
         val document = documentRepository.getReferenceById(command.documentId)
         val documentRevision = documentRevisionRepository.getReferenceById(command.documentRevisionId)
+
+        val allConstants = command.tags.map { it.tagConstant }.distinct()
+        val existingTagTypes = tagTypeRepository.findByTagConstantIn(allConstants)
+        val tagTypeByConstant = existingTagTypes.associateBy { it.tagConstant }.toMutableMap()
+
+        val missingConstants = allConstants - tagTypeByConstant.keys
+        val newTagTypes = tagTypeRepository.saveAll(missingConstants.map { TagType.create(it) })
+        newTagTypes.forEach { tagTypeByConstant[it.tagConstant] = it }
+
+        val tagNames = command.tags.map { it.name }
+        val tagTypes = tagTypeByConstant.values.toList()
+        val existingTags = tagRepository.findByNameInAndTagTypeIn(tagNames, tagTypes)
+        val existingTagMap = existingTags.associateBy { it.name to it.tagType.id }
+
         return command.tags.map { tag ->
-            val tagType = tagTypeRepository.findByTagConstant(tag.tagConstant)
-                ?: tagTypeRepository.save(TagType.create(tag.tagConstant))
-            val existing = tagRepository.findByNameAndTagType(tag.name, tagType)
+            val tagType = tagTypeByConstant[tag.tagConstant]!!
+            val existing = existingTagMap[tag.name to tagType.id]
             val aggregate = (existing ?: Tag.create(tag.name, tagType)).apply {
                 this.validate()
                 val tagDocumentMapping = TagDocumentMapping.create(this, document, documentRevision)

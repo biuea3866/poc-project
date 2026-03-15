@@ -13,6 +13,7 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
+import jakarta.persistence.Index
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.OneToMany
@@ -20,7 +21,14 @@ import jakarta.persistence.Table
 import java.time.ZonedDateTime
 
 @Entity
-@Table(name = "document")
+@Table(
+    name = "document",
+    indexes = [
+        Index(name = "idx_document_parent_id_deleted_at", columnList = "parent_id, deleted_at"),
+        Index(name = "idx_document_created_by_deleted_at", columnList = "created_by, deleted_at"),
+        Index(name = "idx_document_deleted_at", columnList = "deleted_at"),
+    ]
+)
 class Document(
     @Column(name = "title")
     var title: String,
@@ -62,7 +70,7 @@ class Document(
     var summaries: MutableList<DocumentSummary> = mutableListOf()
         protected set
 
-    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.ALL], orphanRemoval = true)
+    @OneToMany(mappedBy = "document", fetch = FetchType.LAZY, cascade = [CascadeType.PERSIST, CascadeType.MERGE])
     var agentLogs: MutableList<AiAgentLog> = mutableListOf()
         protected set
 
