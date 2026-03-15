@@ -4,6 +4,7 @@ import { useState, useCallback } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 import { apiFetch } from "@/lib/api";
+import MarkdownRenderer from "@/components/MarkdownRenderer";
 import { Document, DocumentStatus } from "@/types/document";
 
 interface MarkdownEditorProps {
@@ -129,13 +130,11 @@ export default function MarkdownEditor({ mode, document }: MarkdownEditorProps) 
         {showPreview ? (
           /* Preview mode */
           <div className="min-h-[500px] px-8 py-6">
-            <div className="prose prose-slate max-w-none prose-headings:text-primary prose-p:text-secondary prose-a:text-accent prose-code:text-accent prose-code:bg-surface prose-code:px-1 prose-code:rounded prose-pre:bg-primary prose-pre:text-surface">
-              {content ? (
-                <div dangerouslySetInnerHTML={{ __html: content.replace(/\n/g, "<br/>") }} />
-              ) : (
-                <p className="text-muted">미리보기할 내용이 없습니다.</p>
-              )}
-            </div>
+            {content ? (
+              <MarkdownRenderer content={content} />
+            ) : (
+              <p className="text-muted">미리보기할 내용이 없습니다.</p>
+            )}
           </div>
         ) : (
           /* Edit mode */
