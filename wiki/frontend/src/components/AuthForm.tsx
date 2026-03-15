@@ -7,16 +7,14 @@ import { login, signup } from "@/lib/auth";
 
 type Mode = "login" | "signup";
 
-const modeCopy: Record<Mode, { title: string; subtitle: string; action: string }> = {
+const modeCopy: Record<Mode, { title: string; action: string }> = {
   login: {
-    title: "Log in to your workspace",
-    subtitle: "Pick up where you left off. Your AI is already organizing.",
-    action: "Log in"
+    title: "로그인",
+    action: "로그인"
   },
   signup: {
-    title: "Create your AI Wiki account",
-    subtitle: "Start with a note. We will keep it structured.",
-    action: "Create account"
+    title: "회원가입",
+    action: "회원가입"
   }
 };
 
@@ -47,79 +45,87 @@ export default function AuthForm({ mode }: { mode: Mode }) {
       router.replace("/dashboard");
     } catch (err) {
       setStatus("error");
-      setError(err instanceof Error ? err.message : "Login failed. Try again.");
+      setError(err instanceof Error ? err.message : "문제가 발생했습니다. 다시 시도해주세요.");
     }
   };
 
+  const inputClass =
+    "w-full rounded-lg border border-line bg-white px-4 py-3 text-sm text-primary placeholder:text-muted focus:border-accent focus:outline-none focus:ring-1 focus:ring-accent";
+
   return (
-    <div className="flex h-full flex-col gap-6">
-      <div>
-        <h2 className="text-2xl font-semibold text-linen">{copy.title}</h2>
-        <p className="mt-2 text-sm text-sand/70">{copy.subtitle}</p>
+    <div className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-card">
+      {/* Logo */}
+      <div className="mb-6 text-center">
+        <h1 className="text-2xl font-extrabold">
+          <span className="bg-gradient-to-r from-accent to-accent-purple bg-clip-text text-transparent">
+            AI Wiki
+          </span>
+        </h1>
+        <p className="mt-2 text-sm text-muted">{copy.title}</p>
       </div>
 
-      <form className="flex flex-col gap-5" onSubmit={onSubmit}>
+      <form className="flex flex-col gap-4" onSubmit={onSubmit}>
         {mode === "signup" ? (
-          <label className="flex flex-col gap-2 text-sm text-sand/70">
-            Name
+          <label className="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+            이름
             <input
               required
               value={name}
               onChange={(event) => setName(event.target.value)}
-              className="rounded-xl border border-white/10 bg-ink/60 px-4 py-3 text-base text-linen placeholder:text-sand/40 focus:border-ember/70 focus:outline-none"
+              className={inputClass}
               placeholder="홍길동"
             />
           </label>
         ) : null}
-        <label className="flex flex-col gap-2 text-sm text-sand/70">
-          Email
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+          이메일
           <input
             required
             type="email"
             value={email}
             onChange={(event) => setEmail(event.target.value)}
-            className="rounded-xl border border-white/10 bg-ink/60 px-4 py-3 text-base text-linen placeholder:text-sand/40 focus:border-ember/70 focus:outline-none"
-            placeholder="you@company.com"
+            className={inputClass}
+            placeholder="you@example.com"
           />
         </label>
-        <label className="flex flex-col gap-2 text-sm text-sand/70">
-          Password
+        <label className="flex flex-col gap-1.5 text-sm font-medium text-secondary">
+          비밀번호
           <input
             required
             type="password"
             value={password}
             onChange={(event) => setPassword(event.target.value)}
-            className="rounded-xl border border-white/10 bg-ink/60 px-4 py-3 text-base text-linen placeholder:text-sand/40 focus:border-ember/70 focus:outline-none"
+            className={inputClass}
             placeholder="••••••••"
           />
         </label>
         {status === "error" ? (
-          <p className="rounded-lg border border-ember/40 bg-ember/10 px-3 py-2 text-sm text-ember">
+          <p className="rounded-lg border border-danger/30 bg-danger/5 px-3 py-2 text-sm text-danger">
             {error}
           </p>
         ) : null}
         <button
           type="submit"
           disabled={status === "loading"}
-          className="rounded-xl bg-ember px-5 py-3 text-sm font-semibold text-ink transition hover:translate-y-[-1px] hover:shadow-glow disabled:cursor-not-allowed disabled:opacity-60"
+          className="mt-2 rounded-lg bg-gradient-to-r from-accent to-accent-purple px-5 py-3 text-sm font-semibold text-white transition hover:opacity-90 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {status === "loading" ? "Working..." : copy.action}
+          {status === "loading" ? "처리 중..." : copy.action}
         </button>
       </form>
 
-      <div className="text-sm text-sand/70">
+      <div className="mt-6 text-center text-sm text-muted">
         {mode === "login" ? (
           <span>
-            New here?{" "}
-            <Link className="text-linen underline-offset-4 hover:underline" href="/signup">
-              Create an account
+            계정이 없으신가요?{" "}
+            <Link className="font-medium text-accent hover:underline" href="/signup">
+              회원가입
             </Link>
           </span>
         ) : (
           <span>
-            Already have an account?{" "}
-            <Link className="text-linen underline-offset-4 hover:underline" href="/login">
-              Log in
+            이미 계정이 있으신가요?{" "}
+            <Link className="font-medium text-accent hover:underline" href="/login">
+              로그인
             </Link>
           </span>
         )}
