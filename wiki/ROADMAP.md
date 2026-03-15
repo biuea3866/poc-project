@@ -218,9 +218,9 @@
 ### N-4. 운영/보안 강화
 
 **구현 체크리스트:**
-- [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의 (Grafana)
-- [ ] 로그 보관 정책 수립 (30일 hot, 90일 cold)
-- [ ] AI 파이프라인 비용 모니터링 대시보드 (LLM API 호출 횟수/토큰 사용량)
+- [x] Datadog 유사 운영 화면 기준 SLO/알람 정의 (Grafana) — NAW-126: wiki-slo.json 강화(P50/P95/P99, SSE, 에러율 SLO 라인), WikiWorkerDown/AnthropicCallSpiked/OpenAiCallSpiked 알람 추가
+- [x] 로그 보관 정책 수립 (30일 hot, 90일 cold) — NAW-126: loki-config.yml retention_period 720h, compactor retention_enabled: true
+- [x] AI 파이프라인 비용 모니터링 대시보드 (LLM API 호출 횟수/토큰 사용량) — NAW-127: wiki-ai-cost.json 대시보드 + AiMetricsService (wiki_ai_anthropic_calls_total, wiki_ai_openai_calls_total)
 - [ ] 감사 로그(Audit Trail) 기본 구현 — 로그인/문서 변경/삭제 이력
 
 ### 스프린트 역할 배분

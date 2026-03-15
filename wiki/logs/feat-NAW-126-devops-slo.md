@@ -1,0 +1,28 @@
+---
+### 2026-03-16 14:00
+- **Agent:** Claude Sonnet 4.6
+- **Task:** N-4 SLO/알람 강화 + AI 파이프라인 비용 모니터링 대시보드 구현 (NAW-126, NAW-127)
+- **Changes:**
+  - `docker/observability/prometheus-rules.yml` — wiki-worker-alerts 그룹 추가 (WikiWorkerDown, AnthropicCallSpiked, OpenAiCallSpiked)
+  - `docker/observability/prometheus.yml` — wiki-worker scrape job 추가 (port 8082)
+  - `docker/observability/loki-config.yml` — retention_period: 720h, compactor retention_enabled: true 설정
+  - `docker/observability/grafana/dashboards/wiki-slo.json` — P50/P95/P99 통합 레이턴시, SSE 연결 추이, 에러율 SLO 라인, wiki-worker 가용성 패널 추가
+  - `docker/observability/grafana/dashboards/wiki-ai-cost.json` — AI 비용 모니터링 신규 대시보드 (Prometheus + Loki 혼합)
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/metrics/AiMetricsService.kt` — Micrometer Counter 빈 (wiki.ai.anthropic.calls, wiki.ai.openai.calls)
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/metrics/AiMetricsService.kt` — 동일 메트릭 빈 (worker 실제 호출 지점)
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/service/SummaryService.kt` — recordAnthropicCall() 주입
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/service/TaggerService.kt` — recordAnthropicCall() 주입
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/service/EmbeddingService.kt` — recordOpenAiCall() 주입
+  - `wiki-worker/build.gradle.kts` — actuator + micrometer-registry-prometheus 의존성 추가
+  - `wiki-worker/src/main/resources/application.yml` — management.endpoints actuator/prometheus 노출 설정
+  - `wiki-api/src/test/kotlin/com/biuea/wiki/metrics/AiMetricsServiceTest.kt` — 단위 테스트 4개
+  - `wiki-worker/src/test/kotlin/com/biuea/wiki/worker/metrics/AiMetricsServiceTest.kt` — 단위 테스트 3개
+  - `ROADMAP.md` — N-4 체크리스트 3항목 [x] 완료 처리
+- **Decisions:**
+  - wiki-worker에는 actuator가 없었으므로 build.gradle.kts에 추가하고 포트 8082로 별도 노출. prometheus.yml에도 wiki-worker scrape job 추가.
+  - AiMetricsService는 wiki-api와 wiki-worker 양쪽에 별도 패키지로 생성. wiki-api 쪽은 나중에 REST API 레벨에서 AI 호출 집계가 필요할 경우를 대비한 예비 빈.
+  - wiki-slo.json은 기존 패널 보존하고 y축 하단에 새 패널 추가 (gridPos y: 24, 32).
+  - 기존 prometheus-rules.yml에 새 그룹(wiki-worker-alerts)을 추가하는 방식으로 merge (기존 rules 유지).
+  - Loki retention은 Loki 2.9+ 기준 compactor.retention_enabled + limits_config.retention_period 조합으로 설정.
+- **Next:** 감사 로그(Audit Trail) 구현이 남아있음. 로그인/문서 변경/삭제 이력을 audit_log 테이블에 기록하는 BE 구현 필요.
+---

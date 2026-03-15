@@ -98,6 +98,42 @@ groups:
           summary: "wiki-api JVM thread count is high"
           description: "Live thread count has exceeded 300 for 10 minutes."
 
+  - name: wiki-worker-alerts
+    rules:
+      # ── AI 파이프라인 워커 가용성 ──
+      - alert: WikiWorkerDown
+        expr: up{job="wiki-worker"} == 0
+        for: 2m
+        labels:
+          severity: critical
+          service: wiki-worker
+          slo: availability
+        annotations:
+          summary: "Wiki Worker (AI pipeline) is down"
+          description: "wiki-worker has been unreachable for more than 2 minutes. AI pipeline (SUMMARY/TAGGER/EMBEDDING) is halted."
+
+      # ── AI Anthropic 호출 이상 ──
+      - alert: WikiWorkerAnthropicCallSpiked
+        expr: rate(wiki_ai_anthropic_calls_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: wiki-worker
+        annotations:
+          summary: "Anthropic API call rate is unusually high"
+          description: "Anthropic API call rate exceeds 10 calls/5min for 5 minutes. Check for runaway AI pipeline tasks."
+
+      # ── AI OpenAI 호출 이상 ──
+      - alert: WikiWorkerOpenAiCallSpiked
+        expr: rate(wiki_ai_openai_calls_total[5m]) > 10
+        for: 5m
+        labels:
+          severity: warning
+          service: wiki-worker
+        annotations:
+          summary: "OpenAI Embedding API call rate is unusually high"
+          description: "OpenAI API call rate exceeds 10 calls/5min for 5 minutes."
+
   - name: wiki-infra-alerts
     rules:
       - alert: HostHighCpuUsage

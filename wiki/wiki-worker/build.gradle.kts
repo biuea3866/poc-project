@@ -45,6 +45,10 @@ dependencies {
     // MySQL (ai_status 업데이트)
     runtimeOnly("com.mysql:mysql-connector-j")
 
+    // Actuator + Prometheus (AI 메트릭 노출)
+    implementation("org.springframework.boot:spring-boot-starter-actuator")
+    runtimeOnly("io.micrometer:micrometer-registry-prometheus")
+
     // Test
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.kafka:spring-kafka-test")

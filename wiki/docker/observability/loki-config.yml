@@ -26,6 +26,10 @@ storage_config:
 
 compactor:
   working_directory: /loki/compactor
+  retention_enabled: true
+  retention_delete_delay: 2h
 
 limits_config:
   allow_structured_metadata: true
+  # 30일 hot retention (720시간)
+  retention_period: 720h
