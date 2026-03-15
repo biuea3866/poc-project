@@ -10,6 +10,7 @@ services:
       context: .
       dockerfile: docker/wiki-api/Dockerfile
 
+<<<<<<< HEAD
   mysql:
     ports:
       - "3307:3306"
@@ -31,3 +32,12 @@ services:
       - "8082:8082"
     environment:
       SPRING_PROFILES_ACTIVE: development
+=======
+  wiki-mysql:
+    ports:
+      - "3307:3306"
+
+  wiki-redis:
+    ports:
+      - "6380:6379"
+>>>>>>> origin/main

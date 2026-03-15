@@ -2,11 +2,17 @@ package com.biuea.wiki.presentation.search
 
 import com.biuea.wiki.domain.search.SearchMode
 import com.biuea.wiki.domain.search.SearchService
+<<<<<<< HEAD
 import com.biuea.wiki.domain.search.SemanticSearchService
 import com.biuea.wiki.domain.search.VectorSearchService
 import com.biuea.wiki.presentation.search.request.VectorSearchRequest
 import com.biuea.wiki.presentation.search.response.SearchResultResponse
 import com.biuea.wiki.presentation.search.response.SemanticSearchResponse
+=======
+import com.biuea.wiki.domain.search.VectorSearchService
+import com.biuea.wiki.presentation.search.request.VectorSearchRequest
+import com.biuea.wiki.presentation.search.response.SearchResultResponse
+>>>>>>> origin/main
 import com.biuea.wiki.presentation.search.response.VectorSearchResultResponse
 import com.biuea.wiki.presentation.search.response.WebSearchResultResponse
 import jakarta.validation.Valid
@@ -23,11 +29,15 @@ import org.springframework.web.bind.annotation.RestController
 class SearchApiController(
     private val searchService: SearchService,
     private val vectorSearchService: VectorSearchService,
+<<<<<<< HEAD
     private val semanticSearchService: SemanticSearchService,
+=======
+>>>>>>> origin/main
 ) {
     @GetMapping("/integrated")
     fun searchIntegrated(
         @RequestParam query: String,
+<<<<<<< HEAD
         @RequestParam(defaultValue = "HYBRID") mode: SearchMode,
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
@@ -45,6 +55,13 @@ class SearchApiController(
     ): ResponseEntity<SemanticSearchResponse> {
         val result = semanticSearchService.semanticSearch(q, threshold, page, size)
         return ResponseEntity.ok(SemanticSearchResponse.from(result))
+=======
+        @RequestParam(defaultValue = "0") page: Int,
+        @RequestParam(defaultValue = "20") size: Int,
+    ): ResponseEntity<SearchResultResponse> {
+        val result = searchService.searchIntegrated(query, page, size)
+        return ResponseEntity.ok(SearchResultResponse.from(result))
+>>>>>>> origin/main
     }
 
     @GetMapping("/web")

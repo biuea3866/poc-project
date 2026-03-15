@@ -26,7 +26,11 @@ class SecurityConfig(
             .cors { cors ->
                 cors.configurationSource {
                     val config = org.springframework.web.cors.CorsConfiguration()
+<<<<<<< HEAD
                     config.allowedOriginPatterns = listOf("http://localhost:*")
+=======
+                    config.allowedOrigins = listOf("http://localhost:3001", "http://localhost:3002")
+>>>>>>> origin/main
                     config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                     config.allowedHeaders = listOf("*")
                     config.allowCredentials = true
