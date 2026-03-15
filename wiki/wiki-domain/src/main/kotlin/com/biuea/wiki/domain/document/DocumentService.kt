@@ -49,9 +49,7 @@ class DocumentService(
         val document = documentRepository.findByIdAndDeletedAtIsNull(command.id)
             ?: throw IllegalArgumentException("Document not found: ${command.id}")
 
-        document.title = command.title
-        document.content = command.content
-        document.updatedBy = command.updatedBy
+        document.update(command.title, command.content, command.updatedBy)
 
         val revision = DocumentRevision.create(document)
         document.addRevision(revision)
@@ -64,8 +62,7 @@ class DocumentService(
     fun deleteDocument(id: Long) {
         val document = documentRepository.findByIdAndDeletedAtIsNull(id)
             ?: throw IllegalArgumentException("Document not found: $id")
-        document.delete()
-        document.children.forEach { it.delete() }
+        document.softDelete()
     }
 
     @CacheEvict(value = ["documents", "documentList"], allEntries = true)
@@ -73,13 +70,7 @@ class DocumentService(
     fun restoreDocument(id: Long): Document {
         val document = documentRepository.findById(id)
             .orElseThrow { IllegalArgumentException("Document not found: $id") }
-        if (!document.isDeleted()) throw IllegalStateException("Document is not deleted: $id")
-
-        document.status = DocumentStatus.PENDING
-        document.deletedAt = null
-        if (document.parent != null && document.parent!!.isDeleted()) {
-            document.parent = null
-        }
+        document.restore()
         return document
     }
 
@@ -88,7 +79,7 @@ class DocumentService(
     fun publishDocument(id: Long): Document {
         val document = documentRepository.findByIdAndDeletedAtIsNull(id)
             ?: throw IllegalArgumentException("Document not found: $id")
-        document.status = DocumentStatus.COMPLETED
+        document.publish()
         return document
     }
 
