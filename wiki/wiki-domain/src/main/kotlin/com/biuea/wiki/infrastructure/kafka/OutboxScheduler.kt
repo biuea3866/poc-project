@@ -3,6 +3,8 @@ package com.biuea.wiki.infrastructure.kafka
 import com.biuea.wiki.domain.outbox.OutboxService
 import com.biuea.wiki.domain.outbox.entity.OutboxEvent
 import com.fasterxml.jackson.databind.ObjectMapper
+import org.apache.kafka.clients.producer.ProducerRecord
+import org.apache.kafka.common.header.internals.RecordHeader
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.scheduling.annotation.Scheduled
@@ -10,6 +12,9 @@ import org.springframework.stereotype.Component
 
 /**
  * 미처리 outbox 이벤트를 주기적으로 Kafka에 재발행하는 스케줄러
+ *
+ * 재발행 시 X-Outbox-Event-Id 헤더를 포함하여 컨슈머가
+ * 처리 결과를 outbox 테이블에 반영할 수 있도록 한다.
  */
 @Component
 class OutboxScheduler(
@@ -21,6 +26,7 @@ class OutboxScheduler(
 
     companion object {
         private const val BATCH_SIZE = 50
+        const val HEADER_OUTBOX_EVENT_ID = "X-Outbox-Event-Id"
     }
 
     @Scheduled(fixedDelay = 60_000) // 1분 간격
@@ -40,10 +46,6 @@ class OutboxScheduler(
                 val errorMsg = e.message ?: "Unknown error"
                 log.error("[OUTBOX-SCHEDULER] 재발행 실패 id={} error={}", event.id, errorMsg)
                 outboxService.markFailed(event, errorMsg)
-
-                if (event.retryCount >= event.maxRetries) {
-                    log.warn("[OUTBOX-SCHEDULER] DEAD_LETTER 전이 id={} retryCount={}", event.id, event.retryCount)
-                }
             }
         }
 
@@ -52,7 +54,9 @@ class OutboxScheduler(
 
     private fun republish(event: OutboxEvent) {
         val payload = objectMapper.readValue(event.payload, Map::class.java)
-        val future = kafkaTemplate.send(event.topic, event.aggregateId, payload)
-        future.get() // 동기 대기
+        val record = ProducerRecord<Any, Any>(event.topic, null, event.aggregateId, payload).apply {
+            headers().add(RecordHeader(HEADER_OUTBOX_EVENT_ID, event.id.toString().toByteArray()))
+        }
+        kafkaTemplate.send(record).get() // 동기 대기
     }
 }
