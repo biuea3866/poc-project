@@ -31,7 +31,10 @@ dependencies {
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
+    testImplementation("org.springframework.security:spring-security-test")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
+    testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
+    testRuntimeOnly("com.h2database:h2")
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 }
 

@@ -189,11 +189,11 @@
 ```
 
 **구현 체크리스트:**
-- [ ] pgvector 코사인 유사도 검색 쿼리 구현 (PostgreSQL Repository)
-- [ ] 시맨틱 검색 API 엔드포인트 (`GET /api/v1/search/semantic`)
-- [ ] 통합 검색 API에 `mode` 파라미터 추가 (keyword/semantic/hybrid)
-- [ ] Hybrid 검색 랭킹: RRF (Reciprocal Rank Fusion) 알고리즘 적용
-- [ ] 검색 결과 snippet 생성 (매칭 chunk에서 주변 텍스트 추출)
+- [x] pgvector 코사인 유사도 검색 쿼리 구현 (PostgreSQL Repository)
+- [x] 시맨틱 검색 API 엔드포인트 (`GET /api/v1/search/semantic`)
+- [x] 통합 검색 API에 `mode` 파라미터 추가 (keyword/semantic/hybrid)
+- [x] Hybrid 검색 랭킹: RRF (Reciprocal Rank Fusion) 알고리즘 적용
+- [x] 검색 결과 snippet 생성 (매칭 chunk에서 주변 텍스트 추출)
 - [ ] FE: 검색 결과 페이지에 시맨틱 탭 추가
 - [ ] FE: 유사도 점수 시각화 (프로그레스 바 또는 백분율)
 - [ ] FE: 검색 모드 전환 UI (키워드 / 시맨틱 / 하이브리드)
