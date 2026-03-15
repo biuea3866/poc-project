@@ -228,8 +228,6 @@ services:
       - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/observability/prometheus-rules.yml:/etc/prometheus/rules/wiki-alert-rules.yml:ro
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
     depends_on:
       - wiki-api
       - otel-collector
@@ -298,8 +296,6 @@ services:
   grafana:
     image: grafana/grafana:11.6.0
     container_name: wiki-grafana
-    ports:
-      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin

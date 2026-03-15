@@ -10,10 +10,18 @@ services:
       context: .
       dockerfile: docker/wiki-api/Dockerfile
 
-  wiki-mysql:
+  mysql:
     ports:
       - "3307:3306"
 
-  wiki-redis:
+  redis:
     ports:
       - "6380:6379"
+
+  prometheus:
+    ports:
+      - "9091:9090"
+
+  grafana:
+    ports:
+      - "3002:3000"

@@ -235,9 +235,25 @@
 
 ---
 
-## Later (확장 로드맵)
+## Sprint 3 (2026-04-01 ~ 2026-04-14)
 
-### 댓글
+> 핵심 목표: "쓰고 싶은 위키"로 진화 — 사용자 리텐션 확보 + 협업 기반 구축
+
+### 스프린트 역할 배분
+
+| 기능 | 담당 | 우선순위 | 비고 |
+|---|---|---|---|
+| S3-1. 댓글/토론 | BE + FE | P0 | 인게이지먼트 핵심 |
+| S3-2. 알림 시스템 | BE + FE | P0 | 재방문 유도 |
+| S3-3. 버전 Diff 비교 | FE | P1 | BE revision 이미 완료 |
+| S3-4. 문서 공유/권한 관리 | BE + FE | P1 | 팀 협업 진입점 |
+| S3-5. 대시보드/활동 피드 | BE + FE | P2 | 인기 문서, 최근 활동 |
+| S3-6. AI 고도화 — 연관 문서 추천 | BE + FE | P2 | RAG 완료 후 확장 |
+| S3-7. 내보내기 (PDF / Markdown) | BE + FE | P2 | B2B 요구사항 |
+
+---
+
+### S3-1. 댓글/토론
 
 > ACTIVE 상태의 문서에 댓글·대댓글 작성 가능. 1단계 대댓글만 지원.
 
@@ -256,11 +272,118 @@
 - [ ] 삭제된 댓글 플레이스홀더 표시
 - [ ] 수정/삭제 버튼 — 본인 댓글에만 노출
 
-### 권한/공유 모델
-- 팀/조직/ACL/공유 링크
+---
+
+### S3-2. 알림 시스템
+
+> 내 문서 변경, 댓글, AI 완료 이벤트를 인앱 알림으로 수신
+
+**백엔드 구현 목록**
+- [ ] Notification 엔티티 & Repository (type, target_user_id, ref_id, is_read, created_at)
+- [ ] 알림 생성 이벤트: 댓글 작성 / 내 문서 수정 / AI 완료 / AI 실패
+- [ ] 알림 목록 조회 (`GET /api/v1/notifications`) — 페이지네이션, 읽음 필터
+- [ ] 알림 읽음 처리 (`PATCH /api/v1/notifications/{id}/read`)
+- [ ] 전체 읽음 처리 (`PATCH /api/v1/notifications/read-all`)
+- [ ] 미읽음 카운트 (`GET /api/v1/notifications/unread-count`)
+- [ ] SSE 기반 실시간 알림 스트림 (`GET /api/v1/notifications/stream`)
+
+**프론트엔드 구현 목록**
+- [ ] 헤더 알림 벨 아이콘 + 미읽음 뱃지
+- [ ] 알림 드롭다운 목록 (최근 20건)
+- [ ] 알림 클릭 시 해당 문서/댓글로 이동
+- [ ] SSE 연결로 실시간 알림 수신
+
+---
+
+### S3-3. 버전 Diff 비교
+
+> 이미 구현된 revision 데이터를 활용한 변경 이력 시각화
+
+**프론트엔드 구현 목록**
+- [ ] 버전 히스토리 페이지 — 두 revision 선택 후 diff 비교 뷰
+- [ ] 변경된 줄 하이라이트 (추가: 초록, 삭제: 빨강)
+- [ ] 특정 revision으로 롤백 버튼 (`POST /api/v1/documents/{id}/rollback`)
+
+**백엔드 구현 목록**
+- [ ] 두 revision 간 diff 계산 API (`GET /api/v1/documents/{id}/revisions/diff?from={v1}&to={v2}`)
+- [ ] 특정 revision으로 롤백 (`POST /api/v1/documents/{id}/rollback`) — 새 revision으로 생성
+
+---
+
+### S3-4. 문서 공유/권한 관리
+
+> 문서 단위 공개 범위 설정 + 공유 링크 생성
+
+**기획 확정 사항**
+
+| 공개 범위 | 설명 |
+|---|---|
+| PRIVATE | 작성자 본인만 |
+| WORKSPACE | 로그인 사용자 전체 |
+| PUBLIC | 비로그인 포함 누구나 (공유 링크) |
+
+**백엔드 구현 목록**
+- [ ] Document에 `visibility` 컬럼 추가 (PRIVATE / WORKSPACE / PUBLIC)
+- [ ] 공유 링크 생성 (`POST /api/v1/documents/{id}/share`) — 토큰 기반 URL 발급
+- [ ] 공유 링크 조회 (`GET /api/v1/share/{token}`) — 인증 불필요
+- [ ] 권한 체크 미들웨어 (SecurityConfig 업데이트)
+
+**프론트엔드 구현 목록**
+- [ ] 문서 설정 패널 — 공개 범위 선택 드롭다운
+- [ ] 공유 링크 복사 버튼
+- [ ] PUBLIC 문서 비로그인 뷰 (읽기 전용)
+
+---
+
+### S3-5. 대시보드/활동 피드
+
+> 팀의 지식 활동을 한눈에 파악
+
+**백엔드 구현 목록**
+- [ ] 활동 피드 API (`GET /api/v1/activity`) — 최근 문서 생성/수정/댓글, 페이지네이션
+- [ ] 통계 API (`GET /api/v1/stats`) — 전체 문서 수, 활성 사용자, 인기 태그 Top5, 최근 7일 문서 생성 추이
+
+**프론트엔드 구현 목록**
+- [ ] 대시보드 홈 페이지 (`/dashboard`) — 활동 피드 + 통계 카드
+- [ ] 인기 문서 Top5 위젯
+- [ ] 최근 7일 활동 그래프 (Recharts)
+
+---
+
+### S3-6. AI 고도화 — 연관 문서 추천
+
+> RAG 완료 후 확장: 현재 보고 있는 문서와 의미적으로 유사한 문서 추천
+
+**백엔드 구현 목록**
+- [ ] 연관 문서 추천 API (`GET /api/v1/documents/{id}/related`) — pgvector 코사인 유사도, 상위 5건
+- [ ] 추천 결과 캐싱 (Caffeine, TTL 10분)
+
+**프론트엔드 구현 목록**
+- [ ] 문서 상세 사이드바 — "연관 문서" 섹션 (최대 5건)
+- [ ] 연관 문서 클릭 시 해당 문서로 이동
+
+---
+
+### S3-7. 내보내기 (PDF / Markdown)
+
+> 문서 외부 공유 및 백업
+
+**백엔드 구현 목록**
+- [ ] Markdown 내보내기 (`GET /api/v1/documents/{id}/export?format=markdown`) — 원본 Markdown 파일 다운로드
+- [ ] PDF 내보내기 (`GET /api/v1/documents/{id}/export?format=pdf`) — Flying Saucer 또는 Playwright 활용
+
+**프론트엔드 구현 목록**
+- [ ] 문서 상세 — 내보내기 드롭다운 버튼 (Markdown / PDF)
+
+---
+
+## Later (확장 로드맵)
+
+### 권한/공유 고도화
+- 팀/조직 단위 ACL, 문서 편집 초대
 
 ### 협업 고도화
-- 변경 diff, 알림/웹훅
+- 실시간 공동 편집 (CRDT 기반), 멘션(@user)
 
 ### 멀티 에이전트 확장
 - 정책 기반 에이전트 플러그인화
