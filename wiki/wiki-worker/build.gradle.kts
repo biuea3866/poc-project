@@ -37,11 +37,16 @@ dependencies {
     // Kafka
     implementation("org.springframework.kafka:spring-kafka")
 
-    // Spring AI — Anthropic (요약/태깅)
-    implementation("org.springframework.ai:spring-ai-starter-model-anthropic")
+    // Spring AI — ChatClient 빌더 API (org.springframework.ai.chat.client)
+    // spring-ai-starter-* 는 RestClientAutoConfiguration(Spring Boot 3.x only)을 참조하여 Spring Boot 4.x 충돌
+    // → 스타터 대신 코어/클라이언트 모듈 직접 사용
+    implementation("org.springframework.ai:spring-ai-client-chat")
 
-    // Spring AI — OpenAI (임베딩)
-    implementation("org.springframework.ai:spring-ai-starter-model-openai")
+    // Spring AI — Anthropic (요약/태깅) : 스타터 제외, 모델 구현체만
+    implementation("org.springframework.ai:spring-ai-anthropic")
+
+    // Spring AI — OpenAI (임베딩) : 스타터 제외, 모델 구현체만
+    implementation("org.springframework.ai:spring-ai-openai")
 
     // PostgreSQL (벡터 저장)
     implementation("org.springframework.boot:spring-boot-starter-data-jdbc")
