@@ -1,0 +1,31 @@
+---
+### 2026-03-15 19:30
+- **Agent:** Claude
+- **Task:** NAW-119 Outbox wiki-worker 연동 + ADMIN 보안 + DEAD_LETTER 로깅
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/outbox/OutboxService.kt`
+    - `markSuccessById(eventId: Long)` 추가 — wiki-worker 컨슈머에서 ID 기반 성공 처리
+    - `markFailedById(eventId: Long, error: String)` 추가 — wiki-worker 컨슈머에서 ID 기반 실패 처리
+    - `markFailed(event, error)` 내부에 DEAD_LETTER 전이 시 구조화된 경고 로그 추가
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/kafka/OutboxScheduler.kt`
+    - `republish()` 에서 `X-Outbox-Event-Id` Kafka 헤더를 포함한 `ProducerRecord` 사용
+    - DEAD_LETTER 전이 중복 로그 제거 (OutboxService로 일원화)
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/consumer/SummaryConsumer.kt`
+    - `OutboxService` 의존성 주입, `@Header X-Outbox-Event-Id` 수신
+    - 성공 시 `outboxService.markSuccessById()`, 실패 시 `outboxService.markFailedById()` 호출
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/consumer/TaggerConsumer.kt`
+    - 동일한 OutboxService 연동 패턴 적용
+  - `wiki-worker/src/main/kotlin/com/biuea/wiki/worker/consumer/EmbeddingConsumer.kt`
+    - 동일한 OutboxService 연동 패턴 적용
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/config/SecurityConfig.kt`
+    - `/api/admin/**` 경로에 `hasRole("ADMIN")` 적용
+    - `accessDeniedHandler` 추가 — 권한 없는 요청에 HTTP 403 반환
+- **Decisions:**
+  - outbox 이벤트 ID를 Kafka 헤더(`X-Outbox-Event-Id`)로 전파하는 방식 채택
+    - 이유: 페이로드 변경 없이 인프라 관심사를 헤더로 분리, 기존 이벤트 구조 보존
+  - 컨슈머는 헤더가 없으면 no-op (`outboxEventId?.toLongOrNull()?.let { ... }`)
+    - 이유: 직접 발행(비-outbox 경로)된 메시지와 outbox 재발행 메시지 모두 처리 가능
+  - DEAD_LETTER 로깅은 `OutboxService.markFailed()` 에 중앙화
+    - 이유: OutboxScheduler/컨슈머 양쪽에서 전이될 수 있으므로 서비스 레이어 단일 지점에서 처리
+- **Next:** 없음 (모든 스코프 완료)
+---

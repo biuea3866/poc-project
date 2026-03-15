@@ -158,6 +158,33 @@ services:
       - wiki_api_logs:/var/log/wiki
     networks:
       - wiki-network
+      - pinpoint-net
+
+  wiki-worker:
+    build:
+      context: .
+      dockerfile: ./docker/wiki-worker/Dockerfile
+    container_name: wiki-worker
+    environment:
+      MYSQL_URL: jdbc:mysql://mysql:3306/wiki?serverTimezone=UTC&characterEncoding=UTF-8
+      MYSQL_USERNAME: wiki_user
+      MYSQL_PASSWORD: wiki_password
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      POSTGRES_URL: jdbc:postgresql://postgres:5432/wiki_vector
+      POSTGRES_USERNAME: wiki_vector_user
+      POSTGRES_PASSWORD: wiki_vector_password
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      # wiki-worker는 스키마 관리 불필요 (wiki-api가 담당)
+      # Hibernate 7.x nullable 타입 추론 변경으로 validate 대신 none 사용
+      SPRING_JPA_HIBERNATE_DDL_AUTO: none
+    depends_on:
+      - mysql
+      - kafka
+      - postgres
+    networks:
+      - wiki-network
+      - pinpoint-net
 
   mysqld-exporter:
     image: prom/mysqld-exporter:v0.16.0
@@ -224,12 +251,12 @@ services:
       - --config.file=/etc/prometheus/prometheus.yml
       - --web.enable-remote-write-receiver
       - --web.enable-lifecycle
+    ports:
+      - "9090:9090"
     volumes:
       - ./docker/observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
       - ./docker/observability/prometheus-rules.yml:/etc/prometheus/rules/wiki-alert-rules.yml:ro
       - prometheus_data:/prometheus
-    ports:
-      - "9090:9090"
     depends_on:
       - wiki-api
       - otel-collector
@@ -298,8 +325,6 @@ services:
   grafana:
     image: grafana/grafana:11.6.0
     container_name: wiki-grafana
-    ports:
-      - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_USER: admin
       GF_SECURITY_ADMIN_PASSWORD: admin
@@ -309,6 +334,8 @@ services:
       - ./docker/observability/grafana/provisioning/datasources:/etc/grafana/provisioning/datasources:ro
       - ./docker/observability/grafana/provisioning/dashboards:/etc/grafana/provisioning/dashboards:ro
       - ./docker/observability/grafana/dashboards:/var/lib/grafana/dashboards:ro
+    ports:
+      - "3030:3000"   # 3000은 FE Next.js가 사용 중 → 3030으로 매핑
     depends_on:
       - prometheus
       - loki
@@ -319,6 +346,8 @@ services:
 networks:
   wiki-network:
     driver: bridge
+  pinpoint-net:
+    external: true
 
 volumes:
   mysql_data:

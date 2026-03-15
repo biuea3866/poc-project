@@ -135,22 +135,24 @@
 4. 실패 시 스케줄러(자동 재처리) 또는 어드민 API를 통한 수동 재처리 지원
 
 **인수 기준 (Acceptance Criteria):**
-- [ ] Kafka 발행 실패 시 outbox 테이블에 이벤트가 정확히 기록된다
-- [ ] 스케줄러가 PENDING 상태의 outbox 이벤트를 1분 주기로 재발행한다
-- [ ] 재발행 성공 시 outbox 상태가 SUCCESS로 전이된다
-- [ ] 재시도 5회 초과 시 DEAD_LETTER 상태로 전이되고 알림이 발생한다
-- [ ] 어드민 API로 실패 이벤트 조회 및 수동 재처리가 가능하다
-- [ ] 기존 AI 파이프라인 동작에 영향을 주지 않는다 (하위 호환)
+- [x] Kafka 발행 실패 시 outbox 테이블에 이벤트가 정확히 기록된다
+- [x] 스케줄러가 PENDING 상태의 outbox 이벤트를 1분 주기로 재발행한다
+- [x] 재발행 성공 시 outbox 상태가 SUCCESS로 전이된다
+- [x] 재시도 5회 초과 시 DEAD_LETTER 상태로 전이되고 알림이 발생한다
+- [x] 어드민 API로 실패 이벤트 조회 및 수동 재처리가 가능하다
+- [x] 기존 AI 파이프라인 동작에 영향을 주지 않는다 (하위 호환)
 
 **구현 체크리스트:**
-- [ ] `outbox` 테이블 스키마 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, created_at, processed_at, error_message)
-- [ ] OutboxEvent 엔티티 & Repository
-- [ ] Kafka 발행 실패 시 outbox 적재 로직 (KafkaProducer 래퍼)
-- [ ] 컨슈머 성공/실패 시 outbox 상태 업데이트
-- [ ] 스케줄러: 미처리 outbox 주기적 재발행 (`@Scheduled`, 1분 간격)
-- [ ] DEAD_LETTER 전이 로직 (retry_count > max_retries)
-- [ ] 어드민 API: `GET /api/admin/outbox` (목록, 필터: status), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
-- [ ] 통합 테스트: Kafka 장애 시뮬레이션 → outbox 적재 → 스케줄러 재발행 검증
+- [x] `outbox_event` 테이블 스키마 (id, aggregate_type, aggregate_id, topic, payload, status, retry_count, max_retries, created_at, processed_at, error_message) — `docker/mysql/init.sql` 추가
+- [x] OutboxEvent 엔티티 & Repository
+- [x] Kafka 발행 실패 시 outbox 적재 로직 (OutboxKafkaPublisher 래퍼)
+- [x] PublishDocumentFacade — DocumentApiController publish/analyze에서 OutboxKafkaPublisher 경유
+- [x] 컨슈머 성공/실패 시 outbox 상태 업데이트 (NAW-119)
+- [x] 스케줄러: 미처리 outbox 주기적 재발행 (`@Scheduled`, 1분 간격)
+- [x] DEAD_LETTER 전이 로직 (retry_count >= max_retries)
+- [x] 어드민 API: `GET /api/admin/outbox` (목록, 필터: status), `POST /api/admin/outbox/{id}/retry` (수동 재처리)
+- [x] 단위 테스트: OutboxEventTest, OutboxServiceTest, OutboxKafkaPublisherTest, OutboxSchedulerTest, PublishDocumentFacadeTest
+- [ ] 통합 테스트: Kafka 장애 시뮬레이션 → outbox 적재 → 스케줄러 재발행 검증 (Testcontainers)
 
 ### N-2. RAG 벡터 검색 도입
 
@@ -187,11 +189,11 @@
 ```
 
 **구현 체크리스트:**
-- [ ] pgvector 코사인 유사도 검색 쿼리 구현 (PostgreSQL Repository)
-- [ ] 시맨틱 검색 API 엔드포인트 (`GET /api/v1/search/semantic`)
-- [ ] 통합 검색 API에 `mode` 파라미터 추가 (keyword/semantic/hybrid)
-- [ ] Hybrid 검색 랭킹: RRF (Reciprocal Rank Fusion) 알고리즘 적용
-- [ ] 검색 결과 snippet 생성 (매칭 chunk에서 주변 텍스트 추출)
+- [x] pgvector 코사인 유사도 검색 쿼리 구현 (PostgreSQL Repository)
+- [x] 시맨틱 검색 API 엔드포인트 (`GET /api/v1/search/semantic`)
+- [x] 통합 검색 API에 `mode` 파라미터 추가 (keyword/semantic/hybrid)
+- [x] Hybrid 검색 랭킹: RRF (Reciprocal Rank Fusion) 알고리즘 적용
+- [x] 검색 결과 snippet 생성 (매칭 chunk에서 주변 텍스트 추출)
 - [ ] FE: 검색 결과 페이지에 시맨틱 탭 추가
 - [ ] FE: 유사도 점수 시각화 (프로그레스 바 또는 백분율)
 - [ ] FE: 검색 모드 전환 UI (키워드 / 시맨틱 / 하이브리드)
@@ -206,19 +208,19 @@
 - Refresh 토큰 Family 개념 도입: 같은 로그인 세션에서 발급된 토큰 체인을 추적
 
 **구현 체크리스트:**
-- [ ] `refresh_token` 테이블 스키마 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at)
-- [ ] 토큰 발급 시 family_id 부여 및 체인 추적
-- [ ] 토큰 사용 시 회전: 기존 토큰 revoke + 새 토큰 발급
-- [ ] 탈취 감지: revoked 토큰 재사용 시 같은 family 전체 무효화
-- [ ] FE: 자동 재발급 시 새 Refresh 토큰 저장 로직 업데이트
-- [ ] 통합 테스트: 정상 회전, 탈취 감지, 만료 시나리오
+- [x] `refresh_token` 테이블 스키마 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at)
+- [x] 토큰 발급 시 family_id 부여 및 체인 추적
+- [x] 토큰 사용 시 회전: 기존 토큰 revoke + 새 토큰 발급
+- [x] 탈취 감지: revoked 토큰 재사용 시 같은 family 전체 무효화
+- [x] FE: 자동 재발급 시 새 Refresh 토큰 저장 로직 업데이트
+- [x] 통합 테스트: 정상 회전, 탈취 감지, 만료 시나리오
 
 ### N-4. 운영/보안 강화
 
 **구현 체크리스트:**
-- [ ] Datadog 유사 운영 화면 기준 SLO/알람 정의 (Grafana)
-- [ ] 로그 보관 정책 수립 (30일 hot, 90일 cold)
-- [ ] AI 파이프라인 비용 모니터링 대시보드 (LLM API 호출 횟수/토큰 사용량)
+- [x] Datadog 유사 운영 화면 기준 SLO/알람 정의 (Grafana) — NAW-126: wiki-slo.json 강화(P50/P95/P99, SSE, 에러율 SLO 라인), WikiWorkerDown/AnthropicCallSpiked/OpenAiCallSpiked 알람 추가
+- [x] 로그 보관 정책 수립 (30일 hot, 90일 cold) — NAW-126: loki-config.yml retention_period 720h, compactor retention_enabled: true
+- [x] AI 파이프라인 비용 모니터링 대시보드 (LLM API 호출 횟수/토큰 사용량) — NAW-127: wiki-ai-cost.json 대시보드 + AiMetricsService (wiki_ai_anthropic_calls_total, wiki_ai_openai_calls_total)
 - [ ] 감사 로그(Audit Trail) 기본 구현 — 로그인/문서 변경/삭제 이력
 
 ### 스프린트 역할 배분
@@ -235,32 +237,191 @@
 
 ---
 
-## Later (확장 로드맵)
+## Sprint 3 (2026-04-01 ~ 2026-04-14)
 
-### 댓글
+> 핵심 목표: "쓰고 싶은 위키"로 진화 — 사용자 리텐션 확보 + 협업 기반 구축
+
+### 스프린트 역할 배분
+
+| 기능 | 담당 | 우선순위 | 비고 |
+|---|---|---|---|
+| S3-1. 댓글/토론 | BE + FE | P0 | 인게이지먼트 핵심 |
+| S3-2. 알림 시스템 | BE + FE | P0 | 재방문 유도 |
+| S3-3. 버전 Diff 비교 | FE | P1 | BE revision 이미 완료 |
+| S3-4. 문서 공유/권한 관리 | BE + FE | P1 | 팀 협업 진입점 |
+| S3-5. 대시보드/활동 피드 | BE + FE | P2 | 인기 문서, 최근 활동 |
+| S3-6. AI 고도화 — 연관 문서 추천 | BE + FE | P2 | RAG 완료 후 확장 |
+| S3-7. 내보내기 (PDF / Markdown) | BE + FE | P2 | B2B 요구사항 |
+
+---
+
+### S3-1. 댓글/토론
 
 > ACTIVE 상태의 문서에 댓글·대댓글 작성 가능. 1단계 대댓글만 지원.
 
 **백엔드 구현 목록**
-- [ ] Comment 엔티티 & Repository
-- [ ] 댓글 목록 조회 (`GET /api/v1/documents/{id}/comments`) — 대댓글 포함 트리 구조 반환
-- [ ] 댓글 작성 (`POST /api/v1/documents/{id}/comments`) — `parentId` 전달 시 대댓글
-- [ ] 댓글 수정 (`PUT /api/v1/comments/{commentId}`) — 작성자 본인만
-- [ ] 댓글 삭제 (`DELETE /api/v1/comments/{commentId}`) — 소프트 삭제, 작성자 본인만
-- [ ] 삭제된 댓글 플레이스홀더 처리 (대댓글이 남아 있으면 "삭제된 댓글입니다." 표시)
+- [x] Comment 엔티티 & Repository _(NAW-131)_
+- [x] 댓글 목록 조회 (`GET /api/v1/documents/{id}/comments`) — 대댓글 포함 트리 구조 반환 _(NAW-131)_
+- [x] 댓글 작성 (`POST /api/v1/documents/{id}/comments`) — `parentId` 전달 시 대댓글 _(NAW-131)_
+- [x] 댓글 수정 (`PUT /api/v1/comments/{commentId}`) — 작성자 본인만 _(NAW-131)_
+- [x] 댓글 삭제 (`DELETE /api/v1/comments/{commentId}`) — 소프트 삭제, 작성자 본인만 _(NAW-131)_
+- [x] 삭제된 댓글 플레이스홀더 처리 (대댓글이 남아 있으면 "삭제된 댓글입니다." 표시) _(NAW-131)_
 
 **프론트엔드 구현 목록**
-- [ ] 문서 상세 페이지 — 댓글 목록 렌더링
-- [ ] 댓글 작성 폼
-- [ ] 대댓글 UI (1단계 인덴트)
-- [ ] 삭제된 댓글 플레이스홀더 표시
-- [ ] 수정/삭제 버튼 — 본인 댓글에만 노출
+- [x] 문서 상세 페이지 — 댓글 목록 렌더링 _(NAW-132)_
+- [x] 댓글 작성 폼 _(NAW-132)_
+- [x] 대댓글 UI (1단계 인덴트) _(NAW-132)_
+- [x] 삭제된 댓글 플레이스홀더 표시 _(NAW-132)_
+- [x] 수정/삭제 버튼 — 본인 댓글에만 노출 _(NAW-132)_
 
-### 권한/공유 모델
-- 팀/조직/ACL/공유 링크
+---
+
+### S3-2. 알림 시스템
+
+> 내 문서 변경, 댓글, AI 완료 이벤트를 인앱 알림으로 수신
+
+**백엔드 구현 목록**
+- [x] Notification 엔티티 & Repository (type, target_user_id, ref_id, is_read, created_at) _(NAW-133)_
+- [x] 알림 생성 이벤트: AI 완료 / AI 실패 _(NAW-133)_ — 댓글/문서 수정 알림은 S3-1 이후 연동
+- [x] 알림 목록 조회 (`GET /api/v1/notifications`) — 페이지네이션, 읽음 필터 _(NAW-133)_
+- [x] 알림 읽음 처리 (`PATCH /api/v1/notifications/{id}/read`) _(NAW-133)_
+- [x] 전체 읽음 처리 (`PATCH /api/v1/notifications/read-all`) _(NAW-133)_
+- [x] 미읽음 카운트 (`GET /api/v1/notifications/unread-count`) _(NAW-133)_
+- [x] SSE 기반 실시간 알림 스트림 (`GET /api/v1/notifications/stream`) _(NAW-133)_
+
+**프론트엔드 구현 목록**
+- [x] 헤더 알림 벨 아이콘 + 미읽음 뱃지 _(NAW-134)_
+- [x] 알림 드롭다운 목록 (최근 20건) _(NAW-134)_
+- [x] 알림 클릭 시 해당 문서/댓글로 이동 _(NAW-134)_
+- [x] SSE 연결로 실시간 알림 수신 (30초 polling fallback 병행) _(NAW-134)_
+
+---
+
+### S3-3. 버전 Diff 비교
+
+> 이미 구현된 revision 데이터를 활용한 변경 이력 시각화
+
+**프론트엔드 구현 목록**
+- [ ] 버전 히스토리 페이지 — 두 revision 선택 후 diff 비교 뷰
+- [ ] 변경된 줄 하이라이트 (추가: 초록, 삭제: 빨강)
+- [ ] 특정 revision으로 롤백 버튼 (`POST /api/v1/documents/{id}/rollback`)
+
+**백엔드 구현 목록**
+- [ ] 두 revision 간 diff 계산 API (`GET /api/v1/documents/{id}/revisions/diff?from={v1}&to={v2}`)
+- [ ] 특정 revision으로 롤백 (`POST /api/v1/documents/{id}/rollback`) — 새 revision으로 생성
+
+---
+
+### S3-4. 문서 공유/권한 관리
+
+> 문서 단위 공개 범위 설정 + 공유 링크 생성
+
+**기획 확정 사항**
+
+| 공개 범위 | 설명 |
+|---|---|
+| PRIVATE | 작성자 본인만 |
+| WORKSPACE | 로그인 사용자 전체 |
+| PUBLIC | 비로그인 포함 누구나 (공유 링크) |
+
+**백엔드 구현 목록**
+- [ ] Document에 `visibility` 컬럼 추가 (PRIVATE / WORKSPACE / PUBLIC)
+- [ ] 공유 링크 생성 (`POST /api/v1/documents/{id}/share`) — 토큰 기반 URL 발급
+- [ ] 공유 링크 조회 (`GET /api/v1/share/{token}`) — 인증 불필요
+- [ ] 권한 체크 미들웨어 (SecurityConfig 업데이트)
+
+**프론트엔드 구현 목록**
+- [ ] 문서 설정 패널 — 공개 범위 선택 드롭다운
+- [ ] 공유 링크 복사 버튼
+- [ ] PUBLIC 문서 비로그인 뷰 (읽기 전용)
+
+---
+
+### S3-5. 대시보드/활동 피드
+
+> 팀의 지식 활동을 한눈에 파악
+
+**백엔드 구현 목록**
+- [ ] 활동 피드 API (`GET /api/v1/activity`) — 최근 문서 생성/수정/댓글, 페이지네이션
+- [ ] 통계 API (`GET /api/v1/stats`) — 전체 문서 수, 활성 사용자, 인기 태그 Top5, 최근 7일 문서 생성 추이
+
+**프론트엔드 구현 목록**
+- [ ] 대시보드 홈 페이지 (`/dashboard`) — 활동 피드 + 통계 카드
+- [ ] 인기 문서 Top5 위젯
+- [ ] 최근 7일 활동 그래프 (Recharts)
+
+---
+
+### S3-6. AI 고도화 — 연관 문서 추천
+
+> RAG 완료 후 확장: 현재 보고 있는 문서와 의미적으로 유사한 문서 추천
+
+**백엔드 구현 목록**
+- [ ] 연관 문서 추천 API (`GET /api/v1/documents/{id}/related`) — pgvector 코사인 유사도, 상위 5건
+- [ ] 추천 결과 캐싱 (Caffeine, TTL 10분)
+
+**프론트엔드 구현 목록**
+- [ ] 문서 상세 사이드바 — "연관 문서" 섹션 (최대 5건)
+- [ ] 연관 문서 클릭 시 해당 문서로 이동
+
+---
+
+### S3-7. 내보내기 (PDF / Markdown)
+
+> 문서 외부 공유 및 백업
+
+**백엔드 구현 목록**
+- [ ] Markdown 내보내기 (`GET /api/v1/documents/{id}/export?format=markdown`) — 원본 Markdown 파일 다운로드
+- [ ] PDF 내보내기 (`GET /api/v1/documents/{id}/export?format=pdf`) — Flying Saucer 또는 Playwright 활용
+
+**프론트엔드 구현 목록**
+- [ ] 문서 상세 — 내보내기 드롭다운 버튼 (Markdown / PDF)
+
+---
+
+## Phase 4: 유저 프로필 & 설정 (User Profile & Settings)
+
+### 기능 목표
+사용자가 자신의 프로필을 관리하고, 앱 사용 환경을 개인화할 수 있도록 한다.
+
+### 유저 스토리
+- 사용자는 자신의 이름, 이메일, 프로필 이미지를 설정할 수 있다.
+- 사용자는 비밀번호를 변경할 수 있다.
+- 사용자는 알림 설정(AI 처리 완료 알림, 문서 공유 알림 등)을 켜고 끌 수 있다.
+- 사용자는 에디터 기본 설정(기본 뷰 모드, 자동저장 간격 등)을 변경할 수 있다.
+- 사용자는 계정 탈퇴를 할 수 있다.
+
+### 구현 항목
+#### BE
+- [ ] `GET /api/v1/users/me` — 내 프로필 조회
+- [ ] `PUT /api/v1/users/me` — 프로필 수정 (이름, 프로필 이미지 URL)
+- [ ] `PUT /api/v1/users/me/password` — 비밀번호 변경
+- [ ] `GET /api/v1/users/me/settings` — 설정 조회
+- [ ] `PUT /api/v1/users/me/settings` — 설정 저장
+- [ ] `DELETE /api/v1/users/me` — 계정 탈퇴 (soft delete)
+- [ ] UserSettings 엔티티/테이블 설계
+
+#### FE
+- [ ] 프로필 페이지 (`/profile`) — 이름, 이메일, 프로필 이미지
+- [ ] 설정 페이지 (`/settings`) — 알림, 에디터, 계정 관리 탭
+- [ ] AppShell에 프로필 드롭다운 메뉴 (현재는 로그아웃만)
+- [ ] 비밀번호 변경 모달
+
+### Jira 티켓
+- NAW-122: [Epic] 유저 프로필 & 설정
+- NAW-123: [BE] 유저 프로필 API
+- NAW-124: [BE] 유저 설정 API
+- NAW-125: [FE] 프로필 & 설정 페이지
+
+---
+
+## Later (확장 로드맵)
+
+### 권한/공유 고도화
+- 팀/조직 단위 ACL, 문서 편집 초대
 
 ### 협업 고도화
-- 변경 diff, 알림/웹훅
+- 실시간 공동 편집 (CRDT 기반), 멘션(@user)
 
 ### 멀티 에이전트 확장
 - 정책 기반 에이전트 플러그인화

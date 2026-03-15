@@ -1,0 +1,18 @@
+---
+### 2026-03-16 10:00
+- **Agent:** Claude
+- **Task:** NAW-129 Refresh 토큰 회전(Rotation) + 탈취 감지 — 통합 테스트 추가 + FE 자동 재발급 인터셉터 구현
+- **Changes:**
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/domain/auth/RefreshTokenRotationTest.kt` — 신규 생성. UserAuthFacade 기반 회전/탈취 감지/만료/미존재 토큰 단위 테스트 5개 (TC1~TC5). Mockito mock-maker-inline 활용.
+  - `wiki-domain/src/test/resources/mockito-extensions/org.mockito.plugins.MockMaker` — Kotlin final class Mockito 지원을 위한 mock-maker-inline 설정 파일 추가.
+  - `frontend/src/lib/auth.ts` — `refreshAccessToken()` 함수 신규 추가. raw fetch로 /api/v1/auth/refresh 호출, 성공 시 새 토큰 저장(rotation), 실패 시 clearTokens().
+  - `frontend/src/lib/api.ts` — 401 자동 재발급 인터셉터 추가. `isRetry` 플래그로 무한루프 방지. 재발급 성공 시 원래 요청 재시도, 실패 시 /login 리다이렉트.
+  - `frontend/src/__tests__/auth-refresh.test.ts` — 신규 생성. refreshAccessToken 성공/실패/네트워크 오류/토큰 없음/rotation 검증 6개 테스트.
+  - `frontend/src/__tests__/api.test.ts` — 401 인터셉터 테스트 5개 추가. auth 모듈 mock 처리.
+- **Decisions:**
+  - BE 회전/탈취 감지 로직(UserAuthFacade.refresh)은 NAW-115에서 이미 완전 구현됨. 이번 PR은 누락된 테스트 + FE 연동 완성에 집중.
+  - `refreshAccessToken()`은 apiFetch 대신 raw fetch 사용 — apiFetch → refreshAccessToken → apiFetch 순환 호출을 방지하기 위함.
+  - api.ts의 401 인터셉터는 `isRetry=true` 플래그로 무한루프를 방지. 1회만 재시도.
+  - 재발급 성공 시 새 refreshToken도 함께 localStorage에 저장 (rotation 정책 준수).
+- **Next:** 없음. N-3 체크리스트 항목 전체 완료.
+---

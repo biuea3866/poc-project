@@ -1,11 +1,13 @@
 package com.biuea.wiki.worker.service
 
-import org.springframework.ai.chat.client.ChatClient
+import com.biuea.wiki.worker.client.AnthropicChatClient
+import com.biuea.wiki.worker.metrics.AiMetricsService
 import org.springframework.stereotype.Service
 
 @Service
 class SummaryService(
-    private val chatClient: ChatClient,
+    private val anthropicChatClient: AnthropicChatClient,
+    private val aiMetricsService: AiMetricsService,
 ) {
     fun summarize(title: String, content: String?): String {
         val prompt = """
@@ -17,10 +19,8 @@ class SummaryService(
             요약:
         """.trimIndent()
 
-        return chatClient.prompt()
-            .user(prompt)
-            .call()
-            .content()
+        aiMetricsService.recordAnthropicCall()
+        return anthropicChatClient.chat(prompt)
             ?: throw IllegalStateException("LLM 요약 응답이 비어있습니다.")
     }
 }

@@ -43,6 +43,13 @@ spring:
     caffeine:
       spec: maximumSize=1000,expireAfterWrite=300s
 
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      embedding:
+        options:
+          model: text-embedding-3-small
+
 datasource-vector:
   url: ${POSTGRES_URL:jdbc:postgresql://localhost:5432/wiki}
   username: ${POSTGRES_USERNAME:wiki_vector_user}

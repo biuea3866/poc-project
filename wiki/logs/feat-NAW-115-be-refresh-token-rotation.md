@@ -1,0 +1,21 @@
+---
+### 2026-03-15 12:00
+- **Agent:** Claude
+- **Task:** NAW-115 Refresh 토큰 회전(Rotation) 정책 구현
+- **Changes:**
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/domain/auth/RefreshToken.kt` — RefreshToken JPA 엔티티 생성 (id, token_hash, user_id, family_id, is_revoked, expires_at, created_at 필드, hashToken SHA-256 유틸 포함)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/auth/RefreshTokenRepository.kt` — JpaRepository 인터페이스 생성 (findByTokenHash, revokeAllByFamilyId, revokeAllByUserId 등)
+  - `docker/mysql/init.sql` — refresh_tokens 테이블 DDL 추가 (UK: token_hash, FK: user_id, INDEX: family_id, user_id)
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/application/UserAuthFacade.kt` — login 시 family_id 부여 및 DB 저장, refresh 시 rotation 로직(기존 revoke → 새 토큰 발급 동일 family), 탈취 감지(revoked 토큰 재사용 시 family 전체 무효화), logout/delete 시 DB revoke 처리
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/user/response/UserApiControllerResponse.kt` — RefreshResponse에 refreshToken 필드 추가 (rotation으로 새 토큰 반환)
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/user/UserApiController.kt` — refresh 엔드포인트 응답에 새 refreshToken 포함
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/config/SecurityConfig.kt` — `/api/admin/**` ADMIN 역할 제한 추가
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/domain/auth/RefreshTokenTest.kt` — RefreshToken 엔티티 단위 테스트 추가 (isValid, revoke, isExpired, hashToken 검증)
+- **Decisions:**
+  - Redis 기반 refresh token 저장에서 MySQL DB 기반으로 마이그레이션. Redis는 access token 블랙리스트 용도만 유지.
+  - family_id 개념 도입: 동일 로그인 세션에서 rotation된 토큰들은 같은 family_id를 공유. 탈취 감지 시 family 단위 전체 무효화.
+  - token_hash(SHA-256)로 저장하여 DB에 원문 토큰 노출 방지.
+  - refresh 응답에 새 refreshToken 포함 — 클라이언트는 매 refresh마다 새 토큰을 저장해야 함.
+  - RedisAuthTokenStore의 saveRefreshToken/validateRefreshToken/revokeRefreshToken은 더 이상 refresh token 관리에 사용하지 않음 (DB로 이전). blacklistAccessToken은 계속 사용.
+- **Next:** 없음 (구현 완료). 필요 시 Testcontainers 통합 테스트는 별도 티켓(NAW-119 등)에서 진행.
+---

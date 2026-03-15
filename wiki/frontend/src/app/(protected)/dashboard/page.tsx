@@ -4,7 +4,7 @@ import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { clearTokens } from "@/lib/auth";
-import { Document } from "@/types/document";
+import { Document, DocumentListResponse } from "@/types/document";
 import Link from "next/link";
 
 export default function DashboardPage() {
@@ -12,22 +12,10 @@ export default function DashboardPage() {
 
   const { data: documents, isLoading } = useQuery<Document[]>({
     queryKey: ["documents"],
-    queryFn: () => apiFetch<Document[]>("/api/v1/documents")
+    queryFn: () => apiFetch<DocumentListResponse>("/api/v1/documents").then(r => r.documents ?? [])
   });
 
-  // Flatten tree to get all documents for the grid
-  function flattenDocs(docs: Document[]): Document[] {
-    const result: Document[] = [];
-    for (const doc of docs) {
-      result.push(doc);
-      if (doc.children) {
-        result.push(...flattenDocs(doc.children));
-      }
-    }
-    return result;
-  }
-
-  const allDocs = documents ? flattenDocs(documents) : [];
+  const allDocs = documents ?? [];
 
   return (
     <div className="flex flex-col gap-6 animate-in">

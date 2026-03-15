@@ -2,14 +2,14 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
-import { Document } from "@/types/document";
+import { Document, DocumentListResponse } from "@/types/document";
 
 export default function TrashPage() {
   const queryClient = useQueryClient();
 
   const { data: trashDocs, isLoading } = useQuery<Document[]>({
     queryKey: ["trash"],
-    queryFn: () => apiFetch<Document[]>("/api/v1/documents?status=DELETED")
+    queryFn: () => apiFetch<DocumentListResponse>("/api/v1/documents/trash").then(r => r.documents ?? [])
   });
 
   const restoreMutation = useMutation({

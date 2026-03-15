@@ -1,0 +1,19 @@
+---
+### 2026-03-16 00:00
+- **Agent:** Claude
+- **Task:** NAW-128 Transactional Outbox 패턴 구현 — Kafka 발행 신뢰성 보장
+- **Changes:**
+  - `docker/mysql/init.sql` — `outbox_event` 테이블 스키마 추가
+  - `wiki-domain/src/main/kotlin/com/biuea/wiki/application/PublishDocumentFacade.kt` — 신규 생성 (OutboxKafkaPublisher를 통한 Kafka 발행)
+  - `wiki-api/src/main/kotlin/com/biuea/wiki/presentation/document/DocumentApiController.kt` — publishDocument/analyzeDocument가 PublishDocumentFacade 사용하도록 교체
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/domain/outbox/OutboxEventTest.kt` — OutboxEvent 단위 테스트 (AC1, AC3, AC4)
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/domain/outbox/OutboxServiceTest.kt` — OutboxService 단위 테스트 (AC5)
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/infrastructure/kafka/OutboxKafkaPublisherTest.kt` — OutboxKafkaPublisher 단위 테스트 (AC1, AC6)
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/infrastructure/kafka/OutboxSchedulerTest.kt` — OutboxScheduler 단위 테스트 (AC2, AC3, AC4)
+  - `wiki-domain/src/test/kotlin/com/biuea/wiki/application/PublishDocumentFacadeTest.kt` — PublishDocumentFacade 단위 테스트 (AC6)
+- **Decisions:**
+  - 기존 NAW-113, NAW-119에서 OutboxEvent, OutboxService, OutboxKafkaPublisher, OutboxScheduler, OutboxAdminController 구현이 이미 완료되었으나 DocumentApiController의 publishDocument/analyzeDocument가 KafkaTemplate을 직접 호출하지 않고 있었음. PublishDocumentFacade를 신규 생성하여 OutboxKafkaPublisher를 경유하도록 배선.
+  - outbox_event 테이블이 init.sql에 없어서 추가함. JPA ddl-auto=update이므로 로컬에서는 자동 생성되지만, 새 환경에서의 MySQL 초기화를 위해 추가 필요.
+  - 테스트는 Mockito를 사용한 단위 테스트로 작성. Spring 컨텍스트 로딩 없이 빠르게 실행 가능.
+- **Next:** 통합 테스트 (Testcontainers + Kafka) 작성이 필요하다면 추가 가능. ROADMAP.md의 N-1 체크리스트 항목을 [x]로 업데이트할 것.
+---

@@ -21,3 +21,28 @@
 - **Issues:** 없음
 - **Next:** 프론트엔드에서 임베딩 생성 후 호출하는 플로우 연동, 또는 서버사이드 임베딩 생성 엔드포인트 추가 검토
 ---
+
+---
+### 2026-03-16 10:00
+- **Agent:** Claude Sonnet 4.6
+- **Task:** RAG 시맨틱 검색 API 완성 — GET /semantic, GET /integrated?mode=HYBRID, RRF 랭킹, 태그 포함 응답 (NAW-130)
+- **Changes:**
+  - `wiki-domain/.../domain/search/SemanticSearchService.kt` — 새 파일. `semanticSearch()` (pgvector 코사인 유사도 + threshold), `integratedSearch()` (KEYWORD/SEMANTIC/HYBRID 모드), `hybridSearch()` (RRF k=60), `embed()` (OpenAI RestClient), `hybridSemanticQuery()` (오버라이드 가능 pgvector 쿼리)
+  - `wiki-domain/.../domain/search/SearchService.kt` — 변경 없음 (기존 LIKE 검색 유지)
+  - `wiki-domain/.../infrastructure/tag/TagDocumentMappingRepository.kt` — `findByDocumentIdIn()` JPQL 쿼리 추가
+  - `wiki-domain/src/main/resources/application.yml` — `spring.ai.openai.api-key/model` 추가, 중복 spring 키 수정
+  - `wiki-domain/build.gradle.kts` — `mockito-kotlin:5.4.0` 테스트 의존성 추가
+  - `wiki-api/.../presentation/search/SearchApiController.kt` — `GET /semantic`, `GET /integrated?mode=` 엔드포인트 추가, SemanticSearchService 주입
+  - `wiki-api/.../presentation/search/response/SemanticSearchResponse.kt` — 새 파일. documentId, title, snippet, similarity, tags 응답 DTO
+  - `wiki-api/build.gradle.kts` — h2, spring-security-test, mockito-kotlin 추가
+  - `wiki-domain/src/test/.../search/SemanticSearchServiceTest.kt` — 8개 단위 테스트 (TC-1~TC-8)
+  - `wiki-api/src/test/.../SemanticSearchIntegrationTest.kt` — 6개 통합 테스트 (TC-I-1~TC-I-6)
+  - `ROADMAP.md` — N-2 BE 체크리스트 5개 항목 [x] 완료 표시
+- **Decisions:**
+  - `SemanticSearchService.embed()`와 `hybridSemanticQuery()`를 `open` 메서드로 노출하여 테스트에서 오버라이드 가능하게 설계 (실제 OpenAI/pgvector 없이 단위 테스트 가능)
+  - RRF k=60 (표준값). HYBRID 모드는 keyword + semantic 각 최대 50건씩 fetch 후 merge
+  - TagDocumentMapping 엔티티 구조상 `document.id`로 그룹핑 (`findByDocumentIdIn` JPQL)
+  - 통합 테스트는 H2 + MockitoBean으로 외부 의존성 제거 (Spring Boot 4.x의 `@MockitoBean` 사용)
+- **Issues:** 없음
+- **Next:** FE 검색 탭 UI(NAW-116) 완료 후 E2E 연동 테스트
+---

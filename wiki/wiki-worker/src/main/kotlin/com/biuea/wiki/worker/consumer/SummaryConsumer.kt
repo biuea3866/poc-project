@@ -4,14 +4,17 @@ import com.biuea.wiki.domain.document.entity.DocumentStatus
 import com.biuea.wiki.domain.event.AiProcessingFailedEvent
 import com.biuea.wiki.domain.event.AiTaggingRequestEvent
 import com.biuea.wiki.domain.event.DocumentCreatedEvent
+import com.biuea.wiki.domain.outbox.OutboxService
 import com.biuea.wiki.infrastructure.document.DocumentRepository
 import com.biuea.wiki.infrastructure.kafka.KafkaTopic
+import com.biuea.wiki.infrastructure.kafka.OutboxScheduler
 import com.biuea.wiki.worker.service.SummaryService
 import com.fasterxml.jackson.databind.ObjectMapper
 import org.slf4j.LoggerFactory
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.support.Acknowledgment
+import org.springframework.messaging.handler.annotation.Header
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
 
@@ -26,6 +29,7 @@ class SummaryConsumer(
     private val summaryService: SummaryService,
     private val documentRepository: DocumentRepository,
     private val kafkaTemplate: KafkaTemplate<String, Any>,
+    private val outboxService: OutboxService,
     private val objectMapper: ObjectMapper,
 ) {
     private val log = LoggerFactory.getLogger(javaClass)
@@ -36,11 +40,15 @@ class SummaryConsumer(
         containerFactory = "kafkaListenerContainerFactory",
     )
     @Transactional
-    fun consume(payload: Map<String, Any>, ack: Acknowledgment) {
+    fun consume(
+        payload: Map<String, Any>,
+        ack: Acknowledgment,
+        @Header(name = OutboxScheduler.HEADER_OUTBOX_EVENT_ID, required = false) outboxEventId: String?,
+    ) {
         val event = objectMapper.convertValue(payload, DocumentCreatedEvent::class.java)
         log.info("[SUMMARY] 시작 documentId=${event.documentId}")
 
-        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.ACTIVE)
+        val document = documentRepository.findByIdAndStatus(event.documentId, DocumentStatus.PENDING)
             ?: run {
                 log.warn("[SUMMARY] 문서 없음 documentId=${event.documentId}")
                 ack.acknowledge()
@@ -64,8 +72,10 @@ class SummaryConsumer(
                 )
             )
             log.info("[SUMMARY] 완료 → queue.ai.tagging 발행 documentId=${event.documentId}")
+            outboxEventId?.toLongOrNull()?.let { outboxService.markSuccessById(it) }
         }.onFailure { e ->
             log.error("[SUMMARY] 실패 documentId=${event.documentId}", e)
+            outboxEventId?.toLongOrNull()?.let { outboxService.markFailedById(it, e.message ?: "unknown") }
             kafkaTemplate.send(
                 KafkaTopic.EVENT_AI_FAILED,
                 event.documentId.toString(),

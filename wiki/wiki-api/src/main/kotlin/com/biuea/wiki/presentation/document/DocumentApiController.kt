@@ -1,5 +1,6 @@
 package com.biuea.wiki.presentation.document
 
+import com.biuea.wiki.application.PublishDocumentFacade
 import com.biuea.wiki.application.SaveDocumentFacade
 import com.biuea.wiki.application.SaveDocumentInput
 import com.biuea.wiki.domain.auth.AuthenticatedUser
@@ -32,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 class DocumentApiController(
     private val documentService: DocumentService,
     private val saveDocumentFacade: SaveDocumentFacade,
+    private val publishDocumentFacade: PublishDocumentFacade,
 ) {
     @PostMapping
     fun createDocument(
@@ -170,13 +172,13 @@ class DocumentApiController(
         authentication: Authentication,
     ): ResponseEntity<DocumentResponse> {
         val principal = authentication.principal as AuthenticatedUser
-        val document = documentService.publishDocument(id, principal.id)
+        val document = publishDocumentFacade.publish(id, principal.id)
         return ResponseEntity.ok(DocumentResponse.from(document))
     }
 
     @PostMapping("/{id}/analyze")
     fun analyzeDocument(@PathVariable id: Long): ResponseEntity<DocumentResponse> {
-        val document = documentService.publishDocument(id)
+        val document = publishDocumentFacade.reanalyze(id)
         return ResponseEntity.ok(DocumentResponse.from(document))
     }
 }

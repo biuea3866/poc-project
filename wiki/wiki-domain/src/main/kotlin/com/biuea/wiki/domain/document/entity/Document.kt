@@ -98,6 +98,18 @@ class Document(
         this.status = DocumentStatus.COMPLETED
     }
 
+    fun startAiProcessing() {
+        // AI 처리 시작 — 상태는 PENDING 유지 (로그는 AiAgentLog로 추적)
+    }
+
+    fun completeAiProcessing() {
+        this.status = DocumentStatus.COMPLETED
+    }
+
+    fun failAiProcessing() {
+        this.status = DocumentStatus.FAILED
+    }
+
     fun update(title: String, content: String?, updatedBy: Long) {
         this.title = title
         this.content = content

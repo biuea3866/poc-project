@@ -4,6 +4,7 @@ import com.biuea.wiki.security.JwtAuthenticationFilter
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 import org.springframework.http.HttpMethod
+import org.springframework.http.HttpStatus
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
@@ -12,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
 import org.springframework.security.web.authentication.HttpStatusEntryPoint
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter
-import org.springframework.http.HttpStatus
 
 @Configuration
 @EnableWebSecurity
@@ -26,7 +26,7 @@ class SecurityConfig(
             .cors { cors ->
                 cors.configurationSource {
                     val config = org.springframework.web.cors.CorsConfiguration()
-                    config.allowedOrigins = listOf("http://localhost:3001", "http://localhost:3002")
+                    config.allowedOriginPatterns = listOf("http://localhost:*")
                     config.allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                     config.allowedHeaders = listOf("*")
                     config.allowCredentials = true
@@ -41,10 +41,14 @@ class SecurityConfig(
                 it.requestMatchers(HttpMethod.GET, "/api/v1/tags/types").permitAll()
                 it.requestMatchers("/actuator/health", "/actuator/info", "/actuator/prometheus").permitAll()
                 it.requestMatchers("/error").permitAll()
+                it.requestMatchers("/api/admin/**").hasRole("ADMIN")
                 it.anyRequest().authenticated()
             }
             .exceptionHandling {
                 it.authenticationEntryPoint(HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED))
+                it.accessDeniedHandler { _, response, _ ->
+                    response.sendError(HttpStatus.FORBIDDEN.value(), HttpStatus.FORBIDDEN.reasonPhrase)
+                }
             }
             .httpBasic { it.disable() }
             .formLogin { it.disable() }

@@ -4,6 +4,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiFetch } from "@/lib/api";
 import { Document, Tag, DocumentSummary } from "@/types/document";
 import MarkdownRenderer from "@/components/MarkdownRenderer";
+import CommentSection from "@/components/CommentSection";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 
@@ -231,6 +232,9 @@ export default function DocumentPage() {
       <article className="min-h-[400px]">
         <MarkdownRenderer content={document.content || ""} />
       </article>
+
+      {/* Comment Section */}
+      <CommentSection documentId={Number(id)} />
 
       {/* Footer */}
       <footer className="flex items-center justify-between border-t border-line pt-8 text-sm text-muted">

@@ -48,6 +48,30 @@ flag_project/wiki/worktrees/feat-fe/            ← feat/fe 브랜치
 - API 명세가 바뀌면 `requirement.md`의 API 명세 섹션도 함께 수정한다.
 - 변경 내용은 작업 완료 후 로그의 **Decisions** 항목에 이유와 함께 기록한다.
 
+### 5. TDD 필수 규칙 (모든 구현에 적용)
+
+**모든 PR은 반드시 테스트 코드를 포함해야 한다. 테스트 없는 PR은 머지 금지.**
+
+#### BE (Kotlin/Spring Boot)
+- 신규 엔티티/서비스/컨트롤러 → 단위 테스트 (`*Test.kt`) 필수
+- API 엔드포인트 추가/변경 → 통합 테스트 (`*IntegrationTest.kt`) 필수
+- 테스트 위치: `src/test/kotlin/com/biuea/wiki/`
+- 커버리지 최소 60% (JaCoCo)
+
+#### FE (Next.js/TypeScript)
+- 신규 컴포넌트 → 컴포넌트 테스트 (`*.test.tsx`) 필수
+- 신규 유틸/훅 → 단위 테스트 (`*.test.ts`) 필수
+- 테스트 위치: `src/__tests__/` 또는 `src/**/*.test.{ts,tsx}`
+- 커버리지 최소 70% (Jest)
+
+#### Jira 테스트 케이스 연동
+1. 구현 시작 전 Jira 티켓의 Acceptance Criteria를 테스트 케이스로 변환
+2. 각 테스트 케이스마다 테스트 함수 1개 이상 작성
+3. PR 설명의 **Test Cases** 섹션에 테스트 케이스 ↔ 테스트 파일 매핑 기재
+4. 파이프라인(`tdd-check.yml`)이 자동으로 검증
+
+---
+
 ### 4. 작업 완료 후
 1. `logs/{브랜치명}.md`에 아래 형식으로 **append** 기록한다.
 2. 절대로 이전 기록을 삭제하거나 수정하지 않는다.
