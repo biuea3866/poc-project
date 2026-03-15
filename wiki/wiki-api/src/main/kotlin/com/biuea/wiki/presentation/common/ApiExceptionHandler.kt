@@ -1,6 +1,9 @@
 package com.biuea.wiki.presentation.common
 
 import com.biuea.wiki.domain.auth.exception.InvalidRefreshTokenException
+import com.biuea.wiki.domain.comment.exception.CommentNotFoundException
+import com.biuea.wiki.domain.comment.exception.CommentNotOwnedException
+import com.biuea.wiki.domain.comment.exception.CommentOnInactiveDocumentException
 import com.biuea.wiki.domain.user.exception.InvalidCredentialsException
 import com.biuea.wiki.domain.user.exception.UserAlreadyExistsException
 import com.biuea.wiki.domain.user.exception.UserNotFoundException
@@ -26,6 +29,18 @@ class ApiExceptionHandler {
     @ExceptionHandler(InvalidRefreshTokenException::class)
     fun handleInvalidRefreshToken(ex: InvalidRefreshTokenException): ResponseEntity<ErrorResponse> =
         ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(ErrorResponse(ex.message ?: "Invalid refresh token"))
+
+    @ExceptionHandler(CommentNotFoundException::class)
+    fun handleCommentNotFound(ex: CommentNotFoundException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.NOT_FOUND).body(ErrorResponse(ex.message ?: "Comment not found"))
+
+    @ExceptionHandler(CommentNotOwnedException::class)
+    fun handleCommentNotOwned(ex: CommentNotOwnedException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorResponse(ex.message ?: "Not authorized to modify this comment"))
+
+    @ExceptionHandler(CommentOnInactiveDocumentException::class)
+    fun handleCommentOnInactiveDocument(ex: CommentOnInactiveDocumentException): ResponseEntity<ErrorResponse> =
+        ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY).body(ErrorResponse(ex.message ?: "Document is not active"))
 
     @ExceptionHandler(IllegalArgumentException::class)
     fun handleIllegalArgument(ex: IllegalArgumentException): ResponseEntity<ErrorResponse> =
