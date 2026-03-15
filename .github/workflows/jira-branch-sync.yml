@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - 'feat/**'
+      - development
       - main
   pull_request:
     types: [opened, reopened, closed, synchronize]
