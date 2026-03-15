@@ -25,6 +25,18 @@ export async function apiFetch<T>(
   });
 
   if (!response.ok) {
+    // 401/403 → 토큰 제거 후 로그인 페이지로 리다이렉트
+    if (
+      (response.status === 401 || response.status === 403) &&
+      typeof window !== "undefined"
+    ) {
+      window.localStorage.removeItem("accessToken");
+      window.localStorage.removeItem("refreshToken");
+      window.location.href = "/login";
+      // 리다이렉트 후 이어지는 코드 실행 방지
+      return new Promise<T>(() => {});
+    }
+
     const body = await safeJson(response);
     const message =
       body?.message || body?.error || `Request failed (${response.status})`;

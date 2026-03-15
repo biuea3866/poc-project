@@ -16,7 +16,10 @@ const config: Config = {
         "accent-light": "#eef2ff",
         success: "#12b886",
         warning: "#f59e0b",
-        danger: "#ef4444"
+        danger: "#ef4444",
+        disabled: "#adb5bd",
+        "border-line": "#e9ecef",
+        "border-hover": "#dee2e6"
       },
       boxShadow: {
         sm: "0 1px 2px rgba(0,0,0,0.05)",
