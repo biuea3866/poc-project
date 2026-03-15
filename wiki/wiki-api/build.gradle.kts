@@ -32,10 +32,7 @@ dependencies {
     runtimeOnly("io.opentelemetry:opentelemetry-exporter-otlp")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")
-<<<<<<< HEAD
     testImplementation("org.springframework.security:spring-security-test")
-=======
->>>>>>> origin/main
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5")
     testImplementation("org.mockito.kotlin:mockito-kotlin:5.4.0")
     testRuntimeOnly("com.h2database:h2")
@@ -50,10 +47,7 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
-<<<<<<< HEAD
     finalizedBy(tasks.jacocoTestReport)
-=======
->>>>>>> origin/main
     testLogging {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
         showExceptions = true
@@ -61,7 +55,6 @@ tasks.withType<Test> {
         showStackTraces = true
         events("failed")
     }
-<<<<<<< HEAD
 }
 
 tasks.jacocoTestReport {
@@ -83,6 +76,4 @@ tasks.jacocoTestCoverageVerification {
             }
         }
     }
-=======
->>>>>>> origin/main
 }

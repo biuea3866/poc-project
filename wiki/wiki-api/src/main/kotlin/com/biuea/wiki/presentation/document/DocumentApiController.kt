@@ -172,11 +172,7 @@ class DocumentApiController(
         authentication: Authentication,
     ): ResponseEntity<DocumentResponse> {
         val principal = authentication.principal as AuthenticatedUser
-<<<<<<< HEAD
         val document = publishDocumentFacade.publish(id, principal.id)
-=======
-        val document = documentService.publishDocument(id, principal.id)
->>>>>>> origin/main
         return ResponseEntity.ok(DocumentResponse.from(document))
     }
 
