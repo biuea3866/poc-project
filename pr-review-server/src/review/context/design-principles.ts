@@ -1,0 +1,145 @@
+import type { DesignPrinciple } from '../types.js';
+
+/**
+ * 리뷰 규칙: 비즈니스 로직 위반, 버그 우려, 성능 우려 중심.
+ * 코드 컨벤션(네이밍, 포매팅, 테스트 프레임워크 선택 등)은 제외.
+ */
+export const DESIGN_PRINCIPLES: DesignPrinciple[] = [
+  // ── 버그 우려 ──────────────────────────────────────────────────
+  {
+    category: '버그',
+    ruleId: 'bug.empty_catch',
+    name: '빈 catch 블록',
+    description: '예외를 삼키면 장애 원인을 찾을 수 없어요. 최소 로그라도 남겨야 해요.',
+    filePattern: /\.kt$/,
+    violationPattern: /catch\s*\([^)]+\)\s*\{\s*\}/,
+    severity: 'P2',
+    suggestion: 'catch 블록에 logger.error()를 추가해주세요.',
+  },
+  {
+    category: '버그',
+    ruleId: 'bug.resource_leak',
+    name: '리소스 미해제',
+    description: 'Stream/Connection을 .use {} 없이 쓰면 커넥션 풀 고갈이나 메모리 누수로 이어져요.',
+    filePattern: /\.kt$/,
+    violationPattern: /(?:InputStream|OutputStream|Connection|BufferedReader)\s*(?:=|:)(?!.*\.use\b)/,
+    severity: 'P2',
+    suggestion: '.use { } 블록으로 감싸주세요.',
+  },
+  {
+    category: '버그',
+    ruleId: 'bug.associateby_overwrite',
+    name: 'associateBy 덮어쓰기 위험',
+    description: 'associateBy는 키가 중복되면 마지막 값만 남아요. 데이터 유실 가능성이 있어요.',
+    filePattern: /\.kt$/,
+    violationPattern: /\.associateBy\s*\{/,
+    severity: 'ASK',
+    suggestion: '키 중복이 발생할 수 있는 상황인지 확인해주세요. groupBy가 더 안전할 수 있어요.',
+  },
+  {
+    category: '버그',
+    ruleId: 'bug.mutable_shared_state',
+    name: '공유 가변 상태',
+    description: '여러 스레드에서 접근할 수 있는 mutable 컬렉션은 동시성 버그를 만들어요.',
+    filePattern: /\.kt$/,
+    violationPattern: /(?:mutableListOf|mutableMapOf|mutableSetOf|ArrayList|HashMap)\s*\(/,
+    severity: 'ASK',
+    suggestion: '이 mutable 컬렉션이 멀티스레드에서 접근될 수 있는지 확인해주세요.',
+  },
+
+  // ── 성능 우려 ──────────────────────────────────────────────────
+  {
+    category: '성능',
+    ruleId: 'perf.n_plus_1',
+    name: 'for 루프 안에서 DB 조회',
+    description: '루프마다 DB 호출은 N+1 문제예요. 데이터가 늘면 응답이 급격히 느려져요.',
+    filePattern: /\.kt$/,
+    violationPattern: /for\s*\(.*\)\s*\{[^}]*(?:repository|Repository)\.[a-z]/s,
+    severity: 'P2',
+    suggestion: 'IN 절로 한 번에 조회하거나 fetch join을 사용해주세요.',
+  },
+  {
+    category: '성능',
+    ruleId: 'perf.find_all_no_page',
+    name: 'findAll() 페이지네이션 없음',
+    description: '데이터가 수만 건이 되면 OOM이 날 수 있어요.',
+    filePattern: /\.kt$/,
+    violationPattern: /\.findAll\s*\(\s*\)/,
+    severity: 'P2',
+    suggestion: 'Pageable이나 Slice를 사용해주세요.',
+  },
+  {
+    category: '성능',
+    ruleId: 'perf.no_index_hint',
+    name: '대량 조회 쿼리',
+    description: '새 테이블/컬럼 추가 시 인덱스 전략이 빠져있을 수 있어요.',
+    filePattern: /\.sql$/i,
+    violationPattern: /CREATE\s+TABLE/i,
+    severity: 'ASK',
+    suggestion: '이 테이블의 주요 조회 패턴에 맞는 인덱스가 설계되어 있는지 확인해주세요.',
+  },
+
+  // ── 보안 ───────────────────────────────────────────────────────
+  {
+    category: '보안',
+    ruleId: 'security.sql_injection',
+    name: 'SQL 문자열 연결',
+    description: 'SQL을 문자열로 이어 붙이면 SQL Injection 공격에 노출돼요.',
+    filePattern: /\.kt$/,
+    violationPattern: /(?:\"SELECT|\"INSERT|\"UPDATE|\"DELETE).*\+\s*(?!\")/i,
+    severity: 'P1',
+    suggestion: 'QueryDSL이나 @Query 파라미터 바인딩을 사용해주세요.',
+  },
+  {
+    category: '보안',
+    ruleId: 'security.credential_exposure',
+    name: '비밀번호/토큰 하드코딩',
+    description: '시크릿이 코드에 직접 들어가면 git history에 영구히 남아요.',
+    filePattern: /\.kt$|\.properties$|\.yml$/,
+    violationPattern: /(?:password|secret|token|apiKey)\s*[=:]\s*["'][^${}*"']+["']/i,
+    severity: 'P1',
+    suggestion: '환경 변수나 Vault로 관리해주세요.',
+  },
+  {
+    category: '보안',
+    ruleId: 'security.missing_auth_check',
+    name: '권한 체크 누락 가능성',
+    description: '새 API 엔드포인트에 권한 체크가 없으면 비인가 접근이 가능해요.',
+    filePattern: /Controller\.kt$/,
+    violationPattern: /(?:@PostMapping|@PutMapping|@DeleteMapping|@PatchMapping)(?![\s\S]{0,200}@Authorization)/s,
+    severity: 'ASK',
+    suggestion: '이 엔드포인트에 @Authorization 또는 권한 체크가 의도적으로 빠진 건지 확인해주세요.',
+  },
+
+  // ── 비즈니스 로직 ──────────────────────────────────────────────
+  {
+    category: '비즈니스',
+    ruleId: 'biz.cross_bc_dependency',
+    name: '다른 도메인 직접 참조',
+    description: '다른 Bounded Context의 Repository를 직접 쓰면 도메인 간 결합이 생겨요.',
+    filePattern: /(?:Service|Handler|Listener)\.kt$/,
+    violationPattern: /import\s+doodlin\.greeting\.(\w+)\..*Repository/,
+    severity: 'ASK',
+    suggestion: '의도한 건지 확인해주세요. 다른 도메인은 Facade나 Internal API를 통하는 게 좋아요.',
+  },
+  {
+    category: '비즈니스',
+    ruleId: 'biz.transaction_boundary',
+    name: '긴 트랜잭션 우려',
+    description: '외부 API 호출이나 Kafka 발행이 트랜잭션 안에 있으면 DB 락이 오래 잡혀요.',
+    filePattern: /\.kt$/,
+    violationPattern: /@Transactional[\s\S]{0,500}(?:restTemplate|webClient|feignClient|kafkaTemplate\.send)/s,
+    severity: 'P2',
+    suggestion: '외부 호출은 트랜잭션 밖에서 하거나, @TransactionalEventListener(AFTER_COMMIT)을 사용해주세요.',
+  },
+  {
+    category: '비즈니스',
+    ruleId: 'biz.missing_error_handling',
+    name: '외부 호출 에러 처리 없음',
+    description: '외부 API 호출이 실패했을 때 처리가 없으면 사용자에게 500 에러가 전파돼요.',
+    filePattern: /\.kt$/,
+    violationPattern: /(?:restTemplate|webClient|feignClient)\.\w+\([^)]*\)(?![\s\S]{0,100}catch)/s,
+    severity: 'P3',
+    suggestion: '외부 호출에 try-catch나 fallback 처리를 추가해주세요.',
+  },
+];

@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PR Review Dashboard</title>
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <span>PR Reviews</span>
+      <span class="count" id="review-count">0</span>
+    </div>
+    <div class="review-list" id="review-list"></div>
+  </div>
+
+  <div class="main">
+    <div id="empty-state" class="empty-state">
+      <div class="icon">&#128269;</div>
+      <div class="text">PR Review를 선택하세요</div>
+      <div class="text" style="font-size:12px;color:var(--text-muted)">Webhook이 PR 이벤트를 수신하면 자동으로 리뷰가 생성됩니다</div>
+    </div>
+
+    <div id="review-detail" style="display:none;height:100%;flex-direction:column;">
+      <div class="main-header">
+        <h2 id="detail-title"></h2>
+        <div class="info">
+          <span id="detail-repo"></span>
+          <span id="detail-branch"></span>
+          <span id="detail-author"></span>
+          <span id="detail-size"></span>
+        </div>
+        <div class="severity-summary" id="detail-severity" style="margin-top:8px"></div>
+      </div>
+
+      <div class="main-body">
+        <div class="review-body-section">
+          <h3>Review Body</h3>
+          <textarea class="review-body-editor" id="review-body-editor"></textarea>
+        </div>
+
+        <div style="margin-bottom:16px">
+          <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:8px">Event</h3>
+          <div class="event-selector" id="event-selector">
+            <input type="radio" name="event" value="APPROVE" id="evt-approve">
+            <label for="evt-approve">APPROVE</label>
+            <input type="radio" name="event" value="COMMENT" id="evt-comment">
+            <label for="evt-comment">COMMENT</label>
+            <input type="radio" name="event" value="REQUEST_CHANGES" id="evt-request">
+            <label for="evt-request">REQUEST_CHANGES</label>
+          </div>
+        </div>
+
+        <div id="summary-findings" style="margin-bottom:24px"></div>
+
+        <h3 style="font-size:14px;color:var(--text-secondary);margin-bottom:12px">Files Changed</h3>
+        <div id="diff-container"></div>
+      </div>
+
+      <div class="action-bar">
+        <span id="action-status" style="font-size:12px;color:var(--text-secondary)"></span>
+        <div style="display:flex;gap:8px;align-items:center">
+          <span id="review-request-info" style="font-size:11px;color:var(--text-muted);max-width:400px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title=""></span>
+          <button class="btn btn-secondary" id="btn-save">Save Changes</button>
+          <button class="btn btn-primary" id="btn-publish">Post Review to GitHub</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="scroll-top-btn" id="scroll-top-btn" onclick="document.querySelector('.main-body').scrollTo({top:0,behavior:'smooth'})">&#8593;</button>
+  <div class="toast-container" id="toast-container"></div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>

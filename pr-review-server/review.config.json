@@ -1,0 +1,51 @@
+{
+  "architecture": {
+    "pattern": "hexagonal",
+    "layers": {
+      "presentation": "presentation/api/",
+      "application": "business/application/",
+      "domain": "business/domain/",
+      "adaptor": "adaptor/"
+    }
+  },
+  "languageRules": {
+    "kotlin": {
+      "noScheduled": true,
+      "entityEncapsulation": true,
+      "thinService": true,
+      "facadePattern": true,
+      "simpleRuntimeConfig": true
+    },
+    "sql": {
+      "noForeignKey": true,
+      "noJsonType": true,
+      "noEnumType": true,
+      "noBoolean": true,
+      "commentRequired": true,
+      "datetimePrecision": true
+    }
+  },
+  "crossRepo": {
+    "greeting-new-back": ["greeting-aggregator", "greeting-communication", "greeting-api-gateway"],
+    "greeting-aggregator": ["greeting-new-back", "greeting_payment-server"],
+    "greeting_payment-server": ["greeting-aggregator", "greeting-new-back"],
+    "doodlin-commons": ["greeting-new-back", "greeting-aggregator", "greeting_payment-server"],
+    "spring-kafka": ["greeting-new-back", "greeting-communication"],
+    "greeting-db-schema": ["greeting-new-back", "greeting_payment-server"]
+  },
+  "companionFiles": {
+    "Service.kt": ["ServiceTest.kt"],
+    "Controller.kt": ["ControllerTest.kt"],
+    "Facade.kt": ["FacadeTest.kt"],
+    "V*.sql": ["*.kt"]
+  },
+  "ignorePaths": [
+    "node_modules/",
+    ".gradle/",
+    "build/",
+    ".idea/",
+    "*.generated.*",
+    "*.min.js",
+    "*.min.css"
+  ]
+}
