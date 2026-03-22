@@ -2,24 +2,32 @@ package com.closet.bff.facade
 
 import com.closet.bff.client.ProductServiceClient
 import com.closet.bff.dto.HomeBffResponse
-import com.closet.bff.dto.ProductSearchParams
 import org.springframework.stereotype.Service
-import reactor.core.publisher.Mono
+import java.util.concurrent.CompletableFuture
+import java.util.concurrent.Executors
 
 @Service
 class HomeBffFacade(
     private val productClient: ProductServiceClient,
 ) {
-    fun getHome(): HomeBffResponse {
-        val rankingsMono = productClient.getProducts(ProductSearchParams(page = 0, size = 10, sort = "popular"))
-        val newArrivalsMono = productClient.getProducts(ProductSearchParams(page = 0, size = 10, sort = "newest"))
+    private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
-        val result = Mono.zip(rankingsMono, newArrivalsMono).block()!!
+    fun getHome(): HomeBffResponse {
+        val rankingsFuture = CompletableFuture.supplyAsync(
+            { productClient.getProducts(categoryId = null, brandId = null, minPrice = null, maxPrice = null, page = 0, size = 10, sort = "popular") },
+            executor,
+        )
+        val newArrivalsFuture = CompletableFuture.supplyAsync(
+            { productClient.getProducts(categoryId = null, brandId = null, minPrice = null, maxPrice = null, page = 0, size = 10, sort = "newest") },
+            executor,
+        )
+
+        CompletableFuture.allOf(rankingsFuture, newArrivalsFuture).join()
 
         return HomeBffResponse(
             banners = null, // Phase 3
-            rankings = result.t1.content,
-            newArrivals = result.t2.content,
+            rankings = rankingsFuture.get().data?.content ?: emptyList(),
+            newArrivals = newArrivalsFuture.get().data?.content ?: emptyList(),
             exhibitions = null, // Phase 3
         )
     }

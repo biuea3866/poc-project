@@ -7,77 +7,40 @@ import com.closet.bff.dto.MemberResponse
 import com.closet.bff.dto.RegisterRequest
 import com.closet.bff.dto.ShippingAddressResponse
 import com.closet.bff.dto.UpdateAddressRequest
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
+import com.closet.common.response.ApiResponse
+import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
 
-@Component
-class MemberServiceClient(
-    @Value("\${service.member.url}") private val baseUrl: String,
-) {
-    private val webClient: WebClient by lazy {
-        WebClient.builder().baseUrl(baseUrl).build()
-    }
+@FeignClient(name = "member-service", url = "\${service.member.url}")
+interface MemberServiceClient {
 
-    fun getMember(memberId: Long): Mono<MemberResponse> {
-        return webClient.get()
-            .uri("/members/{id}", memberId)
-            .retrieve()
-            .bodyToMono(MemberResponse::class.java)
-    }
+    @GetMapping("/members/{id}")
+    fun getMember(@PathVariable id: Long): ApiResponse<MemberResponse>
 
-    fun getAddresses(memberId: Long): Mono<List<ShippingAddressResponse>> {
-        return webClient.get()
-            .uri("/members/{id}/addresses", memberId)
-            .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<List<ShippingAddressResponse>>() {})
-    }
+    @GetMapping("/members/{memberId}/addresses")
+    fun getAddresses(@PathVariable memberId: Long): ApiResponse<List<ShippingAddressResponse>>
 
-    fun register(request: RegisterRequest): Mono<MemberResponse> {
-        return webClient.post()
-            .uri("/members/register")
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(MemberResponse::class.java)
-    }
+    @PostMapping("/members/register")
+    fun register(@RequestBody request: RegisterRequest): ApiResponse<MemberResponse>
 
-    fun login(request: LoginRequest): Mono<LoginResponse> {
-        return webClient.post()
-            .uri("/members/login")
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(LoginResponse::class.java)
-    }
+    @PostMapping("/members/login")
+    fun login(@RequestBody request: LoginRequest): ApiResponse<LoginResponse>
 
-    fun addAddress(memberId: Long, request: AddAddressRequest): Mono<ShippingAddressResponse> {
-        return webClient.post()
-            .uri("/members/{id}/addresses", memberId)
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(ShippingAddressResponse::class.java)
-    }
+    @PostMapping("/members/{memberId}/addresses")
+    fun addAddress(@PathVariable memberId: Long, @RequestBody request: AddAddressRequest): ApiResponse<ShippingAddressResponse>
 
-    fun updateAddress(memberId: Long, addressId: Long, request: UpdateAddressRequest): Mono<ShippingAddressResponse> {
-        return webClient.put()
-            .uri("/members/{memberId}/addresses/{addressId}", memberId, addressId)
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(ShippingAddressResponse::class.java)
-    }
+    @PutMapping("/members/{memberId}/addresses/{addressId}")
+    fun updateAddress(@PathVariable memberId: Long, @PathVariable addressId: Long, @RequestBody request: UpdateAddressRequest): ApiResponse<ShippingAddressResponse>
 
-    fun deleteAddress(memberId: Long, addressId: Long): Mono<Void> {
-        return webClient.delete()
-            .uri("/members/{memberId}/addresses/{addressId}", memberId, addressId)
-            .retrieve()
-            .bodyToMono(Void::class.java)
-    }
+    @DeleteMapping("/members/{memberId}/addresses/{addressId}")
+    fun deleteAddress(@PathVariable memberId: Long, @PathVariable addressId: Long)
 
-    fun setDefaultAddress(memberId: Long, addressId: Long): Mono<ShippingAddressResponse> {
-        return webClient.patch()
-            .uri("/members/{memberId}/addresses/{addressId}/default", memberId, addressId)
-            .retrieve()
-            .bodyToMono(ShippingAddressResponse::class.java)
-    }
+    @PatchMapping("/members/{memberId}/addresses/{addressId}/default")
+    fun setDefaultAddress(@PathVariable memberId: Long, @PathVariable addressId: Long): ApiResponse<ShippingAddressResponse>
 }

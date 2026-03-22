@@ -1,40 +1,22 @@
 package com.closet.bff.client
 
-import com.closet.bff.dto.ConfirmPaymentRequest
 import com.closet.bff.dto.PaymentResponse
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
+import com.closet.common.response.ApiResponse
+import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 
-@Component
-class PaymentServiceClient(
-    @Value("\${service.payment.url}") private val baseUrl: String,
-) {
-    private val webClient: WebClient by lazy {
-        WebClient.builder().baseUrl(baseUrl).build()
-    }
+@FeignClient(name = "payment-service", url = "\${service.payment.url}")
+interface PaymentServiceClient {
 
-    fun getPaymentByOrderId(orderId: Long): Mono<PaymentResponse> {
-        return webClient.get()
-            .uri("/payments?orderId={orderId}", orderId)
-            .retrieve()
-            .bodyToMono(PaymentResponse::class.java)
-    }
+    @GetMapping("/payments/orders/{orderId}")
+    fun getPaymentByOrderId(@PathVariable orderId: Long): ApiResponse<PaymentResponse>
 
-    fun confirmPayment(request: ConfirmPaymentRequest): Mono<PaymentResponse> {
-        return webClient.post()
-            .uri("/payments/confirm")
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(PaymentResponse::class.java)
-    }
+    @PostMapping("/payments/confirm")
+    fun confirmPayment(@RequestBody request: Any): ApiResponse<PaymentResponse>
 
-    fun cancelPayment(paymentId: Long, reason: String): Mono<PaymentResponse> {
-        return webClient.post()
-            .uri("/payments/{id}/cancel", paymentId)
-            .bodyValue(mapOf("reason" to reason))
-            .retrieve()
-            .bodyToMono(PaymentResponse::class.java)
-    }
+    @PostMapping("/payments/{id}/cancel")
+    fun cancelPayment(@PathVariable id: Long, @RequestBody request: Any): ApiResponse<PaymentResponse>
 }

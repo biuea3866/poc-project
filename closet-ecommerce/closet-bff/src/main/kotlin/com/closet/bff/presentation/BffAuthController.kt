@@ -16,9 +16,9 @@ class BffAuthController(
 ) {
     @PostMapping("/register")
     fun register(@RequestBody request: RegisterRequest) =
-        ApiResponse.created(memberClient.register(request).block()!!)
+        ApiResponse.created(memberClient.register(request).data!!)
 
     @PostMapping("/login")
     fun login(@RequestBody request: LoginRequest) =
-        ApiResponse.ok(memberClient.login(request).block()!!)
+        ApiResponse.ok(memberClient.login(request).data!!)
 }

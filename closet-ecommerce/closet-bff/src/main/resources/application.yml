@@ -4,6 +4,9 @@ server:
 spring:
   application:
     name: closet-bff
+  threads:
+    virtual:
+      enabled: true
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

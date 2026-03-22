@@ -24,21 +24,21 @@ class BffAddressController(
     fun addAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @RequestBody request: AddAddressRequest,
-    ) = ApiResponse.created(memberClient.addAddress(memberId, request).block()!!)
+    ) = ApiResponse.created(memberClient.addAddress(memberId, request).data!!)
 
     @PutMapping("/{id}")
     fun updateAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
         @RequestBody request: UpdateAddressRequest,
-    ) = ApiResponse.ok(memberClient.updateAddress(memberId, id, request).block()!!)
+    ) = ApiResponse.ok(memberClient.updateAddress(memberId, id, request).data!!)
 
     @DeleteMapping("/{id}")
     fun deleteAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
-        memberClient.deleteAddress(memberId, id).block()
+        memberClient.deleteAddress(memberId, id)
         return ResponseEntity.noContent().build()
     }
 
@@ -46,5 +46,5 @@ class BffAddressController(
     fun setDefault(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
-    ) = ApiResponse.ok(memberClient.setDefaultAddress(memberId, id).block()!!)
+    ) = ApiResponse.ok(memberClient.setDefaultAddress(memberId, id).data!!)
 }

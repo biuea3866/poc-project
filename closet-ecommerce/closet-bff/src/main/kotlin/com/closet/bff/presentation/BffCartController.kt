@@ -23,17 +23,17 @@ class BffCartController(
     fun addCartItem(
         @RequestHeader("X-Member-Id") memberId: Long,
         @RequestBody request: AddCartItemRequest,
-    ) = ApiResponse.created(orderClient.addCartItem(memberId, request).block()!!)
+    ) = ApiResponse.created(orderClient.addCartItem(memberId, request).data!!)
 
     @PutMapping("/items/{itemId}")
     fun updateCartItem(
         @PathVariable itemId: Long,
         @RequestBody request: UpdateQuantityRequest,
-    ) = ApiResponse.ok(orderClient.updateCartItemQuantity(itemId, request.quantity).block()!!)
+    ) = ApiResponse.ok(orderClient.updateCartItemQuantity(itemId, mapOf("quantity" to request.quantity)).data!!)
 
     @DeleteMapping("/items/{itemId}")
     fun removeCartItem(@PathVariable itemId: Long): ResponseEntity<Void> {
-        orderClient.removeCartItem(itemId).block()
+        orderClient.removeCartItem(itemId)
         return ResponseEntity.noContent().build()
     }
 }

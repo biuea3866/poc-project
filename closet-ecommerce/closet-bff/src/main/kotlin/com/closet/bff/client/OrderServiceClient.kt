@@ -1,89 +1,48 @@
 package com.closet.bff.client
 
 import com.closet.bff.dto.AddCartItemRequest
-import com.closet.bff.dto.CartItemResponse
 import com.closet.bff.dto.CartResponse
-import com.closet.bff.dto.CreateOrderBffRequest
 import com.closet.bff.dto.OrderResponse
 import com.closet.bff.dto.PageResponse
-import org.springframework.beans.factory.annotation.Value
-import org.springframework.core.ParameterizedTypeReference
-import org.springframework.stereotype.Component
-import org.springframework.web.reactive.function.client.WebClient
-import reactor.core.publisher.Mono
+import com.closet.common.response.ApiResponse
+import org.springframework.cloud.openfeign.FeignClient
+import org.springframework.web.bind.annotation.DeleteMapping
+import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
+import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.PutMapping
+import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
+import org.springframework.web.bind.annotation.RequestParam
 
-@Component
-class OrderServiceClient(
-    @Value("\${service.order.url}") private val baseUrl: String,
-) {
-    private val webClient: WebClient by lazy {
-        WebClient.builder().baseUrl(baseUrl).build()
-    }
+@FeignClient(name = "order-service", url = "\${service.order.url}")
+interface OrderServiceClient {
 
-    fun getOrders(memberId: Long, page: Int, size: Int): Mono<PageResponse<OrderResponse>> {
-        return webClient.get()
-            .uri { builder ->
-                builder.path("/orders")
-                    .queryParam("memberId", memberId)
-                    .queryParam("page", page)
-                    .queryParam("size", size)
-                    .build()
-            }
-            .retrieve()
-            .bodyToMono(object : ParameterizedTypeReference<PageResponse<OrderResponse>>() {})
-    }
+    @GetMapping("/orders")
+    fun getOrders(
+        @RequestParam memberId: Long,
+        @RequestParam page: Int,
+        @RequestParam size: Int,
+    ): ApiResponse<PageResponse<OrderResponse>>
 
-    fun getOrder(orderId: Long): Mono<OrderResponse> {
-        return webClient.get()
-            .uri("/orders/{id}", orderId)
-            .retrieve()
-            .bodyToMono(OrderResponse::class.java)
-    }
+    @GetMapping("/orders/{id}")
+    fun getOrder(@PathVariable id: Long): ApiResponse<OrderResponse>
 
-    fun getCart(memberId: Long): Mono<CartResponse> {
-        return webClient.get()
-            .uri("/carts/{memberId}", memberId)
-            .retrieve()
-            .bodyToMono(CartResponse::class.java)
-    }
+    @PostMapping("/orders")
+    fun createOrder(@RequestHeader("X-Member-Id") memberId: Long, @RequestBody request: Any): ApiResponse<OrderResponse>
 
-    fun createOrder(memberId: Long, request: CreateOrderBffRequest): Mono<OrderResponse> {
-        return webClient.post()
-            .uri("/orders")
-            .header("X-Member-Id", memberId.toString())
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(OrderResponse::class.java)
-    }
+    @PostMapping("/orders/{id}/cancel")
+    fun cancelOrder(@PathVariable id: Long, @RequestBody request: Any): ApiResponse<OrderResponse>
 
-    fun cancelOrder(orderId: Long, reason: String): Mono<OrderResponse> {
-        return webClient.post()
-            .uri("/orders/{id}/cancel", orderId)
-            .bodyValue(mapOf("reason" to reason))
-            .retrieve()
-            .bodyToMono(OrderResponse::class.java)
-    }
+    @GetMapping("/carts")
+    fun getCart(@RequestHeader("X-Member-Id") memberId: Long): ApiResponse<CartResponse>
 
-    fun addCartItem(memberId: Long, request: AddCartItemRequest): Mono<CartItemResponse> {
-        return webClient.post()
-            .uri("/carts/{memberId}/items", memberId)
-            .bodyValue(request)
-            .retrieve()
-            .bodyToMono(CartItemResponse::class.java)
-    }
+    @PostMapping("/carts/items")
+    fun addCartItem(@RequestHeader("X-Member-Id") memberId: Long, @RequestBody request: AddCartItemRequest): ApiResponse<Any>
 
-    fun updateCartItemQuantity(itemId: Long, quantity: Int): Mono<CartItemResponse> {
-        return webClient.put()
-            .uri("/carts/items/{itemId}", itemId)
-            .bodyValue(mapOf("quantity" to quantity))
-            .retrieve()
-            .bodyToMono(CartItemResponse::class.java)
-    }
+    @PutMapping("/carts/items/{itemId}")
+    fun updateCartItemQuantity(@PathVariable itemId: Long, @RequestBody request: Any): ApiResponse<Any>
 
-    fun removeCartItem(itemId: Long): Mono<Void> {
-        return webClient.delete()
-            .uri("/carts/items/{itemId}", itemId)
-            .retrieve()
-            .bodyToMono(Void::class.java)
-    }
+    @DeleteMapping("/carts/items/{itemId}")
+    fun removeCartItem(@PathVariable itemId: Long)
 }
