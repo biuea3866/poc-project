@@ -32,17 +32,17 @@ pinpoint: ## Open Pinpoint Web UI
 	@open http://localhost:28080
 
 # === 부하 테스트 ===
-load-light: ## 가벼운 트래픽 (10 VU, 5분)
+load-realistic: ## 현실적 트래픽 (50 VU, 10분) — 8가지 유저 행동 패턴
 	k6 run load-test/realistic-traffic.js
 
-load-medium: ## 중간 트래픽 (50 VU, 30분)
-	k6 run --duration 30m -e BROWSERS=30 -e SHOPPERS=13 -e BUYERS=7 load-test/realistic-traffic.js
+load-sustained: ## 지속 트래픽 (50 VU, 1시간)
+	k6 run -e DURATION=1h load-test/realistic-traffic.js
 
-load-heavy: ## 높은 트래픽 (100 VU, 1시간)
-	k6 run --duration 1h -e BROWSERS=60 -e SHOPPERS=25 -e BUYERS=15 load-test/realistic-traffic.js
+load-spike: ## 스파이크 트래픽 (ramp up/down, 타임세일 시뮬레이션)
+	k6 run load-test/spike-traffic.js
 
-load-bg: ## 백그라운드 지속 트래픽 (10 VU, 24시간)
-	nohup k6 run --duration 24h -e BROWSERS=5 -e SHOPPERS=3 -e BUYERS=2 load-test/realistic-traffic.js > /tmp/closet-logs/k6.log 2>&1 &
+load-bg: ## 백그라운드 지속 트래픽 (50 VU, 1시간)
+	nohup k6 run -e DURATION=1h load-test/realistic-traffic.js > /tmp/closet-logs/k6.log 2>&1 &
 	@echo "백그라운드 실행 중. 로그: /tmp/closet-logs/k6.log"
 
 load-stop: ## 부하 테스트 중지
