@@ -1,4 +1,5 @@
 package com.closet.common.kafka.idempotency
+import org.springframework.context.annotation.Profile
 
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
@@ -6,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 
 private val logger = KotlinLogging.logger {}
 
+@Profile("kafka")
 @Service
 class IdempotencyService(
     private val processedEventRepository: ProcessedEventRepository,

@@ -1,4 +1,5 @@
 package com.closet.common.kafka.outbox
+import org.springframework.context.annotation.Profile
 
 import mu.KotlinLogging
 import org.springframework.data.domain.PageRequest
@@ -10,6 +11,7 @@ import java.time.LocalDateTime
 
 private val logger = KotlinLogging.logger {}
 
+@Profile("kafka")
 @Component
 class OutboxPollingPublisher(
     private val outboxRepository: OutboxRepository,

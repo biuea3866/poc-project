@@ -1,4 +1,5 @@
 package com.closet.common.kafka
+import org.springframework.context.annotation.Profile
 
 import org.apache.kafka.clients.producer.ProducerConfig
 import org.apache.kafka.common.serialization.StringSerializer
@@ -9,6 +10,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory
 import org.springframework.kafka.core.KafkaTemplate
 import org.springframework.kafka.core.ProducerFactory
 
+@Profile("kafka")
 @Configuration
 class KafkaProducerConfig(
     @Value("\${spring.kafka.bootstrap-servers:localhost:9092}")

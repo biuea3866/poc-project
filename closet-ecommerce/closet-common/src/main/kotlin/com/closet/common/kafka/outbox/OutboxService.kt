@@ -1,4 +1,5 @@
 package com.closet.common.kafka.outbox
+import org.springframework.context.annotation.Profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
@@ -7,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional
 
 private val logger = KotlinLogging.logger {}
 
+@Profile("kafka")
 @Service
 class OutboxService(
     private val outboxRepository: OutboxRepository,

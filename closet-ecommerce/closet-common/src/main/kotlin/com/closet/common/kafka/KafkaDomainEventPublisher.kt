@@ -1,4 +1,5 @@
 package com.closet.common.kafka
+import org.springframework.context.annotation.Profile
 
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
@@ -7,6 +8,7 @@ import org.springframework.stereotype.Component
 
 private val logger = KotlinLogging.logger {}
 
+@Profile("kafka")
 @Component
 class KafkaDomainEventPublisher(
     private val kafkaTemplate: KafkaTemplate<String, String>,

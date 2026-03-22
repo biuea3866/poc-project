@@ -1,4 +1,5 @@
 package com.closet.common.kafka
+import org.springframework.context.annotation.Profile
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer
@@ -12,6 +13,7 @@ import org.springframework.kafka.listener.ContainerProperties
 import org.springframework.kafka.listener.DefaultErrorHandler
 import org.springframework.util.backoff.FixedBackOff
 
+@Profile("kafka")
 @Configuration
 class KafkaConsumerConfig(
     @Value("\${spring.kafka.bootstrap-servers:localhost:9092}")

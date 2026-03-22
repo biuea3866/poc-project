@@ -1,4 +1,13 @@
 spring:
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: closet-payment
+      auto-offset-reset: earliest
+    producer:
+      acks: all
+  profiles:
+    active: kafka
   threads:
     virtual:
       enabled: true
