@@ -4,10 +4,10 @@ import { LoginRequest, LoginResponse, RegisterRequest, Member, Address } from '.
 
 export const memberApi = {
   login: (data: LoginRequest) =>
-    apiClient.post<ApiResponse<LoginResponse>>('/auth/login', data),
+    apiClient.post<ApiResponse<LoginResponse>>('/members/login', data),
 
   register: (data: RegisterRequest) =>
-    apiClient.post<ApiResponse<Member>>('/members', data),
+    apiClient.post<ApiResponse<Member>>('/members/register', data),
 
   getMyInfo: () =>
     apiClient.get<ApiResponse<Member>>('/members/me'),

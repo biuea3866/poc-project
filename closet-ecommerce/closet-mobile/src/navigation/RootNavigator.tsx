@@ -1,5 +1,5 @@
 import React from 'react';
-import { createStackNavigator } from '@react-navigation/stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from './types';
 import { useAuth } from '../hooks/useAuth';
 import AuthNavigator from './AuthNavigator';
@@ -8,7 +8,7 @@ import ProductDetailScreen from '../screens/product/ProductDetailScreen';
 import CheckoutScreen from '../screens/order/CheckoutScreen';
 import OrderDetailScreen from '../screens/order/OrderDetailScreen';
 
-const Stack = createStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator<RootStackParamList>();
 
 const RootNavigator: React.FC = () => {
   const { isAuthenticated } = useAuth();
