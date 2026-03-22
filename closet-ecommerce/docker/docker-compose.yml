@@ -46,6 +46,87 @@ services:
     volumes:
       - es-data:/usr/share/elasticsearch/data
 
+  # === Monitoring Stack ===
+  prometheus:
+    image: prom/prometheus:v2.48.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/prometheus/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.enable-lifecycle'
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  grafana:
+    image: grafana/grafana:10.2.0
+    ports:
+      - "3001:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: closet
+      GF_USERS_ALLOW_SIGN_UP: "false"
+    volumes:
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+      - grafana-data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  loki:
+    image: grafana/loki:2.9.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - loki-data:/loki
+
+  # MySQL exporter
+  mysql-exporter:
+    image: prom/mysqld-exporter:v0.15.0
+    ports:
+      - "9104:9104"
+    environment:
+      DATA_SOURCE_NAME: "root:closet@(mysql:3306)/"
+    depends_on:
+      mysql:
+        condition: service_healthy
+
+  # Redis exporter
+  redis-exporter:
+    image: oliver006/redis_exporter:v1.55.0
+    ports:
+      - "9121:9121"
+    environment:
+      REDIS_ADDR: "redis:6379"
+    depends_on:
+      - redis
+
+  # Kafka exporter
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:v1.7.0
+    ports:
+      - "9308:9308"
+    command: --kafka.server=kafka:9092
+    depends_on:
+      - kafka
+
+  # Node exporter (host metrics)
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    ports:
+      - "9100:9100"
+    volumes:
+      - /proc:/host/proc:ro
+      - /sys:/host/sys:ro
+    command:
+      - '--path.procfs=/host/proc'
+      - '--path.sysfs=/host/sys'
+
+  # === Application Services ===
   closet-gateway:
     build:
       context: ../closet-gateway
@@ -117,3 +198,6 @@ services:
 volumes:
   mysql-data:
   es-data:
+  prometheus-data:
+  grafana-data:
+  loki-data:

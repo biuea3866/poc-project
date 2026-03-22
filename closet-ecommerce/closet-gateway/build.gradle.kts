@@ -17,6 +17,7 @@ dependencies {
     // Spring Cloud Gateway (WebFlux 기반)
     implementation("org.springframework.cloud:spring-cloud-starter-gateway")
     implementation("org.springframework.boot:spring-boot-starter-actuator")
+    implementation("io.micrometer:micrometer-registry-prometheus")
 
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")

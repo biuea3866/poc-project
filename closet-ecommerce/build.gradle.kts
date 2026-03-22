@@ -40,6 +40,10 @@ subprojects {
         // Logging
         implementation("io.github.microutils:kotlin-logging-jvm:${Versions.KOTLIN_LOGGING}")
 
+        // Actuator + Prometheus Metrics
+        implementation("org.springframework.boot:spring-boot-starter-actuator")
+        implementation("io.micrometer:micrometer-registry-prometheus")
+
         // Test
         testImplementation("org.springframework.boot:spring-boot-starter-test") {
             exclude(group = "org.junit.vintage", module = "junit-vintage-engine")

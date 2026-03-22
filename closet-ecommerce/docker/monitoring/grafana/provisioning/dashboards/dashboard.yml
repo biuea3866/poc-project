@@ -1,0 +1,8 @@
+apiVersion: 1
+providers:
+  - name: 'closet'
+    orgId: 1
+    folder: 'Closet E-Commerce'
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards/json

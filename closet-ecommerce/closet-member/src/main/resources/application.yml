@@ -27,3 +27,15 @@ jwt:
   secret: closet-member-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
   access-token-expiry-ms: 1800000   # 30분
   refresh-token-expiry-ms: 604800000 # 7일
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
