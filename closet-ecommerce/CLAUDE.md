@@ -135,3 +135,12 @@ JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Content
 | **api-change** | API 변경 분석 | `.analysis/api-change/PIPELINE.md` |
 
 사용법: 해당 PIPELINE.md를 읽고 지시에 따라 수행.
+
+## 구현 기록 규칙
+
+- 모든 구현은 `.analysis/` 디렉토리에 기록
+- 역할별 가이드라인: `.analysis/common/ROLE_GUIDELINES.md`
+- 템플릿: `.analysis/common/IMPLEMENTATION_LOG_TEMPLATE.md`
+- 프레임워크 설명: `.analysis/common/IMPLEMENTATION_LOG.md`
+- 기록 없는 PR은 리뷰 거부 사유가 된다
+- 구현 기록은 `.analysis/` 디렉토리와 Confluence 양쪽에 기록한다
