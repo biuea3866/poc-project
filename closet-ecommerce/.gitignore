@@ -29,3 +29,6 @@ node_modules/
 
 # Generated
 generated/
+
+# Pinpoint Agent (downloaded at runtime)
+docker/pinpoint/pinpoint-agent-*/
