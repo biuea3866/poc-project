@@ -84,6 +84,17 @@ services:
     volumes:
       - loki-data:/loki
 
+  tempo:
+    image: grafana/tempo:2.3.0
+    ports:
+      - "3200:3200"   # Tempo API
+      - "4317:4317"   # OTLP gRPC
+      - "4318:4318"   # OTLP HTTP
+    command: ["-config.file=/etc/tempo.yaml"]
+    volumes:
+      - ./monitoring/tempo/tempo.yaml:/etc/tempo.yaml
+      - tempo-data:/var/tempo
+
   # MySQL exporter
   mysql-exporter:
     image: prom/mysqld-exporter:v0.15.0
@@ -204,3 +215,4 @@ volumes:
   prometheus-data:
   grafana-data:
   loki-data:
+  tempo-data:
