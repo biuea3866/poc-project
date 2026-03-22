@@ -120,6 +120,10 @@ class Order(
         transitionTo(OrderStatus.CONFIRMED)
     }
 
+    fun fail() {
+        transitionTo(OrderStatus.FAILED)
+    }
+
     fun cancel(reason: String) {
         if (status != OrderStatus.PAID && status != OrderStatus.PENDING && status != OrderStatus.STOCK_RESERVED) {
             throw BusinessException(
