@@ -1,0 +1,6 @@
+CREATE DATABASE IF NOT EXISTS closet
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+GRANT ALL PRIVILEGES ON closet.* TO 'root'@'%';
+FLUSH PRIVILEGES;
