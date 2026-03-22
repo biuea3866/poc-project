@@ -7,5 +7,10 @@ include(
     "closet-product",
     "closet-order",
     "closet-payment",
-    "closet-bff"
+    "closet-bff",
+    // Phase 2
+    "closet-shipping",
+    "closet-inventory",
+    "closet-search",
+    "closet-review"
 )
