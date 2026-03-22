@@ -1,0 +1,11 @@
+package com.closet.search
+
+import org.springframework.boot.autoconfigure.SpringBootApplication
+import org.springframework.boot.runApplication
+
+@SpringBootApplication(scanBasePackages = ["com.closet.search", "com.closet.common"])
+class ClosetSearchApplication
+
+fun main(args: Array<String>) {
+    runApplication<ClosetSearchApplication>(*args)
+}

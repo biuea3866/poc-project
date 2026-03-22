@@ -1,0 +1,12 @@
+spring:
+  elasticsearch:
+    uris: http://elasticsearch:9200
+
+closet:
+  product-service:
+    url: http://closet-product:8082
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://jaeger:4318/v1/traces
