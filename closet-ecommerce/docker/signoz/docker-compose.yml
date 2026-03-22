@@ -1,0 +1,45 @@
+version: '3.8'
+
+services:
+  clickhouse:
+    image: clickhouse/clickhouse-server:23.11-alpine
+    ports:
+      - "9001:9000"
+      - "8123:8123"
+    volumes:
+      - signoz-clickhouse:/var/lib/clickhouse
+    ulimits:
+      nofile:
+        soft: 262144
+        hard: 262144
+
+  otel-collector:
+    image: signoz/signoz-otel-collector:0.88.11
+    ports:
+      - "14317:4317"    # OTLP gRPC (different port to avoid conflict)
+      - "14318:4318"    # OTLP HTTP
+    environment:
+      - CLICKHOUSE_HOST=clickhouse
+      - CLICKHOUSE_PORT=9000
+    depends_on:
+      - clickhouse
+
+  query-service:
+    image: signoz/query-service:0.88.11
+    ports:
+      - "8180:8080"
+    environment:
+      - ClickHouseUrl=tcp://clickhouse:9000
+      - STORAGE=clickhouse
+    depends_on:
+      - clickhouse
+
+  frontend:
+    image: signoz/frontend:0.88.11
+    ports:
+      - "3301:3301"
+    depends_on:
+      - query-service
+
+volumes:
+  signoz-clickhouse:

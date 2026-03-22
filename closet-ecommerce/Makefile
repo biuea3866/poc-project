@@ -1,4 +1,5 @@
 .PHONY: up down build test logs start start-apm start-trace stop pinpoint \
+       signoz-up signoz-down signoz \
        logs-all logs-member logs-product logs-order logs-payment logs-gateway logs-bff logs-errors
 
 up:
@@ -30,6 +31,15 @@ stop: ## Stop all services
 
 pinpoint: ## Open Pinpoint Web UI
 	@open http://localhost:28080
+
+signoz-up: ## Start SigNoz APM
+	docker compose -f docker/signoz/docker-compose.yml up -d
+
+signoz-down: ## Stop SigNoz APM
+	docker compose -f docker/signoz/docker-compose.yml down
+
+signoz: ## Open SigNoz Web UI
+	@open http://localhost:3301
 
 # === 부하 테스트 ===
 load-realistic: ## 현실적 트래픽 (50 VU, 10분) — 8가지 유저 행동 패턴
