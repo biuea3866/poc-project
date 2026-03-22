@@ -1,0 +1,21 @@
+server:
+  port: 8085
+
+spring:
+  application:
+    name: closet-bff
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.flyway.FlywayAutoConfiguration
+
+service:
+  member:
+    url: http://localhost:8081/api/v1
+  product:
+    url: http://localhost:8082/api/v1
+  order:
+    url: http://localhost:8083/api/v1
+  payment:
+    url: http://localhost:8084/api/v1

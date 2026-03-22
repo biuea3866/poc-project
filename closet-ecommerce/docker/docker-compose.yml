@@ -46,6 +46,22 @@ services:
     volumes:
       - es-data:/usr/share/elasticsearch/data
 
+  closet-gateway:
+    build:
+      context: ../closet-gateway
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    depends_on:
+      closet-member:
+        condition: service_started
+      closet-product:
+        condition: service_started
+      closet-order:
+        condition: service_started
+      closet-payment:
+        condition: service_started
+
   closet-member:
     build:
       context: ../closet-member
