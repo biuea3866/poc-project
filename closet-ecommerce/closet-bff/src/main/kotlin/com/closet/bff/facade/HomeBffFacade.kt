@@ -14,7 +14,7 @@ class HomeBffFacade(
 
     fun getHome(): HomeBffResponse {
         val rankingsFuture = CompletableFuture.supplyAsync(
-            { productClient.getProducts(categoryId = null, brandId = null, minPrice = null, maxPrice = null, page = 0, size = 10, sort = "popular") },
+            { productClient.getProducts(categoryId = null, brandId = null, minPrice = null, maxPrice = null, page = 0, size = 10, sort = "newest") },
             executor,
         )
         val newArrivalsFuture = CompletableFuture.supplyAsync(
