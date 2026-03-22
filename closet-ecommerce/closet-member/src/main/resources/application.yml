@@ -40,5 +40,11 @@ management:
     health:
       show-details: always
   metrics:
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
     tags:
       application: ${spring.application.name}

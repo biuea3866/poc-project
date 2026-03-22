@@ -44,6 +44,10 @@ subprojects {
         implementation("org.springframework.boot:spring-boot-starter-actuator")
         implementation("io.micrometer:micrometer-registry-prometheus")
 
+        // Distributed Tracing (OpenTelemetry → Jaeger)
+        implementation("io.micrometer:micrometer-tracing-bridge-otel")
+        implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+
         // Test
         testImplementation("org.springframework.boot:spring-boot-starter-test") {
             exclude(group = "org.junit.vintage", module = "junit-vintage-engine")

@@ -13,11 +13,34 @@
 **/test-execution.log
 **/seeding.log
 
+# IDE
+.idea/
 */.idea
 
 # Git worktrees
 wiki/worktrees/
+closet-worktrees/
+
+# Node
+node_modules/
+package-lock.json
+
+# Gradle
+.gradle/
+*/.gradle/
 
 # Secrets
 **/.env
 ai-orchestrator-lab/.env
+
+# Next.js
+closet-ecommerce/closet-web/.next/
+
+# Expo
+closet-ecommerce/closet-mobile/.expo/
+
+# Docker volumes
+docker/pinpoint/pinpoint-agent-*/
+
+# OS
+.DS_Store
