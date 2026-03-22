@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <springProperty scope="context" name="appName" source="spring.application.name" defaultValue="closet"/>
+
+    <!-- Console appender with traceId/spanId -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%property{appName}] [traceId=%X{traceId} spanId=%X{spanId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File appender (structured, for future Loki ingestion) -->
+    <appender name="FILE" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <file>/tmp/closet-logs/${appName}.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+            <fileNamePattern>/tmp/closet-logs/${appName}.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+            <maxFileSize>50MB</maxFileSize>
+            <maxHistory>7</maxHistory>
+            <totalSizeCap>500MB</totalSizeCap>
+        </rollingPolicy>
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} [%property{appName}] [traceId=%X{traceId} spanId=%X{spanId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <root level="INFO">
+        <appender-ref ref="CONSOLE"/>
+        <appender-ref ref="FILE"/>
+    </root>
+
+    <!-- Reduce noisy loggers -->
+    <logger name="org.hibernate.SQL" level="DEBUG"/>
+    <logger name="org.springframework.cloud.gateway" level="DEBUG"/>
+
+</configuration>

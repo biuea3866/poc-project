@@ -19,6 +19,13 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-actuator")
     implementation("io.micrometer:micrometer-registry-prometheus")
 
+    // Distributed Tracing (Gateway → Jaeger)
+    implementation("io.micrometer:micrometer-tracing-bridge-otel")
+    implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+    // Reactor context propagation (WebFlux 필수)
+    implementation("io.projectreactor:reactor-core-micrometer")
+    implementation("io.micrometer:context-propagation")
+
     // JWT
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")
     runtimeOnly("io.jsonwebtoken:jjwt-impl:0.12.3")

@@ -4,6 +4,8 @@ server:
 spring:
   application:
     name: closet-gateway
+  reactor:
+    context-propagation: auto
   cloud:
     gateway:
       routes:
@@ -42,3 +44,9 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+  tracing:
+    sampling:
+      probability: 1.0
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
