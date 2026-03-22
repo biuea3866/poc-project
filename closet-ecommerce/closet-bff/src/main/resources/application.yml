@@ -12,8 +12,8 @@ spring:
       client:
         config:
           default:
-            connect-timeout: 5000
-            read-timeout: 10000
+            connect-timeout: 3000
+            read-timeout: 5000
   autoconfigure:
     exclude:
       - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration

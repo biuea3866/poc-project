@@ -36,7 +36,7 @@ const SORT_OPTIONS = [
   { label: '신상품순', value: 'createdAt,desc' },
   { label: '가격 낮은순', value: 'salePrice,asc' },
   { label: '가격 높은순', value: 'salePrice,desc' },
-  { label: '인기순', value: 'popularity,desc' },
+  { label: '이름순', value: 'name,asc' },
 ];
 
 const EMPTY_PAGE: PageResponse<Product> = {

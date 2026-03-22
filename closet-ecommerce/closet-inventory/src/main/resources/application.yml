@@ -10,6 +10,7 @@ spring:
       maximum-pool-size: 30
       minimum-idle: 5
       connection-timeout: 5000
+      leak-detection-threshold: 10000
     url: jdbc:mysql://localhost:3306/closet?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
     username: root
     password: closet

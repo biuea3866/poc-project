@@ -4,18 +4,15 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
-import { createOrder } from '@/lib/api/order';
 import { formatPriceWithCurrency } from '@/lib/utils/format';
-import { useState } from 'react';
 
 const SHIPPING_FEE = 3000;
 const FREE_SHIPPING_THRESHOLD = 50000;
 
 export default function CartPage() {
   const router = useRouter();
-  const { items, removeItem, updateQuantity, totalPrice, totalCount, clearCart } = useCartStore();
-  const { memberId, isAuthenticated } = useAuthStore();
-  const [ordering, setOrdering] = useState(false);
+  const { items, removeItem, updateQuantity, totalPrice, totalCount } = useCartStore();
+  const { isAuthenticated } = useAuthStore();
 
   const subtotal = totalPrice();
   const count = totalCount();
@@ -134,50 +131,21 @@ export default function CartPage() {
               </div>
             </div>
             <button
-              disabled={count === 0 || ordering}
-              onClick={async () => {
+              disabled={count === 0}
+              onClick={() => {
                 if (!isAuthenticated) {
                   router.push('/login');
                   return;
                 }
-                setOrdering(true);
-                try {
-                  const res = await createOrder({
-                    memberId: memberId!,
-                    sellerId: 1,
-                    items: items.map(item => ({
-                      productId: item.productId,
-                      productOptionId: item.productOptionId,
-                      productName: `상품 #${item.productId}`,
-                      optionName: `옵션 #${item.productOptionId}`,
-                      quantity: item.quantity,
-                      unitPrice: item.unitPrice,
-                    })),
-                    receiverName: '수령인',
-                    receiverPhone: '01012345678',
-                    zipCode: '06035',
-                    address: '서울특별시 강남구',
-                    detailAddress: '테스트',
-                    shippingFee: shippingFee,
-                  });
-                  if (res.data.success && res.data.data) {
-                    clearCart();
-                    alert(`주문이 완료되었습니다! 주문번호: ${res.data.data.orderNumber}`);
-                    router.push(`/orders/${res.data.data.id}`);
-                  }
-                } catch (e: any) {
-                  alert(e.response?.data?.error?.message || '주문에 실패했습니다.');
-                } finally {
-                  setOrdering(false);
-                }
+                router.push('/checkout');
               }}
               className={`w-full mt-4 py-3 rounded-lg font-medium transition-colors ${
-                count === 0 || ordering
+                count === 0
                   ? 'bg-gray-300 text-white cursor-not-allowed'
                   : 'bg-black text-white hover:bg-gray-800'
               }`}
             >
-              {ordering ? '주문 처리 중...' : '주문하기'}
+              주문하기
             </button>
           </div>
         </div>
