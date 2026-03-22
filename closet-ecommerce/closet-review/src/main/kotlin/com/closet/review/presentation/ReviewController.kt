@@ -72,8 +72,8 @@ class ReviewController(
     }
 
     @PostMapping("/{id}/helpful")
-    fun markHelpful(@PathVariable id: Long): ApiResponse<Void> {
+    fun markHelpful(@PathVariable id: Long): ApiResponse<Any> {
         reviewService.markHelpful(id)
-        return ApiResponse.ok(null)
+        return ApiResponse.ok("ok")
     }
 }

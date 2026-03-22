@@ -13,6 +13,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import java.time.LocalDateTime
 import java.util.Optional
 
 class ReviewServiceTest : BehaviorSpec({
@@ -36,7 +37,10 @@ class ReviewServiceTest : BehaviorSpec({
 
         val reviewSlot = slot<Review>()
         every { reviewRepository.save(capture(reviewSlot)) } answers {
-            reviewSlot.captured
+            reviewSlot.captured.apply {
+                createdAt = LocalDateTime.now()
+                updatedAt = LocalDateTime.now()
+            }
         }
 
         When("createReview를 호출하면") {
@@ -84,7 +88,8 @@ class ReviewServiceTest : BehaviorSpec({
                         memberId = 10L,
                         rating = 0,
                         content = "최악"
-                    )
+                    ).apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
+        .apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
                 }
             }
         }
@@ -98,7 +103,8 @@ class ReviewServiceTest : BehaviorSpec({
                         memberId = 10L,
                         rating = 6,
                         content = "최고 이상"
-                    )
+                    ).apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
+        .apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
                 }
             }
         }
@@ -114,7 +120,7 @@ class ReviewServiceTest : BehaviorSpec({
             height = 168,
             weight = 60,
             sizeFeeling = SizeFeeling.LARGE
-        )
+        ).apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }.apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
 
         every { reviewRepository.findById(1L) } returns Optional.of(review)
 
@@ -136,7 +142,8 @@ class ReviewServiceTest : BehaviorSpec({
             memberId = 10L,
             rating = 5,
             content = "좋아요"
-        )
+        ).apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
+        .apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
 
         every { reviewRepository.findById(2L) } returns Optional.of(review)
 
@@ -189,7 +196,8 @@ class ReviewServiceTest : BehaviorSpec({
             memberId = 10L,
             rating = 4,
             content = "유용한 리뷰"
-        )
+        ).apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
+        .apply { createdAt = LocalDateTime.now(); updatedAt = LocalDateTime.now() }
 
         every { reviewRepository.findById(3L) } returns Optional.of(review)
 
