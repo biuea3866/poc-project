@@ -1,12 +1,12 @@
 package com.closet.payment.infrastructure.kafka
 
-import com.closet.common.event.DomainEvent
-import com.closet.common.event.IdempotencyService
-import com.closet.common.event.KafkaTopics
-import com.closet.common.event.OutboxService
-import com.closet.common.event.PaymentApprovedPayload
-import com.closet.common.event.PaymentFailedPayload
-import com.closet.common.event.PaymentRequestedPayload
+import com.closet.common.kafka.DomainEvent
+import com.closet.common.kafka.idempotency.IdempotencyService
+import com.closet.common.kafka.KafkaTopics
+import com.closet.common.kafka.outbox.OutboxService
+import com.closet.common.kafka.PaymentApprovedPayload
+import com.closet.common.kafka.PaymentFailedPayload
+import com.closet.common.kafka.PaymentRequestedPayload
 import com.closet.payment.application.ConfirmPaymentRequest
 import com.closet.payment.application.PaymentService
 import com.fasterxml.jackson.databind.ObjectMapper

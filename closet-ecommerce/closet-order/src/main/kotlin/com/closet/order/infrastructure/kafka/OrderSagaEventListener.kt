@@ -1,8 +1,8 @@
 package com.closet.order.infrastructure.kafka
 
-import com.closet.common.event.DomainEvent
-import com.closet.common.event.IdempotencyService
-import com.closet.common.event.KafkaTopics
+import com.closet.common.kafka.DomainEvent
+import com.closet.common.kafka.idempotency.IdempotencyService
+import com.closet.common.kafka.KafkaTopics
 import com.closet.order.application.OrderSagaOrchestrator
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging

@@ -1,10 +1,10 @@
 package com.closet.order.application
 
-import com.closet.common.event.InventoryReleasePayload
-import com.closet.common.event.ItemPayload
-import com.closet.common.event.OrderCreatedPayload
-import com.closet.common.event.OutboxService
-import com.closet.common.event.PaymentRequestedPayload
+import com.closet.common.kafka.InventoryReleasePayload
+import com.closet.common.kafka.ItemPayload
+import com.closet.common.kafka.OrderCreatedPayload
+import com.closet.common.kafka.outbox.OutboxService
+import com.closet.common.kafka.PaymentRequestedPayload
 import com.closet.order.domain.order.Order
 import com.closet.order.domain.saga.SagaExecution
 import com.closet.order.domain.saga.SagaStatus

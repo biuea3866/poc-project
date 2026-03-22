@@ -1,13 +1,13 @@
 package com.closet.inventory.infrastructure.kafka
 
-import com.closet.common.event.DomainEvent
-import com.closet.common.event.IdempotencyService
-import com.closet.common.event.InventoryFailedPayload
-import com.closet.common.event.InventoryReleasePayload
-import com.closet.common.event.InventoryReservedPayload
-import com.closet.common.event.KafkaTopics
-import com.closet.common.event.OrderCreatedPayload
-import com.closet.common.event.OutboxService
+import com.closet.common.kafka.DomainEvent
+import com.closet.common.kafka.idempotency.IdempotencyService
+import com.closet.common.kafka.InventoryFailedPayload
+import com.closet.common.kafka.InventoryReleasePayload
+import com.closet.common.kafka.InventoryReservedPayload
+import com.closet.common.kafka.KafkaTopics
+import com.closet.common.kafka.OrderCreatedPayload
+import com.closet.common.kafka.outbox.OutboxService
 import com.closet.inventory.application.InventoryService
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging

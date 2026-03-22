@@ -1,7 +1,7 @@
 package com.closet.order.application
 
-import com.closet.common.event.OutboxEvent
-import com.closet.common.event.OutboxService
+import com.closet.common.kafka.OutboxEvent
+import com.closet.common.kafka.outbox.OutboxService
 import com.closet.common.vo.Money
 import com.closet.order.domain.order.Order
 import com.closet.order.domain.order.OrderItem

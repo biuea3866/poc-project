@@ -7,7 +7,7 @@ import org.springframework.scheduling.annotation.EnableScheduling
 
 @SpringBootApplication(scanBasePackages = ["com.closet.inventory", "com.closet.common"])
 @EnableScheduling
-@EnableJpaRepositories(basePackages = ["com.closet.inventory.repository", "com.closet.common.event"])
+@EnableJpaRepositories(basePackages = ["com.closet.inventory.repository", "com.closet.common.kafka"])
 class ClosetInventoryApplication
 
 fun main(args: Array<String>) {
