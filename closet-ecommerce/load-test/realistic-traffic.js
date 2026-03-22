@@ -4,21 +4,28 @@ import { Counter, Rate, Trend } from 'k6/metrics';
 import { randomIntBetween, randomItem } from 'https://jslib.k6.io/k6-utils/1.2.0/index.js';
 
 // ============================================================
-// Closet E-Commerce — 8가지 유저 행동 패턴 트래픽 시뮬레이터
+// Closet E-Commerce — 15가지 유저 행동 패턴 트래픽 시뮬레이터
 //
 // 시나리오:
-//   1. 윈도우 쇼퍼 (30%) — 구경만 하고 이탈
-//   2. 비교 쇼퍼 (15%) — 꼼꼼히 비교, 결국 안 삼
-//   3. 충동 구매자 (10%) — 빠르게 보고 바로 구매
-//   4. 장바구니 모아두기 (15%) — 담고 이탈
-//   5. 신규 회원 (10%) — 첫 방문, 탐색 위주
-//   6. 단골 구매자 (10%) — 로그인 후 바로 구매
-//   7. 반복 방문자 (5%) — 여러 세션, 마지막에 구매
-//   8. 대량 구매자 (5%) — 많이 담고 한번에 주문
+//   1. 윈도우 쇼퍼 (20%) — 구경만 하고 이탈
+//   2. 비교 쇼퍼 (11%) — 꼼꼼히 비교, 결국 안 삼
+//   3. 충동 구매자 (7%) — 빠르게 보고 바로 구매
+//   4. 장바구니 모아두기 (11%) — 담고 이탈
+//   5. 신규 회원 (7%) — 첫 방문, 탐색 위주
+//   6. 단골 구매자 (7%) — 로그인 후 바로 구매
+//   7. 반복 방문자 (3%) — 여러 세션, 마지막에 구매
+//   8. 대량 구매자 (3%) — 많이 담고 한번에 주문
+//   9. 셀러 입점 + 상품 등록 (4%) — 셀러 계정 생성, 상품 CRUD
+//  10. 리뷰 작성자 (4%) — 리뷰 작성, 투표, 요약 조회
+//  11. 배송 관리자 (3%) — 배송/반품 생성, 상태 업데이트
+//  12. 검색 유저 (7%) — 키워드/필터/자동완성 검색
+//  13. 재고 관리자 (3%) — 입고/예약/차감/해제
+//  14. 주문 취소 + 환불 (3%) — 구매 후 취소, 환불 확인
+//  15. BFF 통합 유저 (4%) — BFF 엔드포인트 통합 조회
 //
 // 사용법:
-//   k6 run load-test/realistic-traffic.js                        # 기본 (50 VU, 10분)
-//   k6 run -e DURATION=1h load-test/realistic-traffic.js         # 50 VU, 1시간
+//   k6 run load-test/realistic-traffic.js                        # 기본 (~75 VU, 10분)
+//   k6 run -e DURATION=1h load-test/realistic-traffic.js         # ~75 VU, 1시간
 // ============================================================
 
 const BASE_URL = __ENV.BASE_URL || 'http://localhost:8080/api/v1';
@@ -39,11 +46,21 @@ const loginCount = new Counter('logins');
 const errorRate = new Rate('error_rate');
 const orderDuration = new Trend('order_flow_duration');
 
+// 신규 시나리오 메트릭
+const reviewsCreated = new Counter('reviews_created');
+const shipmentsCreated = new Counter('shipments_created');
+const searchQueries = new Counter('search_queries');
+const productsRegistered = new Counter('products_registered');
+const inventoryOperations = new Counter('inventory_operations');
+const ordersCancelled = new Counter('orders_cancelled');
+const returnsRequested = new Counter('returns_requested');
+
 // ============================================================
-// 시나리오 설정 — 50 VU 총합
+// 시나리오 설정 — ~75 VU 총합
 // ============================================================
 export const options = {
   scenarios: {
+    // ── 기존 8개 시나리오 ──
     window_shoppers: {
       executor: 'constant-vus',
       vus: 15,
@@ -92,6 +109,49 @@ export const options = {
       duration: __ENV.DURATION || '10m',
       exec: 'bulkBuyer',
     },
+    // ── 신규 7개 시나리오 ──
+    seller_operations: {
+      executor: 'constant-vus',
+      vus: 3,
+      duration: __ENV.DURATION || '10m',
+      exec: 'sellerOperations',
+    },
+    review_writers: {
+      executor: 'constant-vus',
+      vus: 3,
+      duration: __ENV.DURATION || '10m',
+      exec: 'reviewWriter',
+    },
+    shipping_managers: {
+      executor: 'constant-vus',
+      vus: 2,
+      duration: __ENV.DURATION || '10m',
+      exec: 'shippingManager',
+    },
+    search_users: {
+      executor: 'constant-vus',
+      vus: 5,
+      duration: __ENV.DURATION || '10m',
+      exec: 'searchUser',
+    },
+    inventory_managers: {
+      executor: 'constant-vus',
+      vus: 2,
+      duration: __ENV.DURATION || '10m',
+      exec: 'inventoryManager',
+    },
+    order_cancellers: {
+      executor: 'constant-vus',
+      vus: 2,
+      duration: __ENV.DURATION || '10m',
+      exec: 'orderCanceller',
+    },
+    bff_users: {
+      executor: 'constant-vus',
+      vus: 3,
+      duration: __ENV.DURATION || '10m',
+      exec: 'bffUser',
+    },
   },
   thresholds: {
     http_req_duration: ['p(95)<3000'],  // p95 < 3초
@@ -108,6 +168,13 @@ const SEARCH_KEYWORDS = [
   '슬랙스', '자켓', '코트', '니트', '셔츠', '원피스',
   '가디건', '트레이닝', '조거팬츠', '스니커즈',
 ];
+const SEARCH_KEYWORDS_V2 = ['무신사', '나이키', '반팔', '데님', '스니커즈', '후드', '맨투맨', '코트', '슬랙스', '백팩'];
+const AUTOCOMPLETE_PREFIXES = ['무', '무신', '나이', '반', '데', '스니', '후', '맨', '코', '백'];
+const PRODUCT_NAMES = ['오버핏 반팔티', '와이드 데님', '캐주얼 자켓', '스포츠 후드', '슬림 슬랙스', '레더 스니커즈', '울 코트', '니트 가디건', '조거팬츠', '패딩 점퍼'];
+const SIZES = ['S', 'M', 'L', 'XL'];
+const COLORS = ['블랙', '화이트', '네이비', '그레이', '베이지'];
+const CARRIERS = ['CJ', 'LOGEN', 'HANJIN', 'LOTTE', 'POST'];
+
 const BRAND_IDS = [1, 2, 3, 4, 5];
 const PRICE_RANGES = [
   { min: 0, max: 30000 },
@@ -952,6 +1019,811 @@ export function bulkBuyer() {
     }
 
     orderDuration.add(Date.now() - sessionStart);
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 9: 셀러 입점 + 상품 등록 (4%) — 셀러 계정 생성, 상품 CRUD
+// 회원가입(셀러) → 상품 등록(DRAFT) → 옵션 추가 → 상품 활성화 → 수정/판매중지
+// ============================================================
+
+export function sellerOperations() {
+  const sessionStart = Date.now();
+
+  group('셀러 입점 + 상품 등록', () => {
+    // 1. 셀러 회원가입
+    const uniqueId = `${Date.now()}-${randomIntBetween(1000, 9999)}`;
+    const email = `seller-${uniqueId}@loadtest.com`;
+
+    const registerRes = safeRequest(() =>
+      http.post(`${BASE_URL}/members/register`, JSON.stringify({
+        email: email,
+        password: 'password123',
+        name: `셀러${uniqueId}`,
+        phone: `010${randomIntBetween(10000000, 99999999)}`,
+      }), { headers: defaultHeaders })
+    );
+
+    if (!registerRes || (registerRes.status !== 200 && registerRes.status !== 201)) {
+      errorRate.add(1);
+      sleep(5);
+      return;
+    }
+    signupCount.add(1);
+    sleep(randomIntBetween(2, 4));
+
+    // 2. 상품 등록 (DRAFT) — 2~3개 상품
+    const productCount = randomIntBetween(2, 3);
+    const createdProducts = [];
+
+    for (let i = 0; i < productCount; i++) {
+      const productName = `${randomItem(PRODUCT_NAMES)}-${uniqueId}-${i}`;
+      const basePrice = randomIntBetween(15000, 120000);
+
+      const productRes = safeRequest(() =>
+        http.post(`${BASE_URL}/products`, JSON.stringify({
+          name: productName,
+          brandId: randomItem(BRAND_IDS),
+          categoryId: randomItem(CATEGORIES),
+          basePrice: basePrice,
+          salePrice: Math.floor(basePrice * (randomIntBetween(70, 95) / 100)),
+          description: `${productName} 상품 설명입니다. 고급 소재를 사용하여 편안한 착용감을 제공합니다.`,
+          material: randomItem(['면 100%', '폴리에스터 100%', '면 60% 폴리에스터 40%', '나일론 100%']),
+          season: randomItem(['SS', 'FW', 'ALL']),
+          gender: randomItem(['MALE', 'FEMALE', 'UNISEX']),
+        }), { headers: defaultHeaders })
+      );
+
+      if (productRes && (productRes.status === 200 || productRes.status === 201)) {
+        productsRegistered.add(1);
+        try {
+          const productData = JSON.parse(productRes.body).data;
+          if (productData && productData.id) {
+            createdProducts.push(productData);
+          }
+        } catch (e) { /* ignore parse error */ }
+      }
+      sleep(randomIntBetween(2, 4));
+
+      // 3. 옵션 추가 (사이즈 x 색상 2~3개)
+      if (createdProducts.length > 0) {
+        const lastProduct = createdProducts[createdProducts.length - 1];
+        const optionCount = randomIntBetween(2, 3);
+
+        for (let j = 0; j < optionCount; j++) {
+          const optionRes = safeRequest(() =>
+            http.post(`${BASE_URL}/products/${lastProduct.id}/options`, JSON.stringify({
+              size: randomItem(SIZES),
+              colorName: randomItem(COLORS),
+              additionalPrice: randomIntBetween(0, 3000),
+              stockQuantity: randomIntBetween(20, 100),
+            }), { headers: defaultHeaders })
+          );
+
+          if (optionRes) {
+            check(optionRes, { '옵션 추가 성공': (r) => r.status === 200 || r.status === 201 });
+          }
+          sleep(randomIntBetween(1, 2));
+        }
+
+        // 4. 상품 활성화 (DRAFT → ACTIVE)
+        const activateRes = safeRequest(() =>
+          http.patch(`${BASE_URL}/products/${lastProduct.id}/status`, JSON.stringify({
+            status: 'ACTIVE',
+          }), { headers: defaultHeaders })
+        );
+
+        if (activateRes) {
+          check(activateRes, { '상품 활성화 성공': (r) => r.status === 200 });
+        }
+        sleep(randomIntBetween(2, 4));
+
+        // 5. 가끔 가격 수정 (40% 확률)
+        if (Math.random() < 0.4) {
+          const newPrice = randomIntBetween(10000, 150000);
+          const updateRes = safeRequest(() =>
+            http.put(`${BASE_URL}/products/${lastProduct.id}`, JSON.stringify({
+              name: lastProduct.name,
+              basePrice: newPrice,
+              salePrice: Math.floor(newPrice * 0.85),
+            }), { headers: defaultHeaders })
+          );
+
+          if (updateRes) {
+            check(updateRes, { '상품 수정 성공': (r) => r.status === 200 });
+          }
+          sleep(randomIntBetween(2, 3));
+        }
+
+        // 6. 가끔 판매중지 (20% 확률)
+        if (Math.random() < 0.2) {
+          const inactiveRes = safeRequest(() =>
+            http.patch(`${BASE_URL}/products/${lastProduct.id}/status`, JSON.stringify({
+              status: 'INACTIVE',
+            }), { headers: defaultHeaders })
+          );
+
+          if (inactiveRes) {
+            check(inactiveRes, { '상품 판매중지 성공': (r) => r.status === 200 });
+          }
+          sleep(randomIntBetween(2, 4));
+        }
+      }
+    }
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 10: 리뷰 작성자 (4%) — 리뷰 작성, 투표, 요약 조회
+// 로그인 → 상품 상세 → 리뷰 작성 → 도움돼요 투표 → 리뷰 목록/요약 조회
+// ============================================================
+
+export function reviewWriter() {
+  const sessionStart = Date.now();
+
+  group('리뷰 작성자', () => {
+    // 1. 회원가입 + 로그인
+    const auth = registerAndLogin();
+    if (!auth) { sleep(5); return; }
+    sleep(randomIntBetween(2, 3));
+
+    // 2. 상품 목록에서 상품 선택
+    const products = browseProducts(0, 10);
+    if (products.length === 0) { sleep(5); return; }
+    sleep(randomIntBetween(2, 4));
+
+    // 3. 상품 상세 보기
+    const product = pickRandomProduct(products);
+    viewProductDetail(product.id);
+    sleep(randomIntBetween(3, 6));
+
+    // 4. 리뷰 작성 (unique orderItemId로 중복 방지)
+    const orderItemId = Date.now() * 1000 + randomIntBetween(1, 999);
+    const rating = randomIntBetween(1, 5);
+    const sizeFeeling = randomItem(['SMALL', 'TRUE_TO_SIZE', 'LARGE']);
+    const height = randomIntBetween(155, 190);
+    const weight = randomIntBetween(45, 95);
+    const contents = [
+      '사이즈 딱 맞아요! 재질도 좋고 색감도 사진이랑 동일합니다.',
+      '배송 빠르고 품질 좋습니다. 다음에도 또 구매할게요.',
+      '약간 크게 나왔지만 전체적으로 만족합니다.',
+      '생각보다 얇아요. 봄가을에 입기 좋을 듯합니다.',
+      '색상이 사진보다 좀 어두워요. 그래도 괜찮습니다.',
+      '핏이 예쁘고 소재가 부드러워요. 강추!',
+      '가격 대비 훌륭합니다. 친구한테도 추천했어요.',
+    ];
+
+    const reviewRes = safeRequest(() =>
+      http.post(`${BASE_URL}/reviews`, JSON.stringify({
+        productId: product.id,
+        orderItemId: orderItemId,
+        rating: rating,
+        content: randomItem(contents),
+        height: height,
+        weight: weight,
+        sizeFeeling: sizeFeeling,
+      }), { headers: memberHeaders(auth.memberId) })
+    );
+
+    let reviewId = null;
+    if (reviewRes && (reviewRes.status === 200 || reviewRes.status === 201)) {
+      reviewsCreated.add(1);
+      try {
+        reviewId = JSON.parse(reviewRes.body).data?.id;
+      } catch (e) { /* ignore */ }
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 5. 리뷰 도움돼요 투표
+    if (reviewId) {
+      const helpfulRes = safeRequest(() =>
+        http.post(`${BASE_URL}/reviews/${reviewId}/helpful`, JSON.stringify({}), {
+          headers: memberHeaders(auth.memberId),
+        })
+      );
+      if (helpfulRes) {
+        check(helpfulRes, { '리뷰 도움돼요 투표': (r) => r.status === 200 || r.status === 201 || r.status === 409 });
+      }
+      sleep(randomIntBetween(1, 3));
+    }
+
+    // 6. 상품별 리뷰 목록 조회
+    const reviewListRes = safeRequest(() =>
+      http.get(`${BASE_URL}/reviews/products/${product.id}?page=0&size=10`)
+    );
+    if (reviewListRes) {
+      check(reviewListRes, { '리뷰 목록 조회 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(2, 5));
+
+    // 7. 리뷰 요약 조회
+    const summaryRes = safeRequest(() =>
+      http.get(`${BASE_URL}/reviews/products/${product.id}/summary`)
+    );
+    if (summaryRes) {
+      check(summaryRes, { '리뷰 요약 조회 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 8. 다른 상품 리뷰도 조회 (50% 확률)
+    if (Math.random() < 0.5 && products.length > 1) {
+      const otherProduct = products[randomIntBetween(0, products.length - 1)];
+      safeRequest(() =>
+        http.get(`${BASE_URL}/reviews/products/${otherProduct.id}?page=0&size=10`)
+      );
+      pageViews.add(1);
+      sleep(randomIntBetween(2, 4));
+    }
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 11: 배송 관리자 (3%) — 배송/반품 생성, 상태 업데이트
+// 주문 생성 → 배송 생성 → 송장 등록 → 상태 진행 → 반품 신청/승인
+// ============================================================
+
+export function shippingManager() {
+  const sessionStart = Date.now();
+
+  group('배송 관리자', () => {
+    // 1. 주문 생성을 위해 회원가입 + 로그인
+    const auth = registerAndLogin();
+    if (!auth) { sleep(5); return; }
+    registerAddress(auth.token, '집');
+    sleep(randomIntBetween(1, 2));
+
+    // 2. 상품 선택 + 주문 생성
+    const products = browseProducts(0, 10);
+    if (products.length === 0) { sleep(5); return; }
+
+    const product = pickRandomProduct(products);
+    const detail = viewProductDetail(product.id);
+    if (!detail) { sleep(5); return; }
+
+    const option = getProductOption(detail);
+    if (!option) { sleep(5); return; }
+
+    const unitPrice = getUnitPrice(product);
+    const orderData = createOrder(auth.memberId, [{
+      productId: product.id,
+      productOptionId: option.id,
+      productName: product.name,
+      optionName: `${option.size || 'M'}/${option.colorName || '블랙'}`,
+      quantity: 1,
+      unitPrice: unitPrice,
+    }], unitPrice >= 50000 ? 0 : 3000);
+
+    if (!orderData || !orderData.id) { sleep(5); return; }
+    sleep(randomIntBetween(1, 3));
+
+    // 3. 결제 확정
+    confirmPayment(orderData.id, unitPrice);
+    sleep(randomIntBetween(2, 4));
+
+    // 4. 배송 생성
+    const shipmentRes = safeRequest(() =>
+      http.post(`${BASE_URL}/shipments`, JSON.stringify({
+        orderId: orderData.id,
+        sellerId: 1,
+        receiverName: '테스터',
+        receiverPhone: `010${randomIntBetween(10000000, 99999999)}`,
+        receiverAddress: '서울특별시 강남구 테헤란로 123',
+      }), { headers: defaultHeaders })
+    );
+
+    let shipmentId = null;
+    if (shipmentRes && (shipmentRes.status === 200 || shipmentRes.status === 201)) {
+      shipmentsCreated.add(1);
+      try {
+        shipmentId = JSON.parse(shipmentRes.body).data?.id;
+      } catch (e) { /* ignore */ }
+    }
+    sleep(randomIntBetween(2, 4));
+
+    if (!shipmentId) { sleep(5); return; }
+
+    // 5. 송장 등록
+    const trackingNumber = `${randomIntBetween(100000000000, 999999999999)}`;
+    const trackingRes = safeRequest(() =>
+      http.patch(`${BASE_URL}/shipments/${shipmentId}/tracking`, JSON.stringify({
+        carrier: randomItem(CARRIERS),
+        trackingNumber: trackingNumber,
+      }), { headers: defaultHeaders })
+    );
+
+    if (trackingRes) {
+      check(trackingRes, { '송장 등록 성공': (r) => r.status === 200 });
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 6. 배송 상태 업데이트 (PENDING → READY → PICKED_UP → IN_TRANSIT → DELIVERED)
+    const statuses = ['READY', 'PICKED_UP', 'IN_TRANSIT', 'DELIVERED'];
+    for (const status of statuses) {
+      const statusRes = safeRequest(() =>
+        http.patch(`${BASE_URL}/shipments/${shipmentId}/status`, JSON.stringify({
+          status: status,
+        }), { headers: defaultHeaders })
+      );
+
+      if (statusRes) {
+        check(statusRes, { [`배송 상태 ${status}`]: (r) => r.status === 200 });
+      }
+      sleep(randomIntBetween(2, 5));
+    }
+
+    // 7. 반품 신청 (50% 확률)
+    if (Math.random() < 0.5) {
+      const orderItemId = Date.now() * 1000 + randomIntBetween(1, 999);
+      const returnRes = safeRequest(() =>
+        http.post(`${BASE_URL}/returns`, JSON.stringify({
+          orderId: orderData.id,
+          orderItemId: orderItemId,
+          type: 'RETURN',
+          reasonType: randomItem(['CHANGE_OF_MIND', 'DEFECTIVE', 'WRONG_ITEM', 'SIZE_ISSUE']),
+          reason: '사이즈가 맞지 않아서 반품 요청합니다.',
+        }), { headers: memberHeaders(auth.memberId) })
+      );
+
+      let returnId = null;
+      if (returnRes && (returnRes.status === 200 || returnRes.status === 201)) {
+        returnsRequested.add(1);
+        try {
+          returnId = JSON.parse(returnRes.body).data?.id;
+        } catch (e) { /* ignore */ }
+      }
+      sleep(randomIntBetween(2, 4));
+
+      // 8. 반품 승인 (70% 확률)
+      if (returnId && Math.random() < 0.7) {
+        const approveRes = safeRequest(() =>
+          http.patch(`${BASE_URL}/returns/${returnId}/approve`, JSON.stringify({}), {
+            headers: defaultHeaders,
+          })
+        );
+
+        if (approveRes) {
+          check(approveRes, { '반품 승인 성공': (r) => r.status === 200 });
+        }
+        sleep(randomIntBetween(2, 4));
+      }
+    }
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 12: 검색 유저 (7%) — 키워드/필터/자동완성 검색
+// 키워드 검색 → 필터 검색 → 자동완성 → 상품 상세 클릭 → 연속 검색
+// ============================================================
+
+export function searchUser() {
+  const sessionStart = Date.now();
+
+  group('검색 유저', () => {
+    // 1. 키워드 검색
+    const keyword = randomItem(SEARCH_KEYWORDS_V2);
+    const searchRes = safeRequest(() =>
+      http.get(`${BASE_URL}/search/products?keyword=${encodeURIComponent(keyword)}&page=0&size=10`)
+    );
+
+    let searchResults = [];
+    if (searchRes) {
+      const ok = check(searchRes, { '키워드 검색 성공': (r) => r.status === 200 });
+      searchQueries.add(1);
+      errorRate.add(!ok);
+      if (ok) {
+        try { searchResults = JSON.parse(searchRes.body).data?.content || []; }
+        catch (e) { /* ignore */ }
+      }
+    }
+    sleep(randomIntBetween(2, 5));
+
+    // 2. 필터 검색 (카테고리 + 브랜드 + 가격대)
+    const catId = randomItem(CATEGORIES);
+    const brandId = randomItem(BRAND_IDS);
+    const priceRange = randomItem(PRICE_RANGES);
+    const filterRes = safeRequest(() =>
+      http.get(`${BASE_URL}/search/products?categoryId=${catId}&brandId=${brandId}&minPrice=${priceRange.min}&maxPrice=${priceRange.max}&page=0&size=10`)
+    );
+
+    if (filterRes) {
+      check(filterRes, { '필터 검색 성공': (r) => r.status === 200 });
+      searchQueries.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 3. 자동완성 — 점진적 타이핑 시뮬레이션
+    const prefix = randomItem(AUTOCOMPLETE_PREFIXES);
+    const autocompleteRes = safeRequest(() =>
+      http.get(`${BASE_URL}/search/autocomplete?q=${encodeURIComponent(prefix)}&limit=5`)
+    );
+
+    if (autocompleteRes) {
+      check(autocompleteRes, { '자동완성 성공': (r) => r.status === 200 });
+      searchQueries.add(1);
+    }
+    sleep(randomIntBetween(1, 3));
+
+    // 4. 검색 결과에서 상품 상세 클릭
+    if (searchResults.length > 0) {
+      const clickedProduct = searchResults[randomIntBetween(0, searchResults.length - 1)];
+      if (clickedProduct && clickedProduct.id) {
+        viewProductDetail(clickedProduct.id);
+        sleep(randomIntBetween(3, 6));
+      }
+    } else {
+      // 검색 결과 없으면 일반 상품 목록에서 클릭
+      const fallbackProducts = browseProducts(0, 5);
+      if (fallbackProducts.length > 0) {
+        viewProductDetail(fallbackProducts[0].id);
+        sleep(randomIntBetween(3, 6));
+      }
+    }
+
+    // 5. 연속 검색 (키워드 변경) — 2~3회 추가
+    const additionalSearches = randomIntBetween(2, 3);
+    for (let i = 0; i < additionalSearches; i++) {
+      const nextKeyword = randomItem(SEARCH_KEYWORDS_V2);
+      const nextRes = safeRequest(() =>
+        http.get(`${BASE_URL}/search/products?keyword=${encodeURIComponent(nextKeyword)}&page=0&size=10`)
+      );
+
+      if (nextRes) {
+        check(nextRes, { '연속 검색 성공': (r) => r.status === 200 });
+        searchQueries.add(1);
+      }
+      sleep(randomIntBetween(2, 5));
+
+      // 자동완성도 추가
+      const nextPrefix = randomItem(AUTOCOMPLETE_PREFIXES);
+      safeRequest(() =>
+        http.get(`${BASE_URL}/search/autocomplete?q=${encodeURIComponent(nextPrefix)}&limit=5`)
+      );
+      searchQueries.add(1);
+      sleep(randomIntBetween(1, 2));
+    }
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 13: 재고 관리자 (3%) — 입고/예약/차감/해제
+// 재고 입고 → 재고 조회 → 대량 조회 → 예약 → 해제 → 차감
+// ============================================================
+
+export function inventoryManager() {
+  const sessionStart = Date.now();
+
+  group('재고 관리자', () => {
+    // 재고 작업 대상 옵션 ID들
+    const optionIds = [
+      randomIntBetween(1, 20),
+      randomIntBetween(1, 20),
+      randomIntBetween(1, 20),
+    ];
+
+    // 1. 재고 입고 (restock)
+    for (const optionId of optionIds) {
+      const restockRes = safeRequest(() =>
+        http.post(`${BASE_URL}/inventory/restock`, JSON.stringify({
+          productOptionId: optionId,
+          quantity: randomIntBetween(50, 200),
+        }), { headers: defaultHeaders })
+      );
+
+      if (restockRes) {
+        check(restockRes, { '재고 입고 성공': (r) => r.status === 200 || r.status === 201 });
+        inventoryOperations.add(1);
+      }
+      sleep(randomIntBetween(1, 3));
+    }
+
+    // 2. 개별 재고 조회
+    for (const optionId of optionIds) {
+      const invRes = safeRequest(() =>
+        http.get(`${BASE_URL}/inventory/${optionId}`)
+      );
+
+      if (invRes) {
+        check(invRes, { '재고 조회 성공': (r) => r.status === 200 });
+        inventoryOperations.add(1);
+      }
+      sleep(randomIntBetween(1, 2));
+    }
+
+    // 3. 대량 재고 조회
+    const bulkIds = optionIds.join(',');
+    const bulkRes = safeRequest(() =>
+      http.get(`${BASE_URL}/inventory/bulk?ids=${bulkIds}`)
+    );
+
+    if (bulkRes) {
+      check(bulkRes, { '대량 재고 조회 성공': (r) => r.status === 200 });
+      inventoryOperations.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 4. 재고 예약 (주문 시뮬레이션)
+    const reserveOptionId = randomItem(optionIds);
+    const reserveQuantity = randomIntBetween(1, 5);
+    const fakeOrderId = `inv-order-${Date.now()}-${randomIntBetween(1000, 9999)}`;
+
+    const reserveRes = safeRequest(() =>
+      http.post(`${BASE_URL}/inventory/reserve`, JSON.stringify({
+        productOptionId: reserveOptionId,
+        quantity: reserveQuantity,
+        orderId: fakeOrderId,
+      }), { headers: defaultHeaders })
+    );
+
+    if (reserveRes) {
+      check(reserveRes, { '재고 예약 성공': (r) => r.status === 200 || r.status === 201 });
+      inventoryOperations.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 5. 재고 해제 (50%) 또는 차감 (50%)
+    if (Math.random() < 0.5) {
+      const releaseRes = safeRequest(() =>
+        http.post(`${BASE_URL}/inventory/release`, JSON.stringify({
+          productOptionId: reserveOptionId,
+          quantity: reserveQuantity,
+          orderId: fakeOrderId,
+        }), { headers: defaultHeaders })
+      );
+
+      if (releaseRes) {
+        check(releaseRes, { '재고 해제 성공': (r) => r.status === 200 });
+        inventoryOperations.add(1);
+      }
+    } else {
+      const deductRes = safeRequest(() =>
+        http.post(`${BASE_URL}/inventory/deduct`, JSON.stringify({
+          productOptionId: reserveOptionId,
+          quantity: reserveQuantity,
+          orderId: fakeOrderId,
+        }), { headers: defaultHeaders })
+      );
+
+      if (deductRes) {
+        check(deductRes, { '재고 차감 성공': (r) => r.status === 200 });
+        inventoryOperations.add(1);
+      }
+    }
+    sleep(randomIntBetween(2, 5));
+
+    // 6. 최종 재고 확인
+    for (const optionId of optionIds) {
+      safeRequest(() => http.get(`${BASE_URL}/inventory/${optionId}`));
+      inventoryOperations.add(1);
+      sleep(randomIntBetween(1, 2));
+    }
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 14: 주문 취소 + 환불 유저 (3%) — 구매 후 취소, 환불 확인
+// 회원가입 → 로그인 → 상품 구매 → 주문 취소 → 환불 상태 확인
+// ============================================================
+
+export function orderCanceller() {
+  const sessionStart = Date.now();
+
+  group('주문 취소 + 환불', () => {
+    // 1. 회원가입 + 로그인
+    const auth = registerAndLogin();
+    if (!auth) { sleep(5); return; }
+    registerAddress(auth.token, '집');
+    sleep(randomIntBetween(1, 2));
+
+    // 2. 상품 선택
+    const products = browseProducts(0, 10);
+    if (products.length === 0) { sleep(5); return; }
+
+    const product = pickRandomProduct(products);
+    const detail = viewProductDetail(product.id);
+    if (!detail) { sleep(5); return; }
+
+    const option = getProductOption(detail);
+    if (!option) { sleep(5); return; }
+
+    const unitPrice = getUnitPrice(product);
+    const quantity = randomIntBetween(1, 2);
+    sleep(randomIntBetween(1, 2));
+
+    // 3. 장바구니 + 주문
+    addToCart(auth.memberId, product.id, option.id, quantity, unitPrice);
+    sleep(randomIntBetween(1, 2));
+
+    const orderData = createOrder(auth.memberId, [{
+      productId: product.id,
+      productOptionId: option.id,
+      productName: product.name,
+      optionName: `${option.size || 'M'}/${option.colorName || '블랙'}`,
+      quantity: quantity,
+      unitPrice: unitPrice,
+    }], unitPrice * quantity >= 50000 ? 0 : 3000);
+
+    if (!orderData || !orderData.id) { sleep(5); return; }
+    sleep(randomIntBetween(1, 2));
+
+    // 4. 결제
+    confirmPayment(orderData.id, unitPrice * quantity);
+    sleep(randomIntBetween(3, 6));
+
+    // 5. 주문 취소
+    const cancelReasons = [
+      '단순 변심으로 취소합니다.',
+      '다른 상품으로 변경하려고 합니다.',
+      '배송이 너무 오래 걸려서 취소합니다.',
+      '가격이 더 싼 곳을 찾았습니다.',
+    ];
+
+    const cancelRes = safeRequest(() =>
+      http.post(`${BASE_URL}/orders/${orderData.id}/cancel`, JSON.stringify({
+        reason: randomItem(cancelReasons),
+      }), { headers: memberHeaders(auth.memberId) })
+    );
+
+    if (cancelRes) {
+      const ok = check(cancelRes, { '주문 취소 성공': (r) => r.status === 200 });
+      if (ok) ordersCancelled.add(1);
+      errorRate.add(!ok);
+    }
+    sleep(randomIntBetween(3, 6));
+
+    // 6. 환불 상태 확인
+    const refundRes = safeRequest(() =>
+      http.get(`${BASE_URL}/payments/orders/${orderData.id}`, {
+        headers: memberHeaders(auth.memberId),
+      })
+    );
+
+    if (refundRes) {
+      check(refundRes, { '환불 상태 조회 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 7. 주문 상세도 확인
+    const orderCheckRes = safeRequest(() =>
+      http.get(`${BASE_URL}/orders/${orderData.id}`, {
+        headers: memberHeaders(auth.memberId),
+      })
+    );
+
+    if (orderCheckRes) {
+      check(orderCheckRes, { '취소된 주문 조회': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+  });
+
+  avgSessionDuration.add(Date.now() - sessionStart);
+}
+
+// ============================================================
+// 시나리오 15: BFF 통합 유저 (4%) — BFF 엔드포인트 통합 조회
+// 홈 → 상품 상세 → 마이페이지 → 체크아웃 → 주문 상세
+// ============================================================
+
+export function bffUser() {
+  const sessionStart = Date.now();
+
+  group('BFF 통합 유저', () => {
+    // 1. 회원가입 + 로그인 (마이페이지/체크아웃에 필요)
+    const auth = registerAndLogin();
+    if (!auth) { sleep(5); return; }
+    sleep(randomIntBetween(1, 2));
+
+    // 2. BFF 홈 페이지 조회
+    const homeRes = safeRequest(() =>
+      http.get(`${BASE_URL}/bff/home`)
+    );
+
+    if (homeRes) {
+      check(homeRes, { 'BFF 홈 조회 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(3, 6));
+
+    // 3. BFF 상품 상세 조회
+    const productIds = [randomIntBetween(1, 20), randomIntBetween(1, 20)];
+    for (const pid of productIds) {
+      const productRes = safeRequest(() =>
+        http.get(`${BASE_URL}/bff/products/${pid}`)
+      );
+
+      if (productRes) {
+        check(productRes, { 'BFF 상품 상세 성공': (r) => r.status === 200 });
+        pageViews.add(1);
+      }
+      sleep(randomIntBetween(3, 6));
+    }
+
+    // 4. BFF 마이페이지 조회
+    const mypageRes = safeRequest(() =>
+      http.get(`${BASE_URL}/bff/mypage`, {
+        headers: memberHeaders(auth.memberId),
+      })
+    );
+
+    if (mypageRes) {
+      check(mypageRes, { 'BFF 마이페이지 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(3, 5));
+
+    // 5. BFF 체크아웃 조회
+    const checkoutRes = safeRequest(() =>
+      http.get(`${BASE_URL}/bff/checkout`, {
+        headers: memberHeaders(auth.memberId),
+      })
+    );
+
+    if (checkoutRes) {
+      check(checkoutRes, { 'BFF 체크아웃 성공': (r) => r.status === 200 });
+      pageViews.add(1);
+    }
+    sleep(randomIntBetween(2, 4));
+
+    // 6. 주문 생성 후 BFF 주문 상세 조회
+    const products = browseProducts(0, 5);
+    if (products.length > 0) {
+      const product = pickRandomProduct(products);
+      const detail = viewProductDetail(product.id);
+
+      if (detail) {
+        const option = getProductOption(detail);
+        if (option) {
+          const unitPrice = getUnitPrice(product);
+          registerAddress(auth.token, '집');
+
+          const orderData = createOrder(auth.memberId, [{
+            productId: product.id,
+            productOptionId: option.id,
+            productName: product.name,
+            optionName: `${option.size || 'M'}/${option.colorName || '블랙'}`,
+            quantity: 1,
+            unitPrice: unitPrice,
+          }], unitPrice >= 50000 ? 0 : 3000);
+
+          if (orderData && orderData.id) {
+            sleep(randomIntBetween(2, 4));
+
+            // BFF 주문 상세
+            const orderDetailRes = safeRequest(() =>
+              http.get(`${BASE_URL}/bff/orders/${orderData.id}`, {
+                headers: memberHeaders(auth.memberId),
+              })
+            );
+
+            if (orderDetailRes) {
+              check(orderDetailRes, { 'BFF 주문 상세 성공': (r) => r.status === 200 });
+              pageViews.add(1);
+            }
+            sleep(randomIntBetween(2, 4));
+          }
+        }
+      }
+    }
+
+    // 7. 다시 홈으로
+    safeRequest(() => http.get(`${BASE_URL}/bff/home`));
+    pageViews.add(1);
+    sleep(randomIntBetween(2, 4));
   });
 
   avgSessionDuration.add(Date.now() - sessionStart);
