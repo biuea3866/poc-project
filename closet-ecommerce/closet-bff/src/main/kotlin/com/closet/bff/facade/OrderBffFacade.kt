@@ -4,6 +4,9 @@ import com.closet.bff.client.MemberServiceClient
 import com.closet.bff.client.OrderServiceClient
 import com.closet.bff.client.PaymentServiceClient
 import com.closet.bff.dto.CheckoutBffResponse
+import com.closet.bff.dto.ConfirmPaymentBffRequest
+import com.closet.bff.dto.ConfirmPaymentRequest
+import com.closet.bff.dto.CreateOrderBffRequest
 import com.closet.bff.dto.OrderDetailBffResponse
 import org.springframework.stereotype.Service
 import reactor.core.publisher.Mono
@@ -39,6 +42,40 @@ class OrderBffFacade(
             addresses = addresses,
             defaultAddress = addresses.find { it.isDefault },
             availableCoupons = null, // Phase 3
+        )
+    }
+
+    fun placeOrder(memberId: Long, request: CreateOrderBffRequest): OrderDetailBffResponse {
+        val order = orderClient.createOrder(memberId, request).block()!!
+        return OrderDetailBffResponse(
+            order = order,
+            payment = null,
+            shipment = null,
+        )
+    }
+
+    fun confirmPayment(request: ConfirmPaymentBffRequest): OrderDetailBffResponse {
+        val paymentRequest = ConfirmPaymentRequest(
+            paymentKey = request.paymentKey,
+            orderId = request.orderId,
+            amount = request.amount,
+        )
+        val payment = paymentClient.confirmPayment(paymentRequest).block()!!
+        val order = orderClient.getOrder(request.orderId).block()!!
+        return OrderDetailBffResponse(
+            order = order,
+            payment = payment,
+            shipment = null,
+        )
+    }
+
+    fun cancelOrder(orderId: Long, reason: String): OrderDetailBffResponse {
+        val order = orderClient.cancelOrder(orderId, reason).block()!!
+        val payment = paymentClient.getPaymentByOrderId(orderId).block()
+        return OrderDetailBffResponse(
+            order = order,
+            payment = payment,
+            shipment = null,
         )
     }
 }

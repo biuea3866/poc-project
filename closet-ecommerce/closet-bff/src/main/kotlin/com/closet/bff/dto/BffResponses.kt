@@ -139,6 +139,80 @@ data class PageResponse<T>(
     val size: Int,
 )
 
+// === BFF Request DTOs ===
+
+data class CreateOrderBffRequest(
+    val items: List<OrderItemRequest>,
+    val shippingAddressId: Long,
+    val couponId: Long? = null,
+    val pointAmount: Int = 0,
+)
+
+data class OrderItemRequest(
+    val productId: Long,
+    val productOptionId: Long,
+    val quantity: Int,
+)
+
+data class ConfirmPaymentBffRequest(
+    val paymentKey: String,
+    val orderId: Long,
+    val amount: Long,
+)
+
+data class ConfirmPaymentRequest(
+    val paymentKey: String,
+    val orderId: Long,
+    val amount: Long,
+)
+
+data class CancelRequest(
+    val reason: String,
+)
+
+data class AddCartItemRequest(
+    val productId: Long,
+    val productOptionId: Long,
+    val quantity: Int,
+)
+
+data class UpdateQuantityRequest(
+    val quantity: Int,
+)
+
+data class RegisterRequest(
+    val email: String,
+    val password: String,
+    val name: String,
+    val phone: String? = null,
+)
+
+data class LoginRequest(
+    val email: String,
+    val password: String,
+)
+
+data class LoginResponse(
+    val accessToken: String,
+    val refreshToken: String,
+)
+
+data class AddAddressRequest(
+    val name: String,
+    val phone: String,
+    val zipCode: String,
+    val address: String,
+    val detailAddress: String,
+)
+
+data class UpdateAddressRequest(
+    val name: String,
+    val phone: String,
+    val zipCode: String,
+    val address: String,
+    val detailAddress: String,
+)
+
 // Phase 2/3 placeholders
 data class ShipmentResponse(
     val id: Long,

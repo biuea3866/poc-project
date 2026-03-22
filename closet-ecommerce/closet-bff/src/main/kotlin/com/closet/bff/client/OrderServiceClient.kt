@@ -1,6 +1,9 @@
 package com.closet.bff.client
 
+import com.closet.bff.dto.AddCartItemRequest
+import com.closet.bff.dto.CartItemResponse
 import com.closet.bff.dto.CartResponse
+import com.closet.bff.dto.CreateOrderBffRequest
 import com.closet.bff.dto.OrderResponse
 import com.closet.bff.dto.PageResponse
 import org.springframework.beans.factory.annotation.Value
@@ -42,5 +45,45 @@ class OrderServiceClient(
             .uri("/carts/{memberId}", memberId)
             .retrieve()
             .bodyToMono(CartResponse::class.java)
+    }
+
+    fun createOrder(memberId: Long, request: CreateOrderBffRequest): Mono<OrderResponse> {
+        return webClient.post()
+            .uri("/orders")
+            .header("X-Member-Id", memberId.toString())
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(OrderResponse::class.java)
+    }
+
+    fun cancelOrder(orderId: Long, reason: String): Mono<OrderResponse> {
+        return webClient.post()
+            .uri("/orders/{id}/cancel", orderId)
+            .bodyValue(mapOf("reason" to reason))
+            .retrieve()
+            .bodyToMono(OrderResponse::class.java)
+    }
+
+    fun addCartItem(memberId: Long, request: AddCartItemRequest): Mono<CartItemResponse> {
+        return webClient.post()
+            .uri("/carts/{memberId}/items", memberId)
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(CartItemResponse::class.java)
+    }
+
+    fun updateCartItemQuantity(itemId: Long, quantity: Int): Mono<CartItemResponse> {
+        return webClient.put()
+            .uri("/carts/items/{itemId}", itemId)
+            .bodyValue(mapOf("quantity" to quantity))
+            .retrieve()
+            .bodyToMono(CartItemResponse::class.java)
+    }
+
+    fun removeCartItem(itemId: Long): Mono<Void> {
+        return webClient.delete()
+            .uri("/carts/items/{itemId}", itemId)
+            .retrieve()
+            .bodyToMono(Void::class.java)
     }
 }

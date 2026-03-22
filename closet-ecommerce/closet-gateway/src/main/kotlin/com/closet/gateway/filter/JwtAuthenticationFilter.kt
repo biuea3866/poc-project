@@ -28,6 +28,7 @@ class JwtAuthenticationFilter(
         "/api/v1/categories",
         "/api/v1/brands",
         "/api/v1/bff/products",
+        "/api/v1/bff/auth",
     )
 
     override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {

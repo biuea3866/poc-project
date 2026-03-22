@@ -1,5 +1,6 @@
 package com.closet.bff.client
 
+import com.closet.bff.dto.ConfirmPaymentRequest
 import com.closet.bff.dto.PaymentResponse
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Component
@@ -17,6 +18,22 @@ class PaymentServiceClient(
     fun getPaymentByOrderId(orderId: Long): Mono<PaymentResponse> {
         return webClient.get()
             .uri("/payments?orderId={orderId}", orderId)
+            .retrieve()
+            .bodyToMono(PaymentResponse::class.java)
+    }
+
+    fun confirmPayment(request: ConfirmPaymentRequest): Mono<PaymentResponse> {
+        return webClient.post()
+            .uri("/payments/confirm")
+            .bodyValue(request)
+            .retrieve()
+            .bodyToMono(PaymentResponse::class.java)
+    }
+
+    fun cancelPayment(paymentId: Long, reason: String): Mono<PaymentResponse> {
+        return webClient.post()
+            .uri("/payments/{id}/cancel", paymentId)
+            .bodyValue(mapOf("reason" to reason))
             .retrieve()
             .bodyToMono(PaymentResponse::class.java)
     }
