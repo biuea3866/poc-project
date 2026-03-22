@@ -43,4 +43,7 @@ interface MemberServiceClient {
 
     @PatchMapping("/members/{memberId}/addresses/{addressId}/default")
     fun setDefaultAddress(@PathVariable memberId: Long, @PathVariable addressId: Long): ApiResponse<ShippingAddressResponse>
+
+    @PostMapping("/members/auth/refresh")
+    fun refresh(@RequestBody request: Any): ApiResponse<LoginResponse>
 }

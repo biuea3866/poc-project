@@ -50,3 +50,25 @@ service:
     url: http://localhost:8083/api/v1
   payment:
     url: http://localhost:8084/api/v1
+  shipping:
+    url: http://localhost:8086/api/v1
+  inventory:
+    url: http://localhost:8087/api/v1
+  search:
+    url: http://localhost:8088/api/v1
+  review:
+    url: http://localhost:8089/api/v1
+  promotion:
+    url: http://localhost:8090/api/v1
+  display:
+    url: http://localhost:8091/api/v1
+  seller:
+    url: http://localhost:8092/api/v1
+  cs:
+    url: http://localhost:8093/api/v1
+  settlement:
+    url: http://localhost:8094/api/v1
+  notification:
+    url: http://localhost:8095/api/v1
+  content:
+    url: http://localhost:8096/api/v1

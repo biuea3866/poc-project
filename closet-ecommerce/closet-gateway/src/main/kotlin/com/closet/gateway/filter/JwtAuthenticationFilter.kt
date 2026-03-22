@@ -27,8 +27,27 @@ class JwtAuthenticationFilter(
         "/api/v1/products",
         "/api/v1/categories",
         "/api/v1/brands",
+        "/api/v1/search",
+        "/api/v1/bff/home",
         "/api/v1/bff/products",
         "/api/v1/bff/auth",
+        "/api/v1/reviews/products",
+        "/api/v1/display",
+        "/api/v1/content/magazines",
+        "/api/v1/cs/faqs",
+    )
+
+    private val getOnlyPrefixes = listOf(
+        "/api/v1/products",
+        "/api/v1/categories",
+        "/api/v1/brands",
+        "/api/v1/search",
+        "/api/v1/bff/home",
+        "/api/v1/bff/products",
+        "/api/v1/reviews/products",
+        "/api/v1/display",
+        "/api/v1/content/magazines",
+        "/api/v1/cs/faqs",
     )
 
     override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
@@ -74,12 +93,8 @@ class JwtAuthenticationFilter(
 
     private fun isPublicPath(path: String, method: HttpMethod?): Boolean {
         if (publicPaths.any { path.startsWith(it) }) {
-            // For product/category/brand/bff listings, only GET is public
-            if (path.startsWith("/api/v1/products") ||
-                path.startsWith("/api/v1/categories") ||
-                path.startsWith("/api/v1/brands") ||
-                path.startsWith("/api/v1/bff/products")
-            ) {
+            // For GET-only public paths, only allow GET method
+            if (getOnlyPrefixes.any { path.startsWith(it) }) {
                 return method == HttpMethod.GET
             }
             return true
