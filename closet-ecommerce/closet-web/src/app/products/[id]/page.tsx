@@ -27,7 +27,7 @@ export default function ProductDetailPage() {
 
           {/* Options */}
           <div>
-            <h3 className="text-sm font-semibold mb-2">Options</h3>
+            <h3 className="text-sm font-semibold mb-2">옵션</h3>
             <div className="flex gap-2">
               {['S', 'M', 'L', 'XL'].map((size) => (
                 <button
@@ -42,7 +42,7 @@ export default function ProductDetailPage() {
 
           {/* Quantity */}
           <div>
-            <h3 className="text-sm font-semibold mb-2">Quantity</h3>
+            <h3 className="text-sm font-semibold mb-2">수량</h3>
             <div className="flex items-center gap-2">
               <button className="w-10 h-10 border border-gray-300 rounded-lg flex items-center justify-center">
                 -
@@ -56,12 +56,12 @@ export default function ProductDetailPage() {
 
           {/* Add to Cart */}
           <button className="w-full bg-black text-white py-4 rounded-lg font-medium hover:bg-gray-800 transition-colors">
-            Add to Cart
+            장바구니 담기
           </button>
 
           {/* Description */}
           <div>
-            <h3 className="text-sm font-semibold mb-2">Description</h3>
+            <h3 className="text-sm font-semibold mb-2">상품 설명</h3>
             <div className="space-y-2">
               <div className="h-4 bg-gray-200 rounded w-full animate-pulse" />
               <div className="h-4 bg-gray-200 rounded w-5/6 animate-pulse" />

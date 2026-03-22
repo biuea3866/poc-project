@@ -17,7 +17,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-            No Image
+            이미지 없음
           </div>
         )}
       </div>
@@ -47,7 +47,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
           onClick={() => onRemove(item.id)}
           className="text-xs text-gray-400 hover:text-gray-600"
         >
-          Remove
+          삭제
         </button>
         <span className="text-sm font-bold">{formatPriceWithCurrency(item.totalPrice)}</span>
       </div>

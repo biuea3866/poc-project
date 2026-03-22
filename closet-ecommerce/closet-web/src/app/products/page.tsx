@@ -5,7 +5,7 @@ import ProductFilter from '@/components/product/ProductFilter';
 export default function ProductsPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <h1 className="text-2xl font-bold text-gray-900 mb-8">All Products</h1>
+      <h1 className="text-2xl font-bold text-gray-900 mb-8">상품 목록</h1>
       <div className="flex gap-8">
         {/* Sidebar Filter */}
         <div className="w-64 flex-shrink-0 hidden lg:block">
@@ -16,12 +16,12 @@ export default function ProductsPage() {
         <div className="flex-1">
           {/* Sort bar */}
           <div className="flex justify-between items-center mb-6">
-            <p className="text-sm text-gray-500">Loading products...</p>
+            <p className="text-sm text-gray-500">상품을 불러오는 중...</p>
             <select className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm">
-              <option>Newest</option>
-              <option>Price: Low to High</option>
-              <option>Price: High to Low</option>
-              <option>Best Selling</option>
+              <option>신상품순</option>
+              <option>가격 낮은순</option>
+              <option>가격 높은순</option>
+              <option>인기순</option>
             </select>
           </div>
 

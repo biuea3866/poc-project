@@ -4,8 +4,8 @@ import Header from '@/components/common/Header';
 import Footer from '@/components/common/Footer';
 
 export const metadata: Metadata = {
-  title: 'Closet - Your Fashion Destination',
-  description: 'Premium fashion e-commerce platform',
+  title: 'Closet - 패션 이커머스',
+  description: '프리미엄 패션 이커머스 플랫폼',
 };
 
 export default function RootLayout({

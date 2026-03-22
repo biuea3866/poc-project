@@ -21,7 +21,7 @@ export default function Header() {
           <div className="flex-1 max-w-lg mx-8">
             <input
               type="text"
-              placeholder="Search products..."
+              placeholder="상품 검색..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
           </div>
@@ -29,10 +29,10 @@ export default function Header() {
           {/* Navigation */}
           <nav className="flex items-center gap-6">
             <Link href="/products" className="text-sm text-gray-600 hover:text-gray-900">
-              Products
+              상품
             </Link>
             <Link href="/cart" className="relative text-sm text-gray-600 hover:text-gray-900">
-              Cart
+              장바구니
               {totalCount() > 0 && (
                 <span className="absolute -top-2 -right-3 bg-black text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
                   {totalCount()}
@@ -42,18 +42,18 @@ export default function Header() {
             {isAuthenticated ? (
               <>
                 <Link href="/mypage" className="text-sm text-gray-600 hover:text-gray-900">
-                  My Page
+                  마이페이지
                 </Link>
                 <button
                   onClick={logout}
                   className="text-sm text-gray-600 hover:text-gray-900"
                 >
-                  Logout
+                  로그아웃
                 </button>
               </>
             ) : (
               <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
-                Login
+                로그인
               </Link>
             )}
           </nav>

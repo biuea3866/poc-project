@@ -9,7 +9,7 @@ export default function ProductList({ products }: ProductListProps) {
   if (products.length === 0) {
     return (
       <div className="text-center py-16 text-gray-500">
-        No products found.
+        상품이 없습니다.
       </div>
     );
   }

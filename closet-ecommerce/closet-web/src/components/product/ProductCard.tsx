@@ -20,7 +20,7 @@ export default function ProductCard({ product }: ProductCardProps) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center text-gray-400">
-            No Image
+            이미지 없음
           </div>
         )}
       </div>

@@ -18,7 +18,7 @@ export default function RegisterPage() {
       await register(data);
       router.push('/login');
     } catch {
-      setError('Registration failed. Please try again.');
+      setError('회원가입에 실패했습니다. 다시 시도해주세요.');
     } finally {
       setIsLoading(false);
     }
@@ -27,7 +27,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4">
       <div className="w-full max-w-md">
-        <h1 className="text-3xl font-bold text-center mb-8">Create Account</h1>
+        <h1 className="text-3xl font-bold text-center mb-8">회원가입</h1>
         <RegisterForm onSubmit={handleRegister} isLoading={isLoading} error={error} />
       </div>
     </div>

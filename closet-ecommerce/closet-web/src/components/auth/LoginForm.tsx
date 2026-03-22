@@ -25,7 +25,7 @@ export default function LoginForm({ onSubmit, isLoading, error }: LoginFormProps
       )}
       <div>
         <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
-          Email
+          이메일
         </label>
         <input
           id="email"
@@ -34,12 +34,12 @@ export default function LoginForm({ onSubmit, isLoading, error }: LoginFormProps
           onChange={(e) => setEmail(e.target.value)}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="Enter your email"
+          placeholder="이메일을 입력해주세요"
         />
       </div>
       <div>
         <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
-          Password
+          비밀번호
         </label>
         <input
           id="password"
@@ -48,7 +48,7 @@ export default function LoginForm({ onSubmit, isLoading, error }: LoginFormProps
           onChange={(e) => setPassword(e.target.value)}
           required
           className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black"
-          placeholder="Enter your password"
+          placeholder="비밀번호를 입력해주세요"
         />
       </div>
       <button
@@ -56,12 +56,12 @@ export default function LoginForm({ onSubmit, isLoading, error }: LoginFormProps
         disabled={isLoading}
         className="w-full bg-black text-white py-3 rounded-lg font-medium hover:bg-gray-800 disabled:bg-gray-400 transition-colors"
       >
-        {isLoading ? 'Logging in...' : 'Login'}
+        {isLoading ? '로그인 중...' : '로그인'}
       </button>
       <p className="text-center text-sm text-gray-600">
-        Don&apos;t have an account?{' '}
+        계정이 없으신가요?{' '}
         <Link href="/register" className="text-black font-medium hover:underline">
-          Register
+          회원가입
         </Link>
       </p>
     </form>
