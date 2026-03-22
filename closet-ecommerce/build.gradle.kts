@@ -45,10 +45,9 @@ subprojects {
         implementation("org.springframework.boot:spring-boot-starter-actuator")
         implementation("io.micrometer:micrometer-registry-prometheus")
 
-        // Distributed Tracing (OpenTelemetry → Jaeger/Tempo + Zipkin)
-        implementation("io.micrometer:micrometer-tracing-bridge-otel")
-        implementation("io.opentelemetry:opentelemetry-exporter-otlp")
-        implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
+        // Distributed Tracing — OTel Java Agent가 자동 계측 (JDBC, Redis, Kafka, HTTP 포함)
+        // micrometer-tracing-bridge-otel 제거 (OTel Agent와 충돌)
+        // make start-trace 로 OTel Agent 붙여서 실행
 
         // Test
         testImplementation("org.springframework.boot:spring-boot-starter-test") {
