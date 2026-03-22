@@ -45,9 +45,10 @@ subprojects {
         implementation("org.springframework.boot:spring-boot-starter-actuator")
         implementation("io.micrometer:micrometer-registry-prometheus")
 
-        // Distributed Tracing (OpenTelemetry → Jaeger)
+        // Distributed Tracing (OpenTelemetry → Jaeger/Tempo + Zipkin)
         implementation("io.micrometer:micrometer-tracing-bridge-otel")
         implementation("io.opentelemetry:opentelemetry-exporter-otlp")
+        implementation("io.opentelemetry:opentelemetry-exporter-zipkin")
 
         // Test
         testImplementation("org.springframework.boot:spring-boot-starter-test") {

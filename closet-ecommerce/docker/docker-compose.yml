@@ -95,6 +95,11 @@ services:
       - ./monitoring/tempo/tempo.yaml:/etc/tempo.yaml
       - tempo-data:/var/tempo
 
+  zipkin:
+    image: openzipkin/zipkin:latest
+    ports:
+      - "9411:9411"
+
   # MySQL exporter
   mysql-exporter:
     image: prom/mysqld-exporter:v0.15.0

@@ -1,4 +1,4 @@
-.PHONY: up down build test logs start start-apm start-trace stop pinpoint \
+.PHONY: up down build test logs start start-apm start-trace stop pinpoint zipkin \
        signoz-up signoz-down signoz \
        logs-all logs-member logs-product logs-order logs-payment logs-gateway logs-bff logs-errors
 
@@ -31,6 +31,9 @@ stop: ## Stop all services
 
 pinpoint: ## Open Pinpoint Web UI
 	@open http://localhost:28080
+
+zipkin: ## Open Zipkin UI
+	@open http://localhost:9411
 
 signoz-up: ## Start SigNoz APM
 	docker compose -f docker/signoz/docker-compose.yml up -d
