@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.PutMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -32,8 +33,13 @@ class CartController(
     }
 
     @GetMapping
-    fun getCart(@RequestParam memberId: Long): ApiResponse<CartResponse> {
-        val response = cartService.getCart(memberId)
+    fun getCart(
+        @RequestHeader("X-Member-Id", required = false) headerMemberId: Long?,
+        @RequestParam(required = false) memberId: Long?,
+    ): ApiResponse<CartResponse> {
+        val resolvedMemberId = headerMemberId ?: memberId
+            ?: throw IllegalArgumentException("memberId는 헤더(X-Member-Id) 또는 쿼리 파라미터로 전달해야 합니다")
+        val response = cartService.getCart(resolvedMemberId)
         return ApiResponse.ok(response)
     }
 

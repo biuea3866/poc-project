@@ -32,7 +32,8 @@ class ProductRepositoryImpl(
         brandId?.let { builder.and(product.brandId.eq(it)) }
         minPrice?.let { builder.and(product.salePrice.amount.goe(it)) }
         maxPrice?.let { builder.and(product.salePrice.amount.loe(it)) }
-        status?.let { builder.and(product.status.eq(it)) }
+        // status 파라미터가 없으면 ACTIVE 상품만 기본 조회 (DRAFT 노출 방지)
+        builder.and(product.status.eq(status ?: ProductStatus.ACTIVE))
 
         val results = queryFactory
             .selectFrom(product)

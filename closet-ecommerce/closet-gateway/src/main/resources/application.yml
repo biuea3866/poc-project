@@ -29,7 +29,7 @@ spring:
             - Path=/api/v1/bff/**
 
 jwt:
-  secret: closet-jwt-secret-key-for-development-only-32bytes!!
+  secret: closet-member-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
 
 management:
   endpoints:
