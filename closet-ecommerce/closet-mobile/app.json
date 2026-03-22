@@ -23,7 +23,10 @@
       },
       "predictiveBackGestureEnabled": false
     },
+    "platforms": ["ios", "android", "web"],
     "web": {
+      "bundler": "metro",
+      "output": "single",
       "favicon": "./assets/favicon.png"
     }
   }
