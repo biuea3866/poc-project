@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import type { Product } from '@/types/product';
 import { formatPriceWithCurrency } from '@/lib/utils/format';
@@ -6,8 +8,24 @@ interface ProductCardProps {
   product: Product;
 }
 
+const BRAND_COLORS = [
+  'bg-rose-400', 'bg-sky-400', 'bg-amber-400', 'bg-emerald-400',
+  'bg-violet-400', 'bg-pink-400', 'bg-teal-400', 'bg-orange-400',
+];
+
+function getBrandColor(brandId: number): string {
+  return BRAND_COLORS[brandId % BRAND_COLORS.length];
+}
+
+function getDiscountRate(price: number, discountPrice: number): number {
+  if (!price || !discountPrice || discountPrice >= price) return 0;
+  return Math.round(((price - discountPrice) / price) * 100);
+}
+
 export default function ProductCard({ product }: ProductCardProps) {
-  const thumbnail = product.images.find((img) => img.isThumbnail)?.url || product.images[0]?.url;
+  const thumbnail = product.images?.find((img) => img.isThumbnail)?.url || product.images?.[0]?.url;
+  const discountRate = product.discountPrice ? getDiscountRate(product.price, product.discountPrice) : 0;
+  const brandInitial = product.brandName ? product.brandName.charAt(0).toUpperCase() : '?';
 
   return (
     <Link href={`/products/${product.id}`} className="group">
@@ -19,8 +37,8 @@ export default function ProductCard({ product }: ProductCardProps) {
             className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400">
-            이미지 없음
+          <div className={`w-full h-full flex items-center justify-center ${getBrandColor(product.brandId)} group-hover:scale-105 transition-transform duration-300`}>
+            <span className="text-4xl font-bold text-white/80">{brandInitial}</span>
           </div>
         )}
       </div>
@@ -30,7 +48,12 @@ export default function ProductCard({ product }: ProductCardProps) {
         <div className="flex items-center gap-2">
           {product.discountPrice ? (
             <>
-              <span className="text-sm font-bold text-red-600">
+              {discountRate > 0 && (
+                <span className="text-sm font-bold text-red-600">
+                  {discountRate}%
+                </span>
+              )}
+              <span className="text-sm font-bold text-gray-900">
                 {formatPriceWithCurrency(product.discountPrice)}
               </span>
               <span className="text-xs text-gray-400 line-through">
