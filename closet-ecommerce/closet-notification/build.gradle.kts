@@ -1,8 +1,6 @@
 dependencies {
     implementation(project(":closet-common"))
+
+    // Spring Boot Web
     implementation("org.springframework.boot:spring-boot-starter-web")
-    implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-    implementation("org.springframework.kafka:spring-kafka")
-    implementation("org.springframework.boot:spring-boot-starter-mail")
-    runtimeOnly("com.mysql:mysql-connector-j")
 }
