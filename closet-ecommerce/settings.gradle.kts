@@ -17,5 +17,9 @@ include(
     "closet-promotion",
     "closet-display",
     "closet-seller",
-    "closet-cs"
+    "closet-cs",
+    // Phase 4
+    "closet-settlement",
+    "closet-notification",
+    "closet-content"
 )
