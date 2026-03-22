@@ -12,5 +12,10 @@ include(
     "closet-shipping",
     "closet-inventory",
     "closet-search",
-    "closet-review"
+    "closet-review",
+    // Phase 3
+    "closet-promotion",
+    "closet-display",
+    "closet-seller",
+    "closet-cs"
 )
