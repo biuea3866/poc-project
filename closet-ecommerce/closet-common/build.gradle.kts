@@ -1,7 +1,5 @@
 dependencies {
     implementation("org.springframework.boot:spring-boot-starter-web")
-
-    // Kafka (Outbox Polling Publisher)
     implementation("org.springframework.kafka:spring-kafka")
 }
 

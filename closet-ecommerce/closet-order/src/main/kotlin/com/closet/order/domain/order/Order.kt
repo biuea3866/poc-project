@@ -120,8 +120,8 @@ class Order(
         transitionTo(OrderStatus.CONFIRMED)
     }
 
-    fun fail() {
-        transitionTo(OrderStatus.FAILED)
+    fun fail(reason: String? = null) {
+        transitionTo(OrderStatus.FAILED, reason ?: "Saga failed")
     }
 
     fun cancel(reason: String) {

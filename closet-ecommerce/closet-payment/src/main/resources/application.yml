@@ -5,11 +5,6 @@ spring:
   application:
     name: closet-payment
   datasource:
-    hikari:
-      maximum-pool-size: 30
-      minimum-idle: 5
-      connection-timeout: 5000
-      leak-detection-threshold: 10000
     url: jdbc:mysql://localhost:3306/closet?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8&allowPublicKeyRetrieval=true
     username: root
     password: closet
@@ -28,17 +23,6 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     table: flyway_schema_history_payment
-  kafka:
-    bootstrap-servers: localhost:9092
-    consumer:
-      group-id: ${spring.application.name}
-      auto-offset-reset: earliest
-      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-    producer:
-      acks: all
-      key-serializer: org.apache.kafka.common.serialization.StringSerializer
-      value-serializer: org.apache.kafka.common.serialization.StringSerializer
 
 server:
   port: 8084
@@ -55,9 +39,6 @@ management:
   tracing:
     sampling:
       probability: 1.0
-  zipkin:
-    tracing:
-      endpoint: http://localhost:9411/api/v2/spans
   otlp:
     tracing:
       endpoint: http://localhost:4318/v1/traces

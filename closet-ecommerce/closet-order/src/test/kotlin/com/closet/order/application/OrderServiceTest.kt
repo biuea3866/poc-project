@@ -29,14 +29,12 @@ class OrderServiceTest : BehaviorSpec({
     val orderItemRepository = mockk<OrderItemRepository>()
     val orderStatusHistoryRepository = mockk<OrderStatusHistoryRepository>()
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
-    val sagaOrchestrator = mockk<OrderSagaOrchestrator>(relaxed = true)
 
     val orderService = OrderService(
         orderRepository = orderRepository,
         orderItemRepository = orderItemRepository,
         orderStatusHistoryRepository = orderStatusHistoryRepository,
         eventPublisher = eventPublisher,
-        sagaOrchestrator = sagaOrchestrator,
     )
 
     Given("주문 생성") {

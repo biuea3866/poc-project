@@ -29,7 +29,6 @@ class OrderService(
     private val orderItemRepository: OrderItemRepository,
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val eventPublisher: ApplicationEventPublisher,
-    private val sagaOrchestrator: OrderSagaOrchestrator,
 ) {
 
     @Transactional
@@ -97,9 +96,6 @@ class OrderService(
                 },
             )
         )
-
-        // Saga 시작: 재고 예약 → 결제 → 완료
-        sagaOrchestrator.startSaga(savedOrder)
 
         logger.info { "주문 생성 완료: orderId=${savedOrder.id}, orderNumber=${savedOrder.orderNumber}" }
         return OrderResponse.from(savedOrder, savedItems)
