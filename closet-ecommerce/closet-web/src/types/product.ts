@@ -1,63 +1,70 @@
 export interface Product {
   id: number;
   name: string;
-  description: string;
-  price: number;
-  discountPrice: number | null;
+  description?: string;
   brandId: number;
-  brandName: string;
   categoryId: number;
-  categoryName: string;
-  images: ProductImage[];
-  options: ProductOption[];
-  stockQuantity: number;
-  status: ProductStatus;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ProductImage {
-  id: number;
-  url: string;
-  sortOrder: number;
-  isThumbnail: boolean;
+  basePrice: number;
+  salePrice: number;
+  discountRate: number;
+  status: string;
+  season: string;
+  fitType: string;
+  gender: string;
+  options?: ProductOption[];
+  images?: ProductImage[];
+  sizeGuides?: SizeGuide[];
 }
 
 export interface ProductOption {
   id: number;
-  name: string;
-  values: ProductOptionValue[];
+  size: string;
+  colorName: string;
+  colorHex: string;
+  skuCode: string;
+  additionalPrice: number;
 }
 
-export interface ProductOptionValue {
+export interface ProductImage {
   id: number;
-  value: string;
-  additionalPrice: number;
-  stockQuantity: number;
+  imageUrl: string;
+  type: string;
+  sortOrder: number;
+}
+
+export interface SizeGuide {
+  id: number;
+  size: string;
+  shoulderWidth: number;
+  chestWidth: number;
+  totalLength: number;
+  sleeveLength: number;
 }
 
 export interface Category {
   id: number;
   name: string;
+  depth: number;
   parentId: number | null;
+  sortOrder: number;
+  status: string;
   children: Category[];
 }
 
 export interface Brand {
   id: number;
   name: string;
+  description: string;
   logoUrl: string | null;
 }
 
-export type ProductStatus = 'ACTIVE' | 'INACTIVE' | 'SOLD_OUT';
-
-export interface ProductListParams {
+export type ProductListParams = {
   page?: number;
   size?: number;
   categoryId?: number;
   brandId?: number;
   minPrice?: number;
   maxPrice?: number;
-  keyword?: string;
+  status?: string;
   sort?: string;
 }

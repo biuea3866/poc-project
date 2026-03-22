@@ -13,19 +13,13 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
   return (
     <div className="flex gap-4 py-4 border-b border-gray-200">
       <div className="w-24 h-24 bg-gray-100 rounded-lg overflow-hidden flex-shrink-0">
-        {item.productImage ? (
-          <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover" />
-        ) : (
-          <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
-            이미지 없음
-          </div>
-        )}
+        <div className="w-full h-full flex items-center justify-center text-gray-400 text-xs">
+          상품 #{item.productId}
+        </div>
       </div>
       <div className="flex-1">
-        <h3 className="text-sm font-medium text-gray-900">{item.productName}</h3>
-        {item.optionName && (
-          <p className="text-xs text-gray-500 mt-1">{item.optionName}</p>
-        )}
+        <h3 className="text-sm font-medium text-gray-900">상품 #{item.productId}</h3>
+        <p className="text-xs text-gray-500 mt-1">옵션 #{item.productOptionId}</p>
         <div className="flex items-center gap-2 mt-2">
           <button
             onClick={() => onUpdateQuantity(item.id, Math.max(1, item.quantity - 1))}
@@ -49,7 +43,7 @@ export default function CartItem({ item, onUpdateQuantity, onRemove }: CartItemP
         >
           삭제
         </button>
-        <span className="text-sm font-bold">{formatPriceWithCurrency(item.totalPrice)}</span>
+        <span className="text-sm font-bold">{formatPriceWithCurrency(item.unitPrice * item.quantity)}</span>
       </div>
     </div>
   );

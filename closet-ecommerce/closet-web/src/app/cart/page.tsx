@@ -36,27 +36,25 @@ export default function CartPage() {
             <div className="space-y-4">
               {items.map((item) => (
                 <div key={item.id} className="flex gap-4 p-4 border border-gray-200 rounded-lg">
-                  {/* Product Image */}
+                  {/* Product Link */}
                   <Link href={`/products/${item.productId}`} className="flex-shrink-0">
                     <div className="w-24 h-24 bg-gray-200 rounded-lg flex items-center justify-center">
-                      {item.productImage ? (
-                        <img src={item.productImage} alt={item.productName} className="w-full h-full object-cover rounded-lg" />
-                      ) : (
-                        <span className="text-2xl font-bold text-gray-400">
-                          {item.productName.charAt(0)}
-                        </span>
-                      )}
+                      <span className="text-xs text-gray-400">
+                        상품 #{item.productId}
+                      </span>
                     </div>
                   </Link>
 
                   {/* Product Info */}
                   <div className="flex-1 min-w-0">
                     <Link href={`/products/${item.productId}`} className="hover:underline">
-                      <h3 className="text-sm font-medium text-gray-900 truncate">{item.productName}</h3>
+                      <h3 className="text-sm font-medium text-gray-900 truncate">
+                        상품 #{item.productId}
+                      </h3>
                     </Link>
-                    {item.optionName && (
-                      <p className="text-xs text-gray-500 mt-1">{item.optionName}</p>
-                    )}
+                    <p className="text-xs text-gray-500 mt-1">
+                      옵션 #{item.productOptionId}
+                    </p>
                     <p className="text-sm font-bold text-gray-900 mt-2">
                       {formatPriceWithCurrency(item.unitPrice)}
                     </p>
@@ -88,7 +86,7 @@ export default function CartPage() {
                       삭제
                     </button>
                     <span className="text-sm font-bold text-gray-900">
-                      {formatPriceWithCurrency(item.totalPrice)}
+                      {formatPriceWithCurrency(item.unitPrice * item.quantity)}
                     </span>
                   </div>
                 </div>

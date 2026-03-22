@@ -6,6 +6,7 @@ import { formatPriceWithCurrency } from '@/lib/utils/format';
 
 interface ProductCardProps {
   product: Product;
+  brandName?: string;
 }
 
 const BRAND_COLORS = [
@@ -17,15 +18,10 @@ function getBrandColor(brandId: number): string {
   return BRAND_COLORS[brandId % BRAND_COLORS.length];
 }
 
-function getDiscountRate(price: number, discountPrice: number): number {
-  if (!price || !discountPrice || discountPrice >= price) return 0;
-  return Math.round(((price - discountPrice) / price) * 100);
-}
-
-export default function ProductCard({ product }: ProductCardProps) {
-  const thumbnail = product.images?.find((img) => img.isThumbnail)?.url || product.images?.[0]?.url;
-  const discountRate = product.discountPrice ? getDiscountRate(product.price, product.discountPrice) : 0;
-  const brandInitial = product.brandName ? product.brandName.charAt(0).toUpperCase() : '?';
+export default function ProductCard({ product, brandName }: ProductCardProps) {
+  const thumbnail = product.images?.[0]?.imageUrl;
+  const displayBrandName = brandName || `Brand #${product.brandId}`;
+  const brandInitial = displayBrandName.charAt(0).toUpperCase();
 
   return (
     <Link href={`/products/${product.id}`} className="group">
@@ -43,26 +39,24 @@ export default function ProductCard({ product }: ProductCardProps) {
         )}
       </div>
       <div>
-        <p className="text-xs text-gray-500 mb-1">{product.brandName}</p>
+        <p className="text-xs text-gray-500 mb-1">{displayBrandName}</p>
         <h3 className="text-sm font-medium text-gray-900 mb-1 line-clamp-2">{product.name}</h3>
         <div className="flex items-center gap-2">
-          {product.discountPrice ? (
+          {product.discountRate > 0 ? (
             <>
-              {discountRate > 0 && (
-                <span className="text-sm font-bold text-red-600">
-                  {discountRate}%
-                </span>
-              )}
+              <span className="text-sm font-bold text-red-600">
+                {product.discountRate}%
+              </span>
               <span className="text-sm font-bold text-gray-900">
-                {formatPriceWithCurrency(product.discountPrice)}
+                {formatPriceWithCurrency(product.salePrice)}
               </span>
               <span className="text-xs text-gray-400 line-through">
-                {formatPriceWithCurrency(product.price)}
+                {formatPriceWithCurrency(product.basePrice)}
               </span>
             </>
           ) : (
             <span className="text-sm font-bold text-gray-900">
-              {formatPriceWithCurrency(product.price)}
+              {formatPriceWithCurrency(product.basePrice)}
             </span>
           )}
         </div>

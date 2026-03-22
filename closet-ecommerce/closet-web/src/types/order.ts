@@ -2,51 +2,45 @@ export interface Order {
   id: number;
   orderNumber: string;
   memberId: number;
-  items: OrderItem[];
+  sellerId: number;
   totalAmount: number;
   discountAmount: number;
   shippingFee: number;
   paymentAmount: number;
-  status: OrderStatus;
-  shippingAddress: string;
-  shippingAddressDetail: string;
-  recipientName: string;
-  recipientPhone: string;
-  zipCode: string;
-  createdAt: string;
-  updatedAt: string;
+  status: string;
+  receiverName: string;
+  receiverPhone: string;
+  orderedAt: string;
+  items: OrderItem[];
 }
 
 export interface OrderItem {
   id: number;
   productId: number;
+  productOptionId: number;
   productName: string;
-  productImage: string;
-  optionName: string | null;
+  optionName: string;
   quantity: number;
   unitPrice: number;
   totalPrice: number;
-}
-
-export enum OrderStatus {
-  PENDING = 'PENDING',
-  PAID = 'PAID',
-  PREPARING = 'PREPARING',
-  SHIPPING = 'SHIPPING',
-  DELIVERED = 'DELIVERED',
-  CANCELLED = 'CANCELLED',
-  REFUNDED = 'REFUNDED',
+  status: string;
 }
 
 export interface CreateOrderRequest {
+  memberId: number;
+  sellerId: number;
   items: CreateOrderItemRequest[];
-  shippingAddressId: number;
-  paymentMethod: string;
-  couponId?: number;
+  receiverName: string;
+  receiverPhone: string;
+  zipCode: string;
+  address: string;
+  detailAddress: string;
+  shippingFee: number;
 }
 
 export interface CreateOrderItemRequest {
   productId: number;
-  optionId?: number;
+  productOptionId: number;
   quantity: number;
+  unitPrice: number;
 }

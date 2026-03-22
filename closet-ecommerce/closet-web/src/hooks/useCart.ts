@@ -9,26 +9,38 @@ export function useCart() {
 
   const fetchCart = async () => {
     const response = await cartApi.getCart();
-    store.setItems(response.data.data.items);
-    return response.data.data;
+    const cart = response.data.data;
+    if (cart) {
+      store.setItems(cart.items);
+    }
+    return cart;
   };
 
   const addItem = async (data: AddCartItemRequest) => {
     const response = await cartApi.addCartItem(data);
-    store.setItems(response.data.data.items);
-    return response.data.data;
+    const cart = response.data.data;
+    if (cart) {
+      store.setItems(cart.items);
+    }
+    return cart;
   };
 
   const updateQuantity = async (itemId: number, quantity: number) => {
     const response = await cartApi.updateCartItem(itemId, { quantity });
-    store.setItems(response.data.data.items);
-    return response.data.data;
+    const cart = response.data.data;
+    if (cart) {
+      store.setItems(cart.items);
+    }
+    return cart;
   };
 
   const removeItem = async (itemId: number) => {
     const response = await cartApi.removeCartItem(itemId);
-    store.setItems(response.data.data.items);
-    return response.data.data;
+    const cart = response.data.data;
+    if (cart) {
+      store.setItems(cart.items);
+    }
+    return cart;
   };
 
   return {

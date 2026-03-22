@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useEffect, useState, useCallback } from 'react';
+import { Suspense, useEffect, useState, useCallback, useMemo } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { getProducts, getCategories, getBrands } from '@/lib/api/product';
 import ProductCard from '@/components/product/ProductCard';
@@ -34,13 +34,16 @@ function ProductsPageSkeleton() {
 
 const SORT_OPTIONS = [
   { label: '신상품순', value: 'createdAt,desc' },
-  { label: '가격 낮은순', value: 'price,asc' },
-  { label: '가격 높은순', value: 'price,desc' },
+  { label: '가격 낮은순', value: 'salePrice,asc' },
+  { label: '가격 높은순', value: 'salePrice,desc' },
   { label: '인기순', value: 'popularity,desc' },
 ];
 
 const EMPTY_PAGE: PageResponse<Product> = {
-  content: [], page: 0, size: 12, totalElements: 0, totalPages: 0, first: true, last: true,
+  content: [],
+  totalElements: 0,
+  totalPages: 0,
+  pageable: { pageNumber: 0, pageSize: 12 },
 };
 
 function ProductsContent() {
@@ -57,6 +60,12 @@ function ProductsContent() {
     sort: 'createdAt,desc',
     categoryId: initialCategoryId ? Number(initialCategoryId) : undefined,
   });
+
+  const brandMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    brands.forEach((b) => { map[b.id] = b.name; });
+    return map;
+  }, [brands]);
 
   const fetchProducts = useCallback(async (currentFilters: ProductListParams) => {
     setLoading(true);
@@ -98,6 +107,10 @@ function ProductsContent() {
     setFilters((prev) => ({ ...prev, page }));
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  const currentPage = products.pageable.pageNumber;
+  const isFirstPage = currentPage === 0;
+  const isLastPage = currentPage >= products.totalPages - 1;
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -146,7 +159,7 @@ function ProductsContent() {
           ) : (
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6">
               {products.content.map((product) => (
-                <ProductCard key={product.id} product={product} />
+                <ProductCard key={product.id} product={product} brandName={brandMap[product.brandId]} />
               ))}
             </div>
           )}
@@ -155,8 +168,8 @@ function ProductsContent() {
           {products.totalPages > 1 && (
             <div className="flex justify-center items-center gap-2 mt-12">
               <button
-                disabled={products.first}
-                onClick={() => handlePageChange(products.page - 1)}
+                disabled={isFirstPage}
+                onClick={() => handlePageChange(currentPage - 1)}
                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 이전
@@ -166,7 +179,7 @@ function ProductsContent() {
                   key={i}
                   onClick={() => handlePageChange(i)}
                   className={`w-10 h-10 text-sm rounded-lg ${
-                    products.page === i
+                    currentPage === i
                       ? 'bg-black text-white'
                       : 'border border-gray-300 hover:bg-gray-50'
                   }`}
@@ -175,8 +188,8 @@ function ProductsContent() {
                 </button>
               ))}
               <button
-                disabled={products.last}
-                onClick={() => handlePageChange(products.page + 1)}
+                disabled={isLastPage}
+                onClick={() => handlePageChange(currentPage + 1)}
                 className="px-3 py-2 text-sm border border-gray-300 rounded-lg disabled:opacity-30 disabled:cursor-not-allowed hover:bg-gray-50"
               >
                 다음

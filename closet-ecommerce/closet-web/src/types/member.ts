@@ -2,21 +2,11 @@ export interface Member {
   id: number;
   email: string;
   name: string;
-  phone: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-export interface ShippingAddress {
-  id: number;
-  memberId: number;
-  name: string;
-  recipientName: string;
   phone: string;
-  zipCode: string;
-  address: string;
-  addressDetail: string;
-  isDefault: boolean;
+  grade: string;
+  pointBalance: number;
+  status: string;
+  createdAt: string;
 }
 
 export interface LoginRequest {
@@ -27,7 +17,7 @@ export interface LoginRequest {
 export interface LoginResponse {
   accessToken: string;
   refreshToken: string;
-  member: Member;
+  memberId: number;
 }
 
 export interface RegisterRequest {
@@ -35,4 +25,14 @@ export interface RegisterRequest {
   password: string;
   name: string;
   phone?: string;
+}
+
+export interface ShippingAddress {
+  id: number;
+  name: string;
+  phone: string;
+  zipCode: string;
+  address: string;
+  detailAddress: string;
+  isDefault: boolean;
 }

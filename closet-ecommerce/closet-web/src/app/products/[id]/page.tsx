@@ -1,13 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useParams, useRouter } from 'next/navigation';
-import { getProduct } from '@/lib/api/product';
+import { getProduct, getBrands } from '@/lib/api/product';
 import { addCartItem } from '@/lib/api/cart';
 import { formatPriceWithCurrency } from '@/lib/utils/format';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
-import type { Product, ProductOptionValue } from '@/types/product';
+import type { Product, ProductOption, Brand } from '@/types/product';
 
 const BRAND_COLORS = [
   'bg-rose-400', 'bg-sky-400', 'bg-amber-400', 'bg-emerald-400',
@@ -41,9 +41,10 @@ export default function ProductDetailPage() {
   const productId = Number(params.id);
 
   const [product, setProduct] = useState<Product | null>(null);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
-  const [selectedOptions, setSelectedOptions] = useState<Record<string, ProductOptionValue | null>>({});
+  const [selectedOption, setSelectedOption] = useState<ProductOption | null>(null);
   const [quantity, setQuantity] = useState(1);
   const [addingToCart, setAddingToCart] = useState(false);
   const [cartMessage, setCartMessage] = useState<string | null>(null);
@@ -54,11 +55,20 @@ export default function ProductDetailPage() {
   useEffect(() => {
     if (!productId) return;
     setLoading(true);
-    getProduct(productId)
-      .then((res) => setProduct(res.data.data))
+    Promise.all([getProduct(productId), getBrands()])
+      .then(([prodRes, brandRes]) => {
+        setProduct(prodRes.data.data);
+        setBrands(brandRes.data.data || []);
+      })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, [productId]);
+
+  const brandMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    brands.forEach((b) => { map[b.id] = b.name; });
+    return map;
+  }, [brands]);
 
   if (loading) return <ProductDetailSkeleton />;
 
@@ -76,59 +86,49 @@ export default function ProductDetailPage() {
     );
   }
 
-  const thumbnail = product.images?.find((img) => img.isThumbnail)?.url || product.images?.[0]?.url;
+  const thumbnail = product.images?.[0]?.imageUrl;
   const brandColor = BRAND_COLORS[product.brandId % BRAND_COLORS.length];
-  const brandInitial = product.brandName ? product.brandName.charAt(0).toUpperCase() : '?';
-  const discountRate = product.discountPrice && product.price
-    ? Math.round(((product.price - product.discountPrice) / product.price) * 100)
-    : 0;
-  const displayPrice = product.discountPrice || product.price;
+  const brandName = brandMap[product.brandId] || `Brand #${product.brandId}`;
+  const brandInitial = brandName.charAt(0).toUpperCase();
+  const displayPrice = product.salePrice;
 
-  // Calculate additional price from selected options
-  const additionalPrice = Object.values(selectedOptions)
-    .filter(Boolean)
-    .reduce((sum, opt) => sum + (opt?.additionalPrice || 0), 0);
+  // Calculate additional price from selected option
+  const additionalPrice = selectedOption?.additionalPrice || 0;
   const totalPrice = (displayPrice + additionalPrice) * quantity;
 
-  const handleOptionSelect = (optionName: string, value: ProductOptionValue) => {
-    setSelectedOptions((prev) => ({
-      ...prev,
-      [optionName]: prev[optionName]?.id === value.id ? null : value,
-    }));
+
+  const handleOptionSelect = (option: ProductOption) => {
+    setSelectedOption((prev) => prev?.id === option.id ? null : option);
   };
 
   const handleAddToCart = async () => {
-    if (product.options && product.options.length > 0) {
-      const unselected = product.options.find((opt) => !selectedOptions[opt.name]);
-      if (unselected) {
-        setCartMessage(`${unselected.name}을(를) 선택해주세요.`);
-        return;
-      }
+    if (product.options && product.options.length > 0 && !selectedOption) {
+      setCartMessage('옵션을 선택해주세요.');
+      return;
     }
 
     setAddingToCart(true);
     setCartMessage(null);
 
     try {
-      // Get the first selected option value id for the API
-      const selectedOptionValues = Object.values(selectedOptions).filter(Boolean);
-      const optionId = selectedOptionValues.length > 0 ? selectedOptionValues[0]?.id : undefined;
+      const optionId = selectedOption?.id || product.options?.[0]?.id || 0;
 
       if (isAuthenticated) {
-        await addCartItem({ productId: product.id, optionId, quantity });
+        await addCartItem({
+          productId: product.id,
+          productOptionId: optionId,
+          quantity,
+          unitPrice: displayPrice + additionalPrice,
+        });
       }
 
       // Also add to local cart store
       addItem({
         id: Date.now(), // temp id for local store
         productId: product.id,
-        productName: product.name,
-        productImage: thumbnail || '',
-        optionId: optionId || null,
-        optionName: selectedOptionValues.map((v) => v?.value).join(', ') || null,
+        productOptionId: optionId,
         quantity,
         unitPrice: displayPrice + additionalPrice,
-        totalPrice,
       });
 
       setCartMessage('장바구니에 추가되었습니다.');
@@ -158,61 +158,64 @@ export default function ProductDetailPage() {
         {/* Product Info */}
         <div className="space-y-6">
           {/* Brand */}
-          <p className="text-sm text-gray-500">{product.brandName}</p>
+          <p className="text-sm text-gray-500">{brandName}</p>
 
           {/* Name */}
           <h1 className="text-2xl font-bold text-gray-900">{product.name}</h1>
 
           {/* Price */}
           <div className="flex items-center gap-3">
-            {discountRate > 0 && (
-              <span className="text-2xl font-bold text-red-600">{discountRate}%</span>
+            {product.discountRate > 0 && (
+              <span className="text-2xl font-bold text-red-600">{product.discountRate}%</span>
             )}
             <span className="text-2xl font-bold text-gray-900">
-              {formatPriceWithCurrency(displayPrice)}
+              {formatPriceWithCurrency(product.salePrice)}
             </span>
-            {product.discountPrice && (
+            {product.discountRate > 0 && (
               <span className="text-lg text-gray-400 line-through">
-                {formatPriceWithCurrency(product.price)}
+                {formatPriceWithCurrency(product.basePrice)}
               </span>
             )}
           </div>
 
-          {/* Options */}
+          {/* Product meta */}
+          <div className="flex gap-4 text-xs text-gray-400">
+            {product.season && <span>시즌: {product.season}</span>}
+            {product.fitType && <span>핏: {product.fitType}</span>}
+            {product.gender && <span>성별: {product.gender}</span>}
+          </div>
+
+          {/* Options (size + color) */}
           {product.options && product.options.length > 0 && (
             <div className="space-y-4">
-              {product.options.map((option) => (
-                <div key={option.id}>
-                  <h3 className="text-sm font-semibold mb-2">{option.name}</h3>
-                  <div className="flex flex-wrap gap-2">
-                    {option.values.map((value) => {
-                      const isSelected = selectedOptions[option.name]?.id === value.id;
-                      const isOutOfStock = value.stockQuantity <= 0;
-                      return (
-                        <button
-                          key={value.id}
-                          disabled={isOutOfStock}
-                          onClick={() => handleOptionSelect(option.name, value)}
-                          className={`px-4 py-2 border rounded-lg text-sm transition-colors ${
-                            isSelected
-                              ? 'border-black bg-black text-white'
-                              : isOutOfStock
-                                ? 'border-gray-200 text-gray-300 cursor-not-allowed line-through'
-                                : 'border-gray-300 hover:border-black'
-                          }`}
-                        >
-                          {value.value}
-                          {value.additionalPrice > 0 && (
-                            <span className="ml-1 text-xs">
-                              (+{formatPriceWithCurrency(value.additionalPrice)})
-                            </span>
-                          )}
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
+              <h3 className="text-sm font-semibold mb-2">옵션 선택</h3>
+              <div className="flex flex-wrap gap-2">
+                {product.options.map((option) => {
+                  const isSelected = selectedOption?.id === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => handleOptionSelect(option)}
+                      className={`px-4 py-2 border rounded-lg text-sm transition-colors ${
+                        isSelected
+                          ? 'border-black bg-black text-white'
+                          : 'border-gray-300 hover:border-black'
+                      }`}
+                    >
+                      <span
+                        className="inline-block w-3 h-3 rounded-full mr-2 border border-gray-300"
+                        style={{ backgroundColor: option.colorHex }}
+                      />
+                      {option.colorName} / {option.size}
+                      {option.additionalPrice > 0 && (
+                        <span className="ml-1 text-xs">
+                          (+{formatPriceWithCurrency(option.additionalPrice)})
+                        </span>
+                      )}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 
@@ -256,18 +259,20 @@ export default function ProductDetailPage() {
           {/* Add to Cart */}
           <button
             onClick={handleAddToCart}
-            disabled={addingToCart || product.status === 'SOLD_OUT'}
+            disabled={addingToCart || product.status === 'SOLD_OUT' || product.status === 'INACTIVE'}
             className={`w-full py-4 rounded-lg font-medium transition-colors ${
-              product.status === 'SOLD_OUT'
+              product.status === 'SOLD_OUT' || product.status === 'INACTIVE'
                 ? 'bg-gray-300 text-white cursor-not-allowed'
                 : 'bg-black text-white hover:bg-gray-800'
             }`}
           >
             {product.status === 'SOLD_OUT'
               ? '품절'
-              : addingToCart
-                ? '추가 중...'
-                : '장바구니 담기'}
+              : product.status === 'INACTIVE'
+                ? '판매 중지'
+                : addingToCart
+                  ? '추가 중...'
+                  : '장바구니 담기'}
           </button>
 
           {/* Description */}
@@ -278,13 +283,34 @@ export default function ProductDetailPage() {
             </div>
           )}
 
-          {/* Info */}
-          <div className="text-xs text-gray-400 space-y-1">
-            <p>카테고리: {product.categoryName}</p>
-            {product.stockQuantity !== undefined && (
-              <p>재고: {product.stockQuantity > 0 ? `${product.stockQuantity}개` : '품절'}</p>
-            )}
-          </div>
+          {/* Size Guide */}
+          {product.sizeGuides && product.sizeGuides.length > 0 && (
+            <div>
+              <h3 className="text-sm font-semibold mb-2">사이즈 가이드</h3>
+              <table className="w-full text-xs text-gray-600 border-collapse">
+                <thead>
+                  <tr className="border-b border-gray-200">
+                    <th className="py-2 text-left">사이즈</th>
+                    <th className="py-2 text-center">어깨</th>
+                    <th className="py-2 text-center">가슴</th>
+                    <th className="py-2 text-center">총장</th>
+                    <th className="py-2 text-center">소매</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {product.sizeGuides.map((sg) => (
+                    <tr key={sg.id} className="border-b border-gray-100">
+                      <td className="py-2">{sg.size}</td>
+                      <td className="py-2 text-center">{sg.shoulderWidth}</td>
+                      <td className="py-2 text-center">{sg.chestWidth}</td>
+                      <td className="py-2 text-center">{sg.totalLength}</td>
+                      <td className="py-2 text-center">{sg.sleeveLength}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>

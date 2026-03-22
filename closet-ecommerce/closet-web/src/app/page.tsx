@@ -1,10 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import Link from 'next/link';
-import { getProducts, getCategories } from '@/lib/api/product';
+import { getProducts, getCategories, getBrands } from '@/lib/api/product';
 import ProductCard from '@/components/product/ProductCard';
-import type { Product, Category } from '@/types/product';
+import type { Product, Category, Brand } from '@/types/product';
 
 function ProductSkeleton() {
   return (
@@ -20,21 +20,37 @@ function ProductSkeleton() {
 export default function HomePage() {
   const [popularProducts, setPopularProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
+  const [brands, setBrands] = useState<Brand[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+
+  const brandMap = useMemo(() => {
+    const map: Record<number, string> = {};
+    brands.forEach((b) => { map[b.id] = b.name; });
+    return map;
+  }, [brands]);
 
   useEffect(() => {
     Promise.all([
       getProducts({ page: 0, size: 8 }),
       getCategories(),
+      getBrands(),
     ])
-      .then(([prodRes, catRes]) => {
+      .then(([prodRes, catRes, brandRes]) => {
         setPopularProducts(prodRes.data.data?.content || []);
         setCategories(catRes.data.data || []);
+        setBrands(brandRes.data.data || []);
       })
       .catch(() => setError(true))
       .finally(() => setLoading(false));
   }, []);
+
+  const defaultCategories: Category[] = [
+    { id: 0, name: '상의', depth: 1, parentId: null, sortOrder: 1, status: 'ACTIVE', children: [] },
+    { id: 1, name: '하의', depth: 1, parentId: null, sortOrder: 2, status: 'ACTIVE', children: [] },
+    { id: 2, name: '아우터', depth: 1, parentId: null, sortOrder: 3, status: 'ACTIVE', children: [] },
+    { id: 3, name: '액세서리', depth: 1, parentId: null, sortOrder: 4, status: 'ACTIVE', children: [] },
+  ];
 
   return (
     <div>
@@ -86,7 +102,7 @@ export default function HomePage() {
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
             {popularProducts.map((product) => (
-              <ProductCard key={product.id} product={product} />
+              <ProductCard key={product.id} product={product} brandName={brandMap[product.brandId]} />
             ))}
           </div>
         )}
@@ -97,12 +113,7 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
           <h2 className="text-2xl font-bold text-gray-900 mb-8">카테고리별 쇼핑</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-            {(categories.length > 0 ? categories : [
-              { id: 0, name: '상의', parentId: null, children: [] },
-              { id: 1, name: '하의', parentId: null, children: [] },
-              { id: 2, name: '아우터', parentId: null, children: [] },
-              { id: 3, name: '액세서리', parentId: null, children: [] },
-            ]).map((category) => (
+            {(categories.length > 0 ? categories : defaultCategories).map((category) => (
               <Link
                 key={category.id}
                 href={`/products?categoryId=${category.id}`}

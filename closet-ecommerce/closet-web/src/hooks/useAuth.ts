@@ -9,9 +9,11 @@ export function useAuth() {
 
   const login = async (data: LoginRequest) => {
     const response = await memberApi.login(data);
-    const { accessToken, refreshToken, member } = response.data.data;
-    storeLogin(accessToken, refreshToken, member);
-    return member;
+    const loginData = response.data.data;
+    if (!loginData) throw new Error('Login failed');
+    const { accessToken, refreshToken, memberId } = loginData;
+    storeLogin(accessToken, refreshToken, memberId);
+    return memberId;
   };
 
   const register = async (data: RegisterRequest) => {
@@ -25,8 +27,11 @@ export function useAuth() {
 
   const fetchMe = async () => {
     const response = await memberApi.getMe();
-    setUser(response.data.data);
-    return response.data.data;
+    const member = response.data.data;
+    if (member) {
+      setUser(member);
+    }
+    return member;
   };
 
   return {

@@ -1,28 +1,19 @@
 export interface Cart {
   id: number;
-  memberId: number;
   items: CartItem[];
-  totalPrice: number;
 }
 
 export interface CartItem {
   id: number;
   productId: number;
-  productName: string;
-  productImage: string;
-  optionId: number | null;
-  optionName: string | null;
+  productOptionId: number;
   quantity: number;
   unitPrice: number;
-  totalPrice: number;
 }
 
 export interface AddCartItemRequest {
   productId: number;
-  optionId?: number;
+  productOptionId: number;
   quantity: number;
-}
-
-export interface UpdateCartItemRequest {
-  quantity: number;
+  unitPrice: number;
 }

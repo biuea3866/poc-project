@@ -14,7 +14,7 @@ export const getMe = () =>
 export const getAddresses = () =>
   apiClient.get<ApiResponse<ShippingAddress[]>>('/members/me/addresses');
 
-export const addAddress = (data: Omit<ShippingAddress, 'id' | 'memberId'>) =>
+export const addAddress = (data: Omit<ShippingAddress, 'id'>) =>
   apiClient.post<ApiResponse<ShippingAddress>>('/members/me/addresses', data);
 
 export const deleteAddress = (addressId: number) =>
