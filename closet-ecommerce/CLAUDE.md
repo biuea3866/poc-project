@@ -136,6 +136,29 @@ JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Content
 
 사용법: 해당 PIPELINE.md를 읽고 지시에 따라 수행.
 
+## 작업 파이프라인 (필수)
+
+**모든 작업은 이 순서를 따른다. 건너뛰기 금지.**
+
+```
+Phase 0: PM — PRD 확인 (없으면 작성)
+Phase 1: TechLead — TDD + 후보군 비교 + Jira 티켓 생성 (여기까지 완료 후 구현)
+Phase 2: BE/FE/DevOps — Jira 티켓 기반 병렬 구현 + 구현 기록
+Phase 3: QA — 빌드/테스트/API TC 검증
+Phase 4: PR + 머지 + Jira 완료 + Confluence 업데이트
+Phase 5: (항상 병렬) PM 다음 PRD, BE 기술부채/아키텍처, 각 엔지니어링 지속 개선
+```
+
+상세: `.analysis/common/WORK_PIPELINE.md`
+
+### 금지 사항
+- Jira 티켓 없이 구현 시작
+- main 직접 커밋/푸시
+- 구현 기록 없는 PR
+- 설계 문서 없이 대규모 변경
+- QA 검증 없이 머지
+- Client가 BFF 거치지 않고 직접 서비스 호출
+
 ## 구현 기록 규칙
 
 - 모든 구현은 `.analysis/` 디렉토리에 기록
