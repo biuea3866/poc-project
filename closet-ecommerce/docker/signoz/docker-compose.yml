@@ -1,8 +1,7 @@
-version: '3.8'
-
 services:
-  clickhouse:
+  signoz-clickhouse:
     image: clickhouse/clickhouse-server:23.11-alpine
+    container_name: signoz-clickhouse
     ports:
       - "9001:9000"
       - "8123:8123"
@@ -12,34 +11,52 @@ services:
       nofile:
         soft: 262144
         hard: 262144
+    healthcheck:
+      test: ["CMD", "clickhouse-client", "--query", "SELECT 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  otel-collector:
-    image: signoz/signoz-otel-collector:0.88.11
+  signoz-otel-collector:
+    image: signoz/signoz-otel-collector:latest
+    container_name: signoz-otel-collector
     ports:
-      - "14317:4317"    # OTLP gRPC (different port to avoid conflict)
-      - "14318:4318"    # OTLP HTTP
+      - "14317:4317"
+      - "14318:4318"
     environment:
-      - CLICKHOUSE_HOST=clickhouse
-      - CLICKHOUSE_PORT=9000
+      - OTEL_EXPORTER_OTLP_ENDPOINT=signoz-clickhouse:9000
+      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://signoz-clickhouse:9000
     depends_on:
-      - clickhouse
+      signoz-clickhouse:
+        condition: service_healthy
+    restart: on-failure
 
-  query-service:
-    image: signoz/query-service:0.88.11
+  signoz-query-service:
+    image: signoz/query-service:latest
+    container_name: signoz-query-service
     ports:
       - "8180:8080"
     environment:
-      - ClickHouseUrl=tcp://clickhouse:9000
-      - STORAGE=clickhouse
+      - SIGNOZ_TELEMETRYSTORE_PROVIDER=clickhouse
+      - SIGNOZ_TELEMETRYSTORE_CLICKHOUSE_DSN=tcp://signoz-clickhouse:9000
+      - SIGNOZ_SQLSTORE_PROVIDER=sqlite
+      - SIGNOZ_SQLSTORE_SQLITE_PATH=/var/lib/signoz/signoz.db
+    volumes:
+      - signoz-data:/var/lib/signoz
     depends_on:
-      - clickhouse
+      signoz-clickhouse:
+        condition: service_healthy
+    restart: on-failure
 
-  frontend:
-    image: signoz/frontend:0.88.11
+  signoz-frontend:
+    image: signoz/frontend:latest
+    container_name: signoz-frontend
     ports:
       - "3301:3301"
     depends_on:
-      - query-service
+      - signoz-query-service
+    restart: on-failure
 
 volumes:
   signoz-clickhouse:
+  signoz-data:
