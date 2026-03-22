@@ -48,7 +48,7 @@ class OrderItem(
     val totalPrice: Money,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: OrderItemStatus = OrderItemStatus.ORDERED,
 ) {
     @Id

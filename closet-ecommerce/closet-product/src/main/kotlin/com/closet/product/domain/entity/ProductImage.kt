@@ -23,7 +23,7 @@ class ProductImage(
     val imageUrl: String,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "type", nullable = false, length = 30)
+    @Column(name = "type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val type: ImageType,
 
     @Column(name = "sort_order", nullable = false)

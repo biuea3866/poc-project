@@ -50,7 +50,7 @@ class Order(
     var paymentAmount: Money,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: OrderStatus = OrderStatus.PENDING,
 
     @Column(name = "receiver_name", nullable = false, length = 50)

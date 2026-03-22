@@ -14,16 +14,19 @@ import jakarta.persistence.Id
 import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
+import jakarta.persistence.EntityListeners
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
+import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.LocalDateTime
 
 @Entity
 @Table(name = "product_option")
+@EntityListeners(AuditingEntityListener::class)
 class ProductOption(
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "size", nullable = false, length = 30)
+    @Column(name = "size", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val size: Size,
 
     @Column(name = "color_name", nullable = false, length = 50)

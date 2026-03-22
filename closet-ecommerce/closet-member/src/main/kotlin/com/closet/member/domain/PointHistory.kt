@@ -24,7 +24,7 @@ class PointHistory(
     val memberId: Long,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val type: PointType,
 
     @Column(nullable = false)

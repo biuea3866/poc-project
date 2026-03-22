@@ -6,12 +6,6 @@ spring:
     name: closet-gateway
   cloud:
     gateway:
-      default-filters:
-        - name: RequestRateLimiter
-          args:
-            redis-rate-limiter:
-              replenishRate: 10
-              burstCapacity: 20
       routes:
         - id: member-service
           uri: http://localhost:8081

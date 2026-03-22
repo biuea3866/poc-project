@@ -28,14 +28,14 @@ class Member(
     var phone: String? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var grade: MemberGrade = MemberGrade.NORMAL,
 
     @Column(name = "point_balance", nullable = false)
     var pointBalance: Int = 0,
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: MemberStatus = MemberStatus.ACTIVE,
 ) : BaseEntity() {
 

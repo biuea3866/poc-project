@@ -44,19 +44,19 @@ class Product(
     var discountRate: Int = 0,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false, length = 30)
+    @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: ProductStatus = ProductStatus.DRAFT,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "season", length = 30)
+    @Column(name = "season", length = 30, columnDefinition = "VARCHAR(30)")
     var season: Season? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "fit_type", length = 30)
+    @Column(name = "fit_type", length = 30, columnDefinition = "VARCHAR(30)")
     var fitType: FitType? = null,
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "gender", length = 30)
+    @Column(name = "gender", length = 30, columnDefinition = "VARCHAR(30)")
     var gender: Gender? = null,
 
     @OneToMany(mappedBy = "product", cascade = [CascadeType.ALL], orphanRemoval = true, fetch = FetchType.LAZY)
