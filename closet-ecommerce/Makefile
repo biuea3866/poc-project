@@ -2,11 +2,31 @@
        signoz-up signoz-down signoz \
        logs-all logs-member logs-product logs-order logs-payment logs-gateway logs-bff logs-errors
 
-up:
+up: ## Start infra only (MySQL, Redis, Kafka, ES, monitoring)
+	docker compose -f docker/docker-compose.yml up -d mysql redis kafka elasticsearch prometheus grafana tempo loki zipkin mysql-exporter redis-exporter kafka-exporter node-exporter
+
+down: ## Stop all
+	docker compose -f docker/docker-compose.yml down
+
+docker-build: ## Build all 17 service Docker images
+	./gradlew bootJar -x test
+	docker compose -f docker/docker-compose.yml build
+
+docker-up: ## Start ALL (infra + 17 services) in Docker
 	docker compose -f docker/docker-compose.yml up -d
 
-down:
+docker-down: ## Stop ALL
 	docker compose -f docker/docker-compose.yml down
+
+docker-restart: ## Rebuild + restart all
+	./gradlew bootJar -x test
+	docker compose -f docker/docker-compose.yml up -d --build
+
+docker-logs: ## Follow all container logs
+	docker compose -f docker/docker-compose.yml logs -f
+
+docker-ps: ## Show all container status
+	docker compose -f docker/docker-compose.yml ps
 
 build:
 	./gradlew clean build -x test

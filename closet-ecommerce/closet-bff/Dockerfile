@@ -1,4 +1,4 @@
-FROM amazoncorretto:17-alpine
+FROM amazoncorretto:21-alpine
 WORKDIR /app
 COPY build/libs/*.jar app.jar
 EXPOSE 8085

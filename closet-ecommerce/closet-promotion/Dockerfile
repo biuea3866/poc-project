@@ -1,5 +1,5 @@
 FROM amazoncorretto:21-alpine
 WORKDIR /app
 COPY build/libs/*.jar app.jar
-EXPOSE 8082
+EXPOSE 8090
 ENTRYPOINT ["java", "-jar", "app.jar", "--spring.profiles.active=docker"]

@@ -145,74 +145,141 @@ services:
       - '--path.procfs=/host/proc'
       - '--path.sysfs=/host/sys'
 
-  # === Application Services ===
-  closet-gateway:
-    build:
-      context: ../closet-gateway
-      dockerfile: Dockerfile
-    ports:
-      - "8080:8080"
-    depends_on:
-      closet-member:
-        condition: service_started
-      closet-product:
-        condition: service_started
-      closet-order:
-        condition: service_started
-      closet-payment:
-        condition: service_started
+  # === Application Services (17개) ===
 
+  # Phase 1: Core
   closet-member:
-    build:
-      context: ../closet-member
-      dockerfile: Dockerfile
-    ports:
-      - "8081:8081"
+    build: { context: ../closet-member }
+    ports: ["8081:8081"]
+    environment: { SPRING_PROFILES_ACTIVE: docker,kafka }
     depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      kafka:
-        condition: service_started
+      mysql: { condition: service_healthy }
+      redis: { condition: service_started }
+      kafka: { condition: service_started }
 
   closet-product:
-    build:
-      context: ../closet-product
-      dockerfile: Dockerfile
-    ports:
-      - "8082:8082"
+    build: { context: ../closet-product }
+    ports: ["8082:8082"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
     depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_started
-      kafka:
-        condition: service_started
+      mysql: { condition: service_healthy }
 
   closet-order:
-    build:
-      context: ../closet-order
-      dockerfile: Dockerfile
-    ports:
-      - "8083:8083"
+    build: { context: ../closet-order }
+    ports: ["8083:8083"]
+    environment: { SPRING_PROFILES_ACTIVE: docker,kafka }
     depends_on:
-      mysql:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+      mysql: { condition: service_healthy }
+      kafka: { condition: service_started }
 
   closet-payment:
-    build:
-      context: ../closet-payment
-      dockerfile: Dockerfile
-    ports:
-      - "8084:8084"
+    build: { context: ../closet-payment }
+    ports: ["8084:8084"]
+    environment: { SPRING_PROFILES_ACTIVE: docker,kafka }
     depends_on:
-      mysql:
-        condition: service_healthy
-      kafka:
-        condition: service_started
+      mysql: { condition: service_healthy }
+      kafka: { condition: service_started }
+
+  closet-bff:
+    build: { context: ../closet-bff }
+    ports: ["8085:8085"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      - closet-member
+      - closet-product
+      - closet-order
+      - closet-payment
+
+  closet-gateway:
+    build: { context: ../closet-gateway }
+    ports: ["8080:8080"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      - closet-bff
+
+  # Phase 2: Growth
+  closet-shipping:
+    build: { context: ../closet-shipping }
+    ports: ["8086:8086"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  closet-inventory:
+    build: { context: ../closet-inventory }
+    ports: ["8087:8087"]
+    environment: { SPRING_PROFILES_ACTIVE: docker,kafka }
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_started }
+      kafka: { condition: service_started }
+
+  closet-search:
+    build: { context: ../closet-search }
+    ports: ["8088:8088"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      - elasticsearch
+
+  closet-review:
+    build: { context: ../closet-review }
+    ports: ["8089:8089"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  # Phase 3: Expansion
+  closet-promotion:
+    build: { context: ../closet-promotion }
+    ports: ["8090:8090"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  closet-display:
+    build: { context: ../closet-display }
+    ports: ["8091:8091"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  closet-seller:
+    build: { context: ../closet-seller }
+    ports: ["8092:8092"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  closet-cs:
+    build: { context: ../closet-cs }
+    ports: ["8093:8093"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  # Phase 4: Advanced
+  closet-settlement:
+    build: { context: ../closet-settlement }
+    ports: ["8094:8094"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  closet-notification:
+    build: { context: ../closet-notification }
+    ports: ["8095:8095"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
+
+  closet-content:
+    build: { context: ../closet-content }
+    ports: ["8096:8096"]
+    environment: { SPRING_PROFILES_ACTIVE: docker }
+    depends_on:
+      mysql: { condition: service_healthy }
 
 volumes:
   mysql-data:

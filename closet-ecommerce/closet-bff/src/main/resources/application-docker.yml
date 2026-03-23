@@ -7,3 +7,25 @@ service:
     url: http://closet-order:8083/api/v1
   payment:
     url: http://closet-payment:8084/api/v1
+  shipping:
+    url: http://closet-shipping:8086/api/v1
+  inventory:
+    url: http://closet-inventory:8087/api/v1
+  search:
+    url: http://closet-search:8088/api/v1
+  review:
+    url: http://closet-review:8089/api/v1
+  promotion:
+    url: http://closet-promotion:8090/api/v1
+  display:
+    url: http://closet-display:8091/api/v1
+  seller:
+    url: http://closet-seller:8092/api/v1
+  cs:
+    url: http://closet-cs:8093/api/v1
+  settlement:
+    url: http://closet-settlement:8094/api/v1
+  notification:
+    url: http://closet-notification:8095/api/v1
+  content:
+    url: http://closet-content:8096/api/v1
