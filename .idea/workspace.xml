@@ -4,11 +4,62 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="dfc5a930-310c-44ef-80e3-8724d0fd2b4b" name="Changes" comment="" />
+    <list default="true" id="dfc5a930-310c-44ef-80e3-8724d0fd2b4b" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/src/main/kotlin/com/biuea/wiki/config/SecurityConfig.kt" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/src/main/kotlin/com/biuea/wiki/config/SecurityConfig.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/build.gradle.kts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/ai/AiAgentLog.kt" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/ai/AiAgentLog.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentRevision.kt" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentRevision.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-domain/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/README.md" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/md5-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/checksums.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/md5-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/sha1-checksums.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-NAW-106-fe-editor-tree-search/wiki/frontend/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-NAW-106-fe-editor-tree-search/wiki/frontend/next-env.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-auth/wiki/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-auth/wiki/src/main/resources/application.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/next-env.d.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/tailwind.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/tailwind.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/docker/mysql/init.sql" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/docker/mysql/init.sql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/application/SaveDocumentFacade.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/application/SaveDocumentFacade.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/DocumentServiceCommand.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/DocumentServiceCommand.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/Document.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/Document.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentRevision.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentRevision.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentStatus.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/domain/document/entity/DocumentStatus.kt" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/document/DocumentRepository.kt" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain/wiki/wiki-domain/src/main/kotlin/com/biuea/wiki/infrastructure/document/DocumentRepository.kt" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="CopilotPersistence">
+    <persistenceIdMap>
+      <entry key="_/Users/biuea/feature/flag_project" value="34VFIWSPAf8LF6ysOrjFHhdy28m" />
+      <entry key="_/Users/biuea/feature/flag_project/feature_flag" value="3B4FSVGYxAVzIRiVYr16UTpDjLA" />
+      <entry key="_/Users/biuea/feature/flag_project/spring-data" value="3B2D5fNfp5rtX0YmO95uVLlTDqd" />
+      <entry key="_/Users/biuea/feature/flag_project/wiki" value="3B2FdfdNcbZX5ADkPCb0BUHChY6" />
+    </persistenceIdMap>
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="51172" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
   </component>
   <component name="ExternalProjectsData">
     <projectState path="$PROJECT_DIR$/architecture">
@@ -35,7 +86,16 @@
     <projectState path="$PROJECT_DIR$/open-market">
       <ProjectState />
     </projectState>
+    <projectState path="$PROJECT_DIR$/spring-batch">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/spring-batch/batch">
+      <ProjectState />
+    </projectState>
     <projectState path="$PROJECT_DIR$/spring-data">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/wiki">
       <ProjectState />
     </projectState>
   </component>
@@ -83,7 +143,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$/spring-data" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-9.2.1-bin/2t0n5ozlw9xmuyvbp7dnzaxug/gradle-9.2.1" javaHome="$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-17.0.10/Contents/Home" gradleVersion="9.2.1" />
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$/concurrency" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-8.14.3-bin/cv11ve7ro1n3o1j4so8xd9n66/gradle-8.14.3" javaHome="$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-21.0.10/Contents/Home" gradleVersion="8.14.3" />
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-17.0.10/Contents/Home/lib/src.zip!/java.base/java/util/zip/Checksum.java" root0="SKIP_INSPECTION" />
   </component>
@@ -91,6 +151,26 @@
   <component name="KubernetesApiProvider">{
   &quot;isMigrated&quot;: true
 }</component>
+  <component name="McpProjectServerCommands">
+    <McpServerCommand sourceId="UserConfigurationSource">
+      <option name="allowedToolsNames" />
+      <option name="enabled" value="true" />
+      <option name="name" value="" />
+      <option name="programPath" value="" />
+      <option name="arguments" value="" />
+      <option name="workingDirectory" value="" />
+      <envs />
+    </McpServerCommand>
+    <McpServerCommand sourceId="UserConfigurationSource">
+      <option name="allowedToolsNames" />
+      <option name="enabled" value="true" />
+      <option name="name" value="" />
+      <option name="programPath" value="" />
+      <option name="arguments" value="" />
+      <option name="workingDirectory" value="" />
+      <envs />
+    </McpServerCommand>
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 6
 }</component>
@@ -98,100 +178,106 @@
   <component name="ProjectViewState">
     <option name="showLibraryContents" value="true" />
   </component>
-  <component name="PropertiesComponent"><![CDATA[{
-  "keyToString": {
-    "Gradle.BloomFilterServiceTest.executor": "Run",
-    "Gradle.Build feature_flag.executor": "Run",
-    "Gradle.Build file-practice.executor": "Run",
-    "Gradle.CacheStampedeTest.executor": "Run",
-    "Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트.executor": "Run",
-    "Gradle.DatabasePerformanceTest.주문 처리 성능 비교.executor": "Run",
-    "Gradle.Download Sources.executor": "Run",
-    "Gradle.LanguageTest.CAS, Synchorized View.executor": "Run",
-    "Gradle.LanguageTest.세마포어 테스트.executor": "Run",
-    "Gradle.LanguageTest.코루틴 테스트.executor": "Run",
-    "Gradle.LookAsideWriteAroundServiceTest.executor": "Run",
-    "Gradle.PocExcelDownloadTest.SIMPLE 워크북 타입 테스트.executor": "Run",
-    "Gradle.ProbabilisticEarlyRecomputationServiceTest.executor": "Run",
-    "Gradle.ProductServiceTest.executor": "Run",
-    "Gradle.ReadThroughWriteAroundServiceTest.executor": "Run",
-    "Gradle.ReadThroughWriteThroughServiceTest.executor": "Run",
-    "Gradle.RedisCachingE2ETest.executor": "Run",
-    "Gradle.RedisConcurrencyE2ETest.executor": "Run",
-    "Gradle.RedisDistributedLockE2ETest.executor": "Run",
-    "Gradle.Tests in 'cache-practice.test'.executor": "Run",
-    "Gradle.Tests in 'com.example.filepractice.poc.domain.newexcel'.executor": "Run",
-    "Gradle.Tests in 'concurrency.test'.executor": "Run",
-    "Gradle.Tests in 'file-practice.test'.executor": "Run",
-    "Gradle.Tests in 'flag.test'.executor": "Run",
-    "Gradle.WaitingSystemServiceIntegrationTest.executor": "Run",
-    "Gradle.backend [:com.example.flag.FlagApplicationKt.main()].executor": "Debug",
-    "Gradle.backend [build].executor": "Run",
-    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.async.VirtualThreadExampleKt.main()].executor": "Run",
-    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.data.ChannelExampleKt.main()].executor": "Run",
-    "Gradle.kotlin-practice [:com.biuea.kotlinpractice.jvm.ClassLoaderKt.main()].executor": "Run",
-    "Gradle.kotlin-practice [build].executor": "Run",
-    "Gradle.open-market [build].executor": "Run",
-    "HttpClient.AI_SCREENING 피쳐 그룹 적용 (30%).executor": "httpExecutor",
-    "HttpClient.AI_SCREENING 피쳐 등록.executor": "httpExecutor",
-    "HttpClient.APPLICANT_EVALUATOR 피쳐 등록.executor": "httpExecutor",
-    "HttpClient.APPLICANT_EVALUTOR 피쳐 그룹 적용 (3000번 웤스까지).executor": "httpExecutor",
-    "HttpClient.Add a percentage rollout rule.executor": "httpExecutor",
-    "HttpClient.Create a new feature flag.executor": "httpExecutor",
-    "HttpClient.Evaluate a feature flag.executor": "httpExecutor",
-    "HttpClient.Get a feature flag.executor": "httpExecutor",
-    "HttpClient.HTTP Request ▏#1.executor": "httpExecutor",
-    "HttpClient.HTTP Request ▏#6.executor": "httpExecutor",
-    "HttpClient.HTTP Request ▏#7.executor": "httpExecutor",
-    "HttpClient.Toggle a feature flag.executor": "httpExecutor",
-    "HttpClient.적용 대상.executor": "httpExecutor",
-    "JUnit.ExcelPerformanceComparisonTest.성능 비교 - 500000건.executor": "Run",
-    "Kotlin.FlagApplicationKt.executor": "Run",
-    "ModuleVcsDetector.initialDetectionPerformed": "true",
-    "RequestMappingsPanelOrder0": "0",
-    "RequestMappingsPanelOrder1": "1",
-    "RequestMappingsPanelWidth0": "75",
-    "RequestMappingsPanelWidth1": "75",
-    "RunOnceActivity.ShowReadmeOnStart": "true",
-    "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
-    "RunOnceActivity.git.unshallow": "true",
-    "Spring Boot.FeatureFlagApplication.executor": "Debug",
-    "Spring Boot.FilePracticeApplication (1).executor": "Run",
-    "Spring Boot.FilePracticeApplication.executor": "Run",
-    "com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1": "true",
-    "git-widget-placeholder": "main",
-    "junie.onboarding.icon.badge.shown": "true",
-    "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/Users/biuea/feature/flag_project/file-practice/src/main/kotlin/com/example/filepractice/poc/domain/newexcel",
-    "node.js.detected.package.eslint": "true",
-    "node.js.detected.package.tslint": "true",
-    "node.js.selected.package.eslint": "(autodetect)",
-    "node.js.selected.package.tslint": "(autodetect)",
-    "nodejs_package_manager_path": "npm",
-    "project.structure.last.edited": "Modules",
-    "project.structure.proportion": "0.15",
-    "project.structure.side.proportion": "0.2",
-    "run.configurations.included.in.services": "true",
-    "settings.editor.selected.configurable": "preferences.pluginManager",
-    "to.speed.mode.migration.done": "true",
-    "ts.external.directory.path": "/Users/biuea/feature/flag_project/open-market/mock-servers/channel-mock/node_modules/typescript/lib",
-    "vue.rearranger.settings.migration": "true"
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Gradle.BloomFilterServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build batch.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build feature_flag.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Build file-practice.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.CacheStampedeTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.DatabasePerformanceTest.주문 처리 성능 비교.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Download Sources.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.LanguageTest.CAS, Synchorized View.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.LanguageTest.세마포어 테스트.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.LanguageTest.코루틴 테스트.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.LookAsideWriteAroundServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.PocExcelDownloadTest.SIMPLE 워크북 타입 테스트.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ProbabilisticEarlyRecomputationServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ProductServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ReadThroughWriteAroundServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.ReadThroughWriteThroughServiceTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RedisCachingE2ETest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RedisConcurrencyE2ETest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.RedisDistributedLockE2ETest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'cache-practice.test'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'com.example.filepractice.poc.domain.newexcel'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'concurrency.test'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'file-practice.test'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'flag.test'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.WaitingSystemServiceIntegrationTest.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.backend [:com.example.flag.FlagApplicationKt.main()].executor&quot;: &quot;Debug&quot;,
+    &quot;Gradle.backend [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kotlin-practice [:com.biuea.kotlinpractice.async.VirtualThreadExampleKt.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kotlin-practice [:com.biuea.kotlinpractice.data.ChannelExampleKt.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kotlin-practice [:com.biuea.kotlinpractice.jvm.ClassLoaderKt.main()].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.kotlin-practice [build].executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.open-market [build].executor&quot;: &quot;Run&quot;,
+    &quot;HttpClient.AI_SCREENING 피쳐 그룹 적용 (30%).executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.AI_SCREENING 피쳐 등록.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.APPLICANT_EVALUATOR 피쳐 등록.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.APPLICANT_EVALUTOR 피쳐 그룹 적용 (3000번 웤스까지).executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.Add a percentage rollout rule.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.Create a new feature flag.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.Evaluate a feature flag.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.Get a feature flag.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.HTTP Request ▏#1.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.HTTP Request ▏#6.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.HTTP Request ▏#7.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.Toggle a feature flag.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;HttpClient.적용 대상.executor&quot;: &quot;httpExecutor&quot;,
+    &quot;JUnit.ExcelPerformanceComparisonTest.성능 비교 - 500000건.executor&quot;: &quot;Run&quot;,
+    &quot;Kotlin.FlagApplicationKt.executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RequestMappingsPanelOrder0&quot;: &quot;0&quot;,
+    &quot;RequestMappingsPanelOrder1&quot;: &quot;1&quot;,
+    &quot;RequestMappingsPanelWidth0&quot;: &quot;75&quot;,
+    &quot;RequestMappingsPanelWidth1&quot;: &quot;75&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;Spring Boot.BatchApplication.executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.FeatureFlagApplication.executor&quot;: &quot;Debug&quot;,
+    &quot;Spring Boot.FilePracticeApplication (1).executor&quot;: &quot;Run&quot;,
+    &quot;Spring Boot.FilePracticeApplication.executor&quot;: &quot;Run&quot;,
+    &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/Users/biuea/feature/flag_project/wiki&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Modules&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
+    &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
+    &quot;ts.external.directory.path&quot;: &quot;/Users/biuea/feature/flag_project/ai-orchestrator-lab/fe/node_modules/typescript/lib&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
   }
-}]]></component>
+}</component>
   <component name="ReactorSettings">
     <option name="notificationShown" value="true" />
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/wiki" />
       <recent name="$PROJECT_DIR$/file-practice/src/main/kotlin/com/example/filepractice/poc/domain/newexcel" />
       <recent name="$PROJECT_DIR$/flag_speckit" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/ai-orchestrator-lab/img" />
       <recent name="$PROJECT_DIR$/open-market" />
       <recent name="$PROJECT_DIR$/cache-practice/src/main/resources/img" />
       <recent name="$PROJECT_DIR$/architecture/src/main/kotlin/com/biuea/architecture/coupon" />
       <recent name="$PROJECT_DIR$/file-practice" />
-      <recent name="$PROJECT_DIR$" />
     </key>
     <key name="CopyKotlinDeclarationDialog.RECENTS_KEY">
       <recent name="com.example.filepractice.poc.domain.newexcel" />
@@ -313,6 +399,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="ConsumerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="spring-data.kafka-retry-consumer.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kafkaretry.consumer.ConsumerApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="FeatureFlagApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="feature_flag.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.feature_flag.FeatureFlagApplication" />
@@ -374,9 +467,37 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="PublisherApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="spring-data.kafka-retry-publisher.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kafkaretry.publisher.PublisherApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="SpringDataApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="spring-data.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.springdata.SpringDataApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WikiApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="wiki.wiki-api.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.wiki.WikiApiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WikiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="wiki.wiki-domain.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.wiki.WikiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="WikiWorkerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="com.biuea.wiki.wiki-worker.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.wiki.worker.WikiWorkerApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -465,6 +586,11 @@
       <item itemvalue="HttpClient.Toggle a feature flag" />
       <item itemvalue="Kotlin.ChannelExampleKt" />
       <item itemvalue="Kotlin.ClassLoaderKt" />
+      <item itemvalue="Spring Boot.ConsumerApplication" />
+      <item itemvalue="Spring Boot.PublisherApplication" />
+      <item itemvalue="Spring Boot.WikiApiApplication" />
+      <item itemvalue="Spring Boot.WikiApplication" />
+      <item itemvalue="Spring Boot.WikiWorkerApplication" />
       <item itemvalue="Spring Boot.SpringDataApplication" />
       <item itemvalue="Spring Boot.ArchitectureApplication" />
       <item itemvalue="Spring Boot.CachePracticeApplication" />
@@ -477,10 +603,10 @@
     </list>
     <recent_temporary>
       <list>
-        <item itemvalue="Kotlin.ChannelExampleKt" />
-        <item itemvalue="Gradle.kotlin-practice [build]" />
         <item itemvalue="Kotlin.ClassLoaderKt" />
+        <item itemvalue="Kotlin.ChannelExampleKt" />
         <item itemvalue="Gradle.open-market [build]" />
+        <item itemvalue="Gradle.kotlin-practice [build]" />
         <item itemvalue="Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트" />
       </list>
     </recent_temporary>
@@ -488,8 +614,8 @@
   <component name="SharedIndexes">
     <attachedChunks>
       <set>
-        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28539.13" />
-        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-IU-252.28539.13" />
+        <option value="bundled-jdk-9823dce3aa75-bf35d07a577b-intellij.indexing.shared.core-IU-252.28539.33" />
+        <option value="bundled-js-predefined-d6986cc7102b-a71380e98a7c-JavaScript-IU-252.28539.33" />
       </set>
     </attachedChunks>
   </component>
@@ -521,6 +647,21 @@
       <workItem from="1768523814121" duration="4625000" />
       <workItem from="1768622452203" duration="53460000" />
       <workItem from="1769618434995" duration="1442000" />
+      <workItem from="1773672653183" duration="262000" />
+      <workItem from="1773673014157" duration="594000" />
+      <workItem from="1773677693228" duration="281000" />
+      <workItem from="1773678091232" duration="58000" />
+      <workItem from="1773678413576" duration="200000" />
+      <workItem from="1773678636904" duration="633000" />
+      <workItem from="1773679358163" duration="208000" />
+      <workItem from="1773707790391" duration="561000" />
+      <workItem from="1773721270287" duration="594000" />
+      <workItem from="1773739930021" duration="459000" />
+      <workItem from="1773740443738" duration="367000" />
+      <workItem from="1773740855987" duration="413000" />
+      <workItem from="1773741592528" duration="225000" />
+      <workItem from="1773741859289" duration="597000" />
+      <workItem from="1773982303139" duration="595000" />
     </task>
     <servers />
   </component>

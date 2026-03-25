@@ -5,6 +5,9 @@
       <module name="cache-practice" options="-parameters" />
       <module name="cache-practice.main" options="-parameters" />
       <module name="cache-practice.test" options="-parameters" />
+      <module name="com.biuea.wiki.wiki-worker" options="-parameters" />
+      <module name="com.biuea.wiki.wiki-worker.main" options="-parameters" />
+      <module name="com.biuea.wiki.wiki-worker.test" options="-parameters" />
       <module name="concurrency" options="-parameters" />
       <module name="concurrency.main" options="-parameters" />
       <module name="concurrency.test" options="-parameters" />
@@ -21,8 +24,29 @@
       <module name="kotlin-practice.main" options="-parameters" />
       <module name="kotlin-practice.test" options="-parameters" />
       <module name="spring-data" options="-parameters" />
+      <module name="spring-data.kafka-retry-api" options="-parameters" />
+      <module name="spring-data.kafka-retry-api.main" options="-parameters" />
+      <module name="spring-data.kafka-retry-api.test" options="-parameters" />
+      <module name="spring-data.kafka-retry-consumer" options="-parameters" />
+      <module name="spring-data.kafka-retry-consumer.main" options="-parameters" />
+      <module name="spring-data.kafka-retry-consumer.test" options="-parameters" />
+      <module name="spring-data.kafka-retry-publisher" options="-parameters" />
+      <module name="spring-data.kafka-retry-publisher.main" options="-parameters" />
+      <module name="spring-data.kafka-retry-publisher.test" options="-parameters" />
+      <module name="spring-data.kafka-retry-scheduler" options="-parameters" />
+      <module name="spring-data.kafka-retry-scheduler.main" options="-parameters" />
+      <module name="spring-data.kafka-retry-scheduler.test" options="-parameters" />
       <module name="spring-data.main" options="-parameters" />
       <module name="spring-data.test" options="-parameters" />
+      <module name="wiki.wiki-api" options="-parameters" />
+      <module name="wiki.wiki-api.main" options="-parameters" />
+      <module name="wiki.wiki-api.test" options="-parameters" />
+      <module name="wiki.wiki-domain" options="-parameters" />
+      <module name="wiki.wiki-domain.main" options="-parameters" />
+      <module name="wiki.wiki-domain.test" options="-parameters" />
+      <module name="wiki.wiki-worker" options="-parameters" />
+      <module name="wiki.wiki-worker.main" options="-parameters" />
+      <module name="wiki.wiki-worker.test" options="-parameters" />
     </option>
   </component>
 </project>

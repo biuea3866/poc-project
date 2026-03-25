@@ -62,17 +62,39 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/spring-batch/batch" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/spring-batch/batch" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/spring-data" />
         <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/spring-data" />
+            <option value="$PROJECT_DIR$/spring-data/kafka-retry-api" />
+            <option value="$PROJECT_DIR$/spring-data/kafka-retry-common" />
+            <option value="$PROJECT_DIR$/spring-data/kafka-retry-consumer" />
+            <option value="$PROJECT_DIR$/spring-data/kafka-retry-publisher" />
+            <option value="$PROJECT_DIR$/spring-data/kafka-retry-scheduler" />
           </set>
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/wiki" />
         <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/wiki" />
+            <option value="$PROJECT_DIR$/wiki/wiki-api" />
+            <option value="$PROJECT_DIR$/wiki/wiki-domain" />
+            <option value="$PROJECT_DIR$/wiki/wiki-worker" />
+          </set>
+        </option>
       </GradleProjectSettings>
     </option>
   </component>

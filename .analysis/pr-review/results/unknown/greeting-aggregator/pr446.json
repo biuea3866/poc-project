@@ -1,0 +1,79 @@
+{
+  "id": "e94ebc1d-09f2-471c-ac18-a397dff52d64",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-aggregator",
+    "number": 446,
+    "title": "[NO-JIRA] - chore: Labeler 설정",
+    "body": "### 개요\r\n - [NO-JIRA] - Labeler 설정\r\n\r\n\r\n\r\n### 작업 내용\r\n - Labeler 설정\r\n - 이건 Pair 구조가 잘 안나오는거 같아서 일단 부분적으로 적용, 이후에 Label 안달리는것들 계속 확인하면서 추가\r\n\r\n\r\n\r\n### 체크리스트\r\n- [x] 빌드 확인\r\n- [x] 테스트 통과\r\n\r\n\r\n\r\n\r\n",
+    "branch": "feature/no-jira-labeler",
+    "baseBranch": "dev",
+    "author": "dongseop-lee-doodlin",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-aggregator/pull/446"
+  },
+  "scope": {
+    "prType": "feature",
+    "filesByLayer": {
+      "config": [
+        ".github/labeler.yml",
+        ".github/workflows/labeler.yml"
+      ]
+    },
+    "totalFiles": 2,
+    "totalAdditions": 110,
+    "totalDeletions": 0,
+    "size": "M",
+    "missingCompanionFiles": []
+  },
+  "impact": {
+    "findings": [],
+    "affectedCallers": [],
+    "crossRepoImpacts": []
+  },
+  "quality": {
+    "findings": [],
+    "designPrincipleViolations": 0,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 0,
+      "P2": 0,
+      "P3": 0,
+      "P4": 0,
+      "P5": 0,
+      "ASK": 0
+    },
+    "findings": {
+      "P1": [],
+      "P2": [],
+      "P3": [],
+      "P4": [],
+      "P5": [],
+      "ASK": []
+    }
+  },
+  "inlineComments": [],
+  "changedFiles": [
+    {
+      "filename": ".github/labeler.yml",
+      "status": "added",
+      "additions": 92,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,92 @@\n+# PR 변경 파일 경로 기반 자동 라벨링 설정\n+# ── 도메인 (adaptor + business 그룹핑) ──\n+ats:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/ats/**\"\n+\n+candidate:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/candidate/**\"\n+          - \"business/application/greeting/**/candidate/**\"\n+          - \"business/application/greeting/**/applicant_account/**\"\n+\n+communication:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/communication/**\"\n+          - \"business/application/greeting/**/communication/**\"\n+\n+evaluation:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/evaluation/**\"\n+          - \"adaptor/meeting/**\"\n+          - \"adaptor/ai/**\"\n+          - \"business/application/greeting/**/evaluation/**\"\n+          - \"business/application/greeting/**/meeting/**\"\n+          - \"business/application/greeting/**/ai/**\"\n+\n+opening:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/opening/**\"\n+          - \"business/application/greeting/**/opening/**\"\n+          - \"business/application/greeting/**/translation/**\"\n+\n+platform:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/platform/**\"\n+\n+trm:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/trm/**\"\n+          - \"business/application/greeting/**/trm/**\"\n+\n+authorization:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"business/application/authorization/**\"\n+\n+search:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"business/application/greeting/**/search/**\"\n+\n+user:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"business/application/greeting/**/user/**\"\n+\n+# ── 횡단 관심사 ──\n+auth:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"adaptor/platform/**/authentification/**\"\n+          - \"business/application/authorization/**\"\n+          - \"presentation/**/aspect/Authorization*\"\n+          - \"presentation/**/filter/AuthorizationRoute*\"\n+          - \"presentation/**/resources/authorization/**\"\n+\n+openapi:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"presentation/api/open/**\"\n+          - \"presentation/**/controller/OpenApi*\"\n+          - \"business/application/greeting/**/OpenApi*\"\n+          - \"business/application/authorization/**/OpenApi*\"\n+\n+# ── 컨트롤러 (presentation 통합) ──\n+controller:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"presentation/**\"\n+\n+# ── 인프라 의존성 (dependency 통합) ──\n+dependency:\n+  - changed-files:\n+      - any-glob-to-any-file:\n+          - \"dependency/**\"\n\\ No newline at end of file"
+    },
+    {
+      "filename": ".github/workflows/labeler.yml",
+      "status": "added",
+      "additions": 18,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,18 @@\n+name: \"PR Labeler\"\n+\n+on:\n+  pull_request_target:\n+    types: [opened, synchronize, reopened]\n+\n+permissions:\n+  contents: read\n+  pull-requests: write\n+\n+jobs:\n+  label:\n+    runs-on: blacksmith-2vcpu-ubuntu-2404\n+    steps:\n+      - uses: actions/labeler@v5\n+        with:\n+          configuration-path: \".github/labeler.yml\"\n+          sync-labels: true"
+    }
+  ],
+  "reviewBody": "## PR Review: [NO-JIRA] - chore: Labeler 설정\n\n**유형**: feature | **크기**: M (+110 -0) | **파일**: 2\n\n---\n*Generated by PR Review Server (pr-review pipeline)*",
+  "event": "APPROVE",
+  "createdAt": "2026-03-20T10:17:17.720Z",
+  "status": "pending"
+}

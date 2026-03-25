@@ -2,5 +2,49 @@
 <project version="4">
   <component name="VcsDirectoryMappings">
     <mapping directory="$PROJECT_DIR$" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-pinpoint-bootstrap" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/fe-ai-wiki-editor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-105-be-auth-test-tag-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-106-fe-editor-tree-search" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-107-be-web-search" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-108-be-bug-fix" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-109-pm-roadmap-next-sprint" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-110-designer-ux-spec" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-112-be-document-api-controller" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-113-be-outbox-pattern" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-114-be-rag-vector-search" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-115-be-refresh-token-rotation" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-116-fe-rag-search-ui" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-117-devops-slo-alerting" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-118-be-domain-encapsulation" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-118-fix-integration-test" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-119-be-outbox-followup" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-121-qa-pipeline-fe-tdd-branch-protection" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-122-be-comment-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-124-fe-markdown-api-fix" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-126-devops-slo" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-128-outbox" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-129-refresh-token-rotation" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-131-comment" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-133-notification" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-NAW-devops-dev-env" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-ai-pipeline" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-auth" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-auth-integration-tests" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-auth-refresh-rdb" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-design" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-docs-clarify" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-document-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-fe-ai-sse" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-fe-docs-management" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-tag-refactor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-user-auth-api" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-wiki-001-domain" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-wiki-be-new" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-wiki-be-refactor" vcs="Git" />
+    <mapping directory="$PROJECT_DIR$/wiki/worktrees/feat-wiki-fe-core" vcs="Git" />
   </component>
 </project>

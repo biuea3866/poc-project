@@ -1,0 +1,513 @@
+{
+  "id": "19bbae17-3c48-406d-b5a0-ce72bfc9d746",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-ats",
+    "number": 414,
+    "title": "[GRT-6669] - feat: trace/logging 기준 반영 및 async/retrofit 전파 보강",
+    "body": "### 개요\r\n  - https://doodlin.atlassian.net/browse/GRT-6669\r\n  - Spring Boot 3.2 기준으로 Sleuth 대신 Micrometer Tracing 방향으로 tracing/logback 구성을 정리했습니다.\r\n\r\n  ### 작업 내용\r\n  - 실행 모듈(API/Batch)에 `micrometer-tracing-bridge-otel` 의존성을 추가했습니다.\r\n  - `recruit-applicant` API의 `@Async` 경로에 `ContextPropagatingTaskDecorator` 기반 context 전파를 적용했습니다.\r\n  - 수동 Retrofit builder를 사용하는 모듈에 tracing 전파용 `OkHttpClient` 구성을 추가하고 각 client에 연결했습니다.\r\n  - `logback-spring.xml`이 profile별 include만 담당하도록 정리하고, 콘솔 로그 파일명을 `text-console` / `json-console` 체계로 통일했습니다.\r\n  - async trace 전파 회귀 테스트를 추가했습니다.\r\n\r\n  ### 체크리스트\r\n  - [x] 빌드 확인\r\n  - [x] 테스트 통과\r\n\r\n  ### 연관된 backend application\r\n  - greeting-ats\r\n  - greeting-evaluation\r\n  - greeting-recruit-applicant\r\n  - greeting-wno\r\n\r\n  ### 추가 유의사항\r\n  - 현재 반영은 Micrometer Tracing + OTel bridge 기준입니다.\r\n  - JSON 로그의 `traceId`/`spanId`가 운영 수집기 기대 key와 완전히 일치하는지는 배포 환경 로그로 한 번 더 확인이 필요합니다.\r\n  - `ATS` batch는 현재 Gradle settings에 실행 모듈로 등록되어 있지 않아 이번 검증 대상에는 포함되지 않았습니다.",
+    "branch": "feat/GRT-6669",
+    "baseBranch": "dev",
+    "author": "junney-jang",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-ats/pull/414"
+  },
+  "scope": {
+    "prType": "feature",
+    "filesByLayer": {
+      "other": [
+        "buildSrc/src/main/kotlin/Dependencies.kt",
+        "greeting-ats/presentation/batch/build.gradle.kts",
+        "greeting-ats/presentation/batch/src/main/resources/logback-spring.xml",
+        "greeting-ats/presentation/batch/src/main/resources/logback/logback-json-console.xml",
+        "greeting-ats/presentation/batch/src/main/resources/logback/logback-text-console.xml",
+        "greeting-recruit-applicant/presentation/batch/build.gradle.kts",
+        "greeting-recruit-applicant/presentation/batch/src/main/resources/logback-spring.xml",
+        "greeting-recruit-applicant/presentation/batch/src/main/resources/logback/logback-json-console.xml",
+        "greeting-recruit-applicant/presentation/batch/src/main/resources/logback/logback-text-console.xml"
+      ],
+      "adaptor": [
+        "greeting-ats/adaptor/kafka/build.gradle.kts",
+        "greeting-ats/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+        "greeting-ats/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+        "greeting-ats/adaptor/retrofit/build.gradle.kts",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/applicant/config/ApplicantApiConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/applicant_account/config/RecruitApplicantApiConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/authz/config/AuthzApiConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/common/config/TracingOkHttpConfiguration.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/crypto/config/CryptoApiConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/integration/kribs/config/KirbsIntegrationRetrofitConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/meeting/config/MeetingApiConfig.kt",
+        "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/user/config/UserApiConfig.kt",
+        "greeting-evaluation/adaptor/retrofit/build.gradle.kts",
+        "greeting-evaluation/adaptor/retrofit/src/main/kotlin/doodlin/greeting/evaluation/adaptor/retrofit/configuration/RetrofitClientConfiguration.kt",
+        "greeting-evaluation/adaptor/retrofit/src/main/kotlin/doodlin/greeting/evaluation/adaptor/retrofit/configuration/TracingOkHttpConfiguration.kt",
+        "greeting-recruit-applicant/adaptor/kafka/build.gradle.kts",
+        "greeting-recruit-applicant/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+        "greeting-recruit-applicant/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+        "greeting-recruit-applicant/adaptor/retrofit/build.gradle.kts",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/configuration/TracingOkHttpConfiguration.kt",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/crypto/config/CryptoApiConfig.kt",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/normalized/config/NormalizedApiConfig.kt",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/opening/config/NewBackApiConfig.kt",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/opening/config/OpeningApiConfig.kt",
+        "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/workspace/config/WorkspaceApiConfig.kt",
+        "greeting-wno/adaptor/kafka/build.gradle.kts",
+        "greeting-wno/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+        "greeting-wno/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+        "greeting-wno/adaptor/retrofit/build.gradle.kts",
+        "greeting-wno/adaptor/retrofit/src/main/kotlin/doodlin/greeting/wno/adaptor/retrofit/authz/config/AuthzApiConfig.kt",
+        "greeting-wno/adaptor/retrofit/src/main/kotlin/doodlin/greeting/wno/adaptor/retrofit/config/TracingOkHttpConfiguration.kt"
+      ],
+      "presentation": [
+        "greeting-ats/presentation/api/build.gradle.kts",
+        "greeting-ats/presentation/api/src/main/resources/logback-spring.xml",
+        "greeting-ats/presentation/api/src/main/resources/logback/logback-json-console.xml",
+        "greeting-ats/presentation/api/src/main/resources/logback/logback-text-console.xml",
+        "greeting-evaluation/presentation/api/build.gradle.kts",
+        "greeting-evaluation/presentation/api/src/main/resources/logback-spring.xml",
+        "greeting-evaluation/presentation/api/src/main/resources/logback/logback-json-console.xml",
+        "greeting-evaluation/presentation/api/src/main/resources/logback/logback-text-console.xml",
+        "greeting-recruit-applicant/presentation/api/build.gradle.kts",
+        "greeting-recruit-applicant/presentation/api/src/main/kotlin/doodlin/greeting/recruit/applicant/AsyncTracingConfiguration.kt",
+        "greeting-recruit-applicant/presentation/api/src/main/resources/logback-spring.xml",
+        "greeting-recruit-applicant/presentation/api/src/main/resources/logback/logback-json-console.xml",
+        "greeting-recruit-applicant/presentation/api/src/main/resources/logback/logback-text-console.xml",
+        "greeting-recruit-applicant/presentation/api/src/test/kotlin/doodlin/greeting/recruit/applicant/AsyncTracingConfigurationTest.kt",
+        "greeting-wno/presentation/api/build.gradle.kts",
+        "greeting-wno/presentation/api/src/main/resources/logback-spring.xml",
+        "greeting-wno/presentation/api/src/main/resources/logback/logback-json-console.xml",
+        "greeting-wno/presentation/api/src/main/resources/logback/logback-text-console.xml"
+      ]
+    },
+    "totalFiles": 58,
+    "totalAdditions": 386,
+    "totalDeletions": 52,
+    "size": "XL",
+    "missingCompanionFiles": []
+  },
+  "impact": {
+    "findings": [],
+    "affectedCallers": [],
+    "crossRepoImpacts": []
+  },
+  "quality": {
+    "findings": [],
+    "designPrincipleViolations": 0,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 0,
+      "P2": 0,
+      "P3": 0,
+      "P4": 0,
+      "P5": 0,
+      "ASK": 0
+    },
+    "findings": {
+      "P1": [],
+      "P2": [],
+      "P3": [],
+      "P4": [],
+      "P5": [],
+      "ASK": []
+    }
+  },
+  "inlineComments": [],
+  "changedFiles": [
+    {
+      "filename": "buildSrc/src/main/kotlin/Dependencies.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 0,
+      "patch": "@@ -29,6 +29,9 @@ object Dependencies {\n         const val SPRING_BOOT_STARTER_AOP = \"org.springframework.boot:spring-boot-starter-aop\"\n         const val SPRING_CLOUD_DEPENDENCIES = \"org.springframework.cloud:spring-cloud-dependencies:2023.0.0\"\n         const val SPRING_BOOT_STARTER_PARENT = \"org.springframework.boot:spring-boot-starter-parent:3.2.0\"\n+        const val MICROMETER_TRACING = \"io.micrometer:micrometer-tracing\"\n+        const val MICROMETER_TRACING_BRIDGE_OTEL = \"io.micrometer:micrometer-tracing-bridge-otel\"\n+        const val MICROMETER_CONTEXT_PROPAGATION = \"io.micrometer:context-propagation\"\n \n         // Jackson\n         const val JACKSON_KOTLIN = \"com.fasterxml.jackson.module:jackson-module-kotlin:${Versions.JACKSON}\"\n@@ -69,5 +72,6 @@ object Dependencies {\n         const val COMMONS_VALIDATION = \"doodlin.commons:validation:0.1.1\"\n         const val COMMONS_COLLECTION = \"doodlin.commons:collection:0.1.0\"\n         const val COMMON_AUTHZ_MODEL = \"doodlin.greeting.authz.sdk:authz-model:0.2.18\"\n+        const val DOODLIN_MESSAGING_KAFKA = \"doodlin.messaging:kafka:2.0.19\"\n     }\n }"
+    },
+    {
+      "filename": "greeting-ats/adaptor/kafka/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 2,
+      "patch": "@@ -1,11 +1,11 @@\n dependencies {\n     implementation(project(\":ats-business-domain\"))\n     implementation(project(\":ats-business-application\"))\n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n }\n \n tasks {\n     bootJar {\n         enabled = false\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-ats/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-ats/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -4,6 +4,7 @@ val okHttpVersion: String by project\n dependencies {\n     implementation(project(\":ats-business-application\"))\n     implementation(project(\":ats-business-domain\"))\n+    implementation(Dependencies.External.MICROMETER_TRACING)\n \n     implementation(\"doodlin.commons:token:0.1.0\")\n     // retrofit\n@@ -28,4 +29,4 @@ tasks {\n     bootJar {\n         enabled = false\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/applicant/config/ApplicantApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.applicant.config\n \n import doodlin.greeting.ats.adaptor.retrofit.applicant.ApplicantApiClient\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class ApplicantApiConfig {\n     private lateinit var applicantUrl: String\n \n     @Bean\n-    fun applicantApiClient(): ApplicantApiClient {\n+    fun applicantApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): ApplicantApiClient {\n        return Retrofit.Builder()\n             .baseUrl(applicantUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(ApplicantApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/applicant_account/config/RecruitApplicantApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.applicant_account.config\n \n import doodlin.greeting.ats.adaptor.retrofit.applicant_account.RecruitApplicantApiClient\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class RecruitApplicantApiConfig {\n     private lateinit var applicantUrl: String\n \n     @Bean\n-    fun recruitApplicantApiClient(): RecruitApplicantApiClient {\n+    fun recruitApplicantApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): RecruitApplicantApiClient {\n         return Retrofit.Builder()\n             .baseUrl(applicantUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(RecruitApplicantApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/authz/config/AuthzApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.authz.config\n \n import doodlin.greeting.ats.adaptor.retrofit.authz.AuthzApiClient\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -16,9 +17,10 @@ class AuthzApiConfig {\n     private lateinit var userUrl: String\n \n     @Bean\n-    fun authzApiClient(): AuthzApiClient {\n+    fun authzApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): AuthzApiClient {\n         return Retrofit.Builder()\n             .baseUrl(userUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(AuthzApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/common/config/TracingOkHttpConfiguration.kt",
+      "status": "added",
+      "additions": 48,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,48 @@\n+package doodlin.greeting.ats.adaptor.retrofit.common.config\n+\n+import io.micrometer.tracing.Tracer\n+import io.micrometer.tracing.propagation.Propagator\n+import okhttp3.OkHttpClient\n+import okhttp3.Request\n+import org.springframework.beans.factory.ObjectProvider\n+import org.springframework.context.annotation.Bean\n+import org.springframework.context.annotation.Configuration\n+\n+@Configuration(proxyBeanMethods = false)\n+class TracingOkHttpConfiguration {\n+\n+    @Bean\n+    fun retrofitOkHttpClientFactory(\n+        tracerProvider: ObjectProvider<Tracer>,\n+        propagatorProvider: ObjectProvider<Propagator>,\n+    ): RetrofitOkHttpClientFactory = RetrofitOkHttpClientFactory(tracerProvider, propagatorProvider)\n+\n+    private object RequestBuilderSetter : Propagator.Setter<Request.Builder> {\n+        override fun set(carrier: Request.Builder?, key: String, value: String) {\n+            carrier?.header(key, value)\n+        }\n+    }\n+\n+    class RetrofitOkHttpClientFactory(\n+        private val tracerProvider: ObjectProvider<Tracer>,\n+        private val propagatorProvider: ObjectProvider<Propagator>,\n+    ) {\n+        fun newClient(): OkHttpClient =\n+            OkHttpClient.Builder()\n+                .apply {\n+                    val tracer = tracerProvider.getIfAvailable()\n+                    val propagator = propagatorProvider.getIfAvailable()\n+\n+                    if (tracer != null && propagator != null) {\n+                        addInterceptor { chain ->\n+                            val requestBuilder = chain.request().newBuilder()\n+                            tracer.currentSpan()?.context()?.let { currentTraceContext ->\n+                                propagator.inject(currentTraceContext, requestBuilder, RequestBuilderSetter)\n+                            }\n+                            chain.proceed(requestBuilder.build())\n+                        }\n+                    }\n+                }\n+                .build()\n+    }\n+}"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/crypto/config/CryptoApiConfig.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 2,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.crypto.config\n \n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.crypto.CryptoApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -14,11 +15,12 @@ class CryptoApiConfig(\n     private val cryptoLambdaHost: String\n ) {\n     @Bean\n-    fun cryptoLambdaClient(): CryptoApiClient {\n+    fun cryptoLambdaClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): CryptoApiClient {\n         return Retrofit.Builder()\n             .baseUrl(cryptoLambdaHost)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(CryptoApiClient::class.java)\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/integration/kribs/config/KirbsIntegrationRetrofitConfig.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 2,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.integration.kribs.config\n \n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.integration.KirbsIntegrationApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -14,11 +15,12 @@ class KirbsIntegrationRetrofitConfig {\n     private lateinit var integrationInternalUrl: String\n \n     @Bean\n-    fun kirbsIntegrationApiClient(): KirbsIntegrationApiClient {\n+    fun kirbsIntegrationApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): KirbsIntegrationApiClient {\n         return Retrofit.Builder()\n             .baseUrl(integrationInternalUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(KirbsIntegrationApiClient::class.java)\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/meeting/config/MeetingApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.ats.adaptor.retrofit.meeting.config\n \n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.meeting.MeetingApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class MeetingApiConfig {\n     private lateinit var meetingUrl: String\n \n     @Bean\n-    fun meetingApiClient(): MeetingApiClient {\n+    fun meetingApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): MeetingApiClient {\n         return Retrofit.Builder()\n             .baseUrl(meetingUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(MeetingApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-ats/adaptor/retrofit/src/main/kotlin/doodlin/greeting/ats/adaptor/retrofit/user/config/UserApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,5 +1,6 @@\n package doodlin.greeting.ats.adaptor.retrofit.user.config\n \n+import doodlin.greeting.ats.adaptor.retrofit.common.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.ats.adaptor.retrofit.common.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n import doodlin.greeting.ats.adaptor.retrofit.user.UserApiClient\n import org.springframework.beans.factory.annotation.Value\n@@ -16,9 +17,10 @@ class UserApiConfig {\n     private lateinit var userUrl: String\n \n     @Bean\n-    fun userApiClient(): UserApiClient {\n+    fun userApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): UserApiClient {\n         return Retrofit.Builder()\n             .baseUrl(userUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(UserApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-ats/presentation/api/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -23,10 +23,11 @@ dependencies {\n     implementation(\"doodlin.commons:collection:0.1.0\")\n \n     // kafka\n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n \n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n     implementation(\"org.springframework.boot:spring-boot-starter-validation\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n \n     implementation(\"org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0\")\n }"
+    },
+    {
+      "filename": "greeting-ats/presentation/api/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-ats/presentation/api/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-ats/presentation/api/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-ats/presentation/batch/build.gradle.kts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -6,6 +6,7 @@ dependencies {\n     implementation(project(\":ats-adaptor-mongo\"))\n     implementation(project(\":ats-adaptor-retrofit\"))\n     implementation(\"org.springframework.boot:spring-boot-starter-batch\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n \n     // doodlin\n     implementation(\"doodlin.commons:spring-boot-starter-parameter-store:0.1.0\")"
+    },
+    {
+      "filename": "greeting-ats/presentation/batch/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-ats/presentation/batch/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-ats/presentation/batch/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-evaluation/adaptor/retrofit/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -4,6 +4,7 @@ val okHttpVersion: String by project\n dependencies {\n     implementation(project(\":evaluation-business-application\"))\n     implementation(project(\":evaluation-business-domain\"))\n+    implementation(Dependencies.External.MICROMETER_TRACING)\n \n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n \n@@ -29,4 +30,4 @@ tasks {\n     bootJar {\n         enabled = false\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-evaluation/adaptor/retrofit/src/main/kotlin/doodlin/greeting/evaluation/adaptor/retrofit/configuration/RetrofitClientConfiguration.kt",
+      "status": "modified",
+      "additions": 5,
+      "deletions": 1,
+      "patch": "@@ -13,13 +13,15 @@ import retrofit2.converter.jackson.JacksonConverterFactory\n @Configuration\n @EnableConfigurationProperties(RetrofitClientProperties::class)\n internal class RetrofitClientConfiguration(\n-    private val retrofitClientProperties: RetrofitClientProperties\n+    private val retrofitClientProperties: RetrofitClientProperties,\n+    private val retrofitOkHttpClientFactory: TracingOkHttpConfiguration.RetrofitOkHttpClientFactory,\n ) {\n \n     @Bean\n     fun wnoClient(): WnoClient {\n         return Retrofit.Builder()\n             .baseUrl(retrofitClientProperties.host.wno)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(WnoClient::class.java)\n@@ -29,6 +31,7 @@ internal class RetrofitClientConfiguration(\n     fun atsClient(): AtsClient {\n         return Retrofit.Builder()\n             .baseUrl(retrofitClientProperties.host.ats)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(AtsClient::class.java)\n@@ -38,6 +41,7 @@ internal class RetrofitClientConfiguration(\n     fun authnClient(): AuthnClient {\n         return Retrofit.Builder()\n             .baseUrl(retrofitClientProperties.host.authn)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(AuthnClient::class.java)"
+    },
+    {
+      "filename": "greeting-evaluation/adaptor/retrofit/src/main/kotlin/doodlin/greeting/evaluation/adaptor/retrofit/configuration/TracingOkHttpConfiguration.kt",
+      "status": "added",
+      "additions": 48,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,48 @@\n+package doodlin.greeting.evaluation.adaptor.retrofit.configuration\n+\n+import io.micrometer.tracing.Tracer\n+import io.micrometer.tracing.propagation.Propagator\n+import okhttp3.OkHttpClient\n+import okhttp3.Request\n+import org.springframework.beans.factory.ObjectProvider\n+import org.springframework.context.annotation.Bean\n+import org.springframework.context.annotation.Configuration\n+\n+@Configuration(proxyBeanMethods = false)\n+internal class TracingOkHttpConfiguration {\n+\n+    @Bean\n+    fun retrofitOkHttpClientFactory(\n+        tracerProvider: ObjectProvider<Tracer>,\n+        propagatorProvider: ObjectProvider<Propagator>,\n+    ): RetrofitOkHttpClientFactory = RetrofitOkHttpClientFactory(tracerProvider, propagatorProvider)\n+\n+    private object RequestBuilderSetter : Propagator.Setter<Request.Builder> {\n+        override fun set(carrier: Request.Builder?, key: String, value: String) {\n+            carrier?.header(key, value)\n+        }\n+    }\n+\n+    class RetrofitOkHttpClientFactory(\n+        private val tracerProvider: ObjectProvider<Tracer>,\n+        private val propagatorProvider: ObjectProvider<Propagator>,\n+    ) {\n+        fun newClient(): OkHttpClient =\n+            OkHttpClient.Builder()\n+                .apply {\n+                    val tracer = tracerProvider.getIfAvailable()\n+                    val propagator = propagatorProvider.getIfAvailable()\n+\n+                    if (tracer != null && propagator != null) {\n+                        addInterceptor { chain ->\n+                            val requestBuilder = chain.request().newBuilder()\n+                            tracer.currentSpan()?.context()?.let { currentTraceContext ->\n+                                propagator.inject(currentTraceContext, requestBuilder, RequestBuilderSetter)\n+                            }\n+                            chain.proceed(requestBuilder.build())\n+                        }\n+                    }\n+                }\n+                .build()\n+    }\n+}"
+    },
+    {
+      "filename": "greeting-evaluation/presentation/api/build.gradle.kts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -21,6 +21,7 @@ dependencies {\n     implementation(\"org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0\")\n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n     implementation(\"org.springframework.boot:spring-boot-starter-validation\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n }\n \n tasks {"
+    },
+    {
+      "filename": "greeting-evaluation/presentation/api/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-evaluation/presentation/api/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-evaluation/presentation/api/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/kafka/build.gradle.kts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "patch": "@@ -2,5 +2,5 @@ dependencies {\n     implementation(project(\":recruit-applicant-business-application\"))\n     implementation(project(\":recruit-applicant-business-domain\"))\n     implementation(\"doodlin.communication.sdk:mail-model:1.0.1\")\n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n }"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/build.gradle.kts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -4,6 +4,7 @@ val okHttpVersion: String by project\n dependencies {\n     implementation(project(\":recruit-applicant-business-application\"))\n     implementation(project(\":recruit-applicant-business-domain\"))\n+    implementation(Dependencies.External.MICROMETER_TRACING)\n \n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n     implementation(\"org.springframework.boot:spring-boot-starter-cache\")"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/configuration/TracingOkHttpConfiguration.kt",
+      "status": "added",
+      "additions": 48,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,48 @@\n+package doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration\n+\n+import io.micrometer.tracing.Tracer\n+import io.micrometer.tracing.propagation.Propagator\n+import okhttp3.OkHttpClient\n+import okhttp3.Request\n+import org.springframework.beans.factory.ObjectProvider\n+import org.springframework.context.annotation.Bean\n+import org.springframework.context.annotation.Configuration\n+\n+@Configuration(proxyBeanMethods = false)\n+class TracingOkHttpConfiguration {\n+\n+    @Bean\n+    fun retrofitOkHttpClientFactory(\n+        tracerProvider: ObjectProvider<Tracer>,\n+        propagatorProvider: ObjectProvider<Propagator>,\n+    ): RetrofitOkHttpClientFactory = RetrofitOkHttpClientFactory(tracerProvider, propagatorProvider)\n+\n+    private object RequestBuilderSetter : Propagator.Setter<Request.Builder> {\n+        override fun set(carrier: Request.Builder?, key: String, value: String) {\n+            carrier?.header(key, value)\n+        }\n+    }\n+\n+    class RetrofitOkHttpClientFactory(\n+        private val tracerProvider: ObjectProvider<Tracer>,\n+        private val propagatorProvider: ObjectProvider<Propagator>,\n+    ) {\n+        fun newClient(): OkHttpClient =\n+            OkHttpClient.Builder()\n+                .apply {\n+                    val tracer = tracerProvider.getIfAvailable()\n+                    val propagator = propagatorProvider.getIfAvailable()\n+\n+                    if (tracer != null && propagator != null) {\n+                        addInterceptor { chain ->\n+                            val requestBuilder = chain.request().newBuilder()\n+                            tracer.currentSpan()?.context()?.let { currentTraceContext ->\n+                                propagator.inject(currentTraceContext, requestBuilder, RequestBuilderSetter)\n+                            }\n+                            chain.proceed(requestBuilder.build())\n+                        }\n+                    }\n+                }\n+                .build()\n+    }\n+}"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/crypto/config/CryptoApiConfig.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 2,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.recruit.applicant.adaptor.retrofit.crypto.config\n \n import doodlin.greeting.ats.adaptor.retrofit.crypto.CryptoApiClient\n+import doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.recruit.applicant.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -14,11 +15,12 @@ class CryptoApiConfig(\n     private val cryptoLambdaHost: String\n ) {\n     @Bean\n-    fun cryptoLambdaClient(): CryptoApiClient {\n+    fun cryptoLambdaClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): CryptoApiClient {\n         return Retrofit.Builder()\n             .baseUrl(cryptoLambdaHost)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(CryptoApiClient::class.java)\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/normalized/config/NormalizedApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.recruit.applicant.adaptor.retrofit.normalized.config\n \n import doodlin.greeting.recruit.applicant.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.recruit.applicant.adaptor.retrofit.normalized.NormalizerApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class NormalizedApiConfig {\n     private lateinit var normalizerUrl: String\n \n     @Bean\n-    fun normalizedApiClient(): NormalizerApiClient {\n+    fun normalizedApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): NormalizerApiClient {\n         return Retrofit.Builder()\n             .baseUrl(normalizerUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(NormalizerApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/opening/config/NewBackApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.recruit.applicant.adaptor.retrofit.opening.config\n \n import doodlin.greeting.recruit.applicant.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.recruit.applicant.adaptor.retrofit.opening.NewBackApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class NewBackApiConfig {\n     private lateinit var atsUrl: String\n \n     @Bean\n-    fun newBackApiClient(): NewBackApiClient {\n+    fun newBackApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): NewBackApiClient {\n         return Retrofit.Builder()\n             .baseUrl(atsUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(NewBackApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/opening/config/OpeningApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.recruit.applicant.adaptor.retrofit.opening.config\n \n import doodlin.greeting.recruit.applicant.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.recruit.applicant.adaptor.retrofit.opening.OpeningApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class OpeningApiConfig {\n     private lateinit var openingUrl: String\n \n     @Bean\n-    fun openingApiClient(): OpeningApiClient {\n+    fun openingApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): OpeningApiClient {\n         return Retrofit.Builder()\n             .baseUrl(openingUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(OpeningApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-recruit-applicant/adaptor/retrofit/src/main/kotlin/doodlin/greeting/recruit/applicant/adaptor/retrofit/workspace/config/WorkspaceApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.recruit.applicant.adaptor.retrofit.workspace.config\n \n import doodlin.greeting.recruit.applicant.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.recruit.applicant.adaptor.retrofit.configuration.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.recruit.applicant.adaptor.retrofit.workspace.WorkspaceApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -15,9 +16,10 @@ class WorkspaceApiConfig {\n     private lateinit var workspaceUrl: String\n \n     @Bean\n-    fun workspaceApiClient(): WorkspaceApiClient {\n+    fun workspaceApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): WorkspaceApiClient {\n         return Retrofit.Builder()\n             .baseUrl(workspaceUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(WorkspaceApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/build.gradle.kts",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -25,10 +25,12 @@ dependencies {\n     implementation(\"doodlin.commons:validation:0.1.1\")\n \n     // kafka\n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n \n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n     implementation(\"org.springframework.boot:spring-boot-starter-validation\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n+    implementation(Dependencies.External.MICROMETER_CONTEXT_PROPAGATION)\n \n     implementation(\"org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0\")\n }"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/src/main/kotlin/doodlin/greeting/recruit/applicant/AsyncTracingConfiguration.kt",
+      "status": "added",
+      "additions": 23,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,23 @@\n+package doodlin.greeting.recruit.applicant\n+\n+import org.springframework.context.annotation.Bean\n+import org.springframework.context.annotation.Configuration\n+import org.springframework.core.task.support.ContextPropagatingTaskDecorator\n+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor\n+\n+@Configuration(proxyBeanMethods = false)\n+class AsyncTracingConfiguration {\n+\n+    @Bean(name = [\"taskExecutor\"])\n+    fun taskExecutor(): ThreadPoolTaskExecutor =\n+        ThreadPoolTaskExecutor().apply {\n+            val processors = Runtime.getRuntime().availableProcessors()\n+\n+            corePoolSize = maxOf(2, processors / 2)\n+            maxPoolSize = maxOf(4, processors)\n+            setQueueCapacity(1000)\n+            setThreadNamePrefix(\"recruit-applicant-async-\")\n+            setTaskDecorator(ContextPropagatingTaskDecorator())\n+            initialize()\n+        }\n+}"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/api/src/test/kotlin/doodlin/greeting/recruit/applicant/AsyncTracingConfigurationTest.kt",
+      "status": "added",
+      "additions": 74,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,74 @@\n+package doodlin.greeting.recruit.applicant\n+\n+import io.micrometer.context.ContextRegistry\n+import org.assertj.core.api.Assertions.assertThat\n+import org.junit.jupiter.api.AfterEach\n+import org.junit.jupiter.api.Test\n+import org.slf4j.MDC\n+import org.springframework.core.task.support.ContextPropagatingTaskDecorator\n+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor\n+import java.util.concurrent.TimeUnit\n+\n+class AsyncTracingConfigurationTest {\n+\n+    @AfterEach\n+    fun tearDown() {\n+        ContextRegistry.getInstance().removeThreadLocalAccessor(\"traceId\")\n+        MDC.clear()\n+    }\n+\n+    @Test\n+    fun `should propagate trace id into async task`() {\n+        registerTraceIdAccessor()\n+        val executor = singleThreadTaskExecutorForMdcTest()\n+\n+        try {\n+            MDC.put(\"traceId\", \"trace-123\")\n+\n+            val future = executor.submit<String> { MDC.get(\"traceId\") }\n+\n+            assertThat(future.get(5, TimeUnit.SECONDS)).isEqualTo(\"trace-123\")\n+        } finally {\n+            executor.shutdown()\n+        }\n+    }\n+\n+    @Test\n+    fun `should restore executor thread mdc after async task`() {\n+        registerTraceIdAccessor()\n+        val executor = singleThreadTaskExecutorForMdcTest()\n+\n+        try {\n+            executor.submit<Unit> {\n+                MDC.put(\"traceId\", \"stale-value\")\n+            }.get(5, TimeUnit.SECONDS)\n+\n+            MDC.put(\"traceId\", \"trace-456\")\n+\n+            executor.submit<Unit> {\n+                assertThat(MDC.get(\"traceId\")).isEqualTo(\"trace-456\")\n+            }.get(5, TimeUnit.SECONDS)\n+        } finally {\n+            executor.shutdown()\n+        }\n+    }\n+\n+    private fun registerTraceIdAccessor() {\n+        ContextRegistry.getInstance().registerThreadLocalAccessor(\n+            \"traceId\",\n+            { MDC.get(\"traceId\") },\n+            { value -> if (value == null) MDC.remove(\"traceId\") else MDC.put(\"traceId\", value) },\n+            { MDC.remove(\"traceId\") },\n+        )\n+    }\n+\n+    private fun singleThreadTaskExecutorForMdcTest(): ThreadPoolTaskExecutor =\n+        ThreadPoolTaskExecutor().apply {\n+            corePoolSize = 1\n+            maxPoolSize = 1\n+            setQueueCapacity(10)\n+            setThreadNamePrefix(\"async-tracing-test-\")\n+            setTaskDecorator(ContextPropagatingTaskDecorator())\n+            initialize()\n+        }\n+}"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/batch/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -10,6 +10,7 @@ dependencies {\n     implementation(project(\":recruit-applicant-adaptor-kafka\"))\n \n     implementation(\"org.springframework.boot:spring-boot-starter-batch\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n \n     testImplementation(\"org.springframework.batch:spring-batch-test\")\n }\n@@ -28,4 +29,4 @@ tasks {\n             freeCompilerArgs = listOf(\"-Xjsr305=strict\")\n         }\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/batch/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/batch/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-recruit-applicant/presentation/batch/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-wno/adaptor/kafka/build.gradle.kts",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "patch": "@@ -2,5 +2,5 @@ dependencies {\n     implementation(project(\":wno-business-application\"))\n     implementation(project(\":wno-business-domain\"))\n \n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n }"
+    },
+    {
+      "filename": "greeting-wno/adaptor/kafka/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-wno/adaptor/kafka/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-wno/adaptor/retrofit/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -4,6 +4,7 @@ val okHttpVersion: String by project\n dependencies {\n     implementation(project(\":wno-business-application\"))\n     implementation(project(\":wno-business-domain\"))\n+    implementation(Dependencies.External.MICROMETER_TRACING)\n \n     implementation(\"doodlin.commons:token:0.1.0\")\n     // retrofit\n@@ -28,4 +29,4 @@ tasks {\n     bootJar {\n         enabled = false\n     }\n-}\n\\ No newline at end of file\n+}"
+    },
+    {
+      "filename": "greeting-wno/adaptor/retrofit/src/main/kotlin/doodlin/greeting/wno/adaptor/retrofit/authz/config/AuthzApiConfig.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 1,
+      "patch": "@@ -1,6 +1,7 @@\n package doodlin.greeting.wno.adaptor.retrofit.authz.config\n \n import doodlin.greeting.wno.adaptor.retrofit.ObjectMapperSpecifications.DEFAULT_OBJECT_MAPPER\n+import doodlin.greeting.wno.adaptor.retrofit.config.TracingOkHttpConfiguration.RetrofitOkHttpClientFactory\n import doodlin.greeting.wno.adaptor.retrofit.authz.AuthzApiClient\n import org.springframework.beans.factory.annotation.Value\n import org.springframework.context.annotation.Bean\n@@ -16,9 +17,10 @@ class AuthzApiConfig {\n     private lateinit var userUrl: String\n \n     @Bean\n-    fun authzApiClient(): AuthzApiClient {\n+    fun authzApiClient(retrofitOkHttpClientFactory: RetrofitOkHttpClientFactory): AuthzApiClient {\n         return Retrofit.Builder()\n             .baseUrl(userUrl)\n+            .client(retrofitOkHttpClientFactory.newClient())\n             .addConverterFactory(JacksonConverterFactory.create(DEFAULT_OBJECT_MAPPER))\n             .build()\n             .create(AuthzApiClient::class.java)"
+    },
+    {
+      "filename": "greeting-wno/adaptor/retrofit/src/main/kotlin/doodlin/greeting/wno/adaptor/retrofit/config/TracingOkHttpConfiguration.kt",
+      "status": "added",
+      "additions": 48,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,48 @@\n+package doodlin.greeting.wno.adaptor.retrofit.config\n+\n+import io.micrometer.tracing.Tracer\n+import io.micrometer.tracing.propagation.Propagator\n+import okhttp3.OkHttpClient\n+import okhttp3.Request\n+import org.springframework.beans.factory.ObjectProvider\n+import org.springframework.context.annotation.Bean\n+import org.springframework.context.annotation.Configuration\n+\n+@Configuration(proxyBeanMethods = false)\n+class TracingOkHttpConfiguration {\n+\n+    @Bean\n+    fun retrofitOkHttpClientFactory(\n+        tracerProvider: ObjectProvider<Tracer>,\n+        propagatorProvider: ObjectProvider<Propagator>,\n+    ): RetrofitOkHttpClientFactory = RetrofitOkHttpClientFactory(tracerProvider, propagatorProvider)\n+\n+    private object RequestBuilderSetter : Propagator.Setter<Request.Builder> {\n+        override fun set(carrier: Request.Builder?, key: String, value: String) {\n+            carrier?.header(key, value)\n+        }\n+    }\n+\n+    class RetrofitOkHttpClientFactory(\n+        private val tracerProvider: ObjectProvider<Tracer>,\n+        private val propagatorProvider: ObjectProvider<Propagator>,\n+    ) {\n+        fun newClient(): OkHttpClient =\n+            OkHttpClient.Builder()\n+                .apply {\n+                    val tracer = tracerProvider.getIfAvailable()\n+                    val propagator = propagatorProvider.getIfAvailable()\n+\n+                    if (tracer != null && propagator != null) {\n+                        addInterceptor { chain ->\n+                            val requestBuilder = chain.request().newBuilder()\n+                            tracer.currentSpan()?.context()?.let { currentTraceContext ->\n+                                propagator.inject(currentTraceContext, requestBuilder, RequestBuilderSetter)\n+                            }\n+                            chain.proceed(requestBuilder.build())\n+                        }\n+                    }\n+                }\n+                .build()\n+    }\n+}"
+    },
+    {
+      "filename": "greeting-wno/presentation/api/build.gradle.kts",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -23,9 +23,10 @@ dependencies {\n     api(\"doodlin.greeting.ats.sdk:wno-model:0.1.0\")\n \n     // kafka\n-    implementation(\"doodlin.messaging:kafka:2.0.13\")\n+    implementation(Dependencies.Internal.DOODLIN_MESSAGING_KAFKA)\n \n     implementation(\"org.springframework.boot:spring-boot-starter-web\")\n+    implementation(Dependencies.External.MICROMETER_TRACING_BRIDGE_OTEL)\n \n     implementation(\"org.springdoc:springdoc-openapi-starter-webmvc-ui:2.2.0\")\n }"
+    },
+    {
+      "filename": "greeting-wno/presentation/api/src/main/resources/logback-spring.xml",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 4,
+      "patch": "@@ -1,15 +1,15 @@\n <?xml version=\"1.0\" encoding=\"UTF-8\" ?> <!DOCTYPE configuration>\n <configuration>\n     <springProfile name=\"local\">\n-        <include resource=\"logback/logback-console-string.xml\"/>\n+        <include resource=\"logback/logback-text-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"dev\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"stage\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n     <springProfile name=\"prod\">\n-        <include resource=\"logback/logback-console-json.xml\"/>\n+        <include resource=\"logback/logback-json-console.xml\"/>\n     </springProfile>\n </configuration>"
+    },
+    {
+      "filename": "greeting-wno/presentation/api/src/main/resources/logback/logback-json-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    },
+    {
+      "filename": "greeting-wno/presentation/api/src/main/resources/logback/logback-text-console.xml",
+      "status": "renamed",
+      "additions": 0,
+      "deletions": 0
+    }
+  ],
+  "reviewBody": "## PR Review: [GRT-6669] - feat: trace/logging 기준 반영 및 async/retrofit 전파 보강\n\n**유형**: feature | **크기**: XL (+386 -52) | **파일**: 58\n\n---\n*Generated by PR Review Server (pr-review pipeline)*",
+  "event": "APPROVE",
+  "createdAt": "2026-03-20T10:22:25.420Z",
+  "status": "pending"
+}

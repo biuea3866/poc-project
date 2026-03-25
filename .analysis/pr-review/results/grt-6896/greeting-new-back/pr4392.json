@@ -1,0 +1,98 @@
+{
+  "id": "84f61df2-cf24-4b9a-bb0d-ee9ea73cfa1e",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-new-back",
+    "number": 4392,
+    "title": "[GRT-6898] - fix: 데이터 이관용 지원자, 공고 저장 API 로직 수정",
+    "body": "### 개요\r\n- [티켓](https://doodlin.atlassian.net/browse/GRT-6896)\r\n- 데이터 이관 관련 API 코드를 수정합니다.\r\n\r\n### 작업 내용\r\n- 지원자 저장 시 이메일 nullable 타입으로 변경\r\n- 지원자 저장 시 SUBMIT은 이미 처리되어 있으므로 제거\r\n- 지원자 추가 정보 저장 시 사용되는 지원자 ID 추가\r\n- 공고 저장시 공고 양식 스냅샷 키 응답에 포함하도록 수정\r\n\r\n### 체크리스트\r\n- [x] 빌드 확인\r\n- [x] 테스트 통과\r\n\r\n### 연관된 backend application\r\n- https://github.com/doodlincorp/greeting-data-migration-automation\r\n\r\n\r\n\r\n",
+    "branch": "fix/grt-6896",
+    "baseBranch": "dev",
+    "author": "rhdtn311",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-new-back/pull/4392"
+  },
+  "scope": {
+    "prType": "bugfix",
+    "filesByLayer": {
+      "other": [
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/CreateApplicantService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/opening/opening/service/MigrationOpeningCreationResult.kt",
+        "domain/src/main/kotlin/doodlin/greeting/opening/opening/service/OpeningFacade.kt",
+        "interfaces/src/main/kotlin/doodlin/greeting/candidate/controller/ModifyApplicationByApplicantRequest.kt"
+      ]
+    },
+    "totalFiles": 4,
+    "totalAdditions": 7,
+    "totalDeletions": 7,
+    "size": "M",
+    "missingCompanionFiles": [
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/CreateApplicantService.kt → missing CreateApplicantServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/opening/opening/service/OpeningFacade.kt → missing OpeningFacadeTest.kt"
+    ]
+  },
+  "impact": {
+    "findings": [],
+    "affectedCallers": [],
+    "crossRepoImpacts": []
+  },
+  "quality": {
+    "findings": [],
+    "designPrincipleViolations": 0,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 0,
+      "P2": 0,
+      "P3": 0,
+      "P4": 0,
+      "P5": 0,
+      "ASK": 0
+    },
+    "findings": {
+      "P1": [],
+      "P2": [],
+      "P3": [],
+      "P4": [],
+      "P5": [],
+      "ASK": []
+    }
+  },
+  "inlineComments": [],
+  "changedFiles": [
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/CreateApplicantService.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 5,
+      "patch": "@@ -153,9 +153,6 @@ class CreateApplicantService(\n         val applicant = initApplicant(createApplicantCommand)\n         when (createApplicantCommand.status) {\n             ApplicantStatus.CREATE -> throw BadRequestException(\"CREATE 상태인 지원자는 이관 대상이 아닙니다.\")\n-            ApplicantStatus.SUBMIT -> {\n-                applicant.submit()\n-            }\n \n             ApplicantStatus.REJECT -> {\n                 applicant.reject(\n@@ -170,8 +167,9 @@ class CreateApplicantService(\n                     processOnOpeningId = createApplicantCommand.processId,\n                 )\n             }\n+            else -> {} // SUBMIT은 이미 처리되어 있음\n         }\n-        applicantCommandPort.saveAndFlush(applicant)\n+        val savedApplicant = applicantCommandPort.saveAndFlush(applicant)\n \n         val applicationFormSnapshot = applicationFormFacade.getApplicationFormSnapshot(\n             key = UUID.fromString(applicant.applicationFormSnapshotKey)\n@@ -188,7 +186,7 @@ class CreateApplicantService(\n \n         val applicationDataOutput = saveApplication(\n             workspaceId = workspaceId,\n-            applicant = applicant,\n+            applicant = savedApplicant,\n             application = application,\n         )\n "
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/opening/opening/service/MigrationOpeningCreationResult.kt",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -3,6 +3,7 @@ package doodlin.greeting.opening.opening.service\n data class MigrationOpeningCreationResult(\n     val uniqueId: String,\n     val openingId: Int,\n+    val applicationFormSnapshotKey: String,\n     val processes: List<MigrationProcessCreationResult>\n )\n "
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/opening/opening/service/OpeningFacade.kt",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 1,
+      "patch": "@@ -486,7 +486,7 @@ class OpeningFacade(\n \n         createJobPositions(jobPositionSetting, savedOpening)\n \n-        this.applicationFormService.createApplicationForm(\n+        val applicationForm = this.applicationFormService.createApplicationForm(\n             userId = input.userId,\n             openingId = savedOpening.id,\n             command = input.applicationForm,\n@@ -551,6 +551,7 @@ class OpeningFacade(\n         return MigrationOpeningCreationResult(\n             uniqueId = input.uniqueId,\n             openingId = savedOpening.id,\n+            applicationFormSnapshotKey = applicationForm.latestSnapshotKey!!,\n             processes = processResult,\n         )\n     }"
+    },
+    {
+      "filename": "interfaces/src/main/kotlin/doodlin/greeting/candidate/controller/ModifyApplicationByApplicantRequest.kt",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 1,
+      "patch": "@@ -139,7 +139,7 @@ data class BasicInformationRequest(\n     val birthdate: LocalDate?,\n     val idPhoto: FileAttachmentRequest?,\n     val nationalityCode: String?,\n-    val emailAddress: String,\n+    val emailAddress: String?,\n     val secondaryEmailAddress: String?,\n     @field:Valid\n     val phoneNumber: PhoneNumberRequest?,"
+    }
+  ],
+  "reviewBody": "## PR Review: [GRT-6898] - fix: 데이터 이관용 지원자, 공고 저장 API 로직 수정\n\n**유형**: bugfix | **크기**: M (+7 -7) | **파일**: 4\n\n---\n*Generated by PR Review Server (pr-review pipeline)*",
+  "event": "APPROVE",
+  "createdAt": "2026-03-20T10:22:22.875Z",
+  "status": "pending"
+}

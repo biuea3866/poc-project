@@ -1,0 +1,121 @@
+{
+  "id": "62816783-41f9-4cb3-bc28-ee7639d9723f",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-new-back",
+    "number": 4373,
+    "title": "[GRT-5716] - feat: 평가시트 항목 추가",
+    "body": "### 개요\r\n<!-- Jira 티켓 링크 포함 -->\r\n\r\n* jira: https://doodlin.atlassian.net/browse/GRT-5716\r\n\r\n### 작업 내용\r\n<!-- no-jira 작업의 경우 내용 필수 -->\r\n<!-- Jira 본문에 내용이 있다면 간략하게 작성 -->\r\n\r\n* 평가 시트 항목명을 다음과같이 추가합니다.\r\n* 평가 내역\r\n추가: 총평 점수제(총평 점수 산출방식), 총평 점수 텍스트(총평 점수 선택 값)\r\n변경: 총평 -> 총평 코멘트\r\n* 평가 상세 내역\r\n추가: 세부평가항목 점수제(세부평가항목 점수 산출방식), 세부평가항목 점수 텍스트(세부평가항목 점수 선택값)\r\n변경: 세부평가명 -> 세부평가항목, 세부평가점수 -> 세부평가항목 점수, 세부평가 -> 세부평가항목 코멘트\r\n\r\n### 체크리스트\r\n<!-- 필요에 따라 항목 추가/수정/삭제 -->\r\n- [x] 빌드 확인\r\n- [x] 테스트 통과\r\n\r\n\r\n\r\n### 연관된 backend application\r\n<!-- 해당 PR 내용에 영향받는 backend application -->\r\n\r\n\r\n\r\n### 추가 유의사항\r\n<!-- 리뷰어나 배포 시 반드시 알아야 할 사항 -->\r\n\r\n\r\n",
+    "branch": "fix/grt-5716",
+    "baseBranch": "dev",
+    "author": "biuea3866",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-new-back/pull/4373"
+  },
+  "scope": {
+    "prType": "bugfix",
+    "filesByLayer": {
+      "other": [
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/repository/ApplicantExcelAdapter.kt",
+        "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/entity/EvaluationScoreType.kt",
+        "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/repository/EvaluationContentJpaRepository.kt",
+        "domain/src/main/kotlin/doodlin/greeting/file/domain/EvaluationExcelData.kt",
+        "domain/src/main/kotlin/doodlin/greeting/file/domain/EvaluationExcelSheet.kt"
+      ],
+      "test": [
+        "domain/src/test/kotlin/doodlin/greeting/candidate/application/repository/ApplicantExcelAdapterTest.kt"
+      ]
+    },
+    "totalFiles": 6,
+    "totalAdditions": 117,
+    "totalDeletions": 39,
+    "size": "M",
+    "missingCompanionFiles": []
+  },
+  "impact": {
+    "findings": [
+      {
+        "type": "caller-impact",
+        "severity": "P3",
+        "description": "도메인 모델 변경 → 관련 서비스의 DTO/매핑 확인 필요"
+      }
+    ],
+    "affectedCallers": [],
+    "crossRepoImpacts": []
+  },
+  "quality": {
+    "findings": [],
+    "designPrincipleViolations": 0,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 0,
+      "P2": 0,
+      "P3": 1,
+      "P4": 0,
+      "P5": 0,
+      "ASK": 0
+    },
+    "findings": {
+      "P1": [],
+      "P2": [],
+      "P3": [
+        "도메인 모델 변경 → 관련 서비스의 DTO/매핑 확인 필요"
+      ],
+      "P4": [],
+      "P5": [],
+      "ASK": []
+    }
+  },
+  "inlineComments": [],
+  "changedFiles": [
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/repository/ApplicantExcelAdapter.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 3,
+      "patch": "@@ -1,7 +1,7 @@\n package doodlin.greeting.candidate.application.repository\n \n-import doodlin.greeting.candidate.application.domain.MaskedApplicationResult\n import doodlin.greeting.candidate.application.domain.ApplicantCustomAttributeAnswerType\n+import doodlin.greeting.candidate.application.domain.MaskedApplicationResult\n import doodlin.greeting.candidate.application.domain.MaskedCustomAttributeAnswerOutput\n import doodlin.greeting.candidate.application.entity.ApplicantDesiredJobPositionEntity\n import doodlin.greeting.candidate.application.mapper.toAtsDomain\n@@ -11,14 +11,14 @@ import doodlin.greeting.evaluation.evaluation.repository.EvaluationContentJpaRep\n import doodlin.greeting.file.domain.ApplicantExcelData\n import doodlin.greeting.file.domain.ApplicantExcelOpeningMetadata\n import doodlin.greeting.file.domain.ApplicantExcelProcessMetadata\n-import doodlin.greeting.file.domain.CoverLetterExcelData\n import doodlin.greeting.file.domain.CoverLetterAnswerExcelData\n+import doodlin.greeting.file.domain.CoverLetterExcelData\n import doodlin.greeting.file.domain.EvaluationContentItemQueryData\n import doodlin.greeting.file.domain.EvaluationContentQueryData\n import doodlin.greeting.file.domain.EvaluationExcelData\n import doodlin.greeting.file.domain.ProcessExcelData\n-import doodlin.greeting.file.domain.QuestionnaireExcelData\n import doodlin.greeting.file.domain.QuestionnaireAnswerExcelData\n+import doodlin.greeting.file.domain.QuestionnaireExcelData\n import doodlin.greeting.opening.careerpage.repository.OpeningRepository\n import doodlin.greeting.opening.opening.mapper.toAtsDomain\n import doodlin.greeting.opening.opening.repository.OpeningsRepository\n@@ -220,6 +220,7 @@ class ApplicantExcelAdapter(\n                     evaluationOptions = data.evaluationOptions,\n                     evaluationContentScore = data.evaluationContentScore,\n                     evaluationContentComment = data.evaluationContentComment,\n+                    evaluationContentCreatedAt = data.evaluationContentCreatedAt,\n                     assignedEvaluatorUserIds = data.assignedEvaluatorUserIds,\n                     recruiterAuthority = data.recruiterAuthority,\n                     evaluationContentItems = itemMapByEvaluationContentId[data.evaluationContentId].orEmpty(),"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/entity/EvaluationScoreType.kt",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 0,
+      "patch": "@@ -19,6 +19,22 @@ enum class EvaluationScoreType(val scoreType: Int) {\n         return this != STEP5\n     }\n \n+    fun displayKor(): String = when (this) {\n+        STEP3 -> \"3단계 평가\"\n+        STEP5 -> \"5단계 평가\"\n+        STEP100 -> \"점수 직접 입력\"\n+        CUSTOM_STEP2 -> \"단계 평가 커스텀 2\"\n+        CUSTOM_STEP3 -> \"단계 평가 커스텀 3\"\n+        CUSTOM_STEP4 -> \"단계 평가 커스텀 4\"\n+        CUSTOM_STEP5 -> \"단계 평가 커스텀 5\"\n+        CUSTOM_STEP6 -> \"단계 평가 커스텀 6\"\n+        CUSTOM_STEP7 -> \"단계 평가 커스텀 7\"\n+        CUSTOM_STEP8 -> \"단계 평가 커스텀 8\"\n+        CUSTOM_STEP9 -> \"단계 평가 커스텀 9\"\n+        CUSTOM_STEP10 -> \"단계 평가 커스텀 10\"\n+        else -> throw IllegalArgumentException(\"Unknown EvaluationScoreType: $this\")\n+    }\n+\n     object EvaluationScoreTypeConstant {\n         const val STEP3 = 3\n         const val STEP5 = 5"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/repository/EvaluationContentJpaRepository.kt",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -86,6 +86,7 @@ class EvaluationContentCustomImpl : EvaluationContentCustom, QuerydslRepositoryS\n                     evaluationContent.evaluationOptions.`as`(\"evaluationOptions\"),\n                     evaluationContent.score.`as`(\"evaluationContentScore\"),\n                     evaluationContent.comment.`as`(\"evaluationContentComment\"),\n+                    evaluationContent.createdAt.`as`(\"evaluationContentCreatedAt\"),\n                     evaluation.assignedEvaluatorUserIds.`as`(\"assignedEvaluatorUserIds\"),\n                     recruiters.authority.`as`(\"recruiterAuthority\"),\n                 )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/file/domain/EvaluationExcelData.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 0,
+      "patch": "@@ -5,6 +5,7 @@ import doodlin.greeting.evaluation.evaluation.entity.EvaluationOption\n import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreCalculationType\n import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreType\n import doodlin.greeting.opening.opening.domain.RecruiterRole\n+import java.time.ZonedDateTime\n \n class EvaluationExcelData(\n     val openingId: Int,\n@@ -20,6 +21,7 @@ class EvaluationExcelData(\n     val evaluationOptions: List<EvaluationOption>,\n     val evaluationContentScore: Int,\n     val evaluationContentComment: String?,\n+    val evaluationContentCreatedAt: ZonedDateTime,\n     val assignedEvaluatorUserIds: List<Int>,\n     val recruiterAuthority: RecruiterRole,\n     val evaluationContentItems: List<EvaluationContentItemQueryData>?,\n@@ -40,6 +42,7 @@ class EvaluationContentQueryData(\n     val evaluationOptions: List<EvaluationOption>,\n     val evaluationContentScore: Int,\n     val evaluationContentComment: String?,\n+    val evaluationContentCreatedAt: ZonedDateTime,\n     val assignedEvaluatorUserIds: List<Int>,\n     val recruiterAuthority: RecruiterRole,\n )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/file/domain/EvaluationExcelSheet.kt",
+      "status": "modified",
+      "additions": 91,
+      "deletions": 36,
+      "patch": "@@ -1,11 +1,13 @@\n package doodlin.greeting.file.domain\n \n+import doodlin.greeting.common.web.DateTimeUtils.toExcelDateTimeFormat\n import doodlin.greeting.evaluation.evaluation.entity.EvaluationModuleRevision\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationOption\n import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreCalculationType\n import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreType\n import org.apache.poi.ss.usermodel.Sheet\n \n-@Suppress(\"MaxLineLength\", \"CyclomaticComplexMethod\", \"VariableNaming\", \"ReturnCount\", \"NestedBlockDepth\")\n+@Suppress(\"MaxLineLength\", \"CyclomaticComplexMethod\", \"VariableNaming\", \"ReturnCount\", \"NestedBlockDepth\", \"LongMethod\")\n class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n     private var detailColumns: List<HeaderNode> = emptyList()\n \n@@ -14,7 +16,7 @@ class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n \n     override fun getSheetName(): String = \"평가\"\n \n-    override fun getNodes(): List<HeaderNode> = EVALUATION_BASE_HEADER_NODES + detailColumns\n+    override fun getNodes(): List<HeaderNode> = EVALUATION_BASE_HEADER_NODES + detailColumns + EVALUATION_TAIL_HEADER_NODES\n \n     private data class EvaluationRowData(\n         val evaluationExcelData: EvaluationExcelData,\n@@ -36,27 +38,59 @@ class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n                     \"applicantPhone\" -> evaluationExcelData.application.basicInformation.phoneNumber.maskedToStringValue\n                     \"applicantEmail\" -> evaluationExcelData.application.basicInformation.emailAddress.maskedToStringValue\n                     \"processName\" -> evaluationExcelData.processName\n-                    \"scoreCalculationType\" -> convertScoreCalculationType(evaluationExcelData.scoreCalculationType)\n                     \"evaluatorUsername\" -> evaluationExcelData.evaluatorUsername\n-                    \"evaluationContentScore\" -> convertEvaluationContentScore(evaluationExcelData, isAuthorizedEvaluationContent)\n+                    \"evaluationContentScore\" -> convertScore(\n+                        scoreCalculationType = evaluationExcelData.scoreCalculationType,\n+                        scoreType = evaluationExcelData.evaluationTotalScoreType,\n+                        score = evaluationExcelData.evaluationContentScore,\n+                        evaluationWeight = null,\n+                        isEvaluationContent = true,\n+                        isAuthorizedEvaluationContent = isAuthorizedEvaluationContent\n+                    )\n+                    \"evaluationContentCriteria\" -> convertScoreCalculationType(evaluationExcelData.scoreCalculationType)\n                     \"evaluationContentComment\" -> convertComment(evaluationExcelData.evaluationContentComment, isAuthorizedEvaluationContent)\n+                    \"evaluationContentCreatedAt\" -> evaluationExcelData.evaluationContentCreatedAt.toExcelDateTimeFormat(isKst = true)\n                     else -> when {\n                         key.startsWith(EVALUATION_CONTENT_ITEM_NAME_KEY_PREFIX) -> {\n                             val idx = key.removePrefix(EVALUATION_CONTENT_ITEM_NAME_KEY_PREFIX).toIntOrNull() ?: return null\n-                            evaluationExcelData.evaluationContentItems?.getOrNull(idx)?.contentItemName\n+                            evaluationExcelData.evaluationContentItems?.getOrNull(idx)?.contentItemName ?: \"\"\n                         }\n \n                         key.startsWith(EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX) -> {\n                             if (isAuthorizedEvaluationContent.not()) return \"\"\n                             val idx = key.removePrefix(EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX).toIntOrNull() ?: return null\n-                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx)\n-                            convertContentItemScore(evaluationExcelData.scoreCalculationType, item)\n+                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx) ?: return \"\"\n+                            convertScore(\n+                                scoreCalculationType = evaluationExcelData.scoreCalculationType,\n+                                scoreType = item.contentItemScoreType,\n+                                score = item.contentItemScore,\n+                                evaluationWeight = item.contentItemEvaluationWeight,\n+                                isEvaluationContent = false,\n+                                isAuthorizedEvaluationContent = isAuthorizedEvaluationContent\n+                            )\n                         }\n \n                         key.startsWith(EVALUATION_CONTENT_ITEM_COMMENT_KEY_PREFIX) -> {\n                             val idx = key.removePrefix(EVALUATION_CONTENT_ITEM_COMMENT_KEY_PREFIX).toIntOrNull() ?: return null\n-                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx)\n-                            convertComment(item?.contentItemComment, isAuthorizedEvaluationContent)\n+                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx) ?: return \"\"\n+                            convertComment(item.contentItemComment, isAuthorizedEvaluationContent)\n+                        }\n+\n+                        key.startsWith(EVALUATION_CONTENT_SCORE_TEXT_KEY_PREFIX) -> {\n+                            val idx = key.removePrefix(EVALUATION_CONTENT_SCORE_TEXT_KEY_PREFIX).toIntOrNull() ?: return null\n+                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx) ?: return \"\"\n+                            convertEvaluationScoreText(\n+                                score = item.contentItemScore,\n+                                scoreType = item.contentItemScoreType,\n+                                evaluationOptions = item.contentItemEvaluationOptions,\n+                                isAuthorizedEvaluationContent = isAuthorizedEvaluationContent,\n+                            )\n+                        }\n+\n+                        key.startsWith(EVALUATION_CONTENT_ITEM_SCORE_CRITERIA_KEY_PREFIX) -> {\n+                            val idx = key.removePrefix(EVALUATION_CONTENT_ITEM_SCORE_CRITERIA_KEY_PREFIX).toIntOrNull() ?: return null\n+                            val item = evaluationExcelData.evaluationContentItems?.getOrNull(idx) ?: return \"\"\n+                            convertEvaluationScoreType(item.contentItemScoreType, isAuthorizedEvaluationContent)\n                         }\n \n                         else -> null\n@@ -89,9 +123,11 @@ class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n     fun decideDynamicDetailColumns(requiredDetailCount: Int) {\n         detailColumns = (0 until requiredDetailCount).flatMap { idx ->\n             listOf(\n-                HeaderNode(name = \"세부평가명 ${idx + 1}\", key = \"${EVALUATION_CONTENT_ITEM_NAME_KEY_PREFIX}$idx\", width = DETAIL_NAME_WIDTH),\n-                HeaderNode(name = \"세부평가점수 ${idx + 1}\", key = \"${EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX}$idx\", width = DETAIL_SCORE_WIDTH),\n-                HeaderNode(name = \"세부평가 ${idx + 1}\", key = \"${EVALUATION_CONTENT_ITEM_COMMENT_KEY_PREFIX}$idx\", width = DETAIL_COMMENT_WIDTH),\n+                HeaderNode(name = \"세부 평가 항목${idx + 1}\", key = \"${EVALUATION_CONTENT_ITEM_NAME_KEY_PREFIX}$idx\", width = DETAIL_NAME_WIDTH),\n+                HeaderNode(name = \"세부 평가 항목${idx + 1} 점수 산출 방식\", key = \"${EVALUATION_CONTENT_ITEM_SCORE_CRITERIA_KEY_PREFIX}$idx\", width = DETAIL_SCORE_WIDTH),\n+                HeaderNode(name = \"세부 평가 항목${idx + 1} 점수\", key = \"${EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX}$idx\", width = DETAIL_COMMENT_WIDTH),\n+                HeaderNode(name = \"세부 평가 항목${idx + 1} 점수 선택 값\", key = \"${EVALUATION_CONTENT_SCORE_TEXT_KEY_PREFIX}$idx\", width = DETAIL_COMMENT_WIDTH),\n+                HeaderNode(name = \"세부 평가 항목${idx + 1} 코멘트\", key = \"${EVALUATION_CONTENT_ITEM_COMMENT_KEY_PREFIX}$idx\", width = DETAIL_COMMENT_WIDTH),\n             )\n         }\n     }\n@@ -123,45 +159,58 @@ class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n         }\n     }\n \n-    private fun convertContentItemScore(\n+    private fun convertScore(\n         scoreCalculationType: EvaluationScoreCalculationType,\n-        evaluationContentItem: EvaluationContentItemQueryData?\n+        scoreType: EvaluationScoreType?,\n+        score: Int?,\n+        evaluationWeight: Int?,\n+        isEvaluationContent: Boolean,\n+        isAuthorizedEvaluationContent: Boolean\n     ): String {\n-        if (evaluationContentItem?.contentItemScore != null) {\n-            return when (evaluationContentItem.contentItemScoreType) {\n-                EvaluationScoreType.STEP3, EvaluationScoreType.STEP5 -> evaluationContentItem.contentItemScore.toString()\n-                EvaluationScoreType.STEP100 -> if (scoreCalculationType.isWeightScore()) {\n-                    \"${evaluationContentItem.contentItemScore}(${evaluationContentItem.contentItemEvaluationWeight})\"\n-                } else {\n-                    evaluationContentItem.contentItemScore.toString()\n-                }\n+        if (isAuthorizedEvaluationContent.not()) return \"비공개\"\n+        if (scoreType == null) return \"\"\n+        if (score == null) return \"\"\n+        if (isEvaluationContent) return score.toString()\n \n-                else -> EvaluationModuleRevision.getScoreTextByScore(evaluationContentItem.contentItemScore, evaluationContentItem.contentItemEvaluationOptions) ?: \"\"\n-            }\n+        return when {\n+            scoreType == EvaluationScoreType.STEP100 && scoreCalculationType.isWeightScore() -> \"$score($evaluationWeight)\"\n+            else -> score.toString()\n         }\n-\n-        return \"\"\n     }\n \n     private fun convertComment(\n         comment: String?,\n         isAuthorizedEvaluationContent: Boolean\n     ): String {\n-        return if (isAuthorizedEvaluationContent) comment ?: \"\" else \"비공개\"\n+        return if (isAuthorizedEvaluationContent.not()) \"비공개\" else comment ?: \"\"\n     }\n \n-    private fun convertEvaluationContentScore(\n-        evaluationExcelData: EvaluationExcelData,\n+    private fun convertEvaluationScoreType(\n+        evaluationScoreType: EvaluationScoreType?,\n         isAuthorizedEvaluationContent: Boolean\n     ): String {\n         if (isAuthorizedEvaluationContent.not()) return \"비공개\"\n \n-        return when (evaluationExcelData.evaluationTotalScoreType) {\n+        return evaluationScoreType?.displayKor() ?: \"점수제 없음\"\n+    }\n+\n+    private fun convertEvaluationScoreText(\n+        score: Int?,\n+        scoreType: EvaluationScoreType?,\n+        evaluationOptions: List<EvaluationOption>,\n+        isAuthorizedEvaluationContent: Boolean,\n+    ): String {\n+        if (isAuthorizedEvaluationContent.not()) return \"비공개\"\n+        if (scoreType == null) return \"\"\n+        if (score == null) return \"\"\n+\n+        return when (scoreType) {\n             EvaluationScoreType.STEP3,\n-            EvaluationScoreType.STEP5,\n-            EvaluationScoreType.STEP100 -> evaluationExcelData.evaluationContentScore.toString()\n+            EvaluationScoreType.STEP5 -> score.toString()\n \n-            else -> EvaluationModuleRevision.getScoreTextByScore(evaluationExcelData.evaluationContentScore, evaluationExcelData.evaluationOptions) ?: \"\"\n+            EvaluationScoreType.STEP100 -> \"\"\n+\n+            else -> EvaluationModuleRevision.getScoreTextByScore(score, evaluationOptions) ?: \"\"\n         }\n     }\n \n@@ -182,18 +231,24 @@ class EvaluationExcelSheet : AbstractExcelSheet<EvaluationExcelData>() {\n         HeaderNode(name = \"연락처\", key = \"applicantPhone\", width = 20),\n         HeaderNode(name = \"이메일주소\", key = \"applicantEmail\", width = 25),\n         HeaderNode(name = \"평가단계\", key = \"processName\", width = 20),\n-        HeaderNode(name = \"점수 산출 방식\", key = \"scoreCalculationType\", width = 20),\n         HeaderNode(name = \"평가자\", key = \"evaluatorUsername\", width = 15),\n         HeaderNode(name = \"총평점\", key = \"evaluationContentScore\", width = 15),\n-        HeaderNode(name = \"총평\", key = \"evaluationContentComment\", width = 30),\n+        HeaderNode(name = \"총평 점수산출방식\", key = \"evaluationContentCriteria\", width = 15),\n+        HeaderNode(name = \"총평 코멘트\", key = \"evaluationContentComment\", width = 30),\n+    )\n+\n+    private val EVALUATION_TAIL_HEADER_NODES = listOf(\n+        HeaderNode(name = \"평가 작성 일시\", key = \"evaluationContentCreatedAt\", width = 30),\n     )\n \n     companion object {\n         private const val DETAIL_NAME_WIDTH = 20\n         private const val DETAIL_SCORE_WIDTH = 20\n         private const val DETAIL_COMMENT_WIDTH = 30\n         private const val EVALUATION_CONTENT_ITEM_NAME_KEY_PREFIX = \"evaluationContentItemName_\"\n-        private const val EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX = \"evaluationContentItemScore_\"\n+        private const val EVALUATION_CONTENT_ITEM_SCORE_CRITERIA_KEY_PREFIX = \"evaluationContentItemScoreCriteria_\"\n+        private const val EVALUATION_CONTENT_SCORE_TEXT_KEY_PREFIX = \"evaluationContentItemScoreText_\"\n         private const val EVALUATION_CONTENT_ITEM_COMMENT_KEY_PREFIX = \"evaluationContentItemComment_\"\n+        private const val EVALUATION_CONTENT_ITEM_SCORE_KEY_PREFIX = \"evaluationContentItemScore_\"\n     }\n }"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/candidate/application/repository/ApplicantExcelAdapterTest.kt",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "patch": "@@ -26,6 +26,7 @@ import io.kotest.core.spec.style.BehaviorSpec\n import io.kotest.matchers.shouldBe\n import io.mockk.every\n import io.mockk.mockk\n+import java.time.ZonedDateTime\n \n @Suppress(\"MaxLineLength\", \"LongMethod\")\n class ApplicantExcelAdapterTest : BehaviorSpec({\n@@ -454,6 +455,7 @@ class ApplicantExcelAdapterTest : BehaviorSpec({\n             evaluationContentComment = null,\n             assignedEvaluatorUserIds = listOf(userId),\n             recruiterAuthority = RecruiterRole.ROLE_MANAGER,\n+            evaluationContentCreatedAt = ZonedDateTime.now(),\n         )\n         every { evaluationContentRepository.findContentsByApplicantIdInAndUserId(any(), any()) } returns listOf(evaluation)\n         every { evaluationContentRepository.findContentItemsByEvaluationContentIdIn(any()) } returns emptyList()"
+    }
+  ],
+  "reviewBody": "## PR Review: [GRT-5716] - feat: 평가시트 항목 추가\n\n**유형**: bugfix | **크기**: M (+117 -39) | **파일**: 6\n\n**심각도**: P3: 1\n\n### P3 (1건)\n- 도메인 모델 변경 → 관련 서비스의 DTO/매핑 확인 필요\n\n---\n*Generated by PR Review Server (pr-review pipeline)*",
+  "event": "COMMENT",
+  "createdAt": "2026-03-20T10:22:23.423Z",
+  "status": "pending"
+}

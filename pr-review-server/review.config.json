@@ -39,6 +39,12 @@
     "Facade.kt": ["FacadeTest.kt"],
     "V*.sql": ["*.kt"]
   },
+  "watchRepos": [
+    { "owner": "doodlincorp", "repo": "greeting-new-back" },
+    { "owner": "doodlincorp", "repo": "greeting-aggregator" },
+    { "owner": "doodlincorp", "repo": "greeting-ats" }
+  ],
+  "pollerIntervalSeconds": 300,
   "ignorePaths": [
     "node_modules/",
     ".gradle/",

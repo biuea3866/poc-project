@@ -1,0 +1,421 @@
+{
+  "id": "c8a6559a-8765-41d7-9e89-33aa27c1c457",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-new-back",
+    "number": 4376,
+    "title": "[GRT-3381] - feat: 평가 할당 시 분산락 적용",
+    "body": "### 개요\r\n<!-- Jira 티켓 링크 포함 -->\r\n\r\n* jira: https://doodlin.atlassian.net/browse/GRT-3381 (2026-03-12 섹션)\r\n\r\n### 작업 내용\r\n<!-- no-jira 작업의 경우 내용 필수 -->\r\n<!-- Jira 본문에 내용이 있다면 간략하게 작성 -->\r\n\r\n* 평가 할당 시 따닥 요청으로 인해 락이 걸려있었으면 대기\r\n* after_commit 시점에서 평가가 할당되도록 수정하며, 재시도 최종 실패 시 event_failure_history에 저장\r\n* 분산락 Aspect에서 락 해제 시점을 커밋 이후로 잡고, 어노테이션에 커밋 이후에 락이 해제되는 플래그값 추가\r\n* 그 다음 락 획득 시 `if (Evaluation.isAssignable(evaluation == null, evaluationModules.size).not()) return`으로 인해 평가 할당 스킵하도록 수정\r\n\r\n### 체크리스트\r\n<!-- 필요에 따라 항목 추가/수정/삭제 -->\r\n- [x] 빌드 확인\r\n- [x] 테스트 통과\r\n\r\n\r\n\r\n### 연관된 backend application\r\n<!-- 해당 PR 내용에 영향받는 backend application -->\r\n\r\n\r\n\r\n### 추가 유의사항\r\n<!-- 리뷰어나 배포 시 반드시 알아야 할 사항 -->\r\n\r\n\r\n",
+    "branch": "fix/grt-3381",
+    "baseBranch": "dev",
+    "author": "biuea3866",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-new-back/pull/4376"
+  },
+  "scope": {
+    "prType": "bugfix",
+    "filesByLayer": {
+      "other": [
+        "domain/src/main/kotlin/doodlin/greeting/aggregate/service/MigrateApplicantsUseCase.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsServiceImpl.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicationService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/AtsCreateApplicantUseCase.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/BulkUploadApplicantsServiceImpl.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/MoveProcessApplicantService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/RegisterApplicantService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/SampleApplicantService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/annotation/DistributedLock.kt",
+        "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspect.kt",
+        "domain/src/main/kotlin/doodlin/greeting/common/common/transaction/TransactionHelper.kt",
+        "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+        "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/RequestAssignEvaluationEvent.kt",
+        "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/integration/partner/service/IntegrateJobPlanetApplicantService.kt",
+        "domain/src/main/kotlin/doodlin/greeting/zconfuse/CommonControllerAdvice.kt"
+      ],
+      "test": [
+        "domain/src/test/kotlin/doodlin/greeting/candidate/application/service/ApplicationServiceCopyApplicantTest.kt",
+        "domain/src/test/kotlin/doodlin/greeting/candidate/application/service/CopyApplicantFlowIntegrationTest.kt",
+        "domain/src/test/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspectTest.kt",
+        "domain/src/test/kotlin/doodlin/greeting/common/config/DatabaseTestConfig.kt",
+        "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandlerTest.kt",
+        "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationServiceAssignConcurrencyTest.kt",
+        "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationServiceAssignTest.kt"
+      ]
+    },
+    "totalFiles": 24,
+    "totalAdditions": 819,
+    "totalDeletions": 85,
+    "size": "XL",
+    "missingCompanionFiles": [
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt → missing ApplicantsFacadeTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicationService.kt → missing ApplicationServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/MoveProcessApplicantService.kt → missing MoveProcessApplicantServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/RegisterApplicantService.kt → missing RegisterApplicantServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/SampleApplicantService.kt → missing SampleApplicantServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationService.kt → missing EvaluationServiceTest.kt",
+      "domain/src/main/kotlin/doodlin/greeting/integration/partner/service/IntegrateJobPlanetApplicantService.kt → missing IntegrateJobPlanetApplicantServiceTest.kt"
+    ]
+  },
+  "impact": {
+    "findings": [
+      {
+        "type": "cross-repo",
+        "severity": "P3",
+        "description": "API 변경이 3개 연관 레포에 영향 가능: greeting-aggregator, greeting-communication, greeting-api-gateway"
+      }
+    ],
+    "affectedCallers": [],
+    "crossRepoImpacts": [
+      {
+        "repo": "greeting-aggregator",
+        "description": "API 변경 → greeting-aggregator의 FeignClient/API 호출 확인 필요"
+      },
+      {
+        "repo": "greeting-communication",
+        "description": "API 변경 → greeting-communication의 FeignClient/API 호출 확인 필요"
+      },
+      {
+        "repo": "greeting-api-gateway",
+        "description": "API 변경 → greeting-api-gateway의 FeignClient/API 호출 확인 필요"
+      }
+    ]
+  },
+  "quality": {
+    "findings": [
+      {
+        "type": "design-principle",
+        "ruleId": "biz.cross_bc_dependency",
+        "severity": "ASK",
+        "description": "[비즈니스] 다른 도메인 직접 참조: 다른 Bounded Context의 Repository를 직접 쓰면 도메인 간 결합이 생겨요.",
+        "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+        "line": 5,
+        "suggestion": "의도한 건지 확인해주세요. 다른 도메인은 Facade나 Internal API를 통하는 게 좋아요."
+      },
+      {
+        "type": "design-principle",
+        "ruleId": "bug.nullable_bang",
+        "severity": "ASK",
+        "description": "[버그] !! (non-null assertion): !!은 NPE를 유발할 수 있어요. nullable 처리가 의도적인지 확인이 필요해요.",
+        "file": "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandlerTest.kt",
+        "line": 60,
+        "suggestion": "?.let { } 이나 ?: (elvis)로 안전하게 처리하는 게 낫지 않을까요?"
+      },
+      {
+        "type": "design-principle",
+        "ruleId": "di.facade-has-logic",
+        "severity": "P2",
+        "description": "ApplicantsFacade(Facade)에서 Repository를 직접 사용하고 있어요. Facade는 Service 호출만 해야 해요.",
+        "file": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt",
+        "suggestion": "Repository 사용 감지"
+      },
+      {
+        "type": "design-principle",
+        "ruleId": "di.facade-publishes-event",
+        "severity": "P2",
+        "description": "ApplicantsFacade(Facade)에서 이벤트를 발행하고 있어요. 이벤트는 Service에서 발행해야 해요.",
+        "file": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt",
+        "suggestion": "publishEvent 또는 kafkaTemplate 사용 감지"
+      },
+      {
+        "type": "design-principle",
+        "ruleId": "di.cross-bc-dependency",
+        "severity": "ASK",
+        "description": "AssignEvaluationRequestHandler(evaluation)이 다른 도메인의 Repository를 직접 참조하고 있어요.",
+        "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+        "suggestion": "EventFailureHistoryJpaRepository"
+      }
+    ],
+    "designPrincipleViolations": 2,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 1,
+      "P2": 2,
+      "P3": 3,
+      "P4": 1,
+      "P5": 0,
+      "ASK": 1
+    },
+    "findings": {
+      "P1": [
+        "releaseAfterTransactionCommit = true인데 @Order(0)으로 Aspect가 @Transactional보다 먼저 실행돼요. joinPoint.proceed() 전에 isSynchronizationActive()를 체크하는데, 이 시점에는 아직 트랜잭션이 시작 안 돼서 false를 반환해요. 그러면 proceedWithImmediateRelease로 빠져서 트랜잭션 커밋 전에 락이 풀립니다."
+      ],
+      "P2": [
+        "@TransactionalEventListener + @Retryable 조합은 @Retryable이 동작 안 할 수 있어요. @TransactionalEventListener는 ApplicationListenerMethodTransactionalAdapter가 직접 호출해서 AOP 프록시를 안 거치는 경우가 있거든요.",
+        "AFTER_COMMIT 단계에서 evaluationService.assign()을 호출하면 새 트랜잭션이 열리는데, assign() 안의 @DistributedLock(releaseAfterTransactionCommit=true)과 맞물려서 락 해제 타이밍이 복잡해져요. 이 흐름이 의도대로인지 검증이 필요합니다."
+      ],
+      "P3": [
+        "leaseSeconds 기본값 10초인데, assign() 안에서 DB 조회 + save + 이벤트 발행 + mergeEvaluationContents까지 해요. 부하 상황에서 10초 초과하면 락이 만료되어 다른 스레드가 진입할 수 있어요.",
+        "noRetryFor = [LockAcquisitionException::class]로 락 실패 시 재시도 없이 바로 recover로 가요. 락 경쟁은 일시적이라 재시도하면 성공할 가능성이 높은데, 재시도를 안 하는 게 의도인가요?",
+        "proceedWithDeferredRelease에서 joinPoint.proceed() 성공 후 TransactionHelper.afterCompletion 등록 자체가 실패하면 락이 leaseSeconds까지 해제되지 않아요. 실제로는 거의 안 생기지만, safety net으로 leaseSeconds에 의존한다는 점을 인지하면 좋겠어요."
+      ],
+      "P4": [
+        "Facade에서 ApplicationEventPublisher를 직접 주입받고 있어요. 이벤트 발행은 Service 레이어에서 하는 게 바람직하지만, 이번 PR의 일관성을 위한 선택으로 보여서 후속 리팩토링 이슈로 남겨도 될 것 같아요."
+      ],
+      "P5": [],
+      "ASK": [
+        "evaluation 패키지에서 candidate.application의 EventFailureHistoryEntity, EventFailureHistoryJpaRepository, CandidateObjectMapper를 직접 참조하고 있어요. 도메인 간 결합인데, 공통 모듈로 이동하거나 evaluation에 별도 실패 이력 엔티티를 두는 건 어떨까요?"
+      ]
+    }
+  },
+  "inlineComments": [
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspect.kt",
+      "line": 44,
+      "severity": "P1",
+      "body": "releaseAfterTransactionCommit = true인데 @Order(0)으로 Aspect가 @Transactional보다 먼저 실행돼요. joinPoint.proceed() 전에 isSynchronizationActive()를 체크하는데, 이 시점에는 아직 트랜잭션이 시작 안 돼서 false를 반환해요. 그러면 proceedWithImmediateRelease로 빠져서 트랜잭션 커밋 전에 락이 풀립니다.\n\n💡 @Order(Ordered.LOWEST_PRECEDENCE - 1)로 변경해서 @Transactional 안쪽에서 실행되게 하거나, isSynchronizationActive() 체크를 joinPoint.proceed() 호출 후로 이동해야 해요.",
+      "category": "버그",
+      "id": "17db40bc-fd29-49a7-b49b-02b9be64cf84",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+      "line": 26,
+      "severity": "P2",
+      "body": "@TransactionalEventListener + @Retryable 조합은 @Retryable이 동작 안 할 수 있어요. @TransactionalEventListener는 ApplicationListenerMethodTransactionalAdapter가 직접 호출해서 AOP 프록시를 안 거치는 경우가 있거든요.\n\n💡 @Retryable이 실제로 동작하는지 통합 테스트로 검증하거나, RetryTemplate을 직접 사용하는 게 안전해요.",
+      "category": "버그",
+      "id": "a6a31518-bead-42d8-882d-e40d5c61a158",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+      "line": 25,
+      "severity": "P2",
+      "body": "AFTER_COMMIT 단계에서 evaluationService.assign()을 호출하면 새 트랜잭션이 열리는데, assign() 안의 @DistributedLock(releaseAfterTransactionCommit=true)과 맞물려서 락 해제 타이밍이 복잡해져요. 이 흐름이 의도대로인지 검증이 필요합니다.",
+      "category": "비즈니스",
+      "id": "bfb83d5e-4a08-4ab3-b2ec-2d2073a1a092",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationService.kt",
+      "line": 293,
+      "severity": "P3",
+      "body": "leaseSeconds 기본값 10초인데, assign() 안에서 DB 조회 + save + 이벤트 발행 + mergeEvaluationContents까지 해요. 부하 상황에서 10초 초과하면 락이 만료되어 다른 스레드가 진입할 수 있어요.\n\n💡 leaseSeconds를 30초 이상으로 설정하는 게 안전해 보여요.",
+      "category": "비즈니스",
+      "id": "31648f1f-8790-45d1-b651-192947691127",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+      "line": 30,
+      "severity": "P3",
+      "body": "noRetryFor = [LockAcquisitionException::class]로 락 실패 시 재시도 없이 바로 recover로 가요. 락 경쟁은 일시적이라 재시도하면 성공할 가능성이 높은데, 재시도를 안 하는 게 의도인가요?\n\n💡 noRetryFor에서 LockAcquisitionException을 빼면 재시도 후 isAssignable 체크로 자연스럽게 스킵돼요.",
+      "category": "비즈니스",
+      "id": "731449c5-d3eb-44d6-8702-df08041b7ad7",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+      "line": 4,
+      "severity": "ASK",
+      "body": "evaluation 패키지에서 candidate.application의 EventFailureHistoryEntity, EventFailureHistoryJpaRepository, CandidateObjectMapper를 직접 참조하고 있어요. 도메인 간 결합인데, 공통 모듈로 이동하거나 evaluation에 별도 실패 이력 엔티티를 두는 건 어떨까요?",
+      "category": "비즈니스",
+      "id": "e6f05764-8eaf-44e5-8233-521f998adcd1",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspect.kt",
+      "line": 82,
+      "severity": "P3",
+      "body": "proceedWithDeferredRelease에서 joinPoint.proceed() 성공 후 TransactionHelper.afterCompletion 등록 자체가 실패하면 락이 leaseSeconds까지 해제되지 않아요. 실제로는 거의 안 생기지만, safety net으로 leaseSeconds에 의존한다는 점을 인지하면 좋겠어요.",
+      "category": "버그",
+      "id": "93843a0b-484a-4fae-8198-730a4c133fa1",
+      "source": "auto",
+      "startLine": null
+    },
+    {
+      "file": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt",
+      "line": 144,
+      "severity": "P4",
+      "body": "Facade에서 ApplicationEventPublisher를 직접 주입받고 있어요. 이벤트 발행은 Service 레이어에서 하는 게 바람직하지만, 이번 PR의 일관성을 위한 선택으로 보여서 후속 리팩토링 이슈로 남겨도 될 것 같아요.",
+      "category": "스타일",
+      "id": "66f2818e-3f78-4285-be9e-5dd45a4e3bf4",
+      "source": "auto",
+      "startLine": null
+    }
+  ],
+  "changedFiles": [
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/aggregate/service/MigrateApplicantsUseCase.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 4,
+      "patch": "@@ -20,8 +20,8 @@ import doodlin.greeting.candidate.application.service.GetApplicantFileUseCase\n import doodlin.greeting.candidate.application.service.ModifyApplicantFileUseCase\n import doodlin.greeting.common.S3Constant\n import doodlin.greeting.common.S3Executor\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.evaluation.evaluation.service.CreateEvaluationContentForMigrationUseCase\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n import doodlin.greeting.opening.form.service.ApplicationFormService\n import doodlin.greeting.opening.opening.repository.ProcessesOnOpeningReader\n import doodlin.greeting.opening.opening.service.GetApplyConfigSnapshotService\n@@ -38,7 +38,6 @@ class MigrateApplicantsUseCase(\n     private val applicationFormService: ApplicationFormService,\n     private val processesOnOpeningReader: ProcessesOnOpeningReader,\n     private val atsApplicantConfigurationReader: AtsApplicantConfigurationReader,\n-    private val evaluationService: EvaluationService,\n     private val applicationEventPublisher: ApplicationEventPublisher,\n     private val applyConfigSnapshotService: GetApplyConfigSnapshotService,\n     private val createEvaluationContentForMigrationUseCase: CreateEvaluationContentForMigrationUseCase,\n@@ -140,8 +139,8 @@ class MigrateApplicantsUseCase(\n         modifyApplicantFileUseCase.updateFileKeys(fileKeyMap = fileKeyMap)\n \n         // 평가 할당 및 평가 내용 저장\n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicantOutput.applicant.id,\n                 processId = process.id,\n             )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsFacade.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 2,
+      "patch": "@@ -52,6 +52,7 @@ import doodlin.greeting.communication.domain.HasApplicantPermissionCommand\n import doodlin.greeting.communication.service.CheckApplicantPermissionUseCase\n import doodlin.greeting.evaluation.evaluation.repository.EvaluationServiceV2\n import doodlin.greeting.evaluation.evaluation.repository.EvaluationsService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.evaluation.evaluation.service.EvaluationContentService\n import doodlin.greeting.evaluation.evaluation.service.EvaluationInfoFetcher\n import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n@@ -140,6 +141,7 @@ class ApplicantsFacade(\n     private val modifyApplicationUseCase: ModifyApplicationUseCase,\n     private val copyApplicationUseCase: CopyApplicationUseCase,\n     private val cryptoService: CryptoService,\n+    private val applicationEventPublisher: org.springframework.context.ApplicationEventPublisher,\n ) {\n \n     @Suppress(\"LongMethod\")\n@@ -2599,8 +2601,8 @@ class ApplicantsFacade(\n             )\n         )\n \n-        evaluationService.assign(\n-            command = EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n             )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicantsServiceImpl.kt",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 17,
+      "patch": "@@ -125,7 +125,7 @@ import doodlin.greeting.communication.repository.KafkaWorker\n import doodlin.greeting.communication.repository.WebhookCaller\n import doodlin.greeting.communication.service.CheckApplicantPermissionUseCase\n import doodlin.greeting.evaluation.evaluation.domain.DistinctEvaluationCountInfo\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.file.repository.OpenGraphParser\n import doodlin.greeting.integration.partner.entity.IntegrateApplicants\n import doodlin.greeting.integration.partner.event.JobPlanetKafkaPublisher\n@@ -237,7 +237,6 @@ class ApplicantsServiceImpl(\n     private val bulkPassApplicantMessageProducer: KProducer<BulkPassApplicantMessage>,\n     private val createTermAgreeService: CreateTermAgreeService,\n     private val checkApplicantPermissionUseCase: CheckApplicantPermissionUseCase,\n-    private val evaluationService: EvaluationService,\n     private val candidateEventPublisher: CandidateEventPublisher,\n     private val getApplyConfigSnapshotUseCase: GetApplyConfigSnapshotUseCase,\n     private val saveApplyConfigSnapshotUseCase: SaveApplyConfigSnapshotUseCase,\n@@ -559,10 +558,10 @@ class ApplicantsServiceImpl(\n             )\n         }\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = newApplicant.id,\n-                processId = newApplicant.processOnOpeningId\n+                processId = newApplicant.processOnOpeningId,\n             )\n         )\n \n@@ -724,8 +723,8 @@ class ApplicantsServiceImpl(\n                 hasEvaluatorsInProcess = hasEvaluators\n             )\n         )\n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n             )\n@@ -874,8 +873,8 @@ class ApplicantsServiceImpl(\n         applicant.processOnOpeningId = processOnOpening.id\n         applicant = this.applicantsStore.save(applicant)\n \n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = applicant.processOnOpeningId,\n             )\n@@ -1468,8 +1467,8 @@ class ApplicantsServiceImpl(\n             )\n         )\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n             )\n@@ -1622,8 +1621,8 @@ class ApplicantsServiceImpl(\n             status = applicant.status,\n             isAppliedProcess = processOnOpening.isAppliedProcess(),\n         )\n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n             )\n@@ -1686,8 +1685,8 @@ class ApplicantsServiceImpl(\n \n             applicant.moveProcess(processOnOpening)\n \n-            this.evaluationService.assign(\n-                EvaluationService.AssignCommand(\n+            applicationEventPublisher.publishEvent(\n+                RequestAssignEvaluationEvent(\n                     applicantId = applicant.id,\n                     processId = processOnOpening.id,\n                 )\n@@ -1929,8 +1928,8 @@ class ApplicantsServiceImpl(\n                     .let { applicantsStore.save(applicant = it.toEntity()) }\n \n                 // 평가 할당\n-                evaluationService.assign(\n-                    command = EvaluationService.AssignCommand(\n+                applicationEventPublisher.publishEvent(\n+                    RequestAssignEvaluationEvent(\n                         applicantId = rejectedApplicant.id,\n                         processId = rejectedApplicant.processOnOpeningId,\n                     )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/ApplicationService.kt",
+      "status": "modified",
+      "additions": 4,
+      "deletions": 5,
+      "patch": "@@ -28,7 +28,7 @@ import doodlin.greeting.candidate.application.repository.ApplicantEvaluationStat\n import doodlin.greeting.candidate.application.repository.AtsApplicantRecommendationLetterReader\n import doodlin.greeting.common.S3Constant\n import doodlin.greeting.common.common.exception.BadRequestException\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.opening.form.domain.ApplicationFormSnapshotResult\n import doodlin.greeting.opening.form.service.ApplicationFormFacade\n import doodlin.greeting.opening.opening.repository.AtsOpeningReader\n@@ -69,7 +69,6 @@ internal class ApplicationService(\n     private val workspaceClient: WorkspaceClient,\n     private val saveApplyConfigSnapshotUseCase: SaveApplyConfigSnapshotUseCase,\n     private val getApplyConfigSnapshotUseCase: GetApplyConfigSnapshotUseCase,\n-    private val evaluationService: EvaluationService,\n     private val openingReader: AtsOpeningReader,\n     private val atsWorkspaceReader: AtsWorkspaceReader,\n     private val sendApplicantRegisteredNotificationUseCase: SendApplicantRegisteredNotificationUseCase,\n@@ -545,10 +544,10 @@ internal class ApplicationService(\n                 hasEvaluatorsInProcess = existEvaluator,\n             )\n         )\n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = newApplication.applicant.id,\n-                processId = processIdToCopy\n+                processId = processIdToCopy,\n             )\n         )\n "
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/AtsCreateApplicantUseCase.kt",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 8,
+      "patch": "@@ -13,7 +13,7 @@ import doodlin.greeting.candidate.application.event.CreateEventDataCommand\n import doodlin.greeting.candidate.application.mapper.toEntity\n import doodlin.greeting.candidate.application.repository.ApplicantEvaluationStatusStore\n import doodlin.greeting.candidate.application.repository.ApplicantStore\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import org.springframework.context.ApplicationEventPublisher\n import org.springframework.stereotype.Service\n \n@@ -24,7 +24,6 @@ class AtsCreateApplicantUseCase(\n     private val applicantStore: ApplicantStore,\n     private val applicantEvaluationStatusStore: ApplicantEvaluationStatusStore,\n     private val candidateEventPublisher: CandidateEventPublisher,\n-    private val evaluationService: EvaluationService\n ) {\n     fun execute(command: CreateApplicantByEmployeeReferralCommand): Applicant {\n         // 지원자 저장\n@@ -38,10 +37,10 @@ class AtsCreateApplicantUseCase(\n             )\n         )\n \n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n-                processId = applicant.processOnOpeningId\n+                processId = applicant.processOnOpeningId,\n             )\n         )\n \n@@ -76,10 +75,10 @@ class AtsCreateApplicantUseCase(\n         // 지원자 저장\n         val applicant = applicantStore.save(command.applicant)\n \n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n-                processId = applicant.processOnOpeningId\n+                processId = applicant.processOnOpeningId,\n             )\n         )\n "
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/BulkUploadApplicantsServiceImpl.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 4,
+      "patch": "@@ -156,7 +156,7 @@ import doodlin.greeting.common.web.BulkApplicantUtils\n import doodlin.greeting.common.web.FileUtils\n import doodlin.greeting.communication.event.KafkaWorkerEvent\n import doodlin.greeting.communication.repository.KafkaWorker\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.opening.opening.entity.Openings\n import doodlin.greeting.opening.opening.entity.ProcessesOnOpeningList\n import doodlin.greeting.opening.opening.repository.ProcessEvaluatorReader\n@@ -200,7 +200,6 @@ class BulkUploadApplicantsServiceImpl(\n     private val applicantLanguageSkillPersistencePort: ApplicantLanguageSkillPersistencePort,\n     private val bulkUploadApplicantValidationStore: BulkUploadApplicantValidationStore,\n     private val bulkUploadApplicantValidationReader: BulkUploadApplicantValidationReader,\n-    private val evaluationService: EvaluationService,\n     private val candidateEventPublisher: CandidateEventPublisher,\n     private val getApplyConfigSnapshotUseCase: GetApplyConfigSnapshotUseCase,\n     private val registerApplicantUseCase: RegisterApplicantUseCase,\n@@ -490,8 +489,8 @@ class BulkUploadApplicantsServiceImpl(\n                 openingId = command.opening.id,\n             )\n         )\n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n                 syncStrategy = ApplicantAuthorizationSyncStrategy.GRADUAL,"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/MoveProcessApplicantService.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 4,
+      "patch": "@@ -9,7 +9,7 @@ import doodlin.greeting.candidate.application.event.CandidateEventPublisher\n import doodlin.greeting.candidate.application.event.MoveProcessApplicantEvent\n import doodlin.greeting.candidate.application.repository.ApplicantStore\n import doodlin.greeting.candidate.application.repository.AtsApplicantReader\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.integration.partner.event.JobPlanetKafkaPublisher\n import doodlin.greeting.opening.opening.repository.AtsProcessOnOpeningReader\n import org.springframework.context.ApplicationEventPublisher\n@@ -23,7 +23,6 @@ class MoveProcessApplicantService(\n     private val applicationEventPublisher: ApplicationEventPublisher,\n     private val jobPlanetKafkaPublisher: JobPlanetKafkaPublisher,\n     private val applicantKafkaPublisher: ApplicantKafkaPublisher,\n-    private val evaluationService: EvaluationService,\n     private val candidateEventPublisher: CandidateEventPublisher,\n ) : MoveApplicantProcessUseCase {\n     override fun execute(command: MoveProcessCommand) {\n@@ -46,8 +45,8 @@ class MoveProcessApplicantService(\n             applicant.moveProcess(targetProcess.id, ApplicantAuthorizationSyncStrategy.GRADUAL)\n         )\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = moveApplicant.id,\n                 processId = moveApplicant.processOnOpeningId,\n                 syncStrategy = ApplicantAuthorizationSyncStrategy.GRADUAL,"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/RegisterApplicantService.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 5,
+      "patch": "@@ -27,7 +27,7 @@ import doodlin.greeting.candidate.application.repository.AtsTagOnApplicantStore\n import doodlin.greeting.common.S3Constant\n import doodlin.greeting.common.crypto.CryptoService\n import doodlin.greeting.common.web.InputRuleUtils\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.opening.careerpage.domain.ApplyType\n import doodlin.greeting.opening.form.service.ApplicationFormFacade\n import doodlin.greeting.opening.opening.repository.AtsOpeningReader\n@@ -57,8 +57,6 @@ internal class RegisterApplicantService(\n     private val applicantEvaluationStatusStore: ApplicantEvaluationStatusStore,\n     private val getOrCreateSourceOnWorkspaceService: GetOrCreateSourceOnWorkspaceService,\n     private val usersService: UsersService,\n-    private val evaluationService: EvaluationService,\n-\n     private val applicationFormFacade: ApplicationFormFacade,\n     private val getApplyConfigSnapshotUseCase: GetApplyConfigSnapshotUseCase,\n     private val sendApplicantRegisteredNotificationUseCase: SendApplicantRegisteredNotificationUseCase,\n@@ -345,8 +343,8 @@ internal class RegisterApplicantService(\n         )\n \n         // 평가 assign\n-        evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = command.processOnOpeningId,\n                 syncStrategy = command.syncStrategy,"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/candidate/application/service/SampleApplicantService.kt",
+      "status": "modified",
+      "additions": 7,
+      "deletions": 8,
+      "patch": "@@ -17,7 +17,7 @@ import doodlin.greeting.candidate.application.repository.ApplicantEvaluationStat\n import doodlin.greeting.candidate.application.repository.ApplicantsStore\n import doodlin.greeting.candidate.application.repository.DataOnApplicantPersistencePort\n import doodlin.greeting.common.S3Constant\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.opening.opening.domain.ApplyConfigSnapshot\n import doodlin.greeting.opening.opening.entity.Openings\n import doodlin.greeting.opening.opening.repository.ProcessEvaluatorReader\n@@ -34,7 +34,6 @@ class SampleApplicantService(\n     private val processesOnOpeningReader: ProcessesOnOpeningReader,\n     private val applicantEvaluationStatusStore: ApplicantEvaluationStatusStore,\n     private val processEvaluatorReader: ProcessEvaluatorReader,\n-    private val evaluationService: EvaluationService,\n     private val createApplicantUseCase: CreateApplicantUseCase,\n \n     private val candidateEventPublisher: CandidateEventPublisher,\n@@ -107,10 +106,10 @@ class SampleApplicantService(\n             )\n         )\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n-                processId = applicantEntity.processOnOpeningId,\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicantEntity.id,\n+                processId = applicantEntity.processOnOpeningId,\n             )\n         )\n \n@@ -168,10 +167,10 @@ class SampleApplicantService(\n             )\n         }\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n-                processId = applicantEntity.processOnOpeningId,\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicantEntity.id,\n+                processId = applicantEntity.processOnOpeningId,\n             )\n         )\n "
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/annotation/DistributedLock.kt",
+      "status": "modified",
+      "additions": 1,
+      "deletions": 0,
+      "patch": "@@ -18,6 +18,7 @@ annotation class DistributedLock(\n     val targets: Array<DistributedLockTarget>,\n     val waitSeconds: Long = 1L,\n     val leaseSeconds: Long = 10L,\n+    val releaseAfterTransactionCommit: Boolean = false,\n )\n \n /**"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspect.kt",
+      "status": "modified",
+      "additions": 51,
+      "deletions": 11,
+      "patch": "@@ -1,19 +1,24 @@\n package doodlin.greeting.common.common.apilock.aspect\n \n import doodlin.greeting.common.common.apilock.annotation.DistributedLock\n+import doodlin.greeting.common.common.transaction.TransactionHelper\n import doodlin.greeting.common.web.SpELParser\n import org.aspectj.lang.ProceedingJoinPoint\n import org.aspectj.lang.annotation.Around\n import org.aspectj.lang.annotation.Aspect\n import org.aspectj.lang.reflect.MethodSignature\n import org.redisson.api.RedissonClient\n+import org.redisson.api.RLock\n+import org.springframework.core.annotation.Order\n import org.springframework.stereotype.Component\n+import org.springframework.transaction.support.TransactionSynchronizationManager\n import java.lang.reflect.Method\n import java.util.concurrent.TimeUnit\n \n @Aspect\n @Component\n-internal class DistributedLockAspect(\n+@Order(0)\n+class DistributedLockAspect(\n     private val redissonClient: RedissonClient,\n ) {\n     @Suppress(\"SpreadOperator\", \"NestedBlockDepth\", \"TooGenericExceptionCaught\")\n@@ -26,33 +31,68 @@ internal class DistributedLockAspect(\n             return joinPoint.proceed()\n         }\n \n+        val multiLock = acquireLock(distributedLock, signature, joinPoint)\n+\n+        return if (distributedLock.releaseAfterTransactionCommit && TransactionSynchronizationManager.isSynchronizationActive()) {\n+            proceedWithDeferredRelease(joinPoint, multiLock)\n+        } else {\n+            proceedWithImmediateRelease(joinPoint, multiLock)\n+        }\n+    }\n+\n+    @Suppress(\"SpreadOperator\", \"TooGenericExceptionCaught\")\n+    private fun acquireLock(\n+        distributedLock: DistributedLock,\n+        signature: MethodSignature,\n+        joinPoint: ProceedingJoinPoint,\n+    ): RLock {\n         val locks = DistributedLockKeyGenerator.generate(distributedLock, signature, joinPoint)\n             .sorted()\n             .map { redissonClient.getLock(it) }\n \n+        val multiLock = redissonClient.getMultiLock(*locks.toTypedArray())\n+\n         try {\n-            val multiLock = redissonClient.getMultiLock(*locks.toTypedArray())\n             val acquired = multiLock.tryLock(\n                 distributedLock.waitSeconds,\n                 distributedLock.leaseSeconds,\n                 DEFAULT_TIME_UNIT\n             )\n-\n             if (!acquired) {\n                 throw LockAcquisitionException(\"Failed to acquire lock within the specified wait time.\")\n             }\n-\n-            return try {\n-                joinPoint.proceed()\n-            } finally {\n-                if (multiLock.isHeldByCurrentThread) {\n-                    multiLock.unlock()\n-                }\n-            }\n         } catch (e: InterruptedException) {\n             Thread.currentThread().interrupt()\n             throw LockAcquisitionException(\"An error occurred while trying to acquire the distributed lock.\", e)\n         }\n+\n+        return multiLock\n+    }\n+\n+    private fun proceedWithImmediateRelease(joinPoint: ProceedingJoinPoint, lock: RLock): Any? {\n+        return try {\n+            joinPoint.proceed()\n+        } finally {\n+            releaseLock(lock)\n+        }\n+    }\n+\n+    @Suppress(\"TooGenericExceptionCaught\")\n+    private fun proceedWithDeferredRelease(joinPoint: ProceedingJoinPoint, lock: RLock): Any? {\n+        return try {\n+            val result = joinPoint.proceed()\n+            TransactionHelper.afterCompletion { releaseLock(lock) }\n+            result\n+        } catch (e: Exception) {\n+            releaseLock(lock)\n+            throw e\n+        }\n+    }\n+\n+    private fun releaseLock(lock: RLock) {\n+        if (lock.isHeldByCurrentThread) {\n+            lock.unlock()\n+        }\n     }\n \n     companion object {"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/common/common/transaction/TransactionHelper.kt",
+      "status": "added",
+      "additions": 16,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,16 @@\n+package doodlin.greeting.common.common.transaction\n+\n+import org.springframework.transaction.support.TransactionSynchronization\n+import org.springframework.transaction.support.TransactionSynchronizationManager\n+\n+object TransactionHelper {\n+    fun afterCompletion(action: () -> Unit) {\n+        TransactionSynchronizationManager.registerSynchronization(\n+            object : TransactionSynchronization {\n+                override fun afterCompletion(status: Int) {\n+                    action()\n+                }\n+            }\n+        )\n+    }\n+}"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandler.kt",
+      "status": "added",
+      "additions": 52,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,52 @@\n+package doodlin.greeting.evaluation.evaluation.event\n+\n+import doodlin.greeting.candidate.application.entity.EventFailureHistoryEntity\n+import doodlin.greeting.candidate.application.mapper.CandidateObjectMapper\n+import doodlin.greeting.candidate.application.repository.EventFailureHistoryJpaRepository\n+import doodlin.greeting.common.common.apilock.aspect.LockAcquisitionException\n+import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import org.slf4j.LoggerFactory\n+import org.springframework.retry.annotation.Backoff\n+import org.springframework.retry.annotation.Recover\n+import org.springframework.retry.annotation.Retryable\n+import org.springframework.stereotype.Component\n+import org.springframework.transaction.annotation.Transactional\n+import org.springframework.transaction.event.TransactionPhase\n+import org.springframework.transaction.event.TransactionalEventListener\n+\n+@Component\n+class AssignEvaluationRequestHandler(\n+    private val evaluationService: EvaluationService,\n+    private val eventFailureHistoryRepository: EventFailureHistoryJpaRepository,\n+) {\n+    private val logger = LoggerFactory.getLogger(javaClass)\n+\n+    @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)\n+    @Retryable(\n+        maxAttempts = 3,\n+        backoff = Backoff(delay = 1000, multiplier = 2.0),\n+        recover = \"recoverAssignEvaluation\",\n+        noRetryFor = [LockAcquisitionException::class]\n+    )\n+    fun handle(event: RequestAssignEvaluationEvent) {\n+        evaluationService.assign(event.toCommand())\n+    }\n+\n+    @Recover\n+    @Transactional\n+    fun recoverAssignEvaluation(e: RuntimeException, event: RequestAssignEvaluationEvent) {\n+        logger.error(\n+            \"평가 할당 실패 | applicantId: ${event.applicantId}, processId: ${event.processId}\",\n+            e\n+        )\n+\n+        eventFailureHistoryRepository.save(\n+            EventFailureHistoryEntity(\n+                type = EventFailureHistoryEntity.EventType.SPRING,\n+                topic = RequestAssignEvaluationEvent::class.simpleName,\n+                payload = CandidateObjectMapper.DOMAIN_MODEL_MAPPER.writeValueAsString(event),\n+                message = e.stackTraceToString(),\n+            )\n+        )\n+    }\n+}"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/event/RequestAssignEvaluationEvent.kt",
+      "status": "added",
+      "additions": 18,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,18 @@\n+package doodlin.greeting.evaluation.evaluation.event\n+\n+import doodlin.greeting.candidate.application.domain.ApplicantAuthorizationSyncStrategy\n+import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+\n+data class RequestAssignEvaluationEvent(\n+    val applicantId: Int,\n+    val processId: Int,\n+    val syncStrategy: ApplicantAuthorizationSyncStrategy = ApplicantAuthorizationSyncStrategy.IMMEDIATE,\n+) {\n+    fun toCommand(): EvaluationService.AssignCommand {\n+        return EvaluationService.AssignCommand(\n+            applicantId = applicantId,\n+            processId = processId,\n+            syncStrategy = syncStrategy,\n+        )\n+    }\n+}"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationService.kt",
+      "status": "modified",
+      "additions": 8,
+      "deletions": 0,
+      "patch": "@@ -5,6 +5,8 @@ import doodlin.greeting.candidate.application.domain.ApplicantAuthorizationSyncS\n import doodlin.greeting.candidate.application.domain.CreateLogCommand\n import doodlin.greeting.candidate.application.entity.ApplicantEntity\n import doodlin.greeting.candidate.application.repository.ApplicantJpaRepository\n+import doodlin.greeting.common.common.apilock.annotation.DistributedLock\n+import doodlin.greeting.common.common.apilock.annotation.DistributedLockTarget\n import doodlin.greeting.common.common.errors.CommonErrorCodes\n import doodlin.greeting.common.common.exception.BadRequestException\n import doodlin.greeting.common.common.exception.ForbiddenException\n@@ -285,6 +287,12 @@ class EvaluationService(\n         }\n     }\n \n+    @DistributedLock(\n+        cacheName = \"evaluation:assign\",\n+        targets = [DistributedLockTarget(key = \"applicant-process\", expression = \"#command.applicantId + ':' + #command.processId\")],\n+        releaseAfterTransactionCommit = true\n+    )\n+    @Transactional\n     fun assign(command: AssignCommand) {\n         val evaluation = this.evaluationRepository.findByApplicantIdAndProcessIdAndEvaluationState(\n             applicantId = command.applicantId,"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/integration/partner/service/IntegrateJobPlanetApplicantService.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 4,
+      "patch": "@@ -38,7 +38,7 @@ import doodlin.greeting.common.IntegrateConstant\n import doodlin.greeting.common.S3Constant\n import doodlin.greeting.common.S3Executor\n import doodlin.greeting.common.web.FileUtils.buildFileName\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.integration.partner.domain.IntegrateJobPlanApplicantCommand\n import doodlin.greeting.integration.partner.domain.IntegrateJobPlanApplicantDocumentCommand\n import doodlin.greeting.integration.partner.repository.AtsJobPlanetIntegrateApplicantReader\n@@ -83,7 +83,6 @@ class IntegrateJobPlanetApplicantService(\n     private val tagOnApplicantStore: AtsTagOnApplicantStore,\n     private val workspaceClient: WorkspaceClient,\n     private val sendApplicantRegisteredNotificationUseCase: SendApplicantRegisteredNotificationUseCase,\n-    private val evaluationService: EvaluationService,\n     private val candidateEventPublisher: CandidateEventPublisher,\n     private val getApplyConfigSnapshotUseCase: GetApplyConfigSnapshotUseCase,\n     private val applicationFormService: ApplicationFormService,\n@@ -228,8 +227,8 @@ class IntegrateJobPlanetApplicantService(\n             )\n         }\n \n-        this.evaluationService.assign(\n-            EvaluationService.AssignCommand(\n+        applicationEventPublisher.publishEvent(\n+            RequestAssignEvaluationEvent(\n                 applicantId = applicant.id,\n                 processId = processOnOpening.id,\n             )"
+    },
+    {
+      "filename": "domain/src/main/kotlin/doodlin/greeting/zconfuse/CommonControllerAdvice.kt",
+      "status": "modified",
+      "additions": 16,
+      "deletions": 0,
+      "patch": "@@ -1,5 +1,6 @@\n package doodlin.greeting.zconfuse\n \n+import doodlin.greeting.common.common.apilock.aspect.LockAcquisitionException\n import doodlin.greeting.common.common.exception.BaseException\n import org.slf4j.LoggerFactory\n import org.springframework.beans.ConversionNotSupportedException\n@@ -46,6 +47,21 @@ class CommonControllerAdvice {\n         )\n     }\n \n+    @ResponseBody\n+    @ExceptionHandler(value = [LockAcquisitionException::class])\n+    fun onLockAcquisitionException(e: LockAcquisitionException): ResponseEntity<CommonResponse<*>> {\n+        logger.warn(\"Lock acquisition failed: ${e.message}\", e)\n+\n+        return ResponseEntity<CommonResponse<*>>(\n+            CommonResponse.fail(\n+                message = e.message,\n+                errorCode = null,\n+            ),\n+            null,\n+            HttpStatus.CONFLICT\n+        )\n+    }\n+\n     @ResponseBody\n     @ExceptionHandler(value = [Exception::class])\n     fun onException(e: Exception): ResponseEntity<CommonResponse<*>> {"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/candidate/application/service/ApplicationServiceCopyApplicantTest.kt",
+      "status": "modified",
+      "additions": 6,
+      "deletions": 7,
+      "patch": "@@ -11,7 +11,7 @@ import doodlin.greeting.candidate.application.repository.AtsApplicantRecommendat\n import doodlin.greeting.common.S3Constant\n import doodlin.greeting.common.crypto.CryptoService\n import doodlin.greeting.common.crypto.GenerateTokenResult\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.fixture.AdditionalQuestionFixture\n import doodlin.greeting.fixture.ApplicantFixture\n import doodlin.greeting.fixture.ApplicationDetailFixture\n@@ -72,7 +72,6 @@ class ApplicationServiceCopyApplicantTest : BehaviorSpec({\n     val workspaceClient = mockk<WorkspaceClient>()\n     val saveApplyConfigSnapshotUseCase = mockk<SaveApplyConfigSnapshotUseCase>()\n     val getApplyConfigSnapshotUseCase = mockk<GetApplyConfigSnapshotUseCase>(relaxed = true)\n-    val evaluationService = mockk<EvaluationService>(relaxed = true)\n     val openingReader = mockk<AtsOpeningReader>()\n     val atsWorkspaceReader = mockk<AtsWorkspaceReader>()\n     val sendApplicantRegisteredNotificationUseCase = mockk<SendApplicantRegisteredNotificationUseCase>(relaxed = true)\n@@ -102,7 +101,6 @@ class ApplicationServiceCopyApplicantTest : BehaviorSpec({\n         workspaceClient = workspaceClient,\n         saveApplyConfigSnapshotUseCase = saveApplyConfigSnapshotUseCase,\n         getApplyConfigSnapshotUseCase = getApplyConfigSnapshotUseCase,\n-        evaluationService = evaluationService,\n         openingReader = openingReader,\n         atsWorkspaceReader = atsWorkspaceReader,\n         sendApplicantRegisteredNotificationUseCase = sendApplicantRegisteredNotificationUseCase,\n@@ -310,7 +308,6 @@ class ApplicationServiceCopyApplicantTest : BehaviorSpec({\n         When(\"정상적으로 복사하면\") {\n             val commandSlot = slot<CreateApplicantCommand>()\n             val editCommandSlot = slot<ApplicationEditCommand>()\n-            val assignCommandSlot = slot<EvaluationService.AssignCommand>()\n             val applicationEditType = slot<ApplicationEditType>()\n \n             service.copyApplicant(\n@@ -353,9 +350,11 @@ class ApplicationServiceCopyApplicantTest : BehaviorSpec({\n                 }\n \n                 verify { applicantEvaluationStatusStore.save(any()) }\n-                verify { evaluationService.assign(capture(assignCommandSlot)) }\n-\n-                assignCommandSlot.captured.processId shouldBe processIdToCopy\n+                verify {\n+                    applicationEventPublisher.publishEvent(\n+                        match<RequestAssignEvaluationEvent> { it.processId == processIdToCopy }\n+                    )\n+                }\n             }\n \n             Then(\"지원일은 원본이 아닌 현재 시간으로 설정된다\") {"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/candidate/application/service/CopyApplicantFlowIntegrationTest.kt",
+      "status": "modified",
+      "additions": 3,
+      "deletions": 6,
+      "patch": "@@ -26,7 +26,7 @@ import doodlin.greeting.candidate.application.repository.ApplicantEvaluationStat\n import doodlin.greeting.candidate.application.repository.AtsApplicantRecommendationLetterReader\n import doodlin.greeting.candidate.application.repository.LogsOnApplicantStore\n import doodlin.greeting.common.S3Constant\n-import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n import doodlin.greeting.fixture.AdditionalQuestionFixture\n import doodlin.greeting.fixture.ApplicantFixture\n import doodlin.greeting.fixture.ApplicationDocumentFixture\n@@ -103,7 +103,6 @@ internal class CopyApplicantFlowIntegrationTest : BehaviorSpec() {\n     private val workspaceClient = mockk<WorkspaceClient>()\n     private val saveApplyConfigSnapshotUseCase = mockk<SaveApplyConfigSnapshotUseCase>()\n     private val getApplyConfigSnapshotUseCase = mockk<GetApplyConfigSnapshotUseCase>()\n-    private val evaluationService = mockk<EvaluationService>(relaxed = true)\n     private val openingReader = mockk<AtsOpeningReader>()\n     private val atsWorkspaceReader = mockk<AtsWorkspaceReader>()\n     private val sendApplicantRegisteredNotificationUseCase =\n@@ -153,7 +152,6 @@ internal class CopyApplicantFlowIntegrationTest : BehaviorSpec() {\n         workspaceClient,\n         saveApplyConfigSnapshotUseCase,\n         getApplyConfigSnapshotUseCase,\n-        evaluationService,\n         openingReader,\n         atsWorkspaceReader,\n         sendApplicantRegisteredNotificationUseCase,\n@@ -394,7 +392,6 @@ internal class CopyApplicantFlowIntegrationTest : BehaviorSpec() {\n                         )\n                     )\n                 }\n-                justRun { evaluationService.assign(any()) }\n                 every { usersService.getUserDomain(any()) } returns mockk(relaxed = true)\n             }\n \n@@ -573,8 +570,8 @@ internal class CopyApplicantFlowIntegrationTest : BehaviorSpec() {\n \n                 Then(\"4. 평가가 할당되는지 확인\") {\n                     verify(exactly = 1) {\n-                        evaluationService.assign(\n-                            match {\n+                        applicationEventPublisher.publishEvent(\n+                            match<RequestAssignEvaluationEvent> {\n                                 it.applicantId == newApplicantId && it.processId == processIdToCopy\n                             }\n                         )"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/common/common/apilock/aspect/DistributedLockAspectTest.kt",
+      "status": "added",
+      "additions": 197,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,197 @@\n+package doodlin.greeting.common.common.apilock.aspect\n+\n+import doodlin.greeting.common.common.apilock.annotation.DistributedLock\n+import doodlin.greeting.common.common.apilock.annotation.DistributedLockTarget\n+import io.kotest.assertions.throwables.shouldThrow\n+import io.kotest.core.spec.style.BehaviorSpec\n+import io.kotest.matchers.shouldBe\n+import io.mockk.clearAllMocks\n+import io.mockk.every\n+import io.mockk.mockk\n+import io.mockk.verify\n+import org.aspectj.lang.ProceedingJoinPoint\n+import org.aspectj.lang.reflect.MethodSignature\n+import org.redisson.api.RLock\n+import org.redisson.api.RedissonClient\n+import org.springframework.transaction.support.TransactionSynchronization\n+import org.springframework.transaction.support.TransactionSynchronizationManager\n+import java.util.concurrent.TimeUnit\n+\n+class DistributedLockAspectTest : BehaviorSpec({\n+\n+    val redissonClient = mockk<RedissonClient>()\n+    val aspect = DistributedLockAspect(redissonClient)\n+    val joinPoint = mockk<ProceedingJoinPoint>()\n+    val signature = mockk<MethodSignature>()\n+    val multiLock = mockk<RLock>()\n+\n+    fun setupMocks() {\n+        clearAllMocks()\n+        every { joinPoint.signature } returns signature\n+        every { signature.parameterNames } returns arrayOf(\"id\")\n+        every { joinPoint.args } returns arrayOf(1)\n+        every { redissonClient.getLock(any<String>()) } returns multiLock\n+        every { redissonClient.getMultiLock(any()) } returns multiLock\n+        every { multiLock.tryLock(any(), any(), any<TimeUnit>()) } returns true\n+        every { multiLock.isHeldByCurrentThread } returns true\n+        every { multiLock.unlock() } returns Unit\n+        every { joinPoint.proceed() } returns \"result\"\n+    }\n+\n+    fun cleanupSynchronization() {\n+        if (TransactionSynchronizationManager.isSynchronizationActive()) {\n+            TransactionSynchronizationManager.clearSynchronization()\n+        }\n+    }\n+\n+    Given(\"releaseAfterTransactionCommit = false (기본값)\") {\n+        When(\"메서드 실행이 성공하면\") {\n+            Then(\"즉시 락을 해제한다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"immediateRelease\", Int::class.java)\n+\n+                val result = aspect.process(joinPoint)\n+\n+                result shouldBe \"result\"\n+                verify(exactly = 1) { multiLock.unlock() }\n+            }\n+        }\n+\n+        When(\"메서드 실행 중 예외가 발생하면\") {\n+            Then(\"락을 해제하고 예외를 전파한다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"immediateRelease\", Int::class.java)\n+                every { joinPoint.proceed() } throws RuntimeException(\"error\")\n+\n+                shouldThrow<RuntimeException> { aspect.process(joinPoint) }\n+\n+                verify(exactly = 1) { multiLock.unlock() }\n+            }\n+        }\n+    }\n+\n+    Given(\"releaseAfterTransactionCommit = true\") {\n+        When(\"트랜잭션 동기화가 활성화된 상태에서 메서드가 성공하면\") {\n+            Then(\"메서드 완료 시점에는 락이 해제되지 않는다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"deferredRelease\", Int::class.java)\n+                TransactionSynchronizationManager.initSynchronization()\n+\n+                try {\n+                    aspect.process(joinPoint)\n+                    verify(exactly = 0) { multiLock.unlock() }\n+                } finally {\n+                    cleanupSynchronization()\n+                }\n+            }\n+\n+            Then(\"트랜잭션 커밋 후 afterCompletion에서 락이 해제된다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"deferredRelease\", Int::class.java)\n+                TransactionSynchronizationManager.initSynchronization()\n+\n+                try {\n+                    aspect.process(joinPoint)\n+\n+                    TransactionSynchronizationManager.getSynchronizations().forEach {\n+                        it.afterCompletion(TransactionSynchronization.STATUS_COMMITTED)\n+                    }\n+\n+                    verify(exactly = 1) { multiLock.unlock() }\n+                } finally {\n+                    cleanupSynchronization()\n+                }\n+            }\n+        }\n+\n+        When(\"트랜잭션이 롤백되면\") {\n+            Then(\"afterCompletion에서 락이 해제된다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"deferredRelease\", Int::class.java)\n+                TransactionSynchronizationManager.initSynchronization()\n+\n+                try {\n+                    aspect.process(joinPoint)\n+\n+                    TransactionSynchronizationManager.getSynchronizations().forEach {\n+                        it.afterCompletion(TransactionSynchronization.STATUS_ROLLED_BACK)\n+                    }\n+\n+                    verify(exactly = 1) { multiLock.unlock() }\n+                } finally {\n+                    cleanupSynchronization()\n+                }\n+            }\n+        }\n+\n+        When(\"메서드 실행 중 예외가 발생하면\") {\n+            Then(\"즉시 락을 해제한다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"deferredRelease\", Int::class.java)\n+                TransactionSynchronizationManager.initSynchronization()\n+\n+                try {\n+                    every { joinPoint.proceed() } throws RuntimeException(\"error\")\n+\n+                    shouldThrow<RuntimeException> { aspect.process(joinPoint) }\n+\n+                    verify(exactly = 1) { multiLock.unlock() }\n+                } finally {\n+                    cleanupSynchronization()\n+                }\n+            }\n+        }\n+\n+        When(\"트랜잭션 동기화가 비활성화 상태이면\") {\n+            Then(\"즉시 락을 해제한다 (fallback)\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"deferredRelease\", Int::class.java)\n+                cleanupSynchronization()\n+\n+                val result = aspect.process(joinPoint)\n+\n+                result shouldBe \"result\"\n+                verify(exactly = 1) { multiLock.unlock() }\n+            }\n+        }\n+    }\n+\n+    Given(\"락 획득 실패\") {\n+        When(\"지정된 시간 내에 락을 획득하지 못하면\") {\n+            Then(\"LockAcquisitionException이 발생한다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"immediateRelease\", Int::class.java)\n+                every { multiLock.tryLock(any(), any(), any<TimeUnit>()) } returns false\n+\n+                shouldThrow<LockAcquisitionException> { aspect.process(joinPoint) }\n+            }\n+        }\n+\n+        When(\"InterruptedException이 발생하면\") {\n+            Then(\"LockAcquisitionException으로 변환된다\") {\n+                setupMocks()\n+                every { signature.method } returns TestLockTarget::class.java.getMethod(\"immediateRelease\", Int::class.java)\n+                every { multiLock.tryLock(any(), any(), any<TimeUnit>()) } throws InterruptedException()\n+\n+                shouldThrow<LockAcquisitionException> { aspect.process(joinPoint) }\n+            }\n+        }\n+    }\n+})\n+\n+@Suppress(\"unused\", \"EmptyFunctionBlock\", \"NoConsecutiveBlankLines\")\n+private class TestLockTarget {\n+    @DistributedLock(\n+        cacheName = \"test\",\n+        targets = [DistributedLockTarget(key = \"id\", expression = \"#id\")],\n+        releaseAfterTransactionCommit = false\n+    )\n+    fun immediateRelease(id: Int) {}\n+\n+    @DistributedLock(\n+        cacheName = \"test\",\n+        targets = [DistributedLockTarget(key = \"id\", expression = \"#id\")],\n+        releaseAfterTransactionCommit = true\n+    )\n+    fun deferredRelease(id: Int) {}\n+}"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/common/config/DatabaseTestConfig.kt",
+      "status": "modified",
+      "additions": 2,
+      "deletions": 0,
+      "patch": "@@ -13,11 +13,13 @@ import org.springframework.context.annotation.Profile\n import org.springframework.data.jpa.repository.config.EnableJpaAuditing\n import org.springframework.data.jpa.repository.config.EnableJpaRepositories\n import org.springframework.jdbc.core.JdbcTemplate\n+import org.springframework.context.annotation.EnableAspectJAutoProxy\n import org.springframework.transaction.annotation.EnableTransactionManagement\n import jakarta.persistence.EntityManager\n \n @TestConfiguration\n @Profile(\"integration-test\")\n+@EnableAspectJAutoProxy\n @EnableTransactionManagement(proxyTargetClass = true)\n @EnableJpaAuditing\n @EntityScan(basePackages = [\"doodlin.greeting\"])"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/event/AssignEvaluationRequestHandlerTest.kt",
+      "status": "added",
+      "additions": 93,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,93 @@\n+package doodlin.greeting.evaluation.evaluation.event\n+\n+import doodlin.greeting.candidate.application.entity.EventFailureHistoryEntity\n+import doodlin.greeting.candidate.application.repository.EventFailureHistoryJpaRepository\n+import doodlin.greeting.common.common.apilock.aspect.LockAcquisitionException\n+import doodlin.greeting.evaluation.evaluation.service.EvaluationService\n+import io.kotest.core.spec.style.BehaviorSpec\n+import io.kotest.matchers.shouldBe\n+import io.kotest.matchers.string.shouldContain\n+import io.mockk.clearAllMocks\n+import io.mockk.every\n+import io.mockk.mockk\n+import io.mockk.slot\n+import io.mockk.verify\n+\n+class AssignEvaluationRequestHandlerTest : BehaviorSpec({\n+\n+    val evaluationService = mockk<EvaluationService>(relaxed = true)\n+    val eventFailureHistoryRepository = mockk<EventFailureHistoryJpaRepository>(relaxed = true)\n+\n+    val handler = AssignEvaluationRequestHandler(\n+        evaluationService = evaluationService,\n+        eventFailureHistoryRepository = eventFailureHistoryRepository,\n+    )\n+\n+    beforeEach {\n+        clearAllMocks()\n+    }\n+\n+    Given(\"handle 정상 호출 시\") {\n+        When(\"평가 할당에 성공하면\") {\n+            Then(\"evaluationService.assign이 호출된다\") {\n+                every { evaluationService.assign(any()) } returns Unit\n+\n+                val event = RequestAssignEvaluationEvent(applicantId = 1, processId = 1)\n+                handler.handle(event)\n+\n+                verify(exactly = 1) { evaluationService.assign(event.toCommand()) }\n+            }\n+        }\n+    }\n+\n+    Given(\"LockAcquisitionException 발생 시 recover가 호출되면\") {\n+        When(\"EventFailureHistory에 기록한다\") {\n+            Then(\"type=SPRING, topic=RequestAssignEvaluationEvent으로 저장된다\") {\n+                val entitySlot = slot<EventFailureHistoryEntity>()\n+                every { eventFailureHistoryRepository.save(capture(entitySlot)) } answers { entitySlot.captured }\n+\n+                val event = RequestAssignEvaluationEvent(applicantId = 10, processId = 20)\n+                handler.recoverAssignEvaluation(\n+                    LockAcquisitionException(\"락 획득 실패\"),\n+                    event\n+                )\n+\n+                verify(exactly = 1) { eventFailureHistoryRepository.save(any()) }\n+\n+                entitySlot.captured.apply {\n+                    type shouldBe EventFailureHistoryEntity.EventType.SPRING\n+                    topic shouldBe \"RequestAssignEvaluationEvent\"\n+                    payload!! shouldContain \"10\"\n+                    payload!! shouldContain \"20\"\n+                    message!! shouldContain \"락 획득 실패\"\n+                    status shouldBe EventFailureHistoryEntity.Status.PENDING\n+                }\n+            }\n+        }\n+    }\n+\n+    Given(\"3회 재시도 모두 실패 후 recover가 호출되면\") {\n+        When(\"RuntimeException으로 EventFailureHistory에 기록한다\") {\n+            Then(\"실패 메시지와 이벤트 정보가 저장된다\") {\n+                val entitySlot = slot<EventFailureHistoryEntity>()\n+                every { eventFailureHistoryRepository.save(capture(entitySlot)) } answers { entitySlot.captured }\n+\n+                val event = RequestAssignEvaluationEvent(applicantId = 30, processId = 40)\n+                handler.recoverAssignEvaluation(\n+                    RuntimeException(\"DB 연결 실패\"),\n+                    event\n+                )\n+\n+                verify(exactly = 1) { eventFailureHistoryRepository.save(any()) }\n+\n+                entitySlot.captured.apply {\n+                    type shouldBe EventFailureHistoryEntity.EventType.SPRING\n+                    topic shouldBe \"RequestAssignEvaluationEvent\"\n+                    payload!! shouldContain \"30\"\n+                    payload!! shouldContain \"40\"\n+                    message!! shouldContain \"DB 연결 실패\"\n+                }\n+            }\n+        }\n+    }\n+})"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationServiceAssignConcurrencyTest.kt",
+      "status": "added",
+      "additions": 163,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,163 @@\n+package doodlin.greeting.evaluation.evaluation.service\n+\n+import doodlin.greeting.BaseIntegrationTest\n+import doodlin.greeting.common.common.apilock.aspect.LockAcquisitionException\n+import doodlin.greeting.evaluation.evaluation.domain.EvaluationModuleProperty\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationModule\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreCalculationType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreShowType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationState\n+import doodlin.greeting.evaluation.evaluation.repository.EvaluationJpaRepository\n+import doodlin.greeting.evaluation.evaluation.repository.EvaluationModuleJpaRepository\n+import io.kotest.matchers.shouldBe\n+import org.springframework.beans.factory.annotation.Autowired\n+import java.util.concurrent.CountDownLatch\n+import java.util.concurrent.Executors\n+import java.util.concurrent.TimeUnit\n+import java.util.concurrent.atomic.AtomicReference\n+\n+@Suppress(\"SwallowedException\")\n+class EvaluationServiceAssignConcurrencyTest : BaseIntegrationTest() {\n+\n+    @Autowired\n+    lateinit var evaluationService: EvaluationService\n+\n+    @Autowired\n+    lateinit var evaluationModuleRepository: EvaluationModuleJpaRepository\n+\n+    @Autowired\n+    lateinit var evaluationRepository: EvaluationJpaRepository\n+\n+    init {\n+        Given(\"동일한 (applicantId, processId)에 대해 동시에 assign 요청이 들어올 때\") {\n+            val processId = 1\n+            val applicantId = 1\n+\n+            val module = EvaluationModule.create(\n+                EvaluationModuleProperty(\n+                    processId = processId,\n+                    name = \"테스트 평가 모듈\",\n+                    notice = \"\",\n+                    privateEvaluation = false,\n+                    totalScoreType = EvaluationScoreType.STEP100,\n+                    scoreShowType = EvaluationScoreShowType.SCORE,\n+                    totalScoreShowType = EvaluationScoreShowType.SCORE,\n+                    evaluationOptions = emptyList(),\n+                    papers = emptyList(),\n+                    calculationType = EvaluationScoreCalculationType.MANUAL,\n+                    evaluators = emptyList(),\n+                )\n+            ).also { it.addRevision() }\n+            evaluationModuleRepository.saveAndFlush(module)\n+\n+            When(\"5개의 요청이 동시에 실행되면\") {\n+                val threadCount = 5\n+                val latch = CountDownLatch(1)\n+                val executor = Executors.newFixedThreadPool(threadCount)\n+                val unexpectedException = AtomicReference<Throwable?>()\n+\n+                repeat(threadCount) {\n+                    executor.submit {\n+                        try {\n+                            latch.await()\n+                            evaluationService.assign(\n+                                EvaluationService.AssignCommand(\n+                                    applicantId = applicantId,\n+                                    processId = processId,\n+                                )\n+                            )\n+                        } catch (e: LockAcquisitionException) {\n+                            // 락 경쟁 시 409로 응답되는 정상 동작 — 허용\n+                        } catch (e: Throwable) {\n+                            unexpectedException.compareAndSet(null, e)\n+                        }\n+                    }\n+                }\n+\n+                latch.countDown()\n+                executor.shutdown()\n+                executor.awaitTermination(15, TimeUnit.SECONDS)\n+\n+                Then(\"예상치 못한 예외는 발생하지 않는다\") {\n+                    unexpectedException.get() shouldBe null\n+                }\n+\n+                Then(\"평가는 단 1개만 생성된다\") {\n+                    val evaluations = evaluationRepository.findByProcessIdAndApplicantIdInAndEvaluationState(\n+                        processId = processId,\n+                        applicantIds = listOf(applicantId),\n+                        evaluationState = EvaluationState.ACTIVE,\n+                    )\n+\n+                    evaluations.size shouldBe 1\n+                }\n+            }\n+        }\n+\n+        Given(\"서로 다른 (applicantId, processId) 조합에 대해 동시에 assign 요청이 들어올 때\") {\n+            val processId = 2\n+            val applicantIds = listOf(10, 11, 12, 13, 14)\n+\n+            val module = EvaluationModule.create(\n+                EvaluationModuleProperty(\n+                    processId = processId,\n+                    name = \"테스트 평가 모듈\",\n+                    notice = \"\",\n+                    privateEvaluation = false,\n+                    totalScoreType = EvaluationScoreType.STEP100,\n+                    scoreShowType = EvaluationScoreShowType.SCORE,\n+                    totalScoreShowType = EvaluationScoreShowType.SCORE,\n+                    evaluationOptions = emptyList(),\n+                    papers = emptyList(),\n+                    calculationType = EvaluationScoreCalculationType.MANUAL,\n+                    evaluators = emptyList(),\n+                )\n+            ).also { it.addRevision() }\n+            evaluationModuleRepository.saveAndFlush(module)\n+\n+            When(\"각 지원자에 대한 요청이 동시에 실행되면\") {\n+                val latch = CountDownLatch(1)\n+                val executor = Executors.newFixedThreadPool(applicantIds.size)\n+                val unexpectedException = AtomicReference<Throwable?>()\n+\n+                applicantIds.forEach { applicantId ->\n+                    executor.submit {\n+                        try {\n+                            latch.await()\n+                            evaluationService.assign(\n+                                EvaluationService.AssignCommand(\n+                                    applicantId = applicantId,\n+                                    processId = processId,\n+                                )\n+                            )\n+                        } catch (e: LockAcquisitionException) {\n+                            // 서로 다른 키이므로 락 경쟁이 발생하지 않아야 함\n+                            unexpectedException.compareAndSet(null, e)\n+                        } catch (e: Throwable) {\n+                            unexpectedException.compareAndSet(null, e)\n+                        }\n+                    }\n+                }\n+\n+                latch.countDown()\n+                executor.shutdown()\n+                executor.awaitTermination(15, TimeUnit.SECONDS)\n+\n+                Then(\"예상치 못한 예외는 발생하지 않는다\") {\n+                    unexpectedException.get() shouldBe null\n+                }\n+\n+                Then(\"각 지원자마다 평가가 1개씩 생성된다\") {\n+                    val evaluations = evaluationRepository.findByProcessIdAndApplicantIdInAndEvaluationState(\n+                        processId = processId,\n+                        applicantIds = applicantIds,\n+                        evaluationState = EvaluationState.ACTIVE,\n+                    )\n+\n+                    evaluations.size shouldBe applicantIds.size\n+                }\n+            }\n+        }\n+    }\n+}"
+    },
+    {
+      "filename": "domain/src/test/kotlin/doodlin/greeting/evaluation/evaluation/service/EvaluationServiceAssignTest.kt",
+      "status": "added",
+      "additions": 140,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,140 @@\n+package doodlin.greeting.evaluation.evaluation.service\n+\n+import doodlin.greeting.BaseIntegrationTest\n+import doodlin.greeting.evaluation.evaluation.domain.EvaluationModuleProperty\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationModule\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreCalculationType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreShowType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationScoreType\n+import doodlin.greeting.evaluation.evaluation.entity.EvaluationState\n+import doodlin.greeting.evaluation.evaluation.event.RequestAssignEvaluationEvent\n+import doodlin.greeting.evaluation.evaluation.repository.EvaluationJpaRepository\n+import doodlin.greeting.evaluation.evaluation.repository.EvaluationModuleJpaRepository\n+import io.kotest.matchers.shouldBe\n+import org.springframework.beans.factory.annotation.Autowired\n+import org.springframework.context.ApplicationEventPublisher\n+import org.springframework.transaction.PlatformTransactionManager\n+import org.springframework.transaction.support.TransactionTemplate\n+\n+@Suppress(\"TooGenericExceptionCaught\", \"TooGenericExceptionThrown\")\n+class EvaluationServiceAssignTest : BaseIntegrationTest() {\n+\n+    @Autowired\n+    lateinit var evaluationService: EvaluationService\n+\n+    @Autowired\n+    lateinit var evaluationModuleRepository: EvaluationModuleJpaRepository\n+\n+    @Autowired\n+    lateinit var evaluationRepository: EvaluationJpaRepository\n+\n+    @Autowired\n+    lateinit var transactionManager: PlatformTransactionManager\n+\n+    @Autowired\n+    lateinit var applicationEventPublisher: ApplicationEventPublisher\n+\n+    private fun createModule(processId: Int): EvaluationModule {\n+        return EvaluationModule.create(\n+            EvaluationModuleProperty(\n+                processId = processId,\n+                name = \"테스트 평가 모듈\",\n+                notice = \"\",\n+                privateEvaluation = false,\n+                totalScoreType = EvaluationScoreType.STEP100,\n+                scoreShowType = EvaluationScoreShowType.SCORE,\n+                totalScoreShowType = EvaluationScoreShowType.SCORE,\n+                evaluationOptions = emptyList(),\n+                papers = emptyList(),\n+                calculationType = EvaluationScoreCalculationType.MANUAL,\n+                evaluators = emptyList(),\n+            )\n+        ).also { it.addRevision() }\n+    }\n+\n+    init {\n+        Given(\"assign이 정상적으로 평가를 생성하면\") {\n+            val processId = 300\n+            val applicantId = 300\n+\n+            evaluationModuleRepository.saveAndFlush(createModule(processId))\n+\n+            When(\"assign을 호출하면\") {\n+                evaluationService.assign(\n+                    EvaluationService.AssignCommand(\n+                        applicantId = applicantId,\n+                        processId = processId,\n+                    )\n+                )\n+\n+                Then(\"평가가 1개 생성된다\") {\n+                    val evaluations = evaluationRepository.findByProcessIdAndApplicantIdInAndEvaluationState(\n+                        processId = processId,\n+                        applicantIds = listOf(applicantId),\n+                        evaluationState = EvaluationState.ACTIVE,\n+                    )\n+\n+                    evaluations.size shouldBe 1\n+                }\n+            }\n+        }\n+\n+        Given(\"상위 트랜잭션이 롤백되면 이벤트가 발행되지 않는다\") {\n+            val processId = 301\n+            val applicantId = 301\n+\n+            evaluationModuleRepository.saveAndFlush(createModule(processId))\n+\n+            When(\"트랜잭션 내에서 이벤트 발행 후 롤백되면\") {\n+                runCatching {\n+                    TransactionTemplate(transactionManager).execute {\n+                        applicationEventPublisher.publishEvent(\n+                            RequestAssignEvaluationEvent(\n+                                applicantId = applicantId,\n+                                processId = processId,\n+                            )\n+                        )\n+                        throw RuntimeException(\"후속 로직 실패\")\n+                    }\n+                }\n+\n+                Then(\"평가가 생성되지 않는다\") {\n+                    val evaluations = evaluationRepository.findByProcessIdAndApplicantIdInAndEvaluationState(\n+                        processId = processId,\n+                        applicantIds = listOf(applicantId),\n+                        evaluationState = EvaluationState.ACTIVE,\n+                    )\n+\n+                    evaluations.size shouldBe 0\n+                }\n+            }\n+        }\n+\n+        Given(\"assign이 멱등하게 동작하는지 검증\") {\n+            val processId = 302\n+            val applicantId = 302\n+\n+            evaluationModuleRepository.saveAndFlush(createModule(processId))\n+\n+            When(\"같은 command로 assign을 두 번 호출하면\") {\n+                val assignCommand = EvaluationService.AssignCommand(\n+                    applicantId = applicantId,\n+                    processId = processId,\n+                )\n+\n+                evaluationService.assign(assignCommand)\n+                evaluationService.assign(assignCommand)\n+\n+                Then(\"평가는 1개만 생성된다\") {\n+                    val evaluations = evaluationRepository.findByProcessIdAndApplicantIdInAndEvaluationState(\n+                        processId = processId,\n+                        applicantIds = listOf(applicantId),\n+                        evaluationState = EvaluationState.ACTIVE,\n+                    )\n+\n+                    evaluations.size shouldBe 1\n+                }\n+            }\n+        }\n+    }\n+}"
+    }
+  ],
+  "reviewBody": "## PR Review: [GRT-3381] 평가 할당 시 분산락 적용\n\n**유형**: bugfix | **크기**: XL (+819 -85) | **파일**: 24\n\n### 요약\n평가 할당에 분산락 + AFTER_COMMIT 이벤트 패턴을 적용한 PR. 설계 방향은 좋지만, @Order(0)으로 인해 releaseAfterTransactionCommit이 의도대로 동작하지 않을 가능성, @TransactionalEventListener + @Retryable 프록시 호환성, leaseSeconds 부족 우려가 있어요.\n\n**심각도**: P1: 1 | P2: 2 | P3: 3 | P4: 1 | ASK: 1\n\n### P1 (1건)\n- @Order(0) + releaseAfterTransactionCommit 조합에서 트랜잭션 시작 전에 isSynchronizationActive() 체크 → 즉시 해제로 빠짐\n\n### P2 (2건)\n- @TransactionalEventListener + @Retryable 프록시 호환성 미검증\n- AFTER_COMMIT + @DistributedLock 조합의 락 해제 타이밍 복잡\n\n### P3 (3건)\n- leaseSeconds 10초 부족 가능성\n- LockAcquisitionException noRetryFor → 불필요한 실패 기록\n- afterCompletion 등록 실패 시 락 미해제\n\n---\n*Reviewed by Claude Code*",
+  "event": "REQUEST_CHANGES",
+  "createdAt": "2026-03-20T08:58:28.304Z",
+  "status": "pending"
+}

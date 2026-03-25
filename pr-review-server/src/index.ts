@@ -1,6 +1,7 @@
 import express from 'express';
 import { config, validateConfig } from './config.js';
 import { verifySignature, filterPullRequestEvent } from './webhook/handler.js';
+import { startSmeeClient } from './webhook/smee-client.js';
 import { parsePullRequestPayload } from './webhook/parser.js';
 import { fetchPRDiff } from './github/diff.js';
 import { generateReview } from './review/generator.js';
@@ -8,6 +9,7 @@ import { loadReviewConfig } from './review/config.js';
 import { loadPipelineContext } from './review/context/pipeline-loader.js';
 import { initStore, saveReview, onPRMerged } from './review/store.js';
 import uiRouter, { notifyNewReview } from './ui/routes.js';
+import { startPoller } from './review/poller.js';
 
 validateConfig();
 
@@ -61,11 +63,23 @@ app.use(uiRouter);
 // Initialize store and start server
 initStore();
 const pipelineCtx = loadPipelineContext();
+const reviewConfig = loadReviewConfig() as any;
 
 app.listen(config.port, '127.0.0.1', () => {
   console.log(`\n  PR Review Server running at http://127.0.0.1:${config.port}`);
   console.log(`  Dashboard: http://127.0.0.1:${config.port}/`);
   console.log(`  Webhook:   http://127.0.0.1:${config.port}/webhook`);
   console.log(`  Results:   ${config.resultsDir}`);
-  console.log(`  Design principles: ${pipelineCtx.designPrinciples.length} rules loaded\n`);
+  console.log(`  Design principles: ${pipelineCtx.designPrinciples.length} rules loaded`);
+
+  // Start smee proxy (auto-reconnect on disconnect)
+  const smeeUrl = process.env.SMEE_URL;
+  if (smeeUrl) {
+    startSmeeClient(smeeUrl, `http://127.0.0.1:${config.port}/webhook`);
+  }
+
+  // Start poller as safety net (5 min default)
+  const pollerInterval = (reviewConfig.pollerIntervalSeconds ?? 300) * 1000;
+  console.log(`  Poller: every ${pollerInterval / 1000}s (safety net)\n`);
+  startPoller(pollerInterval);
 });

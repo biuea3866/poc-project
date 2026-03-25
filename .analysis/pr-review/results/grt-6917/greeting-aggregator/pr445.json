@@ -1,0 +1,79 @@
+{
+  "id": "ad0cca14-dac1-4149-81cc-a0ecfa3e845b",
+  "prInfo": {
+    "owner": "doodlincorp",
+    "repo": "greeting-aggregator",
+    "number": 445,
+    "title": "[GRT-6917] - fix: 신규 공고 > 직접등록 > 제출서류 추가 파일 등록 시 항목명 빈값일 경우 등록 불가하도록 처리",
+    "body": "### 개요\r\n<!-- Jira 티켓 링크 포함 -->\r\nhttps://doodlin.atlassian.net/browse/GRT-6917\r\n\r\n\r\n### 작업 내용\r\n<!-- no-jira 작업의 경우 내용 필수 -->\r\n<!-- Jira 본문에 내용이 있다면 간략하게 작성 -->\r\n- 제출서류 카테고리에 \r\n  - 양식에 설정된 항목 등록 시 어트리뷰트 id(applicationFormAttributeId)가 null로 들어올 경우 등록 불가하도록 처리합니다.\r\n  - 추가 파일 항목 등록 시 항목명(customName)이 빈값이나 null로 들어올 경우 등록 불가하도록 처리합니다.\r\n\r\n\r\n### 체크리스트\r\n<!-- 필요에 따라 항목 추가/수정/삭제 -->\r\n- [x] 빌드 확인\r\n- [x] 테스트 통과\r\n\r\n\r\n\r\n### 연관된 backend application\r\n<!-- 해당 PR 내용에 영향받는 backend application -->\r\n\r\n\r\n\r\n### 추가 유의사항\r\n<!-- 리뷰어나 배포 시 반드시 알아야 할 사항 -->\r\n\r\n\r\n",
+    "branch": "fix/grt-6917",
+    "baseBranch": "dev",
+    "author": "daisy-doodlin",
+    "action": "opened",
+    "url": "https://github.com/doodlincorp/greeting-aggregator/pull/445"
+  },
+  "scope": {
+    "prType": "bugfix",
+    "filesByLayer": {
+      "application": [
+        "business/application/greeting/src/main/kotlin/doodlin/greeting/aggregator/business/application/greeting/candidate/payload/command/DocumentCustomAttributeAnswerEditCommand.kt",
+        "business/application/greeting/src/test/kotlin/doodlin/greeting/aggregator/business/application/greeting/candidate/payload/command/DocumentCustomAttributeAnswerEditCommandTest.kt"
+      ]
+    },
+    "totalFiles": 2,
+    "totalAdditions": 129,
+    "totalDeletions": 1,
+    "size": "M",
+    "missingCompanionFiles": []
+  },
+  "impact": {
+    "findings": [],
+    "affectedCallers": [],
+    "crossRepoImpacts": []
+  },
+  "quality": {
+    "findings": [],
+    "designPrincipleViolations": 0,
+    "securityIssues": 0,
+    "performanceIssues": 0
+  },
+  "summary": {
+    "severityCounts": {
+      "P1": 0,
+      "P2": 0,
+      "P3": 0,
+      "P4": 0,
+      "P5": 0,
+      "ASK": 0
+    },
+    "findings": {
+      "P1": [],
+      "P2": [],
+      "P3": [],
+      "P4": [],
+      "P5": [],
+      "ASK": []
+    }
+  },
+  "inlineComments": [],
+  "changedFiles": [
+    {
+      "filename": "business/application/greeting/src/main/kotlin/doodlin/greeting/aggregator/business/application/greeting/candidate/payload/command/DocumentCustomAttributeAnswerEditCommand.kt",
+      "status": "modified",
+      "additions": 14,
+      "deletions": 1,
+      "patch": "@@ -52,4 +52,17 @@ data class DocumentCustomAttributeAnswerEditCommand(\n         required = false\n     )\n     val period: Period?,\n-)\n+) {\n+    init {\n+        if (type != ApplicantCustomAttributeAnswerType.DIRECTLY_FILE) {\n+            requireNotNull(applicationFormAttributeId) {\n+                \"applicationFormAttributeId is required when type is not DIRECTLY_FILE\"\n+            }\n+        }\n+        if (type == ApplicantCustomAttributeAnswerType.DIRECTLY_FILE) {\n+            require(!customName.isNullOrBlank()) {\n+                \"customName is required when type is DIRECTLY_FILE\"\n+            }\n+        }\n+    }\n+}"
+    },
+    {
+      "filename": "business/application/greeting/src/test/kotlin/doodlin/greeting/aggregator/business/application/greeting/candidate/payload/command/DocumentCustomAttributeAnswerEditCommandTest.kt",
+      "status": "added",
+      "additions": 115,
+      "deletions": 0,
+      "patch": "@@ -0,0 +1,115 @@\n+package doodlin.greeting.aggregator.business.application.greeting.candidate.payload.command\n+\n+import doodlin.greeting.aggregator.business.application.greeting.candidate.payload.application.constant.ApplicantCustomAttributeAnswerType\n+import io.kotest.core.spec.style.BehaviorSpec\n+import org.junit.jupiter.api.assertDoesNotThrow\n+import org.junit.jupiter.api.assertThrows\n+\n+class DocumentCustomAttributeAnswerEditCommandTest : BehaviorSpec({\n+\n+    given(\"type이 DIRECTLY_FILE이 아닐 때\") {\n+        `when`(\"applicationFormAttributeId가 null이면\") {\n+            then(\"예외가 발생한다\") {\n+                assertThrows<IllegalArgumentException> {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = null,\n+                        customName = null,\n+                        type = ApplicantCustomAttributeAnswerType.CUSTOM_SHORT_ANSWER,\n+                        optionId = null,\n+                        text = \"답변\",\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+\n+        `when`(\"applicationFormAttributeId가 있으면\") {\n+            then(\"정상 생성된다\") {\n+                assertDoesNotThrow {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = 1L,\n+                        customName = null,\n+                        type = ApplicantCustomAttributeAnswerType.CUSTOM_SHORT_ANSWER,\n+                        optionId = null,\n+                        text = \"답변\",\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+    }\n+\n+    given(\"type이 DIRECTLY_FILE일 때\") {\n+        `when`(\"customName이 null이면\") {\n+            then(\"예외가 발생한다\") {\n+                assertThrows<IllegalArgumentException> {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = null,\n+                        customName = null,\n+                        type = ApplicantCustomAttributeAnswerType.DIRECTLY_FILE,\n+                        optionId = null,\n+                        text = null,\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+\n+        `when`(\"customName이 빈값이면\") {\n+            then(\"예외가 발생한다\") {\n+                assertThrows<IllegalArgumentException> {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = null,\n+                        customName = \"\",\n+                        type = ApplicantCustomAttributeAnswerType.DIRECTLY_FILE,\n+                        optionId = null,\n+                        text = null,\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+\n+        `when`(\"customName이 공백이면\") {\n+            then(\"예외가 발생한다\") {\n+                assertThrows<IllegalArgumentException> {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = null,\n+                        customName = \"   \",\n+                        type = ApplicantCustomAttributeAnswerType.DIRECTLY_FILE,\n+                        optionId = null,\n+                        text = null,\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+\n+        `when`(\"customName이 있으면\") {\n+            then(\"정상 생성된다\") {\n+                assertDoesNotThrow {\n+                    DocumentCustomAttributeAnswerEditCommand(\n+                        id = null,\n+                        applicationFormAttributeId = null,\n+                        customName = \"직접 첨부 파일\",\n+                        type = ApplicantCustomAttributeAnswerType.DIRECTLY_FILE,\n+                        optionId = null,\n+                        text = null,\n+                        file = null,\n+                        period = null,\n+                    )\n+                }\n+            }\n+        }\n+    }\n+})"
+    }
+  ],
+  "reviewBody": "## PR Review: [GRT-6917] - fix: 신규 공고 > 직접등록 > 제출서류 추가 파일 등록 시 항목명 빈값일 경우 등록 불가하도록 처리\n\n**유형**: bugfix | **크기**: M (+129 -1) | **파일**: 2\n\n---\n*Generated by PR Review Server (pr-review pipeline)*",
+  "event": "APPROVE",
+  "createdAt": "2026-03-20T10:17:16.039Z",
+  "status": "pending"
+}

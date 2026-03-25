@@ -8,7 +8,9 @@
     <file type="web" url="file://$PROJECT_DIR$/file-practice" />
     <file type="web" url="file://$PROJECT_DIR$/flag_speckit/backend" />
     <file type="web" url="file://$PROJECT_DIR$/kotlin-practice" />
+    <file type="web" url="file://$PROJECT_DIR$/spring-batch/batch" />
     <file type="web" url="file://$PROJECT_DIR$/spring-data" />
+    <file type="web" url="file://$PROJECT_DIR$/wiki" />
   </component>
   <component name="ProjectRootManager" version="2" languageLevel="JDK_21" project-jdk-name="corretto-21" project-jdk-type="JavaSDK">
     <output url="file://$PROJECT_DIR$/out" />
