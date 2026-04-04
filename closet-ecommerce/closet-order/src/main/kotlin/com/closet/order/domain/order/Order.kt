@@ -73,6 +73,9 @@ class Order(
 
     @Column(name = "ordered_at", columnDefinition = "DATETIME(6)")
     var orderedAt: LocalDateTime? = null,
+
+    @Column(name = "delivered_at", columnDefinition = "DATETIME(6)")
+    var deliveredAt: LocalDateTime? = null,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -114,6 +117,7 @@ class Order(
 
     fun deliver() {
         transitionTo(OrderStatus.DELIVERED)
+        this.deliveredAt = LocalDateTime.now()
     }
 
     fun confirm() {

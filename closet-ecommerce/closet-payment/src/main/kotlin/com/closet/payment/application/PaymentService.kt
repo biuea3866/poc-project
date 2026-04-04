@@ -50,6 +50,19 @@ class PaymentService(
         logger.info { "결제 취소 완료: id=$id, reason=${request.reason}" }
         return PaymentResponse.from(payment)
     }
+
+    /**
+     * 부분 환불 (PD-12).
+     * 반품 승인 시 배송비 공제 후 환불. PG사에 부분 취소(cancelAmount) 요청.
+     */
+    @Transactional
+    fun refund(id: Long, request: RefundPaymentRequest): PaymentResponse {
+        val payment = paymentRepository.findById(id)
+            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
+        payment.refund(Money(request.amount.toBigDecimal()))
+        logger.info { "부분 환불 완료: id=$id, refundAmount=${request.amount}, reason=${request.reason}" }
+        return PaymentResponse.from(payment)
+    }
 }
 
 data class PaymentResponse(
@@ -58,6 +71,7 @@ data class PaymentResponse(
     val paymentKey: String?,
     val method: String?,
     val finalAmount: Long,
+    val refundAmount: Long,
     val status: String,
 ) {
     companion object {
@@ -68,6 +82,7 @@ data class PaymentResponse(
                 paymentKey = payment.paymentKey,
                 method = payment.method?.name,
                 finalAmount = payment.finalAmount.amount.toLong(),
+                refundAmount = payment.refundAmount.amount.toLong(),
                 status = payment.status.name,
             )
         }
@@ -82,4 +97,9 @@ data class ConfirmPaymentRequest(
 
 data class CancelPaymentRequest(
     val reason: String,
+)
+
+data class RefundPaymentRequest(
+    val amount: Long,
+    val reason: String? = null,
 )

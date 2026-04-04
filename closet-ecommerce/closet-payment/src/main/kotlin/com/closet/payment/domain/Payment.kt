@@ -35,6 +35,10 @@ class Payment(
     @AttributeOverride(name = "amount", column = Column(name = "final_amount", nullable = false, columnDefinition = "DECIMAL(15,2)"))
     var finalAmount: Money,
 
+    @Embedded
+    @AttributeOverride(name = "amount", column = Column(name = "refund_amount", nullable = false, columnDefinition = "DECIMAL(15,2)"))
+    var refundAmount: Money = Money.ZERO,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: PaymentStatus = PaymentStatus.PENDING,
@@ -59,6 +63,26 @@ class Payment(
 
     fun cancel() {
         this.status = PaymentStatus.CANCELLED
+    }
+
+    /**
+     * 부분 환불 (PD-12).
+     * 환불금액 = 결제금액 - 반품배송비(BUYER 부담시).
+     * 이미 환불된 금액이 있으면 누적한다.
+     */
+    fun refund(amount: Money) {
+        require(this.status == PaymentStatus.PAID || this.status == PaymentStatus.REFUNDED) {
+            "환불은 PAID 또는 REFUNDED 상태에서만 가능합니다. 현재 상태: ${this.status}"
+        }
+        require(amount.amount > java.math.BigDecimal.ZERO) {
+            "환불 금액은 0보다 커야 합니다"
+        }
+        val totalRefunded = this.refundAmount + amount
+        require(totalRefunded <= this.finalAmount) {
+            "환불 금액이 결제 금액을 초과합니다. 결제금액=${this.finalAmount.amount}, 기환불=${this.refundAmount.amount}, 요청=${amount.amount}"
+        }
+        this.refundAmount = totalRefunded
+        this.status = PaymentStatus.REFUNDED
     }
 
     companion object {

@@ -23,6 +23,17 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     table: flyway_schema_history_payment
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: payment-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+feature:
+  payment-kafka-enabled: true
 
 server:
   port: 8084
