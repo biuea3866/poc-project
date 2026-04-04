@@ -1,8 +1,8 @@
 package com.closet.bff.presentation
 
-import com.closet.bff.client.MemberServiceClient
 import com.closet.bff.dto.AddAddressRequest
 import com.closet.bff.dto.UpdateAddressRequest
+import com.closet.bff.facade.AddressBffFacade
 import com.closet.common.response.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -18,27 +18,27 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/bff/addresses")
 class BffAddressController(
-    private val memberClient: MemberServiceClient,
+    private val addressFacade: AddressBffFacade,
 ) {
     @PostMapping
     fun addAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @RequestBody request: AddAddressRequest,
-    ) = ApiResponse.created(memberClient.addAddress(memberId, request).data!!)
+    ) = ApiResponse.created(addressFacade.addAddress(memberId, request))
 
     @PutMapping("/{id}")
     fun updateAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
         @RequestBody request: UpdateAddressRequest,
-    ) = ApiResponse.ok(memberClient.updateAddress(memberId, id, request).data!!)
+    ) = ApiResponse.ok(addressFacade.updateAddress(memberId, id, request))
 
     @DeleteMapping("/{id}")
     fun deleteAddress(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
     ): ResponseEntity<Void> {
-        memberClient.deleteAddress(memberId, id)
+        addressFacade.deleteAddress(memberId, id)
         return ResponseEntity.noContent().build()
     }
 
@@ -46,5 +46,5 @@ class BffAddressController(
     fun setDefault(
         @RequestHeader("X-Member-Id") memberId: Long,
         @PathVariable id: Long,
-    ) = ApiResponse.ok(memberClient.setDefaultAddress(memberId, id).data!!)
+    ) = ApiResponse.ok(addressFacade.setDefault(memberId, id))
 }

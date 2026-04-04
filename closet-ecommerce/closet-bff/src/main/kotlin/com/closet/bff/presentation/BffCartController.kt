@@ -1,8 +1,8 @@
 package com.closet.bff.presentation
 
-import com.closet.bff.client.OrderServiceClient
 import com.closet.bff.dto.AddCartItemRequest
 import com.closet.bff.dto.UpdateQuantityRequest
+import com.closet.bff.facade.CartBffFacade
 import com.closet.common.response.ApiResponse
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.DeleteMapping
@@ -17,23 +17,23 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/bff/cart")
 class BffCartController(
-    private val orderClient: OrderServiceClient,
+    private val cartFacade: CartBffFacade,
 ) {
     @PostMapping("/items")
     fun addCartItem(
         @RequestHeader("X-Member-Id") memberId: Long,
         @RequestBody request: AddCartItemRequest,
-    ) = ApiResponse.created(orderClient.addCartItem(memberId, request).data!!)
+    ) = ApiResponse.created(cartFacade.addCartItem(memberId, request))
 
     @PutMapping("/items/{itemId}")
     fun updateCartItem(
         @PathVariable itemId: Long,
         @RequestBody request: UpdateQuantityRequest,
-    ) = ApiResponse.ok(orderClient.updateCartItemQuantity(itemId, mapOf("quantity" to request.quantity)).data!!)
+    ) = ApiResponse.ok(cartFacade.updateCartItemQuantity(itemId, request.quantity))
 
     @DeleteMapping("/items/{itemId}")
     fun removeCartItem(@PathVariable itemId: Long): ResponseEntity<Void> {
-        orderClient.removeCartItem(itemId)
+        cartFacade.removeCartItem(itemId)
         return ResponseEntity.noContent().build()
     }
 }

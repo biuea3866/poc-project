@@ -7,5 +7,6 @@ include(
     "closet-product",
     "closet-order",
     "closet-payment",
-    "closet-bff"
+    "closet-bff",
+    "closet-external-api"
 )
