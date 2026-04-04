@@ -28,3 +28,8 @@ data class OrderCancelledEvent(
         val quantity: Int,
     )
 }
+
+data class OrderConfirmedEvent(
+    val orderId: Long,
+    val memberId: Long,
+)

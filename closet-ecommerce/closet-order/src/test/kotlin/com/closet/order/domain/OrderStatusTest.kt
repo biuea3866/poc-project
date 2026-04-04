@@ -118,6 +118,48 @@ class OrderStatusTest : BehaviorSpec({
                 status.canTransitionTo(OrderStatus.CONFIRMED) shouldBe true
             }
         }
+
+        When("RETURN_REQUESTED로 전이 시도") {
+            Then("전이 가능") {
+                status.canTransitionTo(OrderStatus.RETURN_REQUESTED) shouldBe true
+            }
+        }
+
+        When("EXCHANGE_REQUESTED로 전이 시도") {
+            Then("전이 가능") {
+                status.canTransitionTo(OrderStatus.EXCHANGE_REQUESTED) shouldBe true
+            }
+        }
+
+        When("CANCELLED로 전이 시도") {
+            Then("전이 불가") {
+                status.canTransitionTo(OrderStatus.CANCELLED) shouldBe false
+            }
+        }
+    }
+
+    Given("RETURN_REQUESTED 상태") {
+        val status = OrderStatus.RETURN_REQUESTED
+
+        When("어떤 상태로든 전이 시도") {
+            Then("전이 불가") {
+                OrderStatus.entries.forEach { target ->
+                    status.canTransitionTo(target) shouldBe false
+                }
+            }
+        }
+    }
+
+    Given("EXCHANGE_REQUESTED 상태") {
+        val status = OrderStatus.EXCHANGE_REQUESTED
+
+        When("어떤 상태로든 전이 시도") {
+            Then("전이 불가") {
+                OrderStatus.entries.forEach { target ->
+                    status.canTransitionTo(target) shouldBe false
+                }
+            }
+        }
     }
 
     Given("터미널 상태") {

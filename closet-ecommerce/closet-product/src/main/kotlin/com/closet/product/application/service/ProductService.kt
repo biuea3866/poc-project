@@ -9,11 +9,15 @@ import com.closet.product.application.dto.ProductOptionCreateRequest
 import com.closet.product.application.dto.ProductOptionResponse
 import com.closet.product.application.dto.ProductResponse
 import com.closet.product.application.dto.ProductUpdateRequest
+import com.closet.product.application.event.ProductCreatedEvent
+import com.closet.product.application.event.ProductDeletedEvent
+import com.closet.product.application.event.ProductUpdatedEvent
 import com.closet.product.domain.entity.Product
 import com.closet.product.domain.entity.ProductOption
 import com.closet.product.domain.enums.ProductStatus
 import com.closet.product.domain.repository.ProductRepository
 import mu.KotlinLogging
+import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
@@ -25,7 +29,8 @@ private val logger = KotlinLogging.logger {}
 @Service
 @Transactional(readOnly = true)
 class ProductService(
-    private val productRepository: ProductRepository
+    private val productRepository: ProductRepository,
+    private val eventPublisher: ApplicationEventPublisher,
 ) {
 
     @Transactional
@@ -44,6 +49,7 @@ class ProductService(
         )
         val saved = productRepository.save(product)
         logger.info { "상품 생성 완료: id=${saved.id}, name=${saved.name}" }
+        eventPublisher.publishEvent(ProductCreatedEvent.from(saved))
         return ProductResponse.from(saved)
     }
 
@@ -62,6 +68,7 @@ class ProductService(
             fitType = request.fitType,
             gender = request.gender
         )
+        eventPublisher.publishEvent(ProductUpdatedEvent.from(product))
         return ProductResponse.from(product)
     }
 
@@ -83,10 +90,26 @@ class ProductService(
     }
 
     @Transactional
+    fun delete(id: Long) {
+        val product = findProductById(id)
+        product.softDelete()
+        logger.info { "상품 삭제(soft delete) 완료: id=$id, name=${product.name}" }
+        eventPublisher.publishEvent(
+            ProductDeletedEvent(
+                productId = product.id,
+                name = product.name,
+                brandId = product.brandId,
+                categoryId = product.categoryId,
+            )
+        )
+    }
+
+    @Transactional
     fun changeStatus(id: Long, targetStatus: ProductStatus): ProductResponse {
         val product = findProductById(id)
         product.changeStatus(targetStatus)
         logger.info { "상품 상태 변경: id=$id, status=$targetStatus" }
+        eventPublisher.publishEvent(ProductUpdatedEvent.from(product))
         return ProductResponse.from(product)
     }
 
