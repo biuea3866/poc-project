@@ -27,9 +27,22 @@ spring:
           uri: http://localhost:8085
           predicates:
             - Path=/api/v1/bff/**
+        - id: inventory-service
+          uri: http://localhost:8086
+          predicates:
+            - Path=/api/v1/inventories/**
+        - id: shipping-service
+          uri: http://localhost:8087
+          predicates:
+            - Path=/api/v1/shippings/**
 
 jwt:
   secret: closet-member-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256
+
+# 서비스 간 내부 API 인증 키 (환경변수로 외부화)
+internal:
+  api:
+    key: ${INTERNAL_API_KEY:closet-internal-api-secret-key-for-service-to-service}
 
 management:
   endpoints:

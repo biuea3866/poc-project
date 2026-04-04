@@ -1,5 +1,6 @@
 package com.closet.member.domain
 
+import com.closet.common.auth.MemberRole
 import com.closet.common.entity.BaseEntity
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
@@ -37,6 +38,10 @@ class Member(
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: MemberStatus = MemberStatus.ACTIVE,
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) COMMENT '회원 역할 (BUYER/SELLER/ADMIN)'")
+    var role: MemberRole = MemberRole.BUYER,
 ) : BaseEntity() {
 
     companion object {
@@ -46,6 +51,7 @@ class Member(
             passwordHash: String,
             name: String,
             phone: String? = null,
+            role: MemberRole = MemberRole.BUYER,
         ): Member {
             return Member(
                 email = email,
@@ -55,6 +61,7 @@ class Member(
                 grade = MemberGrade.NORMAL,
                 pointBalance = 0,
                 status = MemberStatus.ACTIVE,
+                role = role,
             )
         }
     }

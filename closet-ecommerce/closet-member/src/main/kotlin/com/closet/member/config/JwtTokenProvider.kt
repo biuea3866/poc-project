@@ -1,5 +1,6 @@
 package com.closet.member.config
 
+import com.closet.common.auth.MemberRole
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.ExpiredJwtException
 import io.jsonwebtoken.Jwts
@@ -27,28 +28,30 @@ class JwtTokenProvider(
         Keys.hmacShaKeyFor(secret.toByteArray())
     }
 
-    /** Access Token 생성 (30분) */
-    fun generateAccessToken(memberId: Long): String {
+    /** Access Token 생성 (30분) — role claim 포함 */
+    fun generateAccessToken(memberId: Long, role: MemberRole = MemberRole.BUYER): String {
         val now = Date()
         val expiry = Date(now.time + accessTokenExpiryMs)
 
         return Jwts.builder()
             .subject(memberId.toString())
             .claim("type", "access")
+            .claim("role", role.name)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(key)
             .compact()
     }
 
-    /** Refresh Token 생성 (7일) */
-    fun generateRefreshToken(memberId: Long): String {
+    /** Refresh Token 생성 (7일) — role claim 포함 */
+    fun generateRefreshToken(memberId: Long, role: MemberRole = MemberRole.BUYER): String {
         val now = Date()
         val expiry = Date(now.time + refreshTokenExpiryMs)
 
         return Jwts.builder()
             .subject(memberId.toString())
             .claim("type", "refresh")
+            .claim("role", role.name)
             .issuedAt(now)
             .expiration(expiry)
             .signWith(key)
@@ -58,6 +61,13 @@ class JwtTokenProvider(
     /** 토큰에서 memberId 추출 */
     fun extractMemberId(token: String): Long {
         return parseClaims(token).subject.toLong()
+    }
+
+    /** 토큰에서 role 추출. claim이 없으면 BUYER 반환 (레거시 하위 호환) */
+    fun extractRole(token: String): MemberRole {
+        val claims = parseClaims(token)
+        val roleStr = claims["role"] as? String
+        return MemberRole.fromStringOrDefault(roleStr)
     }
 
     /** 토큰 유효성 검증 */
