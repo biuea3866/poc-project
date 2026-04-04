@@ -1,0 +1,72 @@
+{
+  "index": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "refresh_interval": "1s",
+    "max_ngram_diff": 18
+  },
+  "analysis": {
+    "tokenizer": {
+      "nori_tokenizer": {
+        "type": "nori_tokenizer",
+        "decompound_mode": "mixed"
+      },
+      "edge_ngram_tokenizer": {
+        "type": "edge_ngram",
+        "min_gram": 2,
+        "max_gram": 20,
+        "token_chars": ["letter", "digit"]
+      }
+    },
+    "filter": {
+      "synonym_filter": {
+        "type": "synonym",
+        "synonyms": [
+          "바지,팬츠",
+          "맨투맨,스웨트셔츠,스웻셔츠",
+          "후드티,후디,후드",
+          "반팔,반팔티,반소매",
+          "긴팔,긴팔티,장소매",
+          "셔츠,와이셔츠",
+          "원피스,드레스",
+          "트레이닝,조거,트레이닝팬츠",
+          "패딩,다운점퍼,다운재킷",
+          "니트,스웨터",
+          "청바지,데님,진",
+          "코트,오버코트",
+          "자켓,재킷"
+        ]
+      },
+      "nori_part_of_speech_filter": {
+        "type": "nori_part_of_speech",
+        "stoptags": [
+          "E", "IC", "J", "MAG", "MAJ",
+          "MM", "SP", "SSC", "SSO", "SC",
+          "SE", "XPN", "XSA", "XSN", "XSV",
+          "UNA", "NA", "VSV"
+        ]
+      }
+    },
+    "analyzer": {
+      "nori_analyzer": {
+        "type": "custom",
+        "tokenizer": "nori_tokenizer",
+        "filter": [
+          "nori_part_of_speech_filter",
+          "lowercase",
+          "synonym_filter"
+        ]
+      },
+      "autocomplete_analyzer": {
+        "type": "custom",
+        "tokenizer": "edge_ngram_tokenizer",
+        "filter": ["lowercase"]
+      },
+      "autocomplete_search_analyzer": {
+        "type": "custom",
+        "tokenizer": "standard",
+        "filter": ["lowercase"]
+      }
+    }
+  }
+}
