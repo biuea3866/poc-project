@@ -160,6 +160,7 @@ class ProductSearchService(
 
     /**
      * 리뷰 집계 부분 업데이트 (review.summary.updated 이벤트).
+     * 리뷰 집계 변경 시 인기순 복합 점수도 함께 재계산한다 (CP-23).
      */
     fun updateReviewSummary(productId: Long, reviewCount: Int, avgRating: Double) {
         val existing = productSearchRepository.findById(productId).orElse(null)
@@ -171,11 +172,64 @@ class ProductSearchService(
         val updated = existing.copy(
             reviewCount = reviewCount,
             avgRating = avgRating,
+            popularityScore = calculatePopularityScore(
+                salesCount = existing.salesCount,
+                reviewCount = reviewCount,
+                avgRating = avgRating,
+                viewCount = existing.viewCount,
+            ),
             updatedAt = LocalDateTime.now(),
         )
 
         productSearchRepository.save(updated)
-        logger.info { "리뷰 집계 업데이트 완료: productId=$productId, reviewCount=$reviewCount, avgRating=$avgRating" }
+        logger.info { "리뷰 집계 업데이트 완료: productId=$productId, reviewCount=$reviewCount, avgRating=$avgRating, popularityScore=${updated.popularityScore}" }
+    }
+
+    /**
+     * 판매량 업데이트 + 인기순 복합 점수 재계산 (CP-23).
+     */
+    fun updateSalesCount(productId: Long, salesCount: Int) {
+        val existing = productSearchRepository.findById(productId).orElse(null)
+        if (existing == null) {
+            logger.warn { "판매량 업데이트 대상 상품 인덱스 없음: productId=$productId" }
+            return
+        }
+
+        val updated = existing.copy(
+            salesCount = salesCount,
+            popularityScore = calculatePopularityScore(
+                salesCount = salesCount,
+                reviewCount = existing.reviewCount,
+                avgRating = existing.avgRating,
+                viewCount = existing.viewCount,
+            ),
+            updatedAt = LocalDateTime.now(),
+        )
+
+        productSearchRepository.save(updated)
+        logger.info { "판매량 업데이트 완료: productId=$productId, salesCount=$salesCount, popularityScore=${updated.popularityScore}" }
+    }
+
+    /**
+     * 인기순 복합 점수 계산 (CP-23, PD-23).
+     *
+     * score = 판매량 * 0.4 + 리뷰수 * 0.3 + 평균별점 * 0.2 + 조회수 * 0.1
+     *
+     * 각 요소를 정규화하여 0~100 범위로 맞춘다.
+     */
+    private fun calculatePopularityScore(
+        salesCount: Int,
+        reviewCount: Int,
+        avgRating: Double,
+        viewCount: Int,
+    ): Double {
+        // 정규화 기준값 (대략적인 상한)
+        val normalizedSales = (salesCount.coerceAtMost(1000) / 10.0)       // 0~100
+        val normalizedReviews = (reviewCount.coerceAtMost(500) / 5.0)      // 0~100
+        val normalizedRating = (avgRating / 5.0) * 100.0                    // 0~100
+        val normalizedViews = (viewCount.coerceAtMost(10000) / 100.0)      // 0~100
+
+        return normalizedSales * 0.4 + normalizedReviews * 0.3 + normalizedRating * 0.2 + normalizedViews * 0.1
     }
 
     /**

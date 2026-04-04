@@ -14,12 +14,16 @@ import com.closet.inventory.application.ReleaseItemRequest
 import com.closet.inventory.application.ReleaseRequest
 import com.closet.inventory.application.ReserveItemRequest
 import com.closet.inventory.application.ReserveRequest
+import com.closet.inventory.application.RestockNotificationResponse
+import com.closet.inventory.application.SafetyStockService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
+import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.ResponseStatus
@@ -29,6 +33,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/api/v1/inventories")
 class InventoryController(
     private val inventoryService: InventoryService,
+    private val safetyStockService: SafetyStockService,
 ) {
 
     @PostMapping
@@ -111,4 +116,54 @@ class InventoryController(
         inventoryService.releaseAll(request.orderId, items, request.reason)
         return ApiResponse.ok(Unit)
     }
+
+    // === CP-29: 안전재고 알림 + 재입고 알림 ===
+
+    /**
+     * 안전재고 임계값 변경.
+     */
+    @PatchMapping("/{id}/safety-threshold")
+    @RoleRequired(MemberRole.SELLER, MemberRole.ADMIN)
+    fun updateSafetyThreshold(
+        @PathVariable id: Long,
+        @RequestBody request: UpdateSafetyThresholdRequest,
+    ): ApiResponse<InventoryResponse> {
+        val response = safetyStockService.updateSafetyThreshold(id, request.threshold)
+        return ApiResponse.ok(response)
+    }
+
+    /**
+     * 안전재고 이하 목록 조회.
+     */
+    @GetMapping("/low-stock")
+    @RoleRequired(MemberRole.SELLER, MemberRole.ADMIN)
+    fun getLowStockInventories(): ApiResponse<List<InventoryResponse>> {
+        val response = safetyStockService.findBelowSafetyThreshold()
+        return ApiResponse.ok(response)
+    }
+
+    /**
+     * 재입고 알림 등록 (BUYER).
+     */
+    @PostMapping("/restock-notification")
+    @RoleRequired(MemberRole.BUYER)
+    fun registerRestockNotification(
+        @RequestHeader("X-Member-Id") memberId: Long,
+        @RequestBody request: RegisterRestockNotificationRequest,
+    ): ApiResponse<RestockNotificationResponse> {
+        val response = safetyStockService.registerRestockNotification(memberId, request.productOptionId)
+        return ApiResponse.created(response)
+    }
+
+    /**
+     * 재입고 알림 대기 건수 조회.
+     */
+    @GetMapping("/restock-notification/count")
+    fun getRestockNotificationCount(@RequestParam productOptionId: Long): ApiResponse<Long> {
+        val count = safetyStockService.getWaitingCount(productOptionId)
+        return ApiResponse.ok(count)
+    }
+
+    data class UpdateSafetyThresholdRequest(val threshold: Int)
+    data class RegisterRestockNotificationRequest(val productOptionId: Long)
 }

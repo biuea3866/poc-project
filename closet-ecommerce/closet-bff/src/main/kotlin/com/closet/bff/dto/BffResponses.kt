@@ -213,13 +213,114 @@ data class UpdateAddressRequest(
     val detailAddress: String,
 )
 
-// Phase 2/3 placeholders
+// Phase 2 shipping DTOs
 data class ShipmentResponse(
     val id: Long,
     val trackingNumber: String?,
     val status: String,
 )
 
+data class ShipmentBffResponse(
+    val id: Long,
+    val orderId: Long,
+    val carrier: String?,
+    val trackingNumber: String?,
+    val status: String,
+    val receiverName: String?,
+    val shippedAt: String?,
+    val deliveredAt: String?,
+)
+
+data class TrackingLogBffResponse(
+    val id: Long,
+    val shippingId: Long,
+    val carrierStatus: String,
+    val mappedStatus: String,
+    val location: String?,
+    val description: String?,
+    val trackedAt: String?,
+)
+
+data class ReturnRequestBffResponse(
+    val id: Long,
+    val orderId: Long,
+    val status: String,
+    val reason: String,
+    val refundAmount: Long,
+    val shippingFee: Long,
+)
+
+data class ExchangeRequestResponse(
+    val id: Long,
+    val orderId: Long,
+    val status: String,
+    val reason: String,
+    val originalProductOptionId: Long,
+    val newProductOptionId: Long,
+    val quantity: Int,
+)
+
+// Phase 2 inventory DTOs
+data class InventoryBffResponse(
+    val id: Long,
+    val productId: Long,
+    val productOptionId: Long,
+    val sku: String,
+    val availableQuantity: Int,
+    val outOfStock: Boolean,
+)
+
+// Phase 2 search DTOs
+data class SearchProductBffResponse(
+    val productId: Long,
+    val name: String,
+    val brandName: String?,
+    val salePrice: Long,
+    val imageUrl: String?,
+    val reviewCount: Int,
+    val avgRating: Double,
+)
+
+data class AutocompleteBffResponse(
+    val productId: Long,
+    val name: String,
+    val brandName: String?,
+)
+
+data class PopularKeywordBffResponse(
+    val rank: Int,
+    val keyword: String,
+    val score: Long,
+)
+
+data class SearchPageBffResponse<T>(
+    val content: List<T>,
+    val totalElements: Long,
+    val totalPages: Int,
+    val page: Int,
+    val size: Int,
+)
+
+// Phase 2 review DTOs
+data class ReviewBffResponse(
+    val id: Long,
+    val productId: Long,
+    val memberId: Long,
+    val rating: Int,
+    val content: String,
+    val hasImage: Boolean,
+    val createdAt: String?,
+)
+
+data class ReviewSummaryBffResponse(
+    val productId: Long,
+    val totalCount: Int,
+    val avgRating: Double,
+    val ratingDistribution: Map<Int, Int>?,
+    val photoReviewCount: Int,
+)
+
+// Phase 2/3 placeholders
 data class CouponResponse(
     val id: Long,
     val name: String,

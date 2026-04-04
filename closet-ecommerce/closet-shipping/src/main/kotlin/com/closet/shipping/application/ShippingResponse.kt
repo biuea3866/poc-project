@@ -1,5 +1,6 @@
 package com.closet.shipping.application
 
+import com.closet.shipping.domain.ExchangeRequest
 import com.closet.shipping.domain.ReturnRequest
 import com.closet.shipping.domain.Shipment
 import com.closet.shipping.domain.ShippingTrackingLog
@@ -112,6 +113,54 @@ data class ReturnRequestResponse(
                 completedAt = rr.completedAt,
                 createdAt = if (rr.id != 0L) rr.createdAt else null,
                 updatedAt = if (rr.id != 0L) rr.updatedAt else null,
+            )
+        }
+    }
+}
+
+// === Exchange Response (CP-28) ===
+
+data class ExchangeRequestResponse(
+    val id: Long,
+    val orderId: Long,
+    val orderItemId: Long,
+    val memberId: Long,
+    val sellerId: Long,
+    val originalProductOptionId: Long,
+    val newProductOptionId: Long,
+    val quantity: Int,
+    val reason: String,
+    val reasonDetail: String?,
+    val status: String,
+    val shippingFee: Long,
+    val shippingFeePayer: String,
+    val pickupTrackingNumber: String?,
+    val newTrackingNumber: String?,
+    val completedAt: LocalDateTime?,
+    val createdAt: LocalDateTime?,
+    val updatedAt: LocalDateTime?,
+) {
+    companion object {
+        fun from(er: ExchangeRequest): ExchangeRequestResponse {
+            return ExchangeRequestResponse(
+                id = er.id,
+                orderId = er.orderId,
+                orderItemId = er.orderItemId,
+                memberId = er.memberId,
+                sellerId = er.sellerId,
+                originalProductOptionId = er.originalProductOptionId,
+                newProductOptionId = er.newProductOptionId,
+                quantity = er.quantity,
+                reason = er.reason.name,
+                reasonDetail = er.reasonDetail,
+                status = er.status.name,
+                shippingFee = er.shippingFee.amount.toLong(),
+                shippingFeePayer = er.shippingFeePayer,
+                pickupTrackingNumber = er.pickupTrackingNumber,
+                newTrackingNumber = er.newTrackingNumber,
+                completedAt = er.completedAt,
+                createdAt = if (er.id != 0L) er.createdAt else null,
+                updatedAt = if (er.id != 0L) er.updatedAt else null,
             )
         }
     }

@@ -10,6 +10,7 @@ include(
     "closet-inventory",
     "closet-shipping",
     "closet-search",
+    "closet-review",
     "closet-bff",
     "closet-external-api"
 )

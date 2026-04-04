@@ -3,11 +3,13 @@ package com.closet.bff.facade
 import com.closet.bff.client.MemberServiceClient
 import com.closet.bff.client.OrderServiceClient
 import com.closet.bff.client.PaymentServiceClient
+import com.closet.bff.client.ShippingServiceClient
 import com.closet.bff.dto.CheckoutBffResponse
 import com.closet.bff.dto.ConfirmPaymentBffRequest
 import com.closet.bff.dto.ConfirmPaymentRequest
 import com.closet.bff.dto.CreateOrderBffRequest
 import com.closet.bff.dto.OrderDetailBffResponse
+import com.closet.bff.dto.ShipmentResponse
 import org.springframework.stereotype.Service
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.Executors
@@ -17,6 +19,7 @@ class OrderBffFacade(
     private val orderClient: OrderServiceClient,
     private val paymentClient: PaymentServiceClient,
     private val memberClient: MemberServiceClient,
+    private val shippingClient: ShippingServiceClient,
 ) {
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
@@ -29,13 +32,21 @@ class OrderBffFacade(
             { runCatching { paymentClient.getPaymentByOrderId(orderId) }.getOrNull() },
             executor,
         )
+        val shipmentFuture = CompletableFuture.supplyAsync(
+            {
+                runCatching { shippingClient.getShipmentByOrderId(orderId) }.getOrNull()?.data?.let {
+                    ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
+                }
+            },
+            executor,
+        )
 
-        CompletableFuture.allOf(orderFuture, paymentFuture).join()
+        CompletableFuture.allOf(orderFuture, paymentFuture, shipmentFuture).join()
 
         return OrderDetailBffResponse(
             order = orderFuture.get().data!!,
             payment = paymentFuture.get()?.data,
-            shipment = null, // Phase 2
+            shipment = shipmentFuture.get(),
         )
     }
 
@@ -67,7 +78,7 @@ class OrderBffFacade(
         return OrderDetailBffResponse(
             order = order,
             payment = null,
-            shipment = null,
+            shipment = null, // 주문 직후에는 배송 정보 없음
         )
     }
 
@@ -79,10 +90,13 @@ class OrderBffFacade(
         )
         val payment = paymentClient.confirmPayment(paymentRequest).data!!
         val order = orderClient.getOrder(request.orderId).data!!
+        val shipment = runCatching { shippingClient.getShipmentByOrderId(request.orderId) }.getOrNull()?.data?.let {
+            ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
+        }
         return OrderDetailBffResponse(
             order = order,
             payment = payment,
-            shipment = null,
+            shipment = shipment,
         )
     }
 
@@ -92,7 +106,7 @@ class OrderBffFacade(
         return OrderDetailBffResponse(
             order = order,
             payment = payment,
-            shipment = null,
+            shipment = null, // 취소된 주문은 배송 불필요
         )
     }
 }

@@ -85,6 +85,9 @@ data class ProductDocument(
     @Field(type = FieldType.Double)
     val avgRating: Double = 0.0,
 
+    @Field(type = FieldType.Integer)
+    val viewCount: Int = 0,
+
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second_millis, DateFormat.epoch_millis])
     val createdAt: LocalDateTime? = null,
 
