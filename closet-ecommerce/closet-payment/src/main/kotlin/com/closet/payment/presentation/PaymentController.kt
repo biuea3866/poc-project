@@ -5,6 +5,7 @@ import com.closet.payment.application.CancelPaymentRequest
 import com.closet.payment.application.ConfirmPaymentRequest
 import com.closet.payment.application.PaymentResponse
 import com.closet.payment.application.PaymentService
+import com.closet.payment.application.RefundPaymentRequest
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
@@ -34,5 +35,17 @@ class PaymentController(
         @RequestBody request: CancelPaymentRequest,
     ): ApiResponse<PaymentResponse> {
         return ApiResponse.ok(paymentService.cancel(id, request))
+    }
+
+    /**
+     * 부분 환불 (PD-12).
+     * POST /api/v1/payments/{id}/refund
+     */
+    @PostMapping("/{id}/refund")
+    fun refund(
+        @PathVariable id: Long,
+        @RequestBody request: RefundPaymentRequest,
+    ): ApiResponse<PaymentResponse> {
+        return ApiResponse.ok(paymentService.refund(id, request))
     }
 }
