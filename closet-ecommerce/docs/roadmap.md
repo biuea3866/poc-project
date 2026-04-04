@@ -1,6 +1,6 @@
 # Closet 의류 이커머스 — 전체 제품 로드맵
 
-> 최종 업데이트: 2026-04-04
+> 최종 업데이트: 2026-04-04 (Phase 2 BE 전체 구현 완료)
 > 벤치마킹: 무신사, 올리브영 물류시스템 (SpringCamp 2025)
 
 ## 전체 타임라인
@@ -19,14 +19,16 @@ gantt
     BFF 레이어              :done, ph1-5, after ph1-4, 7d
     API Gateway             :done, ph1-6, after ph1-5, 5d
 
-    section Phase 2: 성장 (Current)
+    section Phase 2: 성장 (Done)
     Mock 외부 API 서버        :done, ph2-0, 2026-04-04, 1d
     BFF Facade 리팩토링       :done, ph2-0b, 2026-04-04, 1d
-    재고 서비스              :ph2-1, 2026-04-07, 14d
-    배송/물류               :ph2-2, after ph2-1, 14d
-    검색 (Elasticsearch)    :ph2-3, after ph2-1, 14d
-    리뷰 시스템              :ph2-4, after ph2-2, 10d
-    반품/교환               :ph2-5, after ph2-2, 10d
+    인프라 공통 (Outbox/멱등성/RBAC) :done, ph2-infra, 2026-04-04, 1d
+    재고 서비스              :done, ph2-1, 2026-04-04, 1d
+    배송/물류               :done, ph2-2, 2026-04-04, 1d
+    검색 (Elasticsearch)    :done, ph2-3, 2026-04-04, 1d
+    리뷰 시스템              :done, ph2-4, 2026-04-04, 1d
+    반품/교환               :done, ph2-5, 2026-04-04, 1d
+    BFF 통합                :done, ph2-6, 2026-04-04, 1d
 
     section Phase 3: 확장
     프로모션 (쿠폰/할인)    :ph3-1, after ph2-4, 14d
@@ -57,17 +59,20 @@ gantt
 
 ---
 
-## Phase 2: 성장 🚧 Current
+## Phase 2: 성장 ✅ Done
 
-| 서비스 | 핵심 기능 | 상태 | 벤치마킹 |
-|--------|----------|------|---------|
-| closet-external-api | Mock PG 4개 + 택배사 4개 (MySQL 저장) | ✅ Done | - |
-| BFF Facade 리팩토링 | Controller→Facade→Client 패턴 통일 | ✅ Done | - |
-| closet-inventory | 옵션별 재고, Redis 캐시, Kafka 연동, Outbox | 스키마만 | 올리브영 Inventory API |
-| closet-shipping | 송장 등록, 배송 추적, 택배사 연동 | 스키마만 | 올리브영 WMS |
-| closet-search | 상품 검색, 필터, 자동완성 | 미시작 | 무신사 검색 UX |
-| closet-review | 별점, 포토 리뷰, 사이즈 후기 | 미시작 | 무신사 리뷰 시스템 |
-| 반품/교환 | ReturnRequest, 환불 연동 | 스키마만 | 올리브영 반품 플로우 |
+> 30 BE 티켓 (CP-01~CP-30), Sprint 5~7, ~235 파일, ~14,320 LOC
+
+| 서비스 | 핵심 기능 | 상태 | PR | 벤치마킹 |
+|--------|----------|------|-----|---------|
+| closet-common (인프라) | Outbox 패턴, 멱등성, RBAC, Feature Flag | ✅ | #73 | 올리브영 Outbox |
+| closet-external-api | Mock PG 4개 + 택배사 4개 (MySQL 저장) | ✅ | #68 | - |
+| BFF Facade 리팩토링 | Controller→Facade→Client 패턴 통일 | ✅ | #68 | - |
+| closet-inventory | 3단 재고, Redisson 분산락, All-or-Nothing, Kafka Consumer | ✅ | #75 | 올리브영 Inventory API |
+| closet-shipping | 송장 등록, 배송 추적, 택배사 어댑터, 반품/교환, 배송비 정책 | ✅ | #77 | 올리브영 WMS |
+| closet-search | nori 검색, 필터/정렬, 인기/최근/금지 키워드, Feature Flag | ✅ | #76 | 무신사 검색 UX |
+| closet-review | 별점, 포토 리뷰, 사이즈 후기, 이미지 리사이즈, 관리자 블라인드 | ✅ | #78 | 무신사 리뷰 시스템 |
+| closet-bff (통합) | Shipping/Review/Search Facade + FeignClient | ✅ | #78 | - |
 
 ### Mock 외부 API 상세 (Done)
 
@@ -114,8 +119,9 @@ gantt
 |--------|------|------|
 | MySQL 8.0 | ✅ | 각 서비스 독립 DB |
 | Redis 7.0 | ✅ | 캐시, 세션 |
-| Apache Kafka | ✅ | docker-compose, Consumer 미구현 |
-| Elasticsearch | ✅ | docker-compose, 서비스 미구현 |
+| Apache Kafka | ✅ | Outbox Poller, 13개 Consumer 구현 |
+| Elasticsearch | ✅ | nori 분석기, 상품 검색/자동완성 구현 |
+| Redisson | ✅ | 분산락 (재고 동시성) |
 | Prometheus + Grafana | ✅ | docker-compose |
 | TestContainers | ✅ | 통합 테스트 |
 | Flyway | ✅ | 스키마 마이그레이션 |
