@@ -65,6 +65,12 @@ class ProductController(
         return ApiResponse.ok(productService.findAll(categoryId, brandId, minPrice, maxPrice, status, pageable))
     }
 
+    @DeleteMapping("/{id}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    fun delete(@PathVariable id: Long) {
+        productService.delete(id)
+    }
+
     @PatchMapping("/{id}/status")
     fun changeStatus(
         @PathVariable id: Long,

@@ -130,6 +130,10 @@ class Order(
         transitionTo(OrderStatus.CANCELLED, reason)
     }
 
+    fun fail() {
+        transitionTo(OrderStatus.FAILED)
+    }
+
     fun requestReturn(itemId: Long, reason: String) {
         if (status != OrderStatus.DELIVERED) {
             throw BusinessException(

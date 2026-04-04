@@ -23,6 +23,15 @@ spring:
     locations: classpath:db/migration
     baseline-on-migrate: true
     table: flyway_schema_history_product
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+outbox:
+  polling:
+    enabled: true
 
 server:
   port: 8082

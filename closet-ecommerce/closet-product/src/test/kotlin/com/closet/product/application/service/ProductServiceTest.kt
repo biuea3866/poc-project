@@ -4,6 +4,9 @@ import com.closet.common.exception.BusinessException
 import com.closet.common.vo.Money
 import com.closet.product.application.dto.ProductCreateRequest
 import com.closet.product.application.dto.ProductOptionCreateRequest
+import com.closet.product.application.event.ProductCreatedEvent
+import com.closet.product.application.event.ProductDeletedEvent
+import com.closet.product.application.event.ProductUpdatedEvent
 import com.closet.product.domain.entity.Product
 import com.closet.product.domain.enums.FitType
 import com.closet.product.domain.enums.Gender
@@ -18,13 +21,16 @@ import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
+import org.springframework.context.ApplicationEventPublisher
 import java.math.BigDecimal
 import java.util.Optional
 
 class ProductServiceTest : BehaviorSpec({
 
     val productRepository = mockk<ProductRepository>()
-    val productService = ProductService(productRepository)
+    val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
+    val productService = ProductService(productRepository, eventPublisher)
 
     Given("상품 생성 요청이 주어졌을 때") {
         val request = ProductCreateRequest(
@@ -57,6 +63,10 @@ class ProductServiceTest : BehaviorSpec({
                 response.season shouldBe Season.SS
                 response.fitType shouldBe FitType.OVERSIZED
                 response.gender shouldBe Gender.UNISEX
+            }
+
+            Then("ProductCreatedEvent가 발행된다") {
+                verify { eventPublisher.publishEvent(ofType<ProductCreatedEvent>()) }
             }
         }
     }
@@ -177,6 +187,56 @@ class ProductServiceTest : BehaviorSpec({
                 shouldThrow<BusinessException> {
                     productService.findById(999L)
                 }
+            }
+        }
+    }
+
+    Given("상품 삭제 요청이 주어졌을 때") {
+        val product = Product(
+            name = "삭제할 티셔츠",
+            description = "삭제 대상 상품",
+            brandId = 1L,
+            categoryId = 10L,
+            basePrice = Money(BigDecimal(30000)),
+            salePrice = Money(BigDecimal(25000)),
+            discountRate = 16,
+            status = ProductStatus.DRAFT
+        )
+
+        every { productRepository.findById(5L) } returns Optional.of(product)
+
+        When("delete를 호출하면") {
+            productService.delete(5L)
+
+            Then("상품이 soft delete 된다") {
+                product.isDeleted() shouldBe true
+            }
+
+            Then("ProductDeletedEvent가 발행된다") {
+                verify { eventPublisher.publishEvent(ofType<ProductDeletedEvent>()) }
+            }
+        }
+    }
+
+    Given("DRAFT 상태의 상품을 ACTIVE로 변경할 때") {
+        val product = Product(
+            name = "상태변경 테스트 상품",
+            description = "상태 변경 이벤트 테스트",
+            brandId = 1L,
+            categoryId = 10L,
+            basePrice = Money(BigDecimal(40000)),
+            salePrice = Money(BigDecimal(35000)),
+            discountRate = 12,
+            status = ProductStatus.DRAFT
+        )
+
+        every { productRepository.findById(6L) } returns Optional.of(product)
+
+        When("changeStatus를 호출하면") {
+            productService.changeStatus(6L, ProductStatus.ACTIVE)
+
+            Then("ProductUpdatedEvent가 발행된다") {
+                verify { eventPublisher.publishEvent(ofType<ProductUpdatedEvent>()) }
             }
         }
     }

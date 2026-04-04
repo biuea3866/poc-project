@@ -8,6 +8,8 @@ enum class OrderStatus {
     SHIPPED,
     DELIVERED,
     CONFIRMED,
+    RETURN_REQUESTED,
+    EXCHANGE_REQUESTED,
     CANCELLED,
     FAILED;
 
@@ -18,8 +20,10 @@ enum class OrderStatus {
             PAID -> target in setOf(PREPARING, CANCELLED)
             PREPARING -> target in setOf(SHIPPED, CANCELLED)
             SHIPPED -> target in setOf(DELIVERED)
-            DELIVERED -> target in setOf(CONFIRMED)
+            DELIVERED -> target in setOf(CONFIRMED, RETURN_REQUESTED, EXCHANGE_REQUESTED)
             CONFIRMED -> false
+            RETURN_REQUESTED -> false
+            EXCHANGE_REQUESTED -> false
             CANCELLED -> false
             FAILED -> false
         }
