@@ -56,3 +56,19 @@ data class SchedulePickupRequest(
 data class RejectReturnRequest(
     val reason: String? = null,
 )
+
+// === Exchange Requests (CP-28) ===
+
+/**
+ * 교환 신청 요청.
+ * PD-14: 동일 가격 옵션만 교환.
+ */
+data class CreateExchangeRequest(
+    @field:NotNull val orderId: Long,
+    @field:NotNull val orderItemId: Long,
+    @field:NotNull val originalProductOptionId: Long,
+    @field:NotNull val newProductOptionId: Long,
+    @field:Positive val quantity: Int,
+    @field:NotNull val reason: com.closet.shipping.domain.ReturnReason,
+    val reasonDetail: String? = null,
+)
