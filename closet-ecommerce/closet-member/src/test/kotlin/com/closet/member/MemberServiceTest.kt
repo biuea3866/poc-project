@@ -1,5 +1,6 @@
 package com.closet.member
 
+import com.closet.common.auth.MemberRole
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.member.application.MemberService
@@ -86,8 +87,8 @@ class MemberServiceTest : BehaviorSpec({
             )
 
             every { memberRepository.findByEmail(loginRequest.email) } returns member
-            every { jwtTokenProvider.generateAccessToken(any()) } returns "access-token"
-            every { jwtTokenProvider.generateRefreshToken(any()) } returns "refresh-token"
+            every { jwtTokenProvider.generateAccessToken(any(), any()) } returns "access-token"
+            every { jwtTokenProvider.generateRefreshToken(any(), any()) } returns "refresh-token"
 
             val result = memberService.login(loginRequest)
 

@@ -25,8 +25,8 @@ class AuthService(
         val member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
             ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다")
 
-        val accessToken = jwtTokenProvider.generateAccessToken(member.id)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(member.id)
+        val accessToken = jwtTokenProvider.generateAccessToken(member.id, member.role)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(member.id, member.role)
 
         return LoginResponse(
             accessToken = accessToken,

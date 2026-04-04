@@ -31,6 +31,17 @@ jwt:
   access-token-expiry-ms: 1800000   # 30분
   refresh-token-expiry-ms: 604800000 # 7일
 
+# Feature Flag
+feature-flag:
+  role-authorization-enabled: ${ROLE_AUTHORIZATION_ENABLED:false}
+
+# 서비스 간 내부 API 인증
+internal:
+  api:
+    enabled: false
+    key: ${INTERNAL_API_KEY:closet-internal-api-secret-key-for-service-to-service}
+    paths: /internal/**
+
 management:
   endpoints:
     web:

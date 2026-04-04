@@ -52,8 +52,8 @@ class MemberService(
             throw BusinessException(ErrorCode.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다")
         }
 
-        val accessToken = jwtTokenProvider.generateAccessToken(member.id)
-        val refreshToken = jwtTokenProvider.generateRefreshToken(member.id)
+        val accessToken = jwtTokenProvider.generateAccessToken(member.id, member.role)
+        val refreshToken = jwtTokenProvider.generateRefreshToken(member.id, member.role)
 
         return LoginResponse(
             accessToken = accessToken,
