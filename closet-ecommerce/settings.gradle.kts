@@ -8,6 +8,7 @@ include(
     "closet-order",
     "closet-payment",
     "closet-inventory",
+    "closet-search",
     "closet-bff",
     "closet-external-api"
 )

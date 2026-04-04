@@ -16,8 +16,8 @@ allprojects {
     }
 }
 
-// Gateway 모듈은 WebFlux 기반이므로 JPA/QueryDSL/Flyway 의존성 제외
-val jpaModules = subprojects.filter { it.name != "closet-gateway" }
+// Gateway 모듈은 WebFlux 기반, Search 모듈은 ES 기반이므로 JPA/QueryDSL/Flyway 의존성 제외
+val jpaModules = subprojects.filter { it.name != "closet-gateway" && it.name != "closet-search" }
 
 subprojects {
     apply(plugin = "kotlin")
