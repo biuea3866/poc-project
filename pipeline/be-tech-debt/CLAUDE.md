@@ -4,6 +4,13 @@
 
 > 서비스 전환, 아키텍처 변경 등 대규모 리팩토링은 `be-refactoring` 파이프라인을 사용한다.
 
+## 공통 가이드 참조
+> 아래 공통 규칙을 따릅니다. 파이프라인 특화 규칙은 이 문서에서 정의합니다.
+
+- [문체/용어 규칙](../common/output-style.md)
+- [Mermaid 다이어그램](../common/mermaid.md)
+- [티켓 작성법](../common/ticket-guide.md)
+
 ## be-refactoring과의 차이
 
 | | be-refactoring | be-tech-debt |
@@ -53,12 +60,19 @@
 
 ## 에이전트 역할
 
+### 페르소나 에이전트 (선택적 병행 스폰)
+
+| 에이전트 | 관점 | 병행 시점 |
+|---------|------|----------|
+| [`be-senior`](../agents/be-senior.md) | 코드 품질 기준, "왜 이게 부채인가" 판단 | Phase 1 진단 결과 리뷰 |
+| [`be-ic`](../agents/be-ic.md) | 안전한 리팩토링 실행, TDD, 컨벤션 준수 | Phase 2 수정 (debt-fixer 대체 또는 병행) |
+
 ### Phase 1: 진단 에이전트
 
-| 에이전트 | 역할 | 전문성 | 산출물 |
-|---------|------|--------|--------|
-| `debt-scanner` | 부채 자동 검출 | detekt 실행, grep 기반 패턴 검출, 테스트 커버리지 측정 | `debt_inventory.md` |
-| `debt-prioritizer` | 우선순위 판정 | 영향도(사용 빈도, 의존 수) × 해소 비용(변경 라인 수) 매트릭스 | `priority_matrix.md` |
+| 에이전트 | 역할 | 산출물 |
+|---------|------|--------|
+| [`debt-scanner`](../agents/debt-scanner.md) | 부채 자동 검출 | `debt_inventory.md` |
+| [`debt-prioritizer`](../agents/debt-prioritizer.md) | 우선순위 판정 | `priority_matrix.md` |
 
 ### Phase 1-D.5: 리뷰 게이트
 
@@ -70,10 +84,10 @@
 
 ### Phase 2: 수정 에이전트
 
-| 에이전트 | 역할 | 전문성 |
-|---------|------|--------|
-| `debt-fixer` | 부채 수정 개발자 | detekt 해소, nullable 제거, 컨벤션 통일, 테스트 추가 |
-| `debt-reviewer` | 수정 리뷰어 | 동작 불변 확인, 컨벤션 체크, 테스트 통과 |
+| 에이전트 | 역할 |
+|---------|------|
+| [`debt-fixer`](../agents/debt-fixer.md) | 부채 수정 개발자 |
+| [`debt-reviewer`](../agents/debt-reviewer.md) | 수정 리뷰어 |
 
 ### Phase 2-D.5: 리뷰 게이트
 

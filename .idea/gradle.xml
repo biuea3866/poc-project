@@ -13,6 +13,34 @@
         </option>
       </GradleProjectSettings>
       <GradleProjectSettings>
+        <compositeConfiguration>
+          <compositeBuild compositeDefinitionSource="SCRIPT">
+            <builds>
+              <build path="$PROJECT_DIR$/closet-ecommerce/buildSrc" name="buildSrc">
+                <projects>
+                  <project path="$PROJECT_DIR$/closet-ecommerce/buildSrc" />
+                </projects>
+              </build>
+            </builds>
+          </compositeBuild>
+        </compositeConfiguration>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/closet-ecommerce" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/closet-ecommerce" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/buildSrc" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-bff" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-common" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-gateway" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-member" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-order" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-payment" />
+            <option value="$PROJECT_DIR$/closet-ecommerce/closet-product" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
         <option name="externalProjectPath" value="$PROJECT_DIR$/concurrency" />
         <option name="gradleJvm" value="#JAVA_HOME" />
         <option name="modules">
@@ -58,6 +86,15 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$/kotlin-practice" />
+          </set>
+        </option>
+      </GradleProjectSettings>
+      <GradleProjectSettings>
+        <option name="externalProjectPath" value="$PROJECT_DIR$/notification" />
+        <option name="gradleJvm" value="#JAVA_HOME" />
+        <option name="modules">
+          <set>
+            <option value="$PROJECT_DIR$/notification" />
           </set>
         </option>
       </GradleProjectSettings>

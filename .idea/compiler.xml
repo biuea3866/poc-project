@@ -1,10 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="CompilerConfiguration">
+    <bytecodeTargetLevel>
+      <module name="closet-ecommerce.closet-content" target="21" />
+      <module name="closet-ecommerce.closet-content.main" target="21" />
+      <module name="closet-ecommerce.closet-content.test" target="21" />
+      <module name="closet-ecommerce.closet-cs" target="21" />
+      <module name="closet-ecommerce.closet-cs.main" target="21" />
+      <module name="closet-ecommerce.closet-cs.test" target="21" />
+      <module name="closet-ecommerce.closet-display" target="21" />
+      <module name="closet-ecommerce.closet-display.main" target="21" />
+      <module name="closet-ecommerce.closet-display.test" target="21" />
+      <module name="closet-ecommerce.closet-inventory" target="21" />
+      <module name="closet-ecommerce.closet-inventory.main" target="21" />
+      <module name="closet-ecommerce.closet-inventory.test" target="21" />
+      <module name="closet-ecommerce.closet-notification" target="21" />
+      <module name="closet-ecommerce.closet-notification.main" target="21" />
+      <module name="closet-ecommerce.closet-notification.test" target="21" />
+      <module name="closet-ecommerce.closet-promotion" target="21" />
+      <module name="closet-ecommerce.closet-promotion.main" target="21" />
+      <module name="closet-ecommerce.closet-promotion.test" target="21" />
+      <module name="closet-ecommerce.closet-review" target="21" />
+      <module name="closet-ecommerce.closet-review.main" target="21" />
+      <module name="closet-ecommerce.closet-review.test" target="21" />
+      <module name="closet-ecommerce.closet-search" target="21" />
+      <module name="closet-ecommerce.closet-search.main" target="21" />
+      <module name="closet-ecommerce.closet-search.test" target="21" />
+      <module name="closet-ecommerce.closet-seller" target="21" />
+      <module name="closet-ecommerce.closet-seller.main" target="21" />
+      <module name="closet-ecommerce.closet-seller.test" target="21" />
+      <module name="closet-ecommerce.closet-settlement" target="21" />
+      <module name="closet-ecommerce.closet-settlement.main" target="21" />
+      <module name="closet-ecommerce.closet-settlement.test" target="21" />
+      <module name="closet-ecommerce.closet-shipping" target="21" />
+      <module name="closet-ecommerce.closet-shipping.main" target="21" />
+      <module name="closet-ecommerce.closet-shipping.test" target="21" />
+    </bytecodeTargetLevel>
+  </component>
   <component name="JavacSettings">
     <option name="ADDITIONAL_OPTIONS_OVERRIDE">
       <module name="cache-practice" options="-parameters" />
       <module name="cache-practice.main" options="-parameters" />
       <module name="cache-practice.test" options="-parameters" />
+      <module name="closet-ecommerce.closet-bff" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-bff.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-bff.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-common" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-common.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-common.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-content" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-content.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-content.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-cs" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-cs.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-cs.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-display" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-display.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-display.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-gateway" options="-parameters" />
+      <module name="closet-ecommerce.closet-gateway.main" options="-parameters" />
+      <module name="closet-ecommerce.closet-gateway.test" options="-parameters" />
+      <module name="closet-ecommerce.closet-inventory" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-inventory.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-inventory.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-member" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-member.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-member.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-notification" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-notification.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-notification.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-order" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-order.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-order.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-payment" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-payment.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-payment.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-product" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-product.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-product.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-promotion" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-promotion.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-promotion.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-review" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-review.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-review.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-search" options="-parameters" />
+      <module name="closet-ecommerce.closet-search.main" options="-parameters" />
+      <module name="closet-ecommerce.closet-search.test" options="-parameters" />
+      <module name="closet-ecommerce.closet-seller" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-seller.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-seller.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-settlement" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-settlement.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-settlement.test" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-shipping" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-shipping.main" options="-parameters -proc:none" />
+      <module name="closet-ecommerce.closet-shipping.test" options="-parameters -proc:none" />
       <module name="com.biuea.wiki.wiki-worker" options="-parameters" />
       <module name="com.biuea.wiki.wiki-worker.main" options="-parameters" />
       <module name="com.biuea.wiki.wiki-worker.test" options="-parameters" />
@@ -23,6 +114,9 @@
       <module name="kotlin-practice" options="-parameters" />
       <module name="kotlin-practice.main" options="-parameters" />
       <module name="kotlin-practice.test" options="-parameters" />
+      <module name="notification-example" options="-parameters" />
+      <module name="notification-example.main" options="-parameters" />
+      <module name="notification-example.test" options="-parameters" />
       <module name="spring-data" options="-parameters" />
       <module name="spring-data.kafka-retry-api" options="-parameters" />
       <module name="spring-data.kafka-retry-api.main" options="-parameters" />

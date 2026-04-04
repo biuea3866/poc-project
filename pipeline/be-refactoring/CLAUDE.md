@@ -2,6 +2,16 @@
 
 PRD 없이 개발자가 시작하는 기술 개선 작업을 수행한다.
 
+## 공통 가이드 참조
+> 아래 공통 규칙을 따릅니다. 파이프라인 특화 규칙은 이 문서에서 정의합니다.
+
+- [문체/용어 규칙](../common/output-style.md)
+- [Mermaid 다이어그램](../common/mermaid.md)
+- [티켓 작성법](../common/ticket-guide.md)
+- [Jira 동기화](../common/jira-sync.md)
+- [TDD 작성법](../common/tdd-template.md)
+- [문서 싱크 체계](../common/document-sync.md)
+
 ## project-analysis와의 차이
 
 | | project-analysis | be-refactoring |
@@ -53,14 +63,22 @@ PRD 없이 개발자가 시작하는 기술 개선 작업을 수행한다.
 
 ## 에이전트 역할
 
+### 페르소나 에이전트 (선택적 병행 스폰)
+
+| 에이전트 | 관점 | 병행 시점 |
+|---------|------|----------|
+| [`be-tech-lead`](../agents/be-tech-lead.md) | 아키텍처 일관성, 서비스 간 영향, 되돌리기 비용 판단 | Phase 1 현황 보고서 리뷰, Phase 2 마이그레이션 계획 리뷰 |
+| [`be-senior`](../agents/be-senior.md) | 프로덕션 안전성, 롤백 가능성, 하위 호환성 | Phase 2-R.5 리뷰 게이트, Phase 3 코드 리뷰 |
+| [`be-ic`](../agents/be-ic.md) | TDD 구현, 디버깅, 컨벤션 준수 | Phase 3 구현 |
+
 ### Phase 1: 현황 분석 에이전트
 
-| 에이전트 | 역할 | 전문성 | 산출물 |
-|---------|------|--------|--------|
-| `refactor-code-analyst` | 코드 현황 분석가 | 대상 코드의 구조, 패턴, 복잡도, 테스트 현황 파악 | `current_state.md` |
-| `refactor-impact-analyst` | 영향 범위 분석가 | 호출자, 의존 서비스, FE 영향, 하위 호환성 | `impact_assessment.md` |
-| `refactor-risk-analyst` | 리스크 분석가 | 기술 리스크, 데이터 리스크, 운영 리스크 수치화 | `risk_assessment.md` |
-| `refactor-researcher` | 기술 레퍼런스 조사 | 참조 패턴, 오픈소스, 업계 모범 사례 | `tech_reference.md` |
+| 에이전트 | 역할 | 산출물 |
+|---------|------|--------|
+| [`refactor-code-analyst`](../agents/refactor-code-analyst.md) | 코드 현황 분석가 | `current_state.md` |
+| [`refactor-impact-analyst`](../agents/refactor-impact-analyst.md) | 영향 범위 분석가 | `impact_assessment.md` |
+| [`refactor-risk-analyst`](../agents/refactor-risk-analyst.md) | 리스크 분석가 | `risk_assessment.md` |
+| [`refactor-researcher`](../agents/refactor-researcher.md) | 기술 레퍼런스 조사 | `tech_reference.md` |
 
 ### Phase 1-R.5: 리뷰 게이트
 
@@ -73,10 +91,10 @@ PRD 없이 개발자가 시작하는 기술 개선 작업을 수행한다.
 
 ### Phase 2: 개선 계획 에이전트
 
-| 에이전트 | 역할 | 전문성 | 산출물 |
-|---------|------|--------|--------|
-| `refactor-planner` | 마이그레이션 설계자 | 단계별 전환 계획, FeatureFlag, 무중단 전략 | `migration_plan.md` |
-| `refactor-ticket-splitter` | 티켓 분할 전문가 | 독립 배포 단위 분할, 의존 관계, 테스트 설계 | `tickets/` |
+| 에이전트 | 역할 | 산출물 |
+|---------|------|--------|
+| [`refactor-planner`](../agents/refactor-planner.md) | 마이그레이션 설계자 | `migration_plan.md` |
+| [`ticket-splitter`](../agents/ticket-splitter.md) | 티켓 분할 전문가 | `tickets/` |
 
 ### Phase 2-R.5: 리뷰 게이트
 
@@ -104,12 +122,12 @@ PRD 없이 개발자가 시작하는 기술 개선 작업을 수행한다.
 
 ## 1-2. 병렬 분석 (에이전트, background)
 
-| 에이전트 | 트리거 조건 | 분석 항목 | 산출물 |
-|---------|-----------|---------|--------|
-| **코드 현황** | 항상 | 코드 구조(패키지/클래스), 복잡도(메서드 수/줄 수), 패턴(현재 사용 패턴), 테스트 현황(커버리지/0건 여부), 기술 스택 | `current_state.md` |
-| **영향 범위** | 항상 | 호출자(이 코드를 사용하는 곳), 의존 서비스(HTTP/Kafka/DB), FE 영향(API 변경 시), 하위 호환성 | `impact_assessment.md` |
-| **리스크** | 항상 | 기술 리스크(변환 시 동작 차이), 데이터 리스크(마이그레이션), 운영 리스크(다운타임), 리스크 매트릭스 | `risk_assessment.md` |
-| **기술 레퍼런스** | 개선 방향이 명확하지 않을 때 | 참조 패턴, 오픈소스 사례, 업계 모범 사례, 채택/미채택 근거 | `tech_reference.md` |
+| 에이전트 | 트리거 조건 | 산출물 |
+|---------|-----------|--------|
+| [`refactor-code-analyst`](../agents/refactor-code-analyst.md) | 항상 | `current_state.md` |
+| [`refactor-impact-analyst`](../agents/refactor-impact-analyst.md) | 항상 | `impact_assessment.md` |
+| [`refactor-risk-analyst`](../agents/refactor-risk-analyst.md) | 항상 | `risk_assessment.md` |
+| [`refactor-researcher`](../agents/refactor-researcher.md) | 개선 방향이 명확하지 않을 때 | `tech_reference.md` |
 
 ## 1-3. 현황 보고서 (팀장)
 
@@ -151,10 +169,6 @@ Phase 1 분석 결과를 입력으로 사용한다.
 
 ---
 
-# 기술 성장 포인트
-
-> 리팩토링은 기존 코드를 깊이 이해하고 더 나은 구조로 바꾸는 과정. 가장 성장 기회가 큰 작업.
-
 ## Phase 1 (현황 분석) 시 시도할 것
 
 | 시도 | 설명 |
@@ -181,12 +195,12 @@ Phase 1 분석 결과를 입력으로 사용한다.
 
 ---
 
-# 출력 어조
+# 출력 어조 <!-- 상세 규칙은 공통 가이드 참조 -->
 
 - 해요체(~합니다). 핵심부터. 한 문장에 하나의 정보.
 - 표/불릿 우선. 코드 참조 시 `파일경로#메서드명` 형식.
 
-# Mermaid 규칙
+# Mermaid 규칙 <!-- 상세 규칙은 공통 가이드 참조 -->
 
 - subgraph 그룹핑, LR 방향 통일, 노드 15개 이하, & 체이닝 금지
 

@@ -7,10 +7,7 @@
     <list default="true" id="dfc5a930-310c-44ef-80e3-8724d0fd2b4b" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/compiler.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/gradle.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/gradle.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/material_theme_project_new.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/modules.xml" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/build.gradle.kts" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/be-ai-wiki-api/wiki/wiki-api/build.gradle.kts" afterDir="false" />
@@ -22,16 +19,6 @@
       <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/README.md" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/ai-orchestrator-lab/worktrees/devops-pinpoint-baseline/ai-orchestrator-lab/devops/pinpoint/docker-compose.yml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/checksums.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/md5-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/checksums/sha1-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/concurrency/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/checksums.lock" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/checksums.lock" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/md5-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/md5-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/sha1-checksums.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/checksums/sha1-checksums.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.bin" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.bin" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.lock" beforeDir="false" afterPath="$PROJECT_DIR$/file-practice/.gradle/8.14.3/fileHashes/fileHashes.lock" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-NAW-106-fe-editor-tree-search/wiki/frontend/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-NAW-106-fe-editor-tree-search/wiki/frontend/next-env.d.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-auth/wiki/src/main/resources/application.yml" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-auth/wiki/src/main/resources/application.yml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/next-env.d.ts" beforeDir="false" afterPath="$PROJECT_DIR$/wiki/worktrees/feat-fe-shell/wiki/frontend/next-env.d.ts" afterDir="false" />
@@ -68,6 +55,9 @@
     <projectState path="$PROJECT_DIR$/cache-practice">
       <ProjectState />
     </projectState>
+    <projectState path="$PROJECT_DIR$/closet-ecommerce">
+      <ProjectState />
+    </projectState>
     <projectState path="$PROJECT_DIR$/concurrency">
       <ProjectState />
     </projectState>
@@ -81,6 +71,9 @@
       <ProjectState />
     </projectState>
     <projectState path="$PROJECT_DIR$/kotlin-practice">
+      <ProjectState />
+    </projectState>
+    <projectState path="$PROJECT_DIR$/notification">
       <ProjectState />
     </projectState>
     <projectState path="$PROJECT_DIR$/open-market">
@@ -143,7 +136,7 @@
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$/concurrency" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-8.14.3-bin/cv11ve7ro1n3o1j4so8xd9n66/gradle-8.14.3" javaHome="$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-21.0.10/Contents/Home" gradleVersion="8.14.3" />
+  <component name="GradleScriptDefinitionsStorage" workingDir="$PROJECT_DIR$/notification" gradleHome="$USER_HOME$/.gradle/wrapper/dists/gradle-8.7-bin/bhs2wmbdwecv87pi65oeuq5iu/gradle-8.7" javaHome="$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-21.0.10/Contents/Home" gradleVersion="8.7" />
   <component name="HighlightingSettingsPerFile">
     <setting file="jar://$USER_HOME$/Library/Java/JavaVirtualMachines/corretto-17.0.10/Contents/Home/lib/src.zip!/java.base/java/util/zip/Checksum.java" root0="SKIP_INSPECTION" />
   </component>
@@ -201,6 +194,7 @@
     &quot;Gradle.RedisConcurrencyE2ETest.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.RedisDistributedLockE2ETest.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Tests in 'cache-practice.test'.executor&quot;: &quot;Run&quot;,
+    &quot;Gradle.Tests in 'com.biuea.concurrency.distributedlock'.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Tests in 'com.example.filepractice.poc.domain.newexcel'.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Tests in 'concurrency.test'.executor&quot;: &quot;Run&quot;,
     &quot;Gradle.Tests in 'file-practice.test'.executor&quot;: &quot;Run&quot;,
@@ -244,7 +238,7 @@
     &quot;Spring Boot.FilePracticeApplication (1).executor&quot;: &quot;Run&quot;,
     &quot;Spring Boot.FilePracticeApplication.executor&quot;: &quot;Run&quot;,
     &quot;com.intellij.ml.llm.matterhorn.ej.ui.settings.DefaultModelSelectionForGA.v1&quot;: &quot;true&quot;,
-    &quot;git-widget-placeholder&quot;: &quot;main&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;claude-pipeline&quot;,
     &quot;junie.onboarding.icon.badge.shown&quot;: &quot;true&quot;,
     &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
     &quot;last_opened_file_path&quot;: &quot;/Users/biuea/feature/flag_project/wiki&quot;,
@@ -257,7 +251,7 @@
     &quot;project.structure.proportion&quot;: &quot;0.15&quot;,
     &quot;project.structure.side.proportion&quot;: &quot;0.2&quot;,
     &quot;run.configurations.included.in.services&quot;: &quot;true&quot;,
-    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;Settings.Markdown&quot;,
     &quot;to.speed.mode.migration.done&quot;: &quot;true&quot;,
     &quot;ts.external.directory.path&quot;: &quot;/Users/biuea/feature/flag_project/ai-orchestrator-lab/fe/node_modules/typescript/lib&quot;,
     &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
@@ -295,11 +289,11 @@
       </set>
     </option>
   </component>
-  <component name="RunManager" selected="Kotlin.ChannelExampleKt">
-    <configuration name="DatabasePerformanceTest.전체 성능 비교 종합 테스트" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
+  <component name="RunManager" selected="Gradle.Tests in 'com.biuea.concurrency.distributedlock'">
+    <configuration name="Tests in 'com.biuea.concurrency.distributedlock'" type="GradleRunConfiguration" factoryName="Gradle" temporary="true">
       <ExternalSystemSettings>
         <option name="executionName" />
-        <option name="externalProjectPath" value="$PROJECT_DIR$/kotlin-practice" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$/concurrency" />
         <option name="externalSystemIdString" value="GRADLE" />
         <option name="scriptParameters" value="" />
         <option name="taskDescriptions">
@@ -309,7 +303,7 @@
           <list>
             <option value=":test" />
             <option value="--tests" />
-            <option value="&quot;com.biuea.kotlinpractice.DatabasePerformanceTest.전체 성능 비교 종합 테스트&quot;" />
+            <option value="&quot;com.biuea.concurrency.distributedlock.*&quot;" />
           </list>
         </option>
         <option name="vmOptions" />
@@ -378,6 +372,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="ApiApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="spring-data.kafka-retry-api.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kafkaretry.api.ApiApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="ArchitectureApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="architecture.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.architecture.ArchitectureApplication" />
@@ -388,6 +389,125 @@
     <configuration name="CachePracticeApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="cache-practice.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.cachepractice.CachePracticeApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetBffApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-bff.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.bff.ClosetBffApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetContentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-content.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.content.ClosetContentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetCsApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-cs.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.cs.ClosetCsApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetDisplayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-display.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.display.ClosetDisplayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetGatewayApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-gateway.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.gateway.ClosetGatewayApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetInventoryApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-inventory.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.inventory.ClosetInventoryApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetMemberApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-member.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.member.ClosetMemberApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetNotificationApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-notification.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.notification.ClosetNotificationApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetOrderApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-order.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.order.ClosetOrderApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetPaymentApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-payment.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.payment.ClosetPaymentApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetProductApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-product.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.product.ClosetProductApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetPromotionApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-promotion.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.promotion.ClosetPromotionApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetReviewApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-review.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.review.ClosetReviewApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetSearchApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-search.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.search.ClosetSearchApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetSellerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-seller.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.seller.ClosetSellerApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetSettlementApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-settlement.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.settlement.ClosetSettlementApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="ClosetShippingApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="closet-ecommerce.closet-shipping.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.closet.shipping.ClosetShippingApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -460,6 +580,13 @@
         <option name="Make" enabled="true" />
       </method>
     </configuration>
+    <configuration name="NotificationApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="notification-example.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.example.notification.NotificationApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
     <configuration name="OpenMarketApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="open-market.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.openmarket.OpenMarketApplication" />
@@ -470,6 +597,13 @@
     <configuration name="PublisherApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
       <module name="spring-data.kafka-retry-publisher.main" />
       <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kafkaretry.publisher.PublisherApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <configuration name="SchedulerApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <module name="spring-data.kafka-retry-scheduler.main" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.biuea.kafkaretry.scheduler.SchedulerApplication" />
       <method v="2">
         <option name="Make" enabled="true" />
       </method>
@@ -568,7 +702,7 @@
       <method v="2" />
     </configuration>
     <list>
-      <item itemvalue="Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트" />
+      <item itemvalue="Gradle.Tests in 'com.biuea.concurrency.distributedlock'" />
       <item itemvalue="Gradle.kotlin-practice [build]" />
       <item itemvalue="Gradle.open-market [build]" />
       <item itemvalue="HttpClient.적용 대상" />
@@ -586,6 +720,26 @@
       <item itemvalue="HttpClient.Toggle a feature flag" />
       <item itemvalue="Kotlin.ChannelExampleKt" />
       <item itemvalue="Kotlin.ClassLoaderKt" />
+      <item itemvalue="Spring Boot.NotificationApplication" />
+      <item itemvalue="Spring Boot.ApiApplication" />
+      <item itemvalue="Spring Boot.ClosetBffApplication" />
+      <item itemvalue="Spring Boot.ClosetContentApplication" />
+      <item itemvalue="Spring Boot.ClosetCsApplication" />
+      <item itemvalue="Spring Boot.ClosetDisplayApplication" />
+      <item itemvalue="Spring Boot.ClosetGatewayApplication" />
+      <item itemvalue="Spring Boot.ClosetInventoryApplication" />
+      <item itemvalue="Spring Boot.ClosetMemberApplication" />
+      <item itemvalue="Spring Boot.ClosetNotificationApplication" />
+      <item itemvalue="Spring Boot.ClosetOrderApplication" />
+      <item itemvalue="Spring Boot.ClosetPaymentApplication" />
+      <item itemvalue="Spring Boot.ClosetProductApplication" />
+      <item itemvalue="Spring Boot.ClosetPromotionApplication" />
+      <item itemvalue="Spring Boot.ClosetReviewApplication" />
+      <item itemvalue="Spring Boot.ClosetSearchApplication" />
+      <item itemvalue="Spring Boot.ClosetSellerApplication" />
+      <item itemvalue="Spring Boot.ClosetSettlementApplication" />
+      <item itemvalue="Spring Boot.ClosetShippingApplication" />
+      <item itemvalue="Spring Boot.SchedulerApplication" />
       <item itemvalue="Spring Boot.ConsumerApplication" />
       <item itemvalue="Spring Boot.PublisherApplication" />
       <item itemvalue="Spring Boot.WikiApiApplication" />
@@ -603,11 +757,11 @@
     </list>
     <recent_temporary>
       <list>
+        <item itemvalue="Gradle.Tests in 'com.biuea.concurrency.distributedlock'" />
         <item itemvalue="Kotlin.ClassLoaderKt" />
         <item itemvalue="Kotlin.ChannelExampleKt" />
         <item itemvalue="Gradle.open-market [build]" />
         <item itemvalue="Gradle.kotlin-practice [build]" />
-        <item itemvalue="Gradle.DatabasePerformanceTest.전체 성능 비교 종합 테스트" />
       </list>
     </recent_temporary>
   </component>
@@ -662,6 +816,10 @@
       <workItem from="1773741592528" duration="225000" />
       <workItem from="1773741859289" duration="597000" />
       <workItem from="1773982303139" duration="595000" />
+      <workItem from="1774187589995" duration="33067000" />
+      <workItem from="1774575247098" duration="655000" />
+      <workItem from="1774584218633" duration="13437000" />
+      <workItem from="1774759901363" duration="596000" />
     </task>
     <servers />
   </component>
