@@ -1,0 +1,146 @@
+{
+  "_doc": "Closet 프로젝트 하네스 룰 — 규칙 추가/수정은 이 파일만 편집하세요",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml"],
+    "message": "BLOCKED: 민감 파일 수정 차단 — .env, credentials, secret, key, pem 파일은 직접 수정하세요."
+  },
+
+  "forbidden_patterns": {
+    "description": "코드에 사용하면 안 되는 패턴들",
+    "rules": [
+      {
+        "id": "no-jpa-query",
+        "pattern": "@Query\\(",
+        "file_glob": "*.kt",
+        "message": "@Query 사용 금지 — QueryDSL CustomRepository + Impl 패턴으로 작성하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-consumer-record",
+        "pattern": "ConsumerRecord<String,\\s*String>",
+        "file_glob": "*.kt",
+        "message": "ConsumerRecord<String, String> 사용 금지 — DTO로 직접 매핑하세요 (JsonDeserializer + trusted.packages).",
+        "severity": "error"
+      },
+      {
+        "id": "no-local-datetime",
+        "pattern": "LocalDateTime",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/migration/**",
+        "message": "LocalDateTime 사용 금지 — ZonedDateTime을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-fqcn",
+        "pattern": "com\\.closet\\.[a-z]+\\.[a-z]+\\.[A-Z]\\w+\\(",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/build.gradle.kts",
+        "message": "FQCN 사용 금지 — import 문을 사용하세요.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-objectmapper-consumer",
+        "pattern": "objectMapper\\.(readValue|readTree)|ObjectMapper\\(\\)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 ObjectMapper 수동 파싱 금지 — JsonDeserializer + DTO 직접 매핑 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-consumer",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-fk",
+        "pattern": "FOREIGN KEY|REFERENCES\\s+\\w+\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "FK 사용 금지 — 애플리케이션 레벨에서 관계를 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-enum",
+        "pattern": "\\bENUM\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "DB ENUM 사용 금지 — VARCHAR + 애플리케이션 enum으로 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-json",
+        "pattern": "\\bJSON\\b",
+        "file_glob": "*.sql",
+        "message": "DB JSON 컬럼 사용 금지 — 정규화된 테이블로 설계하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-boolean-type",
+        "pattern": "\\bBOOLEAN\\b",
+        "file_glob": "*.sql",
+        "message": "BOOLEAN 타입 사용 금지 — TINYINT(1) 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-datetime-no-precision",
+        "pattern": "\\bDATETIME\\b(?!\\s*\\(6\\))",
+        "file_glob": "*.sql",
+        "message": "DATETIME 사용 시 반드시 DATETIME(6) 마이크로초 정밀도 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-kafka-topic-hardcode",
+        "pattern": "\"event\\.closet\\.",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/ClosetTopics.kt",
+        "message": "Kafka 토픽 문자열 하드코딩 금지 — ClosetTopics 상수를 사용하세요.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "description": "Git 안전 규칙",
+    "rules": [
+      {
+        "id": "no-push-main",
+        "pattern": "git push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "BLOCKED: main 직접 푸시 금지 — feature 브랜치 + PR로만 반영하세요."
+      },
+      {
+        "id": "no-force-push",
+        "pattern": "git push.*--force(?!-with-lease)",
+        "message": "BLOCKED: --force 푸시 금지 — --force-with-lease를 사용하세요."
+      }
+    ]
+  },
+
+  "build_check": {
+    "description": "빌드 성공 여부 확인",
+    "gradle_commands": ["compileKotlin", "compileTestKotlin", "test "],
+    "success_marker": "BUILD SUCCESSFUL",
+    "failure_message": "BUILD FAILED — 에러 로그를 확인하세요."
+  },
+
+  "gc_scanner": {
+    "description": "기존 코드베이스 전체 스캔 — 규칙 위반 감지 및 리포트",
+    "scan_dirs": [
+      "closet-ecommerce/closet-common/src",
+      "closet-ecommerce/closet-order/src",
+      "closet-ecommerce/closet-product/src",
+      "closet-ecommerce/closet-payment/src",
+      "closet-ecommerce/closet-shipping/src",
+      "closet-ecommerce/closet-inventory/src",
+      "closet-ecommerce/closet-review/src",
+      "closet-ecommerce/closet-search/src",
+      "closet-ecommerce/closet-member/src"
+    ],
+    "auto_fixable": [
+      "no-local-datetime",
+      "no-db-boolean-type",
+      "no-db-datetime-no-precision"
+    ]
+  }
+}
