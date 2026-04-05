@@ -3,29 +3,56 @@ package com.closet.review.application
 import com.closet.review.domain.FitType
 import com.closet.review.domain.Review
 import com.closet.review.domain.ReviewEditHistory
+import com.closet.review.domain.ReviewSortType
 import com.closet.review.domain.ReviewSummary
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotNull
 import jakarta.validation.constraints.Size
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 // === Requests ===
 
+/**
+ * 리뷰 작성 요청 (US-801, US-802).
+ */
 data class CreateReviewRequest(
     @field:NotNull val productId: Long,
     @field:NotNull val orderItemId: Long,
     @field:Min(1) @field:Max(5) val rating: Int,
-    @field:NotBlank @field:Size(max = 2000) val content: String,
+    @field:NotBlank @field:Size(min = 20, max = 1000) val content: String,
+    /** 이미지 URL 목록 (Presigned URL로 업로드한 이미지, 최대 5장) */
+    val imageUrls: List<String> = emptyList(),
+    // 사이즈 후기 (US-802)
     val height: Int? = null,
     val weight: Int? = null,
+    val normalSize: String? = null,
     val purchasedSize: String? = null,
     val fitType: FitType? = null,
 )
 
+/**
+ * 리뷰 수정 요청 (US-801).
+ */
 data class UpdateReviewRequest(
-    @field:NotBlank @field:Size(max = 2000) val content: String,
+    @field:NotBlank @field:Size(min = 20, max = 1000) val content: String,
+    /** 이미지 URL 목록 (교체). null이면 이미지 변경 없음. */
+    val imageUrls: List<String>? = null,
+)
+
+/**
+ * 리뷰 목록 조회 쿼리 파라미터.
+ */
+data class ReviewListQuery(
+    val productId: Long,
+    val sort: ReviewSortType = ReviewSortType.LATEST,
+    val photoOnly: Boolean = false,
+    val page: Int = 0,
+    val size: Int = 10,
+    // "비슷한 체형" 필터 (US-802)
+    val myHeight: Int? = null,
+    val myWeight: Int? = null,
 )
 
 // === Responses ===
@@ -43,10 +70,12 @@ data class ReviewResponse(
     val images: List<ReviewImageResponse>,
     val height: Int?,
     val weight: Int?,
+    val normalSize: String?,
     val purchasedSize: String?,
     val fitType: String?,
-    val createdAt: LocalDateTime?,
-    val updatedAt: LocalDateTime?,
+    val helpfulCount: Int,
+    val createdAt: ZonedDateTime?,
+    val updatedAt: ZonedDateTime?,
 ) {
     companion object {
         fun from(review: Review): ReviewResponse {
@@ -63,8 +92,10 @@ data class ReviewResponse(
                 images = review.images.map { ReviewImageResponse(it.id, it.imageUrl, it.thumbnailUrl, it.displayOrder) },
                 height = review.height,
                 weight = review.weight,
+                normalSize = review.normalSize,
                 purchasedSize = review.purchasedSize,
                 fitType = review.fitType?.name,
+                helpfulCount = review.helpfulCount,
                 createdAt = if (review.id != 0L) review.createdAt else null,
                 updatedAt = if (review.id != 0L) review.updatedAt else null,
             )
@@ -101,11 +132,9 @@ data class ReviewSummaryResponse(
                     5 to summary.rating5Count,
                 ),
                 fitDistribution = mapOf(
-                    "VERY_SMALL" to summary.fitVerySmallCount,
                     "SMALL" to summary.fitSmallCount,
-                    "JUST_RIGHT" to summary.fitJustRightCount,
+                    "PERFECT" to summary.fitPerfectCount,
                     "LARGE" to summary.fitLargeCount,
-                    "VERY_LARGE" to summary.fitVeryLargeCount,
                 ),
                 photoReviewCount = summary.photoReviewCount,
             )
@@ -119,7 +148,7 @@ data class ReviewEditHistoryResponse(
     val previousContent: String,
     val newContent: String,
     val editCount: Int,
-    val createdAt: LocalDateTime?,
+    val createdAt: ZonedDateTime?,
 ) {
     companion object {
         fun from(history: ReviewEditHistory): ReviewEditHistoryResponse {

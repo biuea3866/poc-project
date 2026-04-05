@@ -10,13 +10,14 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
- * 상품별 리뷰 집계 엔티티.
+ * 상품별 리뷰 집계 엔티티 (US-804).
  *
- * 리뷰 생성/수정/삭제 시 갱신되며, 별점 분포 + 사이즈 분포를 관리한다.
- * search-service에 review.summary.updated 이벤트로 전파한다.
+ * 리뷰 생성/수정/삭제 시 갱신되며, 별점 분포 + 사이즈핏 분포를 관리한다.
+ * Redis 캐시(review_summary:{productId})로 조회 성능을 확보하고,
+ * review.summary.updated 이벤트로 search-service(ES)에 전파한다.
  */
 @Entity
 @Table(name = "review_summary")
@@ -41,12 +42,10 @@ class ReviewSummary(
     @Column(name = "rating_4_count", nullable = false) var rating4Count: Int = 0,
     @Column(name = "rating_5_count", nullable = false) var rating5Count: Int = 0,
 
-    /** 사이즈 분포 (CP-25) */
-    @Column(name = "fit_very_small_count", nullable = false) var fitVerySmallCount: Int = 0,
+    /** 사이즈핏 분포 (US-802: SMALL/PERFECT/LARGE) */
     @Column(name = "fit_small_count", nullable = false) var fitSmallCount: Int = 0,
-    @Column(name = "fit_just_right_count", nullable = false) var fitJustRightCount: Int = 0,
+    @Column(name = "fit_perfect_count", nullable = false) var fitPerfectCount: Int = 0,
     @Column(name = "fit_large_count", nullable = false) var fitLargeCount: Int = 0,
-    @Column(name = "fit_very_large_count", nullable = false) var fitVeryLargeCount: Int = 0,
 
     @Column(name = "photo_review_count", nullable = false)
     var photoReviewCount: Int = 0,
@@ -57,11 +56,11 @@ class ReviewSummary(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
     /**
      * 리뷰 추가 시 집계 갱신.
@@ -110,21 +109,17 @@ class ReviewSummary(
 
     private fun incrementFitCount(fitType: FitType) {
         when (fitType) {
-            FitType.VERY_SMALL -> fitVerySmallCount++
             FitType.SMALL -> fitSmallCount++
-            FitType.JUST_RIGHT -> fitJustRightCount++
+            FitType.PERFECT -> fitPerfectCount++
             FitType.LARGE -> fitLargeCount++
-            FitType.VERY_LARGE -> fitVeryLargeCount++
         }
     }
 
     private fun decrementFitCount(fitType: FitType) {
         when (fitType) {
-            FitType.VERY_SMALL -> fitVerySmallCount = (fitVerySmallCount - 1).coerceAtLeast(0)
             FitType.SMALL -> fitSmallCount = (fitSmallCount - 1).coerceAtLeast(0)
-            FitType.JUST_RIGHT -> fitJustRightCount = (fitJustRightCount - 1).coerceAtLeast(0)
+            FitType.PERFECT -> fitPerfectCount = (fitPerfectCount - 1).coerceAtLeast(0)
             FitType.LARGE -> fitLargeCount = (fitLargeCount - 1).coerceAtLeast(0)
-            FitType.VERY_LARGE -> fitVeryLargeCount = (fitVeryLargeCount - 1).coerceAtLeast(0)
         }
     }
 

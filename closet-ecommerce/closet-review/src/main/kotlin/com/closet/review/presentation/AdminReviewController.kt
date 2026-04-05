@@ -3,8 +3,7 @@ package com.closet.review.presentation
 import com.closet.common.auth.MemberRole
 import com.closet.common.auth.RoleRequired
 import com.closet.common.response.ApiResponse
-import com.closet.review.application.ReviewResponse
-import com.closet.review.application.ReviewService
+import com.closet.review.application.facade.ReviewFacade
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
@@ -13,13 +12,15 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * 관리자 리뷰 API 컨트롤러 (CP-26, PD-35).
  *
+ * Controller -> Facade -> Service 패턴.
+ *
  * PATCH /api/v1/admin/reviews/{id}/hide   - 리뷰 블라인드
  * PATCH /api/v1/admin/reviews/{id}/unhide - 리뷰 블라인드 해제
  */
 @RestController
 @RequestMapping("/api/v1/admin/reviews")
 class AdminReviewController(
-    private val reviewService: ReviewService,
+    private val reviewFacade: ReviewFacade,
 ) {
 
     /**
@@ -29,7 +30,7 @@ class AdminReviewController(
     @PatchMapping("/{id}/hide")
     @RoleRequired(MemberRole.ADMIN)
     fun hideReview(@PathVariable id: Long): ApiResponse<Unit> {
-        reviewService.hideReview(id)
+        reviewFacade.hideReview(id)
         return ApiResponse.ok(Unit)
     }
 
@@ -39,7 +40,7 @@ class AdminReviewController(
     @PatchMapping("/{id}/unhide")
     @RoleRequired(MemberRole.ADMIN)
     fun unhideReview(@PathVariable id: Long): ApiResponse<Unit> {
-        reviewService.unhideReview(id)
+        reviewFacade.unhideReview(id)
         return ApiResponse.ok(Unit)
     }
 }
