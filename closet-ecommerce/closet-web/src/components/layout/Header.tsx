@@ -54,7 +54,7 @@ export default function Header() {
                 </button>
               </>
             ) : (
-              <Link href="/login" className="text-sm text-gray-600 hover:text-gray-900">
+              <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">
                 로그인
               </Link>
             )}
@@ -146,14 +146,14 @@ export default function Header() {
             ) : (
               <>
                 <Link
-                  href="/login"
+                  href="/auth/login"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block py-2 text-sm text-gray-700 hover:text-gray-900"
                 >
                   로그인
                 </Link>
                 <Link
-                  href="/register"
+                  href="/auth/register"
                   onClick={() => setMobileMenuOpen(false)}
                   className="block py-2 text-sm text-gray-700 hover:text-gray-900"
                 >
