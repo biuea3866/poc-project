@@ -124,6 +124,12 @@
     "failure_message": "BUILD FAILED — 에러 로그를 확인하세요."
   },
 
+  "ticket_guide": {
+    "description": "노션 티켓 작성 가이드 참조",
+    "guide_path": ".claude/ticket-guide.md",
+    "message": "티켓 본문은 반드시 ticket-guide.md의 구조를 따라야 합니다 (개요, 데이터 모델 DDL, API 스펙, Kafka 스펙, 시퀀스 다이어그램, AC to_do, 테스트 시나리오)."
+  },
+
   "gc_scanner": {
     "description": "기존 코드베이스 전체 스캔 — 규칙 위반 감지 및 리포트",
     "scan_dirs": [
