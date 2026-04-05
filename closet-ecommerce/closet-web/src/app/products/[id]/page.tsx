@@ -6,9 +6,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getProduct, getBrands } from '@/lib/api/product';
 import { addCartItem } from '@/lib/api/cart';
+import { createRestockNotification } from '@/lib/api/claim';
 import { formatPriceWithCurrency } from '@/lib/utils/format';
 import { useCartStore } from '@/stores/cartStore';
 import { useAuthStore } from '@/stores/authStore';
+import ReviewList from '@/components/review/ReviewList';
 import type { Product, ProductOption, Brand } from '@/types/product';
 
 const BRAND_COLORS = [
@@ -59,7 +61,9 @@ export default function ProductDetailPage() {
   const [cartMessage, setCartMessage] = useState<string | null>(null);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [showSizeGuide, setShowSizeGuide] = useState(false);
-  const [activeTab, setActiveTab] = useState<'description' | 'sizeGuide' | 'shipping'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'sizeGuide' | 'shipping' | 'reviews'>('description');
+  const [restockRegistered, setRestockRegistered] = useState<Set<number>>(new Set());
+  const [restockLoading, setRestockLoading] = useState<number | null>(null);
 
   const { isAuthenticated } = useAuthStore();
   const { addItem } = useCartStore();
@@ -183,6 +187,25 @@ export default function ProductDetailPage() {
     });
 
     router.push('/orders/checkout');
+  };
+
+  const handleRestockNotify = async (option: ProductOption) => {
+    if (!isAuthenticated) {
+      router.push('/auth/login');
+      return;
+    }
+    setRestockLoading(option.id);
+    try {
+      await createRestockNotification({
+        productId: product.id,
+        productOptionId: option.id,
+      });
+      setRestockRegistered((prev) => new Set(prev).add(option.id));
+    } catch {
+      alert('재입고 알림 등록에 실패했습니다.');
+    } finally {
+      setRestockLoading(null);
+    }
   };
 
   const isSoldOut = product.status === 'SOLD_OUT';
@@ -480,6 +503,66 @@ export default function ProductDetailPage() {
               바로 구매
             </button>
           </div>
+
+          {/* Restock Notification for sold-out products */}
+          {isSoldOut && product.options && product.options.length > 0 && (
+            <div className="border border-gray-200 rounded-lg p-4">
+              <h3 className="text-sm font-semibold mb-3 flex items-center gap-2">
+                <svg
+                  className="h-4 w-4 text-gray-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                  strokeWidth={2}
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+                  />
+                </svg>
+                재입고 알림 받기
+              </h3>
+              <p className="text-xs text-gray-500 mb-3">
+                원하는 옵션을 선택하면 재입고 시 알림을 보내드립니다.
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {product.options.map((option) => {
+                  const isRegistered = restockRegistered.has(option.id);
+                  const isCurrentLoading = restockLoading === option.id;
+                  return (
+                    <button
+                      key={option.id}
+                      onClick={() => !isRegistered && handleRestockNotify(option)}
+                      disabled={isRegistered || isCurrentLoading}
+                      className={`inline-flex items-center gap-1.5 px-3 py-2 text-xs rounded-lg border transition-colors ${
+                        isRegistered
+                          ? 'bg-green-50 border-green-200 text-green-700 cursor-default'
+                          : 'border-gray-300 text-gray-700 hover:bg-gray-50 disabled:opacity-50'
+                      }`}
+                    >
+                      {isRegistered ? (
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                        </svg>
+                      ) : (
+                        <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                      )}
+                      <span
+                        className="inline-block w-2.5 h-2.5 rounded-full border border-gray-300"
+                        style={{ backgroundColor: option.colorHex }}
+                      />
+                      {option.colorName} / {option.size}
+                      {isCurrentLoading && ' ...'}
+                      {isRegistered && ' (등록됨)'}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -518,6 +601,16 @@ export default function ProductDetailPage() {
               }`}
             >
               배송/교환/반품
+            </button>
+            <button
+              onClick={() => setActiveTab('reviews')}
+              className={`px-4 sm:px-6 py-3 text-sm font-medium border-b-2 transition-colors ${
+                activeTab === 'reviews'
+                  ? 'border-black text-black'
+                  : 'border-transparent text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              리뷰
             </button>
           </div>
         </div>
@@ -582,6 +675,10 @@ export default function ProductDetailPage() {
                 </ul>
               </div>
             </div>
+          )}
+
+          {activeTab === 'reviews' && (
+            <ReviewList productId={productId} />
           )}
         </div>
       </div>
