@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuthStore } from '@/stores/authStore';
 import { useCartStore } from '@/stores/cartStore';
 
@@ -9,6 +10,18 @@ export default function Header() {
   const { isAuthenticated, logout } = useAuthStore();
   const totalCount = useCartStore((s) => s.totalCount);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const router = useRouter();
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const q = searchQuery.trim();
+    if (q) {
+      router.push(`/search?q=${encodeURIComponent(q)}`);
+      setSearchQuery('');
+      setMobileMenuOpen(false);
+    }
+  };
 
   return (
     <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
@@ -20,13 +33,15 @@ export default function Header() {
           </Link>
 
           {/* Search - hidden on mobile */}
-          <div className="hidden md:block flex-1 max-w-lg mx-8">
+          <form onSubmit={handleSearch} className="hidden md:block flex-1 max-w-lg mx-8">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="상품 검색..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
-          </div>
+          </form>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-6">
@@ -95,13 +110,15 @@ export default function Header() {
       {mobileMenuOpen && (
         <div className="md:hidden border-t border-gray-200 bg-white">
           {/* Mobile Search */}
-          <div className="px-4 py-3">
+          <form onSubmit={handleSearch} className="px-4 py-3">
             <input
               type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="상품 검색..."
               className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black focus:border-transparent"
             />
-          </div>
+          </form>
           <nav className="px-4 pb-4 space-y-1">
             <Link
               href="/products"

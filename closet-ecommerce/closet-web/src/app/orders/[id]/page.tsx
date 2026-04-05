@@ -180,9 +180,12 @@ export default function OrderDetailPage() {
             </div>
             {order.status === 'SHIPPING' && (
               <div className="mt-3 pt-3 border-t border-gray-200">
-                <button className="text-sm text-blue-600 hover:text-blue-800 font-medium">
+                <Link
+                  href={`/orders/${order.id}/tracking`}
+                  className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                >
                   배송 추적하기
-                </button>
+                </Link>
               </div>
             )}
           </div>
@@ -232,10 +235,29 @@ export default function OrderDetailPage() {
               {cancelling ? '취소 처리 중...' : '주문 취소'}
             </button>
           )}
+          {['SHIPPING', 'DELIVERED'].includes(order.status) && (
+            <Link
+              href={`/orders/${order.id}/tracking`}
+              className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 text-center hover:bg-gray-50 transition-colors"
+            >
+              배송 추적
+            </Link>
+          )}
           {order.status === 'DELIVERED' && (
-            <button className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-              교환/반품 신청
-            </button>
+            <Link
+              href={`/orders/${order.id}/return`}
+              className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 text-center hover:bg-gray-50 transition-colors"
+            >
+              반품 신청
+            </Link>
+          )}
+          {order.status === 'DELIVERED' && (
+            <Link
+              href={`/orders/${order.id}/exchange`}
+              className="flex-1 py-3 border border-gray-300 rounded-lg text-sm font-medium text-gray-700 text-center hover:bg-gray-50 transition-colors"
+            >
+              교환 신청
+            </Link>
           )}
           <Link
             href="/orders"
