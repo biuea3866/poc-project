@@ -1,6 +1,7 @@
 package com.closet.search.application.service
 
 import com.closet.search.application.dto.AutocompleteResponse
+import com.closet.search.application.dto.FilterFacetResponse
 import com.closet.search.application.dto.IndexSyncResponse
 import com.closet.search.application.dto.ProductSearchFilter
 import com.closet.search.application.dto.ProductSearchResponse
@@ -13,7 +14,8 @@ import mu.KotlinLogging
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
-import java.time.LocalDateTime
+import java.math.BigDecimal
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -38,15 +40,29 @@ class ProductSearchService(
     }
 
     /**
-     * 자동완성 검색 (edge_ngram 분석기 활용).
+     * 필터 검색 + facet 집계 (US-703).
+     *
+     * 검색 결과와 함께 카테고리/브랜드/사이즈/색상별 개수를 aggregation으로 반환한다.
+     */
+    fun searchWithFacets(filter: ProductSearchFilter, pageable: Pageable): FilterFacetResponse {
+        return productSearchRepositoryCustom.searchWithFacets(filter, pageable)
+    }
+
+    /**
+     * 자동완성 검색 (edge_ngram 분석기 활용, US-704).
+     *
+     * 2자 이상의 키워드에 대해 상품명, 브랜드명, 카테고리명을 대상으로 자동완성 후보를 반환한다.
      */
     fun autocomplete(keyword: String, size: Int = 10): List<AutocompleteResponse> {
+        if (keyword.length < 2) return emptyList()
+
         val docs = productSearchRepositoryCustom.autocomplete(keyword, size)
         return docs.map {
             AutocompleteResponse(
                 productId = it.productId,
                 name = it.name,
                 brandName = it.brandName,
+                categoryName = it.categoryName,
                 imageUrl = it.imageUrl,
             )
         }
@@ -61,8 +77,8 @@ class ProductSearchService(
         description: String,
         brandId: Long,
         categoryId: Long,
-        basePrice: java.math.BigDecimal,
-        salePrice: java.math.BigDecimal,
+        basePrice: BigDecimal,
+        salePrice: BigDecimal,
         discountRate: Int,
         status: String,
         season: String?,
@@ -88,8 +104,8 @@ class ProductSearchService(
             sizes = sizes,
             colors = colors,
             imageUrl = imageUrl,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
+            createdAt = ZonedDateTime.now(),
+            updatedAt = ZonedDateTime.now(),
         )
 
         productSearchRepository.save(document)
@@ -105,8 +121,8 @@ class ProductSearchService(
         description: String,
         brandId: Long,
         categoryId: Long,
-        basePrice: java.math.BigDecimal,
-        salePrice: java.math.BigDecimal,
+        basePrice: BigDecimal,
+        salePrice: BigDecimal,
         discountRate: Int,
         status: String,
         season: String?,
@@ -139,7 +155,7 @@ class ProductSearchService(
             reviewCount = existing?.reviewCount ?: 0,
             avgRating = existing?.avgRating ?: 0.0,
             createdAt = existing?.createdAt,
-            updatedAt = LocalDateTime.now(),
+            updatedAt = ZonedDateTime.now(),
         )
 
         productSearchRepository.save(document)
@@ -160,7 +176,7 @@ class ProductSearchService(
 
     /**
      * 리뷰 집계 부분 업데이트 (review.summary.updated 이벤트).
-     * 리뷰 집계 변경 시 인기순 복합 점수도 함께 재계산한다 (CP-23).
+     * 리뷰 집계 변경 시 인기순 복합 점수도 함께 재계산한다.
      */
     fun updateReviewSummary(productId: Long, reviewCount: Int, avgRating: Double) {
         val existing = productSearchRepository.findById(productId).orElse(null)
@@ -178,7 +194,7 @@ class ProductSearchService(
                 avgRating = avgRating,
                 viewCount = existing.viewCount,
             ),
-            updatedAt = LocalDateTime.now(),
+            updatedAt = ZonedDateTime.now(),
         )
 
         productSearchRepository.save(updated)
@@ -186,7 +202,7 @@ class ProductSearchService(
     }
 
     /**
-     * 판매량 업데이트 + 인기순 복합 점수 재계산 (CP-23).
+     * 판매량 업데이트 + 인기순 복합 점수 재계산.
      */
     fun updateSalesCount(productId: Long, salesCount: Int) {
         val existing = productSearchRepository.findById(productId).orElse(null)
@@ -203,7 +219,7 @@ class ProductSearchService(
                 avgRating = existing.avgRating,
                 viewCount = existing.viewCount,
             ),
-            updatedAt = LocalDateTime.now(),
+            updatedAt = ZonedDateTime.now(),
         )
 
         productSearchRepository.save(updated)
@@ -211,7 +227,7 @@ class ProductSearchService(
     }
 
     /**
-     * 인기순 복합 점수 계산 (CP-23, PD-23).
+     * 인기순 복합 점수 계산.
      *
      * score = 판매량 * 0.4 + 리뷰수 * 0.3 + 평균별점 * 0.2 + 조회수 * 0.1
      *
@@ -223,7 +239,6 @@ class ProductSearchService(
         avgRating: Double,
         viewCount: Int,
     ): Double {
-        // 정규화 기준값 (대략적인 상한)
         val normalizedSales = (salesCount.coerceAtMost(1000) / 10.0)       // 0~100
         val normalizedReviews = (reviewCount.coerceAtMost(500) / 5.0)      // 0~100
         val normalizedRating = (avgRating / 5.0) * 100.0                    // 0~100
@@ -304,8 +319,8 @@ class ProductSearchService(
             sizes = this.sizes,
             colors = this.colors,
             imageUrl = this.imageUrl,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
+            createdAt = ZonedDateTime.now(),
+            updatedAt = ZonedDateTime.now(),
         )
     }
 }

@@ -131,13 +131,13 @@ class ReturnServiceTest : BehaviorSpec({
                 returnRequest.status shouldBe ReturnStatus.APPROVED
             }
 
-            Then("return.approved 이벤트 발행됨") {
+            Then("event.closet.shipping 토픽으로 ReturnApproved 이벤트 발행됨") {
                 verify(exactly = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "ReturnRequest",
                         aggregateId = any(),
                         eventType = "ReturnApproved",
-                        topic = "return.approved",
+                        topic = "event.closet.shipping",
                         partitionKey = any(),
                         payload = any(),
                     )

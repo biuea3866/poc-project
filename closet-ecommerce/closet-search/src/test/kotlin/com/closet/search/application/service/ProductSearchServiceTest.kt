@@ -128,7 +128,7 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("상품 인덱싱 시") {
 
-        When("product.created 이벤트가 수신되면") {
+        When("ProductCreated 이벤트가 수신되면") {
             service.indexProduct(
                 productId = 10L,
                 name = "슬림핏 청바지",
@@ -172,7 +172,7 @@ class ProductSearchServiceTest : BehaviorSpec({
 
         every { productSearchRepository.findById(10L) } returns Optional.of(existingDoc)
 
-        When("product.updated 이벤트가 수신되면") {
+        When("ProductUpdated 이벤트가 수신되면") {
             service.updateProduct(
                 productId = 10L,
                 name = "슬림핏 청바지 (리뉴얼)",
@@ -207,7 +207,7 @@ class ProductSearchServiceTest : BehaviorSpec({
 
         every { productSearchRepository.existsById(10L) } returns true
 
-        When("product.deleted 이벤트가 수신되면") {
+        When("ProductDeleted 이벤트가 수신되면") {
             service.deleteProduct(10L)
 
             Then("ES에서 문서가 삭제된다") {
@@ -243,7 +243,7 @@ class ProductSearchServiceTest : BehaviorSpec({
 
         every { productSearchRepository.findById(5L) } returns Optional.of(existingDoc)
 
-        When("review.summary.updated 이벤트가 수신되면") {
+        When("ReviewSummaryUpdated 이벤트가 수신되면") {
             service.updateReviewSummary(productId = 5L, reviewCount = 55, avgRating = 4.1)
 
             Then("reviewCount와 avgRating만 업데이트된다") {

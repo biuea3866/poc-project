@@ -5,15 +5,20 @@ import org.springframework.data.elasticsearch.annotations.DateFormat
 import org.springframework.data.elasticsearch.annotations.Document
 import org.springframework.data.elasticsearch.annotations.Field
 import org.springframework.data.elasticsearch.annotations.FieldType
+import org.springframework.data.elasticsearch.annotations.InnerField
+import org.springframework.data.elasticsearch.annotations.MultiField
 import org.springframework.data.elasticsearch.annotations.Setting
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
  * Elasticsearch 상품 문서 모델.
  *
  * closet-products 인덱스에 매핑되며 nori 한글 분석기와 edge_ngram 자동완성을 지원한다.
  * 인덱스 세팅은 product-index-settings.json에서 관리한다.
+ *
+ * name, brandName, categoryName 필드는 autocomplete 서브필드를 갖고 있어
+ * edge_ngram 기반 자동완성 검색에 활용된다.
  */
 @Document(indexName = "closet-products")
 @Setting(settingPath = "elasticsearch/product-index-settings.json")
@@ -22,7 +27,13 @@ data class ProductDocument(
     @Id
     val productId: Long,
 
-    @Field(type = FieldType.Text, analyzer = "nori_analyzer", searchAnalyzer = "nori_analyzer")
+    @MultiField(
+        mainField = Field(type = FieldType.Text, analyzer = "nori_analyzer", searchAnalyzer = "nori_analyzer"),
+        otherFields = [
+            InnerField(suffix = "autocomplete", type = FieldType.Text, analyzer = "autocomplete_analyzer", searchAnalyzer = "autocomplete_search_analyzer"),
+            InnerField(suffix = "keyword", type = FieldType.Keyword),
+        ],
+    )
     val name: String,
 
     @Field(type = FieldType.Text, analyzer = "nori_analyzer")
@@ -31,13 +42,23 @@ data class ProductDocument(
     @Field(type = FieldType.Long)
     val brandId: Long,
 
-    @Field(type = FieldType.Keyword)
+    @MultiField(
+        mainField = Field(type = FieldType.Keyword),
+        otherFields = [
+            InnerField(suffix = "autocomplete", type = FieldType.Text, analyzer = "autocomplete_analyzer", searchAnalyzer = "autocomplete_search_analyzer"),
+        ],
+    )
     val brandName: String? = null,
 
     @Field(type = FieldType.Long)
     val categoryId: Long,
 
-    @Field(type = FieldType.Keyword)
+    @MultiField(
+        mainField = Field(type = FieldType.Keyword),
+        otherFields = [
+            InnerField(suffix = "autocomplete", type = FieldType.Text, analyzer = "autocomplete_analyzer", searchAnalyzer = "autocomplete_search_analyzer"),
+        ],
+    )
     val categoryName: String? = null,
 
     @Field(type = FieldType.Keyword)
@@ -89,8 +110,8 @@ data class ProductDocument(
     val viewCount: Int = 0,
 
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second_millis, DateFormat.epoch_millis])
-    val createdAt: LocalDateTime? = null,
+    val createdAt: ZonedDateTime? = null,
 
     @Field(type = FieldType.Date, format = [DateFormat.date_hour_minute_second_millis, DateFormat.epoch_millis])
-    val updatedAt: LocalDateTime? = null,
+    val updatedAt: ZonedDateTime? = null,
 )

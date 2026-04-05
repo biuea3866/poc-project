@@ -57,12 +57,13 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
     fun makeRecord(eventId: String, orderId: Long, reason: String = "재고 부족"): ConsumerRecord<String, String> {
         val payload = objectMapper.writeValueAsString(
             mapOf(
+                "eventType" to "InventoryInsufficient",
                 "eventId" to eventId,
                 "orderId" to orderId,
                 "reason" to reason,
             )
         )
-        return ConsumerRecord("inventory.insufficient", 0, 0, orderId.toString(), payload)
+        return ConsumerRecord("event.closet.inventory", 0, 0, orderId.toString(), payload)
     }
 
     Given("STOCK_RESERVED 상태 주문에 재고 부족 이벤트 수신") {
@@ -76,7 +77,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("inventory.insufficient 이벤트 수신") {
+        When("InventoryInsufficient 이벤트 수신") {
             consumer.consume(makeRecord("evt-1", order.id))
 
             Then("주문 상태가 FAILED로 변경된다") {
@@ -96,7 +97,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("inventory.insufficient 이벤트 수신") {
+        When("InventoryInsufficient 이벤트 수신") {
             consumer.consume(makeRecord("evt-2", order.id))
 
             Then("주문 상태가 변경되지 않는다") {
@@ -116,7 +117,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("inventory.insufficient 이벤트 수신") {
+        When("InventoryInsufficient 이벤트 수신") {
             consumer.consume(makeRecord("evt-3", order.id))
 
             Then("PAID 상태에서는 재고 부족 처리를 무시한다") {
@@ -134,11 +135,29 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("inventory.insufficient 이벤트 수신") {
+        When("InventoryInsufficient 이벤트 수신") {
             consumer.consume(makeRecord("evt-4", 999L))
 
             Then("상태 이력이 저장되지 않는다") {
                 verify(exactly = 0) { orderStatusHistoryRepository.save(any()) }
+            }
+        }
+    }
+
+    Given("처리하지 않는 eventType 수신") {
+        val payload = objectMapper.writeValueAsString(
+            mapOf(
+                "eventType" to "LowStock",
+                "orderId" to 1L,
+            )
+        )
+        val record = ConsumerRecord<String, String>("event.closet.inventory", 0, 0, "1", payload)
+
+        When("LowStock 이벤트 수신") {
+            consumer.consume(record)
+
+            Then("무시된다 (idempotencyChecker 호출 없음)") {
+                // eventType 필터에 의해 무시
             }
         }
     }
