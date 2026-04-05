@@ -200,19 +200,40 @@ services:
       - '--path.sysfs=/host/sys'
 
   # === Pinpoint APM Stack ===
+  pinpoint-zoo:
+    image: zookeeper:3.8
+    container_name: pinpoint-zoo
+    ports:
+      - "2181:2181"
+    environment:
+      ZOO_4LW_COMMANDS_WHITELIST: "ruok,srvr,stat,mntr"
+    healthcheck:
+      test: ["CMD-SHELL", "echo ruok | nc localhost 2181 | grep imok"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
   pinpoint-hbase:
     image: pinpointdocker/pinpoint-hbase:2.5.1
     container_name: pinpoint-hbase
     ports:
       - "16010:16010"
+      - "16020:16020"
+    environment:
+      HBASE_ZOOKEEPER_QUORUM: pinpoint-zoo
+      HBASE_ZOOKEEPER_PROPERTY_CLIENTPORT: 2181
     volumes:
       - hbase-data:/home/pinpoint/hbase
+      - ./pinpoint/hbase-site.xml:/opt/hbase/hbase-1.2.6/conf/hbase-site.xml
+    depends_on:
+      pinpoint-zoo:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:16010/master-status || exit 1"]
-      interval: 15s
-      timeout: 10s
-      retries: 10
-      start_period: 60s
+      test: ["CMD-SHELL", "curl -sf http://localhost:16010/ || exit 1"]
+      interval: 20s
+      timeout: 15s
+      retries: 15
+      start_period: 90s
 
   pinpoint-mysql:
     image: pinpointdocker/pinpoint-mysql:2.5.1
@@ -238,8 +259,7 @@ services:
       - "9993:9993/tcp"
       - "9994:9994/tcp"
     environment:
-      HBASE_HOST: pinpoint-hbase
-      HBASE_PORT: 2181
+      PINPOINT_ZOOKEEPER_ADDRESS: pinpoint-zoo
       CLUSTER_ENABLE: "false"
       COLLECTOR_TCP_PORT: 9991
       COLLECTOR_STAT_PORT: 9992
@@ -250,12 +270,14 @@ services:
     depends_on:
       pinpoint-hbase:
         condition: service_healthy
+      pinpoint-zoo:
+        condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:9994/actuator/health || exit 1"]
-      interval: 15s
+      test: ["CMD-SHELL", "curl -so /dev/null -w '%{http_code}' http://localhost:8081/ | grep -qE '(200|404)' || exit 1"]
+      interval: 20s
       timeout: 10s
-      retries: 10
-      start_period: 30s
+      retries: 15
+      start_period: 60s
 
   pinpoint-web:
     image: pinpointdocker/pinpoint-web:2.5.1
@@ -263,22 +285,19 @@ services:
     ports:
       - "8079:8080"
     environment:
-      HBASE_HOST: pinpoint-hbase
-      HBASE_PORT: 2181
+      PINPOINT_ZOOKEEPER_ADDRESS: pinpoint-zoo
       ADMIN_PASSWORD: pinpoint
       CLUSTER_ENABLE: "false"
-      MYSQL_HOST: pinpoint-mysql
-      MYSQL_PORT: 3306
-      MYSQL_DATABASE: pinpoint
-      MYSQL_USER: root
-      MYSQL_PASSWORD: pinpoint
+      JDBC_URL: jdbc:mysql://pinpoint-mysql:3306/pinpoint?characterEncoding=UTF-8
+      JDBC_USERNAME: root
+      JDBC_PASSWORD: pinpoint
     depends_on:
       pinpoint-hbase:
         condition: service_healthy
       pinpoint-mysql:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -sf http://localhost:8080/ || exit 1"]
       interval: 15s
       timeout: 10s
       retries: 10
