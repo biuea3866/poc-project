@@ -1,0 +1,94 @@
+groups:
+  - name: closet-business-alerts
+    rules:
+      # 1. 결제 성공률 < 90% (5분)
+      - alert: PaymentSuccessRateLow
+        expr: >
+          (
+            sum(rate(payment_requests_total{status="success"}[5m]))
+            /
+            sum(rate(payment_requests_total[5m]))
+          ) < 0.9
+        for: 5m
+        labels:
+          severity: critical
+          service: payment
+        annotations:
+          summary: "결제 성공률 90% 미만"
+          description: "결제 성공률이 {{ $value | humanizePercentage }}로 90% 미만입니다. 즉시 확인이 필요합니다."
+
+      # 2. API p95 응답 시간 > 500ms (5분)
+      - alert: ApiResponseTimeSlow
+        expr: >
+          histogram_quantile(0.95,
+            sum(rate(http_server_requests_seconds_bucket[5m])) by (le, service)
+          ) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "{{ $labels.service }} API p95 응답 시간 500ms 초과"
+          description: "{{ $labels.service }} 서비스의 p95 응답 시간이 {{ $value | humanizeDuration }}으로 500ms를 초과했습니다."
+
+      # 3. 5xx 에러율 > 1% (5분)
+      - alert: HighErrorRate
+        expr: >
+          (
+            sum(rate(http_server_requests_seconds_count{status=~"5.."}[5m])) by (service)
+            /
+            sum(rate(http_server_requests_seconds_count[5m])) by (service)
+          ) > 0.01
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "{{ $labels.service }} 5xx 에러율 1% 초과"
+          description: "{{ $labels.service }} 서비스의 5xx 에러율이 {{ $value | humanizePercentage }}로 1%를 초과했습니다."
+
+      # 4. 주문 건수 전일 동시간 대비 50% 감소
+      - alert: OrderCountDrop
+        expr: >
+          (
+            sum(rate(order_created_total[1h]))
+            /
+            sum(rate(order_created_total[1h] offset 1d))
+          ) < 0.5
+        for: 15m
+        labels:
+          severity: warning
+          service: order
+        annotations:
+          summary: "주문 건수 전일 동시간 대비 50% 이상 감소"
+          description: "현재 주문 건수가 전일 동시간 대비 {{ $value | humanizePercentage }}로 50% 이상 감소했습니다."
+
+      # 5. 검색 결과 없음 비율 > 20% (1시간)
+      - alert: SearchNoResultsHigh
+        expr: >
+          (
+            sum(rate(search_no_results_total[1h]))
+            /
+            sum(rate(search_requests_total[1h]))
+          ) > 0.2
+        for: 1h
+        labels:
+          severity: info
+          service: search
+        annotations:
+          summary: "검색 결과 없음 비율 20% 초과"
+          description: "최근 1시간 동안 검색 결과 없음 비율이 {{ $value | humanizePercentage }}로 20%를 초과했습니다. 검색 품질 개선이 필요합니다."
+
+      # 6. 반품률 > 15% (주간)
+      - alert: ReturnRateHigh
+        expr: >
+          (
+            sum(increase(return_requests_total[7d]))
+            /
+            sum(increase(order_completed_total[7d]))
+          ) > 0.15
+        for: 1h
+        labels:
+          severity: warning
+          service: shipping
+        annotations:
+          summary: "주간 반품률 15% 초과"
+          description: "최근 7일간 반품률이 {{ $value | humanizePercentage }}로 15%를 초과했습니다. 상품 품질 또는 배송 상태를 점검하세요."
