@@ -7,8 +7,11 @@ import com.closet.shipping.domain.ReturnReason
 import com.closet.shipping.domain.ReturnRequest
 import com.closet.shipping.domain.ReturnRequestRepository
 import com.closet.shipping.domain.ReturnStatus
+import com.closet.shipping.domain.Shipment
+import com.closet.shipping.domain.ShipmentRepository
 import com.closet.shipping.domain.ShippingFeePolicy
 import com.closet.shipping.domain.ShippingFeePolicyRepository
+import com.closet.shipping.domain.ShippingStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -16,17 +19,20 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
+import java.time.LocalDateTime
 import java.util.Optional
 
 class ReturnServiceTest : BehaviorSpec({
 
     val returnRequestRepository = mockk<ReturnRequestRepository>(relaxed = true)
+    val shipmentRepository = mockk<ShipmentRepository>()
     val shippingFeePolicyRepository = mockk<ShippingFeePolicyRepository>()
     val outboxEventPublisher = mockk<OutboxEventPublisher>(relaxed = true)
     val objectMapper = ObjectMapper()
 
     val returnService = ReturnService(
         returnRequestRepository,
+        shipmentRepository,
         shippingFeePolicyRepository,
         outboxEventPublisher,
         objectMapper,
@@ -35,6 +41,9 @@ class ReturnServiceTest : BehaviorSpec({
     Given("반품 신청 - 단순변심") {
 
         When("CHANGE_OF_MIND 사유로 반품 신청") {
+            val deliveredShipment = createDeliveredShipment(orderId = 1L)
+            every { shipmentRepository.findByOrderId(1L) } returns Optional.of(deliveredShipment)
+
             val policy = ShippingFeePolicy(
                 type = "RETURN", reason = "CHANGE_OF_MIND",
                 payer = "BUYER", fee = Money.of(3000),
@@ -74,6 +83,9 @@ class ReturnServiceTest : BehaviorSpec({
     Given("반품 신청 - 불량") {
 
         When("DEFECTIVE 사유로 반품 신청") {
+            val deliveredShipment = createDeliveredShipment(orderId = 1L)
+            every { shipmentRepository.findByOrderId(1L) } returns Optional.of(deliveredShipment)
+
             val policy = ShippingFeePolicy(
                 type = "RETURN", reason = "DEFECTIVE",
                 payer = "SELLER", fee = Money.ZERO,
@@ -191,4 +203,75 @@ class ReturnServiceTest : BehaviorSpec({
             }
         }
     }
+
+    Given("반품 신청 - 배송 미완료") {
+
+        When("READY 상태에서 반품 신청") {
+            val shipment = Shipment.create(
+                orderId = 100L, sellerId = 1L, memberId = 1L,
+                receiverName = "홍길동", receiverPhone = "010-1234-5678",
+                zipCode = "06000", address = "서울", detailAddress = "101호",
+            )
+            every { shipmentRepository.findByOrderId(100L) } returns Optional.of(shipment)
+
+            Then("BusinessException 발생 (배송 완료 상태에서만 가능)") {
+                shouldThrow<BusinessException> {
+                    returnService.createReturnRequest(
+                        memberId = 1L,
+                        sellerId = 1L,
+                        request = CreateReturnRequest(
+                            orderId = 100L,
+                            orderItemId = 1L,
+                            productOptionId = 1L,
+                            quantity = 1,
+                            reason = ReturnReason.CHANGE_OF_MIND,
+                            paymentAmount = 50000L,
+                        ),
+                    )
+                }
+            }
+        }
+    }
+
+    Given("반품 신청 - 기한 경과") {
+
+        When("배송 완료 후 8일 경과") {
+            val shipment = createDeliveredShipment(orderId = 101L, daysAgo = 8)
+            every { shipmentRepository.findByOrderId(101L) } returns Optional.of(shipment)
+
+            Then("BusinessException 발생 (기한 경과)") {
+                shouldThrow<BusinessException> {
+                    returnService.createReturnRequest(
+                        memberId = 1L,
+                        sellerId = 1L,
+                        request = CreateReturnRequest(
+                            orderId = 101L,
+                            orderItemId = 1L,
+                            productOptionId = 1L,
+                            quantity = 1,
+                            reason = ReturnReason.CHANGE_OF_MIND,
+                            paymentAmount = 50000L,
+                        ),
+                    )
+                }
+            }
+        }
+    }
 })
+
+private fun createDeliveredShipment(orderId: Long, daysAgo: Int = 1): Shipment {
+    val shipment = Shipment.create(
+        orderId = orderId, sellerId = 1L, memberId = 1L,
+        receiverName = "홍길동", receiverPhone = "010-1234-5678",
+        zipCode = "06000", address = "서울시 강남구", detailAddress = "101동 201호",
+    )
+    shipment.updateStatus(ShippingStatus.IN_TRANSIT)
+    shipment.updateStatus(ShippingStatus.DELIVERED)
+
+    // deliveredAt을 daysAgo일 전으로 설정
+    val deliveredField = Shipment::class.java.getDeclaredField("deliveredAt")
+    deliveredField.isAccessible = true
+    deliveredField.set(shipment, LocalDateTime.now().minusDays(daysAgo.toLong()))
+
+    return shipment
+}

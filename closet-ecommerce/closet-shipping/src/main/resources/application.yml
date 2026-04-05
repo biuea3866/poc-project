@@ -45,6 +45,7 @@ carrier:
 feature:
   shipping-kafka-enabled: true
   shipping-tracking-poll-enabled: false
+  auto-confirm-scheduler-enabled: false
 
 outbox:
   polling:

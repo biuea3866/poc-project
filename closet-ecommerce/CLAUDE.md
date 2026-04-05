@@ -127,11 +127,13 @@ JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Content
 - `FeatureToggle` + `FeatureToggleService` + `FeatureKey` 패턴
 - DB 기반 런타임 on/off (feature_toggle 테이블)
 
-### 테스트
+### 테스트 (TDD)
+- **TDD 필수: 테스트 먼저 작성 → 구현 → 리팩토링** (Red-Green-Refactor)
 - Kotest BehaviorSpec (Given/When/Then)
 - TestContainers (MySQL, Redis, Kafka)
 - `BaseIntegrationTest` 패턴 (싱글턴 컨테이너 + Initializer)
 - **모든 PR에 테스트 코드 필수**
+- 에이전트 작업 시에도 테스트 코드를 먼저 작성하고 구현
 
 ### 스토리지
 - MinIO (S3 호환 API) — Docker Compose에서 로컬 실행

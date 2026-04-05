@@ -73,10 +73,19 @@ class Shipment(
     lateinit var updatedAt: LocalDateTime
 
     /**
+     * 이미 송장이 등록되어 있는지 확인.
+     */
+    fun hasTrackingNumber(): Boolean = trackingNumber != null
+
+    /**
      * 송장 등록 (배송 시작).
      * 택배사 API 호출 후 반환된 송장번호를 세팅한다.
+     * 중복 등록 시 IllegalStateException을 던진다.
      */
     fun registerTracking(carrier: String, trackingNumber: String) {
+        check(!hasTrackingNumber()) {
+            "이미 송장이 등록된 배송입니다: orderId=$orderId, existing=$this.trackingNumber"
+        }
         this.carrier = carrier
         this.trackingNumber = trackingNumber
         this.status = ShippingStatus.READY

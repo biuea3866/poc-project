@@ -113,6 +113,9 @@ class ShippingService(
         // shipping.status.changed 이벤트 발행
         publishStatusChangedEvent(shipment, null, ShippingStatus.READY)
 
+        // 주문 상태 PAID->SHIPPING 변경 이벤트 (ORDER 토픽)
+        publishOrderShippingEvent(shipment)
+
         logger.info { "송장 등록 완료: orderId=${shipment.orderId}, carrier=${shipment.carrier}, trackingNumber=${shipment.trackingNumber}" }
         return ShipmentResponse.from(shipment)
     }
@@ -137,7 +140,10 @@ class ShippingService(
 
     /**
      * 배송 추적 조회 (Redis 캐시 5분 TTL, PD-41).
+     * 캐시 히트 시 캐시 반환. 미스 시 택배사 API 호출.
+     * API 장애 시 기존 캐시 또는 DB 데이터를 반환한다.
      */
+    @Transactional
     fun getTrackingLogs(shipmentId: Long): List<TrackingLogResponse> {
         val cacheKey = "$TRACKING_CACHE_PREFIX$shipmentId"
         val cached = redisTemplate.opsForValue().get(cacheKey)
@@ -158,6 +164,7 @@ class ShippingService(
                 val trackingResponse = adapter.trackShipment(shipment.trackingNumber!!)
 
                 // 새로운 추적 이벤트 저장
+                val existingLogs = trackingLogRepository.findByShippingIdOrderByTrackedAtAsc(shipmentId)
                 for (event in trackingResponse.events) {
                     val mappedStatus = try {
                         ShippingStatus.fromCarrierStatus(event.status)
@@ -165,7 +172,6 @@ class ShippingService(
                         continue
                     }
 
-                    val existingLogs = trackingLogRepository.findByShippingIdOrderByTrackedAtAsc(shipmentId)
                     val alreadyExists = existingLogs.any { it.carrierStatus == event.status && it.location == event.location }
                     if (!alreadyExists) {
                         trackingLogRepository.save(
@@ -195,7 +201,10 @@ class ShippingService(
                     publishStatusChangedEvent(shipment, previousStatus, latestStatus)
                 }
             } catch (e: Exception) {
-                logger.warn(e) { "택배사 API 조회 실패: shipmentId=$shipmentId" }
+                logger.warn(e) { "택배사 API 조회 실패, DB 데이터를 반환합니다: shipmentId=$shipmentId" }
+                // API 장애 시 DB에 있는 기존 데이터를 반환
+                return trackingLogRepository.findByShippingIdOrderByTrackedAtAsc(shipmentId)
+                    .map { TrackingLogResponse.from(it) }
             }
         }
 
@@ -271,6 +280,109 @@ class ShippingService(
                 logger.warn(e) { "배송 추적 폴링 실패: shipmentId=${shipment.id}" }
             }
         }
+    }
+
+    /**
+     * 수동 구매확정 (BUYER).
+     * 배송 완료 후 BUYER가 직접 구매확정을 한다.
+     */
+    @Transactional
+    fun confirmOrder(orderId: Long): ShipmentResponse {
+        val shipment = shipmentRepository.findByOrderId(orderId)
+            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=$orderId") }
+
+        if (shipment.status != ShippingStatus.DELIVERED) {
+            throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 구매확정할 수 있습니다: status=${shipment.status}")
+        }
+
+        // order.confirmed Kafka 이벤트 발행
+        publishOrderConfirmedEvent(shipment)
+
+        logger.info { "수동 구매확정 완료: orderId=$orderId" }
+        return ShipmentResponse.from(shipment)
+    }
+
+    /**
+     * 자동 구매확정 처리 (Scheduler 호출).
+     * 배송완료 7일(168시간) 경과 건을 자동 구매확정 처리한다.
+     * 반품/교환 진행 중인 건은 제외한다.
+     */
+    @Transactional
+    fun autoConfirmOrders(returnService: ReturnService, exchangeService: ExchangeService) {
+        val cutoff = LocalDateTime.now().minusHours(168)
+        val candidates = shipmentRepository.findAutoConfirmCandidates(cutoff)
+
+        var confirmedCount = 0
+        var skippedCount = 0
+
+        for (shipment in candidates) {
+            try {
+                // 반품/교환 진행 중인 건 제외
+                if (returnService.hasActiveReturnRequest(shipment.orderId) ||
+                    exchangeService.hasActiveExchangeRequest(shipment.orderId)) {
+                    skippedCount++
+                    logger.info { "자동 구매확정 스킵 (반품/교환 진행 중): orderId=${shipment.orderId}" }
+                    continue
+                }
+
+                // order.confirmed Kafka 이벤트 발행
+                publishOrderConfirmedEvent(shipment)
+
+                confirmedCount++
+                logger.info { "자동 구매확정 처리: orderId=${shipment.orderId}" }
+            } catch (e: Exception) {
+                logger.error(e) { "자동 구매확정 실패: orderId=${shipment.orderId}" }
+            }
+        }
+
+        logger.info { "자동 구매확정 배치 완료: 대상=${candidates.size}, 확정=$confirmedCount, 스킵=$skippedCount" }
+    }
+
+    private fun publishOrderShippingEvent(shipment: Shipment) {
+        val eventId = "order-shipping-${shipment.orderId}-${System.currentTimeMillis()}"
+        val payload = objectMapper.writeValueAsString(
+            mapOf(
+                "eventId" to eventId,
+                "eventType" to "OrderShippingStarted",
+                "orderId" to shipment.orderId,
+                "shippingId" to shipment.id,
+                "carrier" to shipment.carrier,
+                "trackingNumber" to shipment.trackingNumber,
+                "timestamp" to ZonedDateTime.now().toString(),
+            )
+        )
+
+        outboxEventPublisher.publish(
+            aggregateType = "Shipment",
+            aggregateId = shipment.id.toString(),
+            eventType = "OrderShippingStarted",
+            topic = ClosetTopics.ORDER,
+            partitionKey = shipment.orderId.toString(),
+            payload = payload,
+        )
+    }
+
+    private fun publishOrderConfirmedEvent(shipment: Shipment) {
+        val eventId = "order-confirmed-${shipment.orderId}-${System.currentTimeMillis()}"
+        val payload = objectMapper.writeValueAsString(
+            mapOf(
+                "eventId" to eventId,
+                "eventType" to "OrderConfirmed",
+                "orderId" to shipment.orderId,
+                "memberId" to shipment.memberId,
+                "shippingId" to shipment.id,
+                "timestamp" to ZonedDateTime.now().toString(),
+            )
+        )
+
+        outboxEventPublisher.publish(
+            aggregateType = "Shipment",
+            aggregateId = shipment.id.toString(),
+            eventType = "OrderConfirmed",
+            topic = ClosetTopics.ORDER,
+            partitionKey = shipment.orderId.toString(),
+            payload = payload,
+        )
     }
 
     private fun publishStatusChangedEvent(shipment: Shipment, fromStatus: ShippingStatus?, toStatus: ShippingStatus) {
