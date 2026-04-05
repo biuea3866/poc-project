@@ -8,11 +8,14 @@ import com.closet.common.vo.Money
 import com.closet.shipping.domain.ExchangeRequest
 import com.closet.shipping.domain.ExchangeRequestRepository
 import com.closet.shipping.domain.ExchangeStatus
+import com.closet.shipping.domain.ShipmentRepository
 import com.closet.shipping.domain.ShippingFeePolicyRepository
+import com.closet.shipping.domain.ShippingStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
@@ -27,16 +30,42 @@ private val logger = KotlinLogging.logger {}
 @Transactional(readOnly = true)
 class ExchangeService(
     private val exchangeRequestRepository: ExchangeRequestRepository,
+    private val shipmentRepository: ShipmentRepository,
     private val shippingFeePolicyRepository: ShippingFeePolicyRepository,
     private val outboxEventPublisher: OutboxEventPublisher,
     private val objectMapper: ObjectMapper,
 ) {
+
+    companion object {
+        private const val EXCHANGE_ELIGIBLE_DAYS = 7L
+    }
 
     /**
      * 교환 신청 (BUYER).
      */
     @Transactional
     fun createExchangeRequest(memberId: Long, sellerId: Long, request: CreateExchangeRequest): ExchangeRequestResponse {
+        // 배송 완료 7일 이내인지 검증
+        val shipment = shipmentRepository.findByOrderId(request.orderId)
+            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}") }
+
+        if (shipment.status != ShippingStatus.DELIVERED) {
+            throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 교환 신청이 가능합니다: status=${shipment.status}")
+        }
+
+        val deliveredAt = shipment.deliveredAt
+            ?: throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 일시가 기록되지 않았습니다: orderId=${request.orderId}")
+
+        val exchangeDeadline = deliveredAt.plusDays(EXCHANGE_ELIGIBLE_DAYS)
+        if (LocalDateTime.now().isAfter(exchangeDeadline)) {
+            throw BusinessException(ErrorCode.INVALID_INPUT, "교환 신청 기한이 경과했습니다 (배송 완료 후 ${EXCHANGE_ELIGIBLE_DAYS}일 이내)")
+        }
+
+        // 동일 상품 다른 옵션으로만 교환 (원본과 새 옵션이 같으면 거절)
+        if (request.originalProductOptionId == request.newProductOptionId) {
+            throw BusinessException(ErrorCode.INVALID_INPUT, "동일 옵션으로 교환할 수 없습니다")
+        }
+
         // 배송비 정책 조회
         val policy = shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("EXCHANGE", request.reason.name)
             .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "교환 배송비 정책을 찾을 수 없습니다: reason=${request.reason}") }

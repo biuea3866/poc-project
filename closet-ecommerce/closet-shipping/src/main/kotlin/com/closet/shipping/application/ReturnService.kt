@@ -8,11 +8,14 @@ import com.closet.common.vo.Money
 import com.closet.shipping.domain.ReturnRequest
 import com.closet.shipping.domain.ReturnRequestRepository
 import com.closet.shipping.domain.ReturnStatus
+import com.closet.shipping.domain.ShipmentRepository
 import com.closet.shipping.domain.ShippingFeePolicyRepository
+import com.closet.shipping.domain.ShippingStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalDateTime
 import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
@@ -21,10 +24,15 @@ private val logger = KotlinLogging.logger {}
 @Transactional(readOnly = true)
 class ReturnService(
     private val returnRequestRepository: ReturnRequestRepository,
+    private val shipmentRepository: ShipmentRepository,
     private val shippingFeePolicyRepository: ShippingFeePolicyRepository,
     private val outboxEventPublisher: OutboxEventPublisher,
     private val objectMapper: ObjectMapper,
 ) {
+
+    companion object {
+        private const val RETURN_ELIGIBLE_DAYS = 7L
+    }
 
     /**
      * 반품 신청 (BUYER).
@@ -33,6 +41,22 @@ class ReturnService(
      */
     @Transactional
     fun createReturnRequest(memberId: Long, sellerId: Long, request: CreateReturnRequest): ReturnRequestResponse {
+        // 배송 완료 7일 이내인지 검증
+        val shipment = shipmentRepository.findByOrderId(request.orderId)
+            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}") }
+
+        if (shipment.status != ShippingStatus.DELIVERED) {
+            throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 반품 신청이 가능합니다: status=${shipment.status}")
+        }
+
+        val deliveredAt = shipment.deliveredAt
+            ?: throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 일시가 기록되지 않았습니다: orderId=${request.orderId}")
+
+        val returnDeadline = deliveredAt.plusDays(RETURN_ELIGIBLE_DAYS)
+        if (LocalDateTime.now().isAfter(returnDeadline)) {
+            throw BusinessException(ErrorCode.INVALID_INPUT, "반품 신청 기한이 경과했습니다 (배송 완료 후 ${RETURN_ELIGIBLE_DAYS}일 이내)")
+        }
+
         // 배송비 정책 조회
         val policy = shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", request.reason.name)
             .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 배송비 정책을 찾을 수 없습니다: reason=${request.reason}") }
