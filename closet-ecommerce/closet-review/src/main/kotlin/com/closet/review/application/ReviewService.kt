@@ -1,5 +1,6 @@
 package com.closet.review.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.common.outbox.OutboxEventPublisher
@@ -19,7 +20,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import org.springframework.web.multipart.MultipartFile
 import java.io.File
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 private val logger = KotlinLogging.logger {}
@@ -287,7 +288,7 @@ class ReviewService(
                 "rating" to review.rating,
                 "isPhotoReview" to review.isPhotoReview(),
                 "pointAmount" to pointAmount,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -295,7 +296,7 @@ class ReviewService(
             aggregateType = "Review",
             aggregateId = review.id.toString(),
             eventType = "ReviewCreated",
-            topic = "review.created",
+            topic = ClosetTopics.REVIEW,
             partitionKey = review.memberId.toString(),
             payload = payload,
         )
@@ -312,7 +313,7 @@ class ReviewService(
                 "productId" to review.productId,
                 "memberId" to review.memberId,
                 "pointAmount" to pointAmount,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -320,7 +321,7 @@ class ReviewService(
             aggregateType = "Review",
             aggregateId = review.id.toString(),
             eventType = "ReviewDeleted",
-            topic = "review.deleted",
+            topic = ClosetTopics.REVIEW,
             partitionKey = review.memberId.toString(),
             payload = payload,
         )

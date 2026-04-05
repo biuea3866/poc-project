@@ -4,14 +4,14 @@ package com.closet.common.featureflag
  * Phase 2 Feature Flag 키 enum.
  *
  * Sprint 5~7에 걸쳐 점진적으로 활성화되는 Phase 2 기능의 런타임 on/off 키.
- * DB의 simple_runtime_config 테이블에 저장되며, FeatureFlagService를 통해 조회한다.
+ * DB의 feature_toggle 테이블에 저장되며, FeatureToggleService를 통해 조회한다.
  *
  * 배포 없이 DB 값 변경으로 즉시 반영되며, OFF 시 Phase 1 플로우로 복귀한다.
  */
 enum class Phase2FeatureKey(
     override val key: String,
     override val description: String,
-) : BooleanFeatureKey {
+) : FeatureKey {
 
     // === Sprint 5 ===
 
@@ -36,7 +36,7 @@ enum class Phase2FeatureKey(
     /** 검색 인덱싱 활성화 (ES 인덱싱 파이프라인) */
     SEARCH_INDEXING_ENABLED(
         key = "SEARCH_INDEXING_ENABLED",
-        description = "product.* Kafka Consumer -> ES 인덱싱 파이프라인 활성화",
+        description = "event.closet.product Consumer -> ES 인덱싱 파이프라인 활성화",
     ),
 
     // === Sprint 6 ===

@@ -1,5 +1,6 @@
 package com.closet.shipping.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.common.outbox.OutboxEventPublisher
@@ -17,6 +18,7 @@ import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
 import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -283,7 +285,7 @@ class ShippingService(
                 "shippingStatus" to toStatus.name,
                 "carrier" to shipment.carrier,
                 "trackingNumber" to shipment.trackingNumber,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -291,7 +293,7 @@ class ShippingService(
             aggregateType = "Shipment",
             aggregateId = shipment.id.toString(),
             eventType = "ShippingStatusChanged",
-            topic = "shipping.status.changed",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = shipment.orderId.toString(),
             payload = payload,
         )

@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { tokenManager } from '@/lib/auth/token';
 import type { Member } from '@/types/member';
 
 interface AuthState {
@@ -13,24 +14,26 @@ interface AuthState {
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
-  accessToken: typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null,
-  refreshToken: typeof window !== 'undefined' ? localStorage.getItem('refreshToken') : null,
-  memberId: typeof window !== 'undefined' ? (localStorage.getItem('memberId') ? Number(localStorage.getItem('memberId')) : null) : null,
+  accessToken: tokenManager.getAccessToken(),
+  refreshToken: tokenManager.getRefreshToken(),
+  memberId: tokenManager.getMemberId(),
   user: null,
-  isAuthenticated: typeof window !== 'undefined' ? !!localStorage.getItem('accessToken') : false,
+  isAuthenticated: tokenManager.isAuthenticated(),
 
   login: (accessToken, refreshToken, memberId) => {
-    localStorage.setItem('accessToken', accessToken);
-    localStorage.setItem('refreshToken', refreshToken);
-    localStorage.setItem('memberId', String(memberId));
+    tokenManager.setTokens(accessToken, refreshToken, memberId);
     set({ accessToken, refreshToken, memberId, isAuthenticated: true });
   },
 
   logout: () => {
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
-    localStorage.removeItem('memberId');
-    set({ accessToken: null, refreshToken: null, memberId: null, user: null, isAuthenticated: false });
+    tokenManager.clearTokens();
+    set({
+      accessToken: null,
+      refreshToken: null,
+      memberId: null,
+      user: null,
+      isAuthenticated: false,
+    });
   },
 
   setUser: (user) => set({ user }),

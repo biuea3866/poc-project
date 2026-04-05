@@ -20,6 +20,21 @@ services:
     image: redis:7.0-alpine
     ports:
       - "6379:6379"
+    command: >
+      redis-server
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --appendonly yes
+      --appendfsync everysec
+      --tcp-keepalive 60
+      --timeout 300
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   kafka:
     image: confluentinc/cp-kafka:7.5.0
@@ -34,9 +49,47 @@ services:
       KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
       CLUSTER_ID: MkU3OEVBNTcwNTJENDM2Qk
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD-SHELL", "kafka-topics --bootstrap-server localhost:9092 --list"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  kafka-init:
+    image: confluentinc/cp-kafka:7.5.0
+    depends_on:
+      kafka:
+        condition: service_healthy
+    entrypoint: ["/bin/bash", "-c"]
+    command:
+      - |
+        echo '=== Creating Kafka topics (domain-based) ==='
+        for TOPIC in \
+          event.closet.order \
+          event.closet.product \
+          event.closet.inventory \
+          event.closet.shipping \
+          event.closet.review \
+          event.closet.payment \
+          event.closet.member \
+          event.closet.notification; do
+          echo "Creating topic: $$TOPIC"
+          kafka-topics --bootstrap-server kafka:9092 \
+            --create --if-not-exists \
+            --topic $$TOPIC \
+            --partitions 3 \
+            --replication-factor 1
+        done
+        echo '=== Verifying topics ==='
+        kafka-topics --bootstrap-server kafka:9092 --list
+        echo '=== Kafka topic initialization complete ==='
 
   elasticsearch:
-    image: elasticsearch:8.11.0
+    build:
+      context: ./elasticsearch
+      dockerfile: Dockerfile
     ports:
       - "9200:9200"
     environment:
@@ -45,6 +98,23 @@ services:
       ES_JAVA_OPTS: "-Xms512m -Xmx512m"
     volumes:
       - es-data:/usr/share/elasticsearch/data
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s http://localhost:9200/_cluster/health | grep -q '\"status\"'"]
+      interval: 15s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
+
+  es-init:
+    image: curlimages/curl:8.5.0
+    depends_on:
+      elasticsearch:
+        condition: service_healthy
+    volumes:
+      - ./elasticsearch/init-es.sh:/init-es.sh:ro
+    entrypoint: ["/bin/sh", "/init-es.sh"]
+    environment:
+      ES_HOST: http://elasticsearch:9200
 
   # === Monitoring Stack ===
   prometheus:
@@ -156,9 +226,9 @@ services:
       mysql:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
   closet-product:
     build:
@@ -170,9 +240,11 @@ services:
       mysql:
         condition: service_healthy
       redis:
-        condition: service_started
+        condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
+      elasticsearch:
+        condition: service_healthy
 
   closet-order:
     build:
@@ -184,7 +256,7 @@ services:
       mysql:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
   closet-payment:
     build:
@@ -196,10 +268,11 @@ services:
       mysql:
         condition: service_healthy
       kafka:
-        condition: service_started
+        condition: service_healthy
 
 volumes:
   mysql-data:
+  redis-data:
   es-data:
   prometheus-data:
   grafana-data:

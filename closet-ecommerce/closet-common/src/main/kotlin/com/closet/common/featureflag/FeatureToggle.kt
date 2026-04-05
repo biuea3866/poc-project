@@ -6,14 +6,14 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Table
 
 /**
- * 런타임 설정 엔티티.
+ * Feature Toggle 엔티티.
  *
- * DB에 key-value 형태로 런타임 설정을 저장한다.
- * Feature Flag를 포함한 다양한 런타임 설정에 사용된다.
+ * DB에 key-value 형태로 Feature Toggle을 저장한다.
+ * 배포 없이 DB 값 변경으로 기능을 런타임 on/off 할 수 있다.
  */
 @Entity
-@Table(name = "simple_runtime_config")
-class SimpleRuntimeConfig(
+@Table(name = "feature_toggle")
+class FeatureToggle(
 
     @Column(name = "config_key", nullable = false, unique = true, length = 100)
     val configKey: String,

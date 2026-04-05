@@ -1,5 +1,6 @@
 package com.closet.product.application.event
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.outbox.OutboxEventPublisher
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
@@ -25,9 +26,6 @@ class ProductOutboxListener(
 
     companion object {
         private const val AGGREGATE_TYPE = "Product"
-        private const val TOPIC_CREATED = "product.created"
-        private const val TOPIC_UPDATED = "product.updated"
-        private const val TOPIC_DELETED = "product.deleted"
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -37,13 +35,13 @@ class ProductOutboxListener(
         outboxEventPublisher.publish(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.productId.toString(),
-            eventType = TOPIC_CREATED,
-            topic = TOPIC_CREATED,
+            eventType = "ProductCreated",
+            topic = ClosetTopics.PRODUCT,
             partitionKey = event.productId.toString(),
             payload = objectMapper.writeValueAsString(event),
         )
 
-        logger.debug { "Outbox INSERT 완료: topic=$TOPIC_CREATED, productId=${event.productId}" }
+        logger.debug { "Outbox INSERT 완료: topic=${ClosetTopics.PRODUCT}, productId=${event.productId}" }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -53,13 +51,13 @@ class ProductOutboxListener(
         outboxEventPublisher.publish(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.productId.toString(),
-            eventType = TOPIC_UPDATED,
-            topic = TOPIC_UPDATED,
+            eventType = "ProductUpdated",
+            topic = ClosetTopics.PRODUCT,
             partitionKey = event.productId.toString(),
             payload = objectMapper.writeValueAsString(event),
         )
 
-        logger.debug { "Outbox INSERT 완료: topic=$TOPIC_UPDATED, productId=${event.productId}" }
+        logger.debug { "Outbox INSERT 완료: topic=${ClosetTopics.PRODUCT}, productId=${event.productId}" }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -69,12 +67,12 @@ class ProductOutboxListener(
         outboxEventPublisher.publish(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.productId.toString(),
-            eventType = TOPIC_DELETED,
-            topic = TOPIC_DELETED,
+            eventType = "ProductDeleted",
+            topic = ClosetTopics.PRODUCT,
             partitionKey = event.productId.toString(),
             payload = objectMapper.writeValueAsString(event),
         )
 
-        logger.debug { "Outbox INSERT 완료: topic=$TOPIC_DELETED, productId=${event.productId}" }
+        logger.debug { "Outbox INSERT 완료: topic=${ClosetTopics.PRODUCT}, productId=${event.productId}" }
     }
 }

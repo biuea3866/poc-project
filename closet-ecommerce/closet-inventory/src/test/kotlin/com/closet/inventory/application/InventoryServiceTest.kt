@@ -160,7 +160,7 @@ class InventoryServiceTest : BehaviorSpec({
             }
 
             Then("insufficient 이벤트가 발행된다") {
-                verify { outboxEventPublisher.publish(any(), any(), eq("InventoryInsufficient"), eq("inventory.insufficient"), any(), any()) }
+                verify { outboxEventPublisher.publish(any(), any(), eq("INSUFFICIENT"), eq("event.closet.inventory"), any(), any()) }
             }
         }
     }

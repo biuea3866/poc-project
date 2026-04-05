@@ -1,5 +1,6 @@
 package com.closet.review.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.outbox.OutboxEventPublisher
 import com.closet.review.domain.Review
 import com.closet.review.domain.ReviewSummary
@@ -8,7 +9,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -78,7 +79,7 @@ class ReviewSummaryService(
                 "productId" to summary.productId,
                 "reviewCount" to summary.totalCount,
                 "avgRating" to summary.avgRating,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -86,7 +87,7 @@ class ReviewSummaryService(
             aggregateType = "ReviewSummary",
             aggregateId = summary.productId.toString(),
             eventType = "ReviewSummaryUpdated",
-            topic = "review.summary.updated",
+            topic = ClosetTopics.REVIEW,
             partitionKey = summary.productId.toString(),
             payload = payload,
         )
