@@ -1,4 +1,4 @@
-package com.closet.shipping.config
+package com.closet.member.config
 
 import org.apache.kafka.clients.consumer.ConsumerConfig
 import org.apache.kafka.common.serialization.StringDeserializer

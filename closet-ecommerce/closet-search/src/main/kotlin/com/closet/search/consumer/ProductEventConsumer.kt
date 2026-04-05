@@ -2,13 +2,11 @@ package com.closet.search.consumer
 
 import com.closet.common.event.ClosetTopics
 import com.closet.search.application.facade.SearchFacade
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.closet.search.consumer.event.ProductEvent
 import mu.KotlinLogging
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
-import java.math.BigDecimal
 
 private val logger = KotlinLogging.logger {}
 
@@ -29,87 +27,56 @@ private val logger = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["feature.search-indexing-enabled"], havingValue = "true", matchIfMissing = true)
 class ProductEventConsumer(
     private val searchFacade: SearchFacade,
-    private val objectMapper: ObjectMapper,
 ) {
 
-    companion object {
-        private const val CONSUMER_GROUP = "search-service"
-    }
-
-    data class ProductEventEnvelope(
-        val eventType: String,
-        val productId: Long,
-        val name: String = "",
-        val description: String = "",
-        val brandId: Long = 0L,
-        val categoryId: Long = 0L,
-        val basePrice: BigDecimal = BigDecimal.ZERO,
-        val salePrice: BigDecimal = BigDecimal.ZERO,
-        val discountRate: Int = 0,
-        val status: String = "",
-        val season: String? = null,
-        val fitType: String? = null,
-        val gender: String? = null,
-        val sizes: List<String> = emptyList(),
-        val colors: List<String> = emptyList(),
-        val imageUrl: String? = null,
-    )
-
-    @KafkaListener(topics = [ClosetTopics.PRODUCT], groupId = CONSUMER_GROUP)
-    fun consume(record: ConsumerRecord<String, String>) {
-        val payload = try {
-            objectMapper.readValue(record.value(), ProductEventEnvelope::class.java)
-        } catch (e: Exception) {
-            logger.error(e) { "${ClosetTopics.PRODUCT} 메시지 파싱 실패: ${record.value()}" }
-            return
-        }
-
-        logger.info { "${ClosetTopics.PRODUCT} 수신: eventType=${payload.eventType}, productId=${payload.productId}" }
+    @KafkaListener(topics = [ClosetTopics.PRODUCT], groupId = "search-service")
+    fun handle(event: ProductEvent) {
+        logger.info { "${ClosetTopics.PRODUCT} 수신: eventType=${event.eventType}, productId=${event.productId}" }
 
         try {
-            when (payload.eventType) {
+            when (event.eventType) {
                 "ProductCreated" -> searchFacade.handleProductCreated(
-                    productId = payload.productId,
-                    name = payload.name,
-                    description = payload.description,
-                    brandId = payload.brandId,
-                    categoryId = payload.categoryId,
-                    basePrice = payload.basePrice,
-                    salePrice = payload.salePrice,
-                    discountRate = payload.discountRate,
-                    status = payload.status,
-                    season = payload.season,
-                    fitType = payload.fitType,
-                    gender = payload.gender,
-                    sizes = payload.sizes,
-                    colors = payload.colors,
-                    imageUrl = payload.imageUrl,
+                    productId = event.productId,
+                    name = event.name,
+                    description = event.description,
+                    brandId = event.brandId,
+                    categoryId = event.categoryId,
+                    basePrice = event.basePrice,
+                    salePrice = event.salePrice,
+                    discountRate = event.discountRate,
+                    status = event.status,
+                    season = event.season,
+                    fitType = event.fitType,
+                    gender = event.gender,
+                    sizes = event.sizes,
+                    colors = event.colors,
+                    imageUrl = event.imageUrl,
                 )
 
                 "ProductUpdated" -> searchFacade.handleProductUpdated(
-                    productId = payload.productId,
-                    name = payload.name,
-                    description = payload.description,
-                    brandId = payload.brandId,
-                    categoryId = payload.categoryId,
-                    basePrice = payload.basePrice,
-                    salePrice = payload.salePrice,
-                    discountRate = payload.discountRate,
-                    status = payload.status,
-                    season = payload.season,
-                    fitType = payload.fitType,
-                    gender = payload.gender,
-                    sizes = payload.sizes,
-                    colors = payload.colors,
-                    imageUrl = payload.imageUrl,
+                    productId = event.productId,
+                    name = event.name,
+                    description = event.description,
+                    brandId = event.brandId,
+                    categoryId = event.categoryId,
+                    basePrice = event.basePrice,
+                    salePrice = event.salePrice,
+                    discountRate = event.discountRate,
+                    status = event.status,
+                    season = event.season,
+                    fitType = event.fitType,
+                    gender = event.gender,
+                    sizes = event.sizes,
+                    colors = event.colors,
+                    imageUrl = event.imageUrl,
                 )
 
-                "ProductDeleted" -> searchFacade.handleProductDeleted(payload.productId)
+                "ProductDeleted" -> searchFacade.handleProductDeleted(event.productId)
 
-                else -> logger.info { "처리하지 않는 eventType 무시: ${payload.eventType}" }
+                else -> logger.info { "처리하지 않는 eventType 무시: ${event.eventType}" }
             }
         } catch (e: Exception) {
-            logger.error(e) { "${ClosetTopics.PRODUCT} 처리 실패: eventType=${payload.eventType}, productId=${payload.productId}" }
+            logger.error(e) { "${ClosetTopics.PRODUCT} 처리 실패: eventType=${event.eventType}, productId=${event.productId}" }
             throw e // DLQ로 전달하기 위해 재throw
         }
     }

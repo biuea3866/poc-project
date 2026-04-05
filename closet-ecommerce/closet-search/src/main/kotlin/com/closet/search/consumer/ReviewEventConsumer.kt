@@ -2,9 +2,8 @@ package com.closet.search.consumer
 
 import com.closet.common.event.ClosetTopics
 import com.closet.search.application.facade.SearchFacade
-import com.fasterxml.jackson.databind.ObjectMapper
+import com.closet.search.consumer.event.ReviewEvent
 import mu.KotlinLogging
-import org.apache.kafka.clients.consumer.ConsumerRecord
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
@@ -26,43 +25,24 @@ private val logger = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["feature.search-indexing-enabled"], havingValue = "true", matchIfMissing = true)
 class ReviewEventConsumer(
     private val searchFacade: SearchFacade,
-    private val objectMapper: ObjectMapper,
 ) {
 
-    companion object {
-        private const val CONSUMER_GROUP = "search-service"
-    }
-
-    data class ReviewEventEnvelope(
-        val eventType: String,
-        val productId: Long = 0L,
-        val reviewCount: Int = 0,
-        val avgRating: Double = 0.0,
-    )
-
-    @KafkaListener(topics = [ClosetTopics.REVIEW], groupId = CONSUMER_GROUP)
-    fun consume(record: ConsumerRecord<String, String>) {
-        val payload = try {
-            objectMapper.readValue(record.value(), ReviewEventEnvelope::class.java)
-        } catch (e: Exception) {
-            logger.error(e) { "${ClosetTopics.REVIEW} 메시지 파싱 실패: ${record.value()}" }
-            return
-        }
-
-        logger.info { "${ClosetTopics.REVIEW} 수신: eventType=${payload.eventType}, productId=${payload.productId}" }
+    @KafkaListener(topics = [ClosetTopics.REVIEW], groupId = "search-service")
+    fun handle(event: ReviewEvent) {
+        logger.info { "${ClosetTopics.REVIEW} 수신: eventType=${event.eventType}, productId=${event.productId}" }
 
         try {
-            when (payload.eventType) {
+            when (event.eventType) {
                 "ReviewSummaryUpdated" -> searchFacade.handleReviewSummaryUpdated(
-                    productId = payload.productId,
-                    reviewCount = payload.reviewCount,
-                    avgRating = payload.avgRating,
+                    productId = event.productId,
+                    reviewCount = event.reviewCount,
+                    avgRating = event.avgRating,
                 )
 
-                else -> logger.info { "처리하지 않는 eventType 무시: ${payload.eventType}" }
+                else -> logger.info { "처리하지 않는 eventType 무시: ${event.eventType}" }
             }
         } catch (e: Exception) {
-            logger.error(e) { "${ClosetTopics.REVIEW} 처리 실패: eventType=${payload.eventType}, productId=${payload.productId}" }
+            logger.error(e) { "${ClosetTopics.REVIEW} 처리 실패: eventType=${event.eventType}, productId=${event.productId}" }
             throw e
         }
     }

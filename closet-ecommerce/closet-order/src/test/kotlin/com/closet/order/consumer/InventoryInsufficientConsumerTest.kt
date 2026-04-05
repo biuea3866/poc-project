@@ -2,33 +2,30 @@ package com.closet.order.consumer
 
 import com.closet.common.idempotency.IdempotencyChecker
 import com.closet.common.vo.Money
+import com.closet.order.consumer.event.InventoryEvent
 import com.closet.order.domain.order.Order
 import com.closet.order.domain.order.OrderItem
 import com.closet.order.domain.order.OrderStatus
 import com.closet.order.domain.order.OrderStatusHistory
 import com.closet.order.repository.OrderRepository
 import com.closet.order.repository.OrderStatusHistoryRepository
-import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import org.apache.kafka.clients.consumer.ConsumerRecord
 
 class InventoryInsufficientConsumerTest : BehaviorSpec({
 
     val orderRepository = mockk<OrderRepository>()
     val orderStatusHistoryRepository = mockk<OrderStatusHistoryRepository>(relaxed = true)
     val idempotencyChecker = mockk<IdempotencyChecker>()
-    val objectMapper = jacksonObjectMapper()
 
     val consumer = InventoryInsufficientConsumer(
         orderRepository = orderRepository,
         orderStatusHistoryRepository = orderStatusHistoryRepository,
         idempotencyChecker = idempotencyChecker,
-        objectMapper = objectMapper,
     )
 
     fun createOrder(): Order {
@@ -54,16 +51,13 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         )
     }
 
-    fun makeRecord(eventId: String, orderId: Long, reason: String = "재고 부족"): ConsumerRecord<String, String> {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventType" to "InventoryInsufficient",
-                "eventId" to eventId,
-                "orderId" to orderId,
-                "reason" to reason,
-            )
+    fun makeEvent(eventId: String, orderId: Long, reason: String = "재고 부족"): InventoryEvent {
+        return InventoryEvent(
+            eventType = "InventoryInsufficient",
+            eventId = eventId,
+            orderId = orderId,
+            reason = reason,
         )
-        return ConsumerRecord("event.closet.inventory", 0, 0, orderId.toString(), payload)
     }
 
     Given("STOCK_RESERVED 상태 주문에 재고 부족 이벤트 수신") {
@@ -78,7 +72,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         }
 
         When("InventoryInsufficient 이벤트 수신") {
-            consumer.consume(makeRecord("evt-1", order.id))
+            consumer.handle(makeEvent("evt-1", order.id))
 
             Then("주문 상태가 FAILED로 변경된다") {
                 order.status shouldBe OrderStatus.FAILED
@@ -98,7 +92,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         }
 
         When("InventoryInsufficient 이벤트 수신") {
-            consumer.consume(makeRecord("evt-2", order.id))
+            consumer.handle(makeEvent("evt-2", order.id))
 
             Then("주문 상태가 변경되지 않는다") {
                 order.status shouldBe OrderStatus.CANCELLED
@@ -118,7 +112,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         }
 
         When("InventoryInsufficient 이벤트 수신") {
-            consumer.consume(makeRecord("evt-3", order.id))
+            consumer.handle(makeEvent("evt-3", order.id))
 
             Then("PAID 상태에서는 재고 부족 처리를 무시한다") {
                 order.status shouldBe OrderStatus.PAID
@@ -136,7 +130,7 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         }
 
         When("InventoryInsufficient 이벤트 수신") {
-            consumer.consume(makeRecord("evt-4", 999L))
+            consumer.handle(makeEvent("evt-4", 999L))
 
             Then("상태 이력이 저장되지 않는다") {
                 verify(exactly = 0) { orderStatusHistoryRepository.save(any()) }
@@ -145,16 +139,13 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
     }
 
     Given("처리하지 않는 eventType 수신") {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventType" to "LowStock",
-                "orderId" to 1L,
-            )
+        val event = InventoryEvent(
+            eventType = "LowStock",
+            orderId = 1L,
         )
-        val record = ConsumerRecord<String, String>("event.closet.inventory", 0, 0, "1", payload)
 
         When("LowStock 이벤트 수신") {
-            consumer.consume(record)
+            consumer.handle(event)
 
             Then("무시된다 (idempotencyChecker 호출 없음)") {
                 // eventType 필터에 의해 무시
