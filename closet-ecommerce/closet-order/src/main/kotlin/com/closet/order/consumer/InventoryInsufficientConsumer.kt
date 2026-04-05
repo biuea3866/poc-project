@@ -1,5 +1,6 @@
 package com.closet.order.consumer
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.idempotency.IdempotencyChecker
 import com.closet.order.domain.order.OrderStatus
 import com.closet.order.domain.order.OrderStatusHistory
@@ -14,6 +15,12 @@ import org.springframework.transaction.annotation.Transactional
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * event.closet.inventory 토픽 Consumer.
+ *
+ * 재고 부족(INSUFFICIENT) 이벤트를 수신하여 주문을 FAILED 처리한다.
+ * eventType="InventoryInsufficient"만 처리하고, 나머지는 무시한다.
+ */
 @Component
 class InventoryInsufficientConsumer(
     private val orderRepository: OrderRepository,
@@ -23,42 +30,50 @@ class InventoryInsufficientConsumer(
 ) {
 
     companion object {
-        private const val TOPIC = "inventory.insufficient"
         private const val CONSUMER_GROUP = "order-service"
     }
 
-    data class InventoryInsufficientPayload(
-        val eventId: String,
-        val orderId: Long,
+    data class InventoryEventEnvelope(
+        val eventType: String,
+        val eventId: String? = null,
+        val orderId: Long? = null,
         val reason: String = "재고 부족",
     )
 
-    @KafkaListener(topics = [TOPIC], groupId = CONSUMER_GROUP)
+    @KafkaListener(topics = [ClosetTopics.INVENTORY], groupId = CONSUMER_GROUP)
     @Transactional
     fun consume(record: ConsumerRecord<String, String>) {
-        val payload = try {
-            objectMapper.readValue(record.value(), InventoryInsufficientPayload::class.java)
+        val envelope = try {
+            objectMapper.readValue(record.value(), InventoryEventEnvelope::class.java)
         } catch (e: Exception) {
-            logger.error(e) { "inventory.insufficient 메시지 파싱 실패: ${record.value()}" }
+            logger.error(e) { "${ClosetTopics.INVENTORY} 메시지 파싱 실패: ${record.value()}" }
             return
         }
 
-        logger.info { "inventory.insufficient 수신: orderId=${payload.orderId}, reason=${payload.reason}" }
+        if (envelope.eventType != "InventoryInsufficient") {
+            logger.debug { "처리하지 않는 eventType 무시: ${envelope.eventType}" }
+            return
+        }
 
-        idempotencyChecker.process(payload.eventId, TOPIC, CONSUMER_GROUP) {
-            val order = orderRepository.findByIdAndDeletedAtIsNull(payload.orderId)
+        val eventId = envelope.eventId ?: return
+        val orderId = envelope.orderId ?: return
+
+        logger.info { "InventoryInsufficient 수신: orderId=$orderId, reason=${envelope.reason}" }
+
+        idempotencyChecker.process(eventId, ClosetTopics.INVENTORY, CONSUMER_GROUP) {
+            val order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
             if (order == null) {
-                logger.warn { "주문을 찾을 수 없습니다. orderId=${payload.orderId}" }
+                logger.warn { "주문을 찾을 수 없습니다. orderId=$orderId" }
                 return@process
             }
 
             if (order.status.isTerminal()) {
-                logger.info { "터미널 상태 주문은 무시합니다. orderId=${payload.orderId}, status=${order.status}" }
+                logger.info { "터미널 상태 주문은 무시합니다. orderId=$orderId, status=${order.status}" }
                 return@process
             }
 
             if (order.status != OrderStatus.STOCK_RESERVED) {
-                logger.warn { "STOCK_RESERVED 상태가 아닌 주문에 재고 부족 이벤트 수신: orderId=${payload.orderId}, status=${order.status}" }
+                logger.warn { "STOCK_RESERVED 상태가 아닌 주문에 재고 부족 이벤트 수신: orderId=$orderId, status=${order.status}" }
                 return@process
             }
 
@@ -70,12 +85,12 @@ class InventoryInsufficientConsumer(
                     orderId = order.id,
                     fromStatus = previousStatus,
                     toStatus = order.status,
-                    reason = payload.reason,
+                    reason = envelope.reason,
                     changedBy = "inventory-service",
                 )
             )
 
-            logger.info { "주문 FAILED 처리 완료: orderId=${payload.orderId}, reason=${payload.reason}" }
+            logger.info { "주문 FAILED 처리 완료: orderId=$orderId, reason=${envelope.reason}" }
         }
     }
 }

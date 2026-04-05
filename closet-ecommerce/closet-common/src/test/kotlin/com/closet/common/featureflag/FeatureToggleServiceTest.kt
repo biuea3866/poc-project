@@ -7,23 +7,23 @@ import io.mockk.mockk
 import io.mockk.verify
 import java.util.Optional
 
-class FeatureFlagServiceTest : BehaviorSpec({
+class FeatureToggleServiceTest : BehaviorSpec({
 
-    val repository = mockk<SimpleRuntimeConfigRepository>()
-    val service = FeatureFlagService(repository)
+    val repository = mockk<FeatureToggleRepository>()
+    val service = FeatureToggleService(repository)
 
     // save() 기본 stub: 입력값을 그대로 반환
-    every { repository.save(any<SimpleRuntimeConfig>()) } answers { firstArg() }
+    every { repository.save(any<FeatureToggle>()) } answers { firstArg() }
 
-    Given("Feature Flag가 DB에 존재할 때") {
+    Given("Feature Toggle이 DB에 존재할 때") {
 
-        val config = SimpleRuntimeConfig(
+        val toggle = FeatureToggle(
             configKey = "SEARCH_INDEXING_ENABLED",
             configValue = "true",
             description = "검색 인덱싱 활성화",
         )
 
-        every { repository.findByConfigKey("SEARCH_INDEXING_ENABLED") } returns Optional.of(config)
+        every { repository.findByConfigKey("SEARCH_INDEXING_ENABLED") } returns Optional.of(toggle)
 
         When("isEnabled를 호출하면") {
             val result = service.isEnabled(Phase2FeatureKey.SEARCH_INDEXING_ENABLED)
@@ -34,15 +34,15 @@ class FeatureFlagServiceTest : BehaviorSpec({
         }
     }
 
-    Given("Feature Flag가 DB에 OFF로 존재할 때") {
+    Given("Feature Toggle이 DB에 OFF로 존재할 때") {
 
-        val config = SimpleRuntimeConfig(
+        val toggle = FeatureToggle(
             configKey = "INVENTORY_KAFKA_ENABLED",
             configValue = "false",
             description = "재고 Kafka 비활성화",
         )
 
-        every { repository.findByConfigKey("INVENTORY_KAFKA_ENABLED") } returns Optional.of(config)
+        every { repository.findByConfigKey("INVENTORY_KAFKA_ENABLED") } returns Optional.of(toggle)
 
         When("isEnabled를 호출하면") {
             val result = service.isEnabled(Phase2FeatureKey.INVENTORY_KAFKA_ENABLED)
@@ -53,7 +53,7 @@ class FeatureFlagServiceTest : BehaviorSpec({
         }
     }
 
-    Given("Feature Flag가 DB에 존재하지 않을 때") {
+    Given("Feature Toggle이 DB에 존재하지 않을 때") {
 
         every { repository.findByConfigKey("POPULAR_KEYWORDS_ENABLED") } returns Optional.empty()
 
@@ -66,34 +66,34 @@ class FeatureFlagServiceTest : BehaviorSpec({
         }
     }
 
-    Given("Feature Flag를 ON으로 변경할 때") {
+    Given("Feature Toggle을 ON으로 변경할 때") {
 
-        val config = SimpleRuntimeConfig(
+        val toggle = FeatureToggle(
             configKey = "SHIPPING_SERVICE_ENABLED",
             configValue = "false",
             description = "배송 서비스",
         )
 
-        every { repository.findByConfigKey("SHIPPING_SERVICE_ENABLED") } returns Optional.of(config)
+        every { repository.findByConfigKey("SHIPPING_SERVICE_ENABLED") } returns Optional.of(toggle)
 
         When("setEnabled(true)를 호출하면") {
             service.setEnabled(Phase2FeatureKey.SHIPPING_SERVICE_ENABLED, true)
 
             Then("DB 값이 true로 업데이트된다") {
-                config.configValue shouldBe "true"
-                verify(exactly = 1) { repository.save(config) }
+                toggle.configValue shouldBe "true"
+                verify(exactly = 1) { repository.save(toggle) }
             }
         }
     }
 
-    Given("DB에 없는 Feature Flag를 ON으로 변경할 때") {
+    Given("DB에 없는 Feature Toggle을 ON으로 변경할 때") {
 
         every { repository.findByConfigKey("EXCHANGE_REQUEST_ENABLED") } returns Optional.empty()
 
         When("setEnabled(true)를 호출하면") {
             service.setEnabled(Phase2FeatureKey.EXCHANGE_REQUEST_ENABLED, true)
 
-            Then("새로운 Config가 생성된다") {
+            Then("새로운 Toggle이 생성된다") {
                 verify(exactly = 1) {
                     repository.save(match {
                         it.configKey == "EXCHANGE_REQUEST_ENABLED" && it.configValue == "true"
@@ -108,7 +108,7 @@ class FeatureFlagServiceTest : BehaviorSpec({
         When("전체 키를 조회하면") {
             val allKeys = Phase2FeatureKey.entries
 
-            Then("13개의 Feature Flag가 정의되어 있다") {
+            Then("13개의 Feature Toggle이 정의되어 있다") {
                 allKeys.size shouldBe 13
             }
         }

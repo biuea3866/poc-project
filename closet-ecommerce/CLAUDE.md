@@ -108,9 +108,9 @@ JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Content
 - Controller → Facade → Service (SRP)
 - DB: FK/JSON/ENUM 미사용, TINYINT(1) for boolean, DATETIME(6), COMMENT 필수
 
-### Feature Flag
-- `SimpleRuntimeConfig` + `FeatureFlagService` + `BooleanFeatureKey` 패턴
-- DB 기반 런타임 on/off
+### Feature Toggle
+- `FeatureToggle` + `FeatureToggleService` + `FeatureKey` 패턴
+- DB 기반 런타임 on/off (feature_toggle 테이블)
 
 ### 테스트
 - Kotest BehaviorSpec (Given/When/Then)

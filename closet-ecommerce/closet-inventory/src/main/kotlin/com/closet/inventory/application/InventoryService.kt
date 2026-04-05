@@ -1,5 +1,6 @@
 package com.closet.inventory.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.common.outbox.OutboxEventPublisher
@@ -379,8 +380,8 @@ class InventoryService(
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
             aggregateId = inventory.id.toString(),
-            eventType = "RestockNotification",
-            topic = "inventory.restock_notification",
+            eventType = "RESTOCK_NOTIFICATION",
+            topic = ClosetTopics.INVENTORY,
             partitionKey = inventory.productOptionId.toString(),
             payload = payload,
         )
@@ -401,8 +402,8 @@ class InventoryService(
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
             aggregateId = inventory.id.toString(),
-            eventType = "LowStock",
-            topic = "inventory.low_stock",
+            eventType = "LOW_STOCK",
+            topic = ClosetTopics.INVENTORY,
             partitionKey = inventory.productOptionId.toString(),
             payload = payload,
         )
@@ -421,8 +422,8 @@ class InventoryService(
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
             aggregateId = inventory.id.toString(),
-            eventType = "OutOfStock",
-            topic = "inventory.out_of_stock",
+            eventType = "OUT_OF_STOCK",
+            topic = ClosetTopics.INVENTORY,
             partitionKey = inventory.productOptionId.toString(),
             payload = payload,
         )
@@ -442,8 +443,8 @@ class InventoryService(
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
             aggregateId = orderId.toString(),
-            eventType = "InventoryInsufficient",
-            topic = "inventory.insufficient",
+            eventType = "INSUFFICIENT",
+            topic = ClosetTopics.INVENTORY,
             partitionKey = orderId.toString(),
             payload = payload,
         )

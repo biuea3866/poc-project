@@ -1,5 +1,6 @@
 package com.closet.order.domain.event
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.outbox.OutboxEventPublisher
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
@@ -17,10 +18,6 @@ class OrderOutboxListener(
 
     companion object {
         private const val AGGREGATE_TYPE = "Order"
-        private const val TOPIC_ORDER_CREATED = "order.created"
-        private const val TOPIC_ORDER_CANCELLED = "order.cancelled"
-        private const val TOPIC_ORDER_PAID = "order.paid"
-        private const val TOPIC_ORDER_CONFIRMED = "order.confirmed"
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -30,11 +27,11 @@ class OrderOutboxListener(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.orderId.toString(),
             eventType = "OrderCreated",
-            topic = TOPIC_ORDER_CREATED,
+            topic = ClosetTopics.ORDER,
             partitionKey = event.orderId.toString(),
             payload = payload,
         )
-        logger.info { "Outbox 이벤트 저장: topic=$TOPIC_ORDER_CREATED, orderId=${event.orderId}" }
+        logger.info { "Outbox 이벤트 저장: topic=${ClosetTopics.ORDER}, orderId=${event.orderId}" }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -44,11 +41,11 @@ class OrderOutboxListener(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.orderId.toString(),
             eventType = "OrderCancelled",
-            topic = TOPIC_ORDER_CANCELLED,
+            topic = ClosetTopics.ORDER,
             partitionKey = event.orderId.toString(),
             payload = payload,
         )
-        logger.info { "Outbox 이벤트 저장: topic=$TOPIC_ORDER_CANCELLED, orderId=${event.orderId}" }
+        logger.info { "Outbox 이벤트 저장: topic=${ClosetTopics.ORDER}, orderId=${event.orderId}" }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -58,11 +55,11 @@ class OrderOutboxListener(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.orderId.toString(),
             eventType = "OrderPaid",
-            topic = TOPIC_ORDER_PAID,
+            topic = ClosetTopics.ORDER,
             partitionKey = event.orderId.toString(),
             payload = payload,
         )
-        logger.info { "Outbox 이벤트 저장: topic=$TOPIC_ORDER_PAID, orderId=${event.orderId}" }
+        logger.info { "Outbox 이벤트 저장: topic=${ClosetTopics.ORDER}, orderId=${event.orderId}" }
     }
 
     @TransactionalEventListener(phase = TransactionPhase.BEFORE_COMMIT)
@@ -72,10 +69,10 @@ class OrderOutboxListener(
             aggregateType = AGGREGATE_TYPE,
             aggregateId = event.orderId.toString(),
             eventType = "OrderConfirmed",
-            topic = TOPIC_ORDER_CONFIRMED,
+            topic = ClosetTopics.ORDER,
             partitionKey = event.orderId.toString(),
             payload = payload,
         )
-        logger.info { "Outbox 이벤트 저장: topic=$TOPIC_ORDER_CONFIRMED, orderId=${event.orderId}" }
+        logger.info { "Outbox 이벤트 저장: topic=${ClosetTopics.ORDER}, orderId=${event.orderId}" }
     }
 }

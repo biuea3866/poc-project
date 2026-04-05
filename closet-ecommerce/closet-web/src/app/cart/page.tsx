@@ -165,8 +165,9 @@ export default function CartPage() {
                     alert(`주문이 완료되었습니다! 주문번호: ${res.data.data.orderNumber}`);
                     router.push(`/orders/${res.data.data.id}`);
                   }
-                } catch (e: any) {
-                  alert(e.response?.data?.error?.message || '주문에 실패했습니다.');
+                } catch (e: unknown) {
+                  const err = e as { response?: { data?: { error?: { message?: string } } } };
+                  alert(err.response?.data?.error?.message || '주문에 실패했습니다.');
                 } finally {
                   setOrdering(false);
                 }

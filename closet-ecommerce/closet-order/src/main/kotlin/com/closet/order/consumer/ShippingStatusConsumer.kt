@@ -1,5 +1,6 @@
 package com.closet.order.consumer
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.idempotency.IdempotencyChecker
 import com.closet.order.domain.order.OrderStatus
 import com.closet.order.repository.OrderRepository
@@ -14,6 +15,12 @@ import org.springframework.transaction.annotation.Transactional
 
 private val logger = KotlinLogging.logger {}
 
+/**
+ * event.closet.shipping 토픽 Consumer.
+ *
+ * 배송 상태 변경(ShippingStatusChanged) 이벤트를 수신하여 주문 상태를 동기화한다.
+ * eventType="ShippingStatusChanged"만 처리하고, 나머지는 무시한다.
+ */
 @Component
 class ShippingStatusConsumer(
     private val orderRepository: OrderRepository,
@@ -23,48 +30,57 @@ class ShippingStatusConsumer(
 ) {
 
     companion object {
-        private const val TOPIC = "shipping.status.changed"
         private const val CONSUMER_GROUP = "order-service"
     }
 
-    data class ShippingStatusChangedPayload(
-        val eventId: String,
-        val orderId: Long,
-        val shippingStatus: String,
+    data class ShippingEventEnvelope(
+        val eventType: String,
+        val eventId: String? = null,
+        val orderId: Long? = null,
+        val shippingStatus: String? = null,
     )
 
-    @KafkaListener(topics = [TOPIC], groupId = CONSUMER_GROUP)
+    @KafkaListener(topics = [ClosetTopics.SHIPPING], groupId = CONSUMER_GROUP)
     @Transactional
     fun consume(record: ConsumerRecord<String, String>) {
-        val payload = try {
-            objectMapper.readValue(record.value(), ShippingStatusChangedPayload::class.java)
+        val envelope = try {
+            objectMapper.readValue(record.value(), ShippingEventEnvelope::class.java)
         } catch (e: Exception) {
-            logger.error(e) { "shipping.status.changed 메시지 파싱 실패: ${record.value()}" }
+            logger.error(e) { "${ClosetTopics.SHIPPING} 메시지 파싱 실패: ${record.value()}" }
             return
         }
 
-        logger.info { "shipping.status.changed 수신: orderId=${payload.orderId}, shippingStatus=${payload.shippingStatus}" }
+        if (envelope.eventType != "ShippingStatusChanged") {
+            logger.debug { "처리하지 않는 eventType 무시: ${envelope.eventType}" }
+            return
+        }
 
-        idempotencyChecker.process(payload.eventId, TOPIC, CONSUMER_GROUP) {
-            val order = orderRepository.findByIdAndDeletedAtIsNull(payload.orderId)
+        val eventId = envelope.eventId ?: return
+        val orderId = envelope.orderId ?: return
+        val shippingStatus = envelope.shippingStatus ?: return
+
+        logger.info { "ShippingStatusChanged 수신: orderId=$orderId, shippingStatus=$shippingStatus" }
+
+        idempotencyChecker.process(eventId, ClosetTopics.SHIPPING, CONSUMER_GROUP) {
+            val order = orderRepository.findByIdAndDeletedAtIsNull(orderId)
             if (order == null) {
-                logger.warn { "주문을 찾을 수 없습니다. orderId=${payload.orderId}" }
+                logger.warn { "주문을 찾을 수 없습니다. orderId=$orderId" }
                 return@process
             }
 
             if (order.status.isTerminal()) {
-                logger.info { "터미널 상태 주문은 무시합니다. orderId=${payload.orderId}, status=${order.status}" }
+                logger.info { "터미널 상태 주문은 무시합니다. orderId=$orderId, status=${order.status}" }
                 return@process
             }
 
-            val targetStatus = mapShippingStatusToOrderStatus(payload.shippingStatus)
+            val targetStatus = mapShippingStatusToOrderStatus(shippingStatus)
             if (targetStatus == null) {
-                logger.warn { "알 수 없는 배송 상태: ${payload.shippingStatus}" }
+                logger.warn { "알 수 없는 배송 상태: $shippingStatus" }
                 return@process
             }
 
             if (!order.status.canTransitionTo(targetStatus)) {
-                logger.warn { "잘못된 상태 전이 시도: ${order.status} -> $targetStatus, orderId=${payload.orderId}" }
+                logger.warn { "잘못된 상태 전이 시도: ${order.status} -> $targetStatus, orderId=$orderId" }
                 return@process
             }
 
@@ -88,7 +104,7 @@ class ShippingStatusConsumer(
                 )
             )
 
-            logger.info { "주문 상태 동기화 완료: orderId=${payload.orderId}, ${previousStatus} -> ${order.status}" }
+            logger.info { "주문 상태 동기화 완료: orderId=$orderId, ${previousStatus} -> ${order.status}" }
         }
     }
 

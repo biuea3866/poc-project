@@ -49,8 +49,8 @@ class OrderOutboxListenerTest : BehaviorSpec({
         When("OrderOutboxListener가 이벤트를 처리하면") {
             listener.handleOrderCreated(event)
 
-            Then("order.created 토픽으로 outbox 이벤트가 저장된다") {
-                topicSlot.captured shouldBe "order.created"
+            Then("event.closet.order 토픽으로 outbox 이벤트가 저장된다") {
+                topicSlot.captured shouldBe "event.closet.order"
                 eventTypeSlot.captured shouldBe "OrderCreated"
                 aggregateIdSlot.captured shouldBe "1"
             }
@@ -61,7 +61,7 @@ class OrderOutboxListenerTest : BehaviorSpec({
                         aggregateType = "Order",
                         aggregateId = "1",
                         eventType = "OrderCreated",
-                        topic = "order.created",
+                        topic = "event.closet.order",
                         partitionKey = "1",
                         payload = any(),
                     )
@@ -93,13 +93,13 @@ class OrderOutboxListenerTest : BehaviorSpec({
         When("OrderOutboxListener가 이벤트를 처리하면") {
             listener.handleOrderCancelled(event)
 
-            Then("order.cancelled 토픽으로 outbox 이벤트가 저장된다") {
+            Then("event.closet.order 토픽으로 outbox 이벤트가 저장된다") {
                 verify(exactly = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Order",
                         aggregateId = "2",
                         eventType = "OrderCancelled",
-                        topic = "order.cancelled",
+                        topic = "event.closet.order",
                         partitionKey = "2",
                         payload = any(),
                     )
@@ -128,13 +128,13 @@ class OrderOutboxListenerTest : BehaviorSpec({
         When("OrderOutboxListener가 이벤트를 처리하면") {
             listener.handleOrderPaid(event)
 
-            Then("order.paid 토픽으로 outbox 이벤트가 저장된다") {
+            Then("event.closet.order 토픽으로 outbox 이벤트가 저장된다") {
                 verify(exactly = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Order",
                         aggregateId = "3",
                         eventType = "OrderPaid",
-                        topic = "order.paid",
+                        topic = "event.closet.order",
                         partitionKey = "3",
                         payload = any(),
                     )
@@ -163,13 +163,13 @@ class OrderOutboxListenerTest : BehaviorSpec({
         When("OrderOutboxListener가 이벤트를 처리하면") {
             listener.handleOrderConfirmed(event)
 
-            Then("order.confirmed 토픽으로 outbox 이벤트가 저장된다") {
+            Then("event.closet.order 토픽으로 outbox 이벤트가 저장된다") {
                 verify(exactly = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Order",
                         aggregateId = "4",
                         eventType = "OrderConfirmed",
-                        topic = "order.confirmed",
+                        topic = "event.closet.order",
                         partitionKey = "4",
                         payload = any(),
                     )

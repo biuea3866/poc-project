@@ -1,5 +1,6 @@
 package com.closet.shipping.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.common.outbox.OutboxEventPublisher
@@ -12,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -177,7 +178,7 @@ class ReturnService(
                 "quantity" to returnRequest.quantity,
                 "refundAmount" to returnRequest.refundAmount.amount.toLong(),
                 "shippingFee" to returnRequest.shippingFee.amount.toLong(),
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
                 "items" to listOf(
                     mapOf(
                         "productOptionId" to returnRequest.productOptionId,
@@ -191,7 +192,7 @@ class ReturnService(
             aggregateType = "ReturnRequest",
             aggregateId = returnRequest.id.toString(),
             eventType = "ReturnApproved",
-            topic = "return.approved",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = returnRequest.orderId.toString(),
             payload = payload,
         )

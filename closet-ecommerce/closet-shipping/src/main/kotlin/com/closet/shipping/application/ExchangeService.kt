@@ -1,5 +1,6 @@
 package com.closet.shipping.application
 
+import com.closet.common.event.ClosetTopics
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
 import com.closet.common.outbox.OutboxEventPublisher
@@ -12,7 +13,7 @@ import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -168,7 +169,7 @@ class ExchangeService(
                 "orderId" to exchangeRequest.orderId,
                 "newProductOptionId" to exchangeRequest.newProductOptionId,
                 "quantity" to exchangeRequest.quantity,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -176,7 +177,7 @@ class ExchangeService(
             aggregateType = "ExchangeRequest",
             aggregateId = exchangeRequest.id.toString(),
             eventType = "ExchangeRequested",
-            topic = "exchange.requested",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = exchangeRequest.orderId.toString(),
             payload = payload,
         )
@@ -189,7 +190,7 @@ class ExchangeService(
                 "orderId" to exchangeRequest.orderId,
                 "originalProductOptionId" to exchangeRequest.originalProductOptionId,
                 "quantity" to exchangeRequest.quantity,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -197,7 +198,7 @@ class ExchangeService(
             aggregateType = "ExchangeRequest",
             aggregateId = exchangeRequest.id.toString(),
             eventType = "ExchangePickupCompleted",
-            topic = "exchange.pickup.completed",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = exchangeRequest.orderId.toString(),
             payload = payload,
         )
@@ -210,7 +211,7 @@ class ExchangeService(
                 "orderId" to exchangeRequest.orderId,
                 "newProductOptionId" to exchangeRequest.newProductOptionId,
                 "quantity" to exchangeRequest.quantity,
-                "timestamp" to LocalDateTime.now().toString(),
+                "timestamp" to ZonedDateTime.now().toString(),
             )
         )
 
@@ -218,7 +219,7 @@ class ExchangeService(
             aggregateType = "ExchangeRequest",
             aggregateId = exchangeRequest.id.toString(),
             eventType = "ExchangeRejected",
-            topic = "exchange.rejected",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = exchangeRequest.orderId.toString(),
             payload = payload,
         )

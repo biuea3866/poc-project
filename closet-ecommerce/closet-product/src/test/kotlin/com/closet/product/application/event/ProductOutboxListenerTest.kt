@@ -40,8 +40,8 @@ class ProductOutboxListenerTest : BehaviorSpec({
         When("ProductOutboxListener가 이벤트를 처리하면") {
             listener.handleProductCreated(event)
 
-            Then("outbox_event에 product.created 토픽으로 INSERT한다") {
-                val topicSlot = slot<String>()
+            Then("outbox_event에 event.closet.product 토픽으로 INSERT한다") {
+                val eventTypeSlot = slot<String>()
                 val partitionKeySlot = slot<String>()
                 val payloadSlot = slot<String>()
 
@@ -49,14 +49,14 @@ class ProductOutboxListenerTest : BehaviorSpec({
                     outboxEventPublisher.publish(
                         aggregateType = "Product",
                         aggregateId = "1",
-                        eventType = capture(topicSlot),
-                        topic = "product.created",
+                        eventType = capture(eventTypeSlot),
+                        topic = "event.closet.product",
                         partitionKey = capture(partitionKeySlot),
                         payload = capture(payloadSlot),
                     )
                 }
 
-                topicSlot.captured shouldBe "product.created"
+                eventTypeSlot.captured shouldBe "ProductCreated"
                 partitionKeySlot.captured shouldBe "1"
                 payloadSlot.captured shouldContain "오버핏 반팔 티셔츠"
                 payloadSlot.captured shouldContain "\"productId\":1"
@@ -86,22 +86,22 @@ class ProductOutboxListenerTest : BehaviorSpec({
         When("ProductOutboxListener가 이벤트를 처리하면") {
             listener.handleProductUpdated(event)
 
-            Then("outbox_event에 product.updated 토픽으로 INSERT한다") {
-                val topicSlot = slot<String>()
+            Then("outbox_event에 event.closet.product 토픽으로 INSERT한다") {
+                val eventTypeSlot = slot<String>()
                 val partitionKeySlot = slot<String>()
 
                 verify {
                     outboxEventPublisher.publish(
                         aggregateType = "Product",
                         aggregateId = "2",
-                        eventType = capture(topicSlot),
-                        topic = "product.updated",
+                        eventType = capture(eventTypeSlot),
+                        topic = "event.closet.product",
                         partitionKey = capture(partitionKeySlot),
                         payload = any(),
                     )
                 }
 
-                topicSlot.captured shouldBe "product.updated"
+                eventTypeSlot.captured shouldBe "ProductUpdated"
                 partitionKeySlot.captured shouldBe "2"
             }
         }
@@ -118,8 +118,8 @@ class ProductOutboxListenerTest : BehaviorSpec({
         When("ProductOutboxListener가 이벤트를 처리하면") {
             listener.handleProductDeleted(event)
 
-            Then("outbox_event에 product.deleted 토픽으로 INSERT한다") {
-                val topicSlot = slot<String>()
+            Then("outbox_event에 event.closet.product 토픽으로 INSERT한다") {
+                val eventTypeSlot = slot<String>()
                 val partitionKeySlot = slot<String>()
                 val payloadSlot = slot<String>()
 
@@ -127,14 +127,14 @@ class ProductOutboxListenerTest : BehaviorSpec({
                     outboxEventPublisher.publish(
                         aggregateType = "Product",
                         aggregateId = "3",
-                        eventType = capture(topicSlot),
-                        topic = "product.deleted",
+                        eventType = capture(eventTypeSlot),
+                        topic = "event.closet.product",
                         partitionKey = capture(partitionKeySlot),
                         payload = capture(payloadSlot),
                     )
                 }
 
-                topicSlot.captured shouldBe "product.deleted"
+                eventTypeSlot.captured shouldBe "ProductDeleted"
                 partitionKeySlot.captured shouldBe "3"
                 payloadSlot.captured shouldContain "\"productId\":3"
                 payloadSlot.captured shouldContain "삭제된 상품"
