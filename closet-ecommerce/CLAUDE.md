@@ -145,6 +145,19 @@ JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Content
 - Pinpoint APM (트레이싱) — http://localhost:8079
 - Alertmanager (알림)
 
+## 전직군 구성
+
+| 직군 | 역할 | 주요 산출물 |
+|------|------|-----------|
+| **PM** | 요구사항, KPI, 우선순위, A/B 테스트 설계 | PRD, 릴리즈 노트 |
+| **Designer** | UI/UX 디자인, 디자인 시스템, 와이어프레임 | Figma 목업, 디자인 토큰, 스타일 가이드 |
+| **Researcher** | 사용자 리서치, UT, 퍼널 분석, A/B 결과 분석 | 페르소나, UT 리포트, 인사이트 리포트 |
+| **BE** | API, 도메인, DB, 이벤트 설계/구현 | API Contract, ADR, ERD, 코드 |
+| **FE** | UI 구현, API 연동, 반응형 | 페이지, Storybook, E2E 테스트 |
+| **DevOps** | 인프라, CI/CD, 모니터링, 스케일링 | Docker, GitHub Actions, Grafana, Terraform |
+| **QA** | 테스트 케이스, API/E2E/부하/보안 테스트 | TC, 검증 리포트, 부하 테스트 결과 |
+| **Marketer** | GTM, 프로모션 기획, CRM, 퍼포먼스 마케팅 | 마케팅 캘린더, 캠페인 기획서, UTM 설계 |
+
 ## 분석 파이프라인
 
 `.analysis/` 디렉토리에 파이프라인이 정의되어 있다.
