@@ -1,6 +1,6 @@
 package com.closet.search.consumer
 
-import com.closet.search.application.service.ProductSearchService
+import com.closet.search.application.facade.SearchFacade
 import com.fasterxml.jackson.databind.ObjectMapper
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import io.kotest.core.spec.style.BehaviorSpec
@@ -11,11 +11,11 @@ import java.math.BigDecimal
 
 class ProductEventConsumerTest : BehaviorSpec({
 
-    val productSearchService = mockk<ProductSearchService>(relaxed = true)
+    val searchFacade = mockk<SearchFacade>(relaxed = true)
     val objectMapper: ObjectMapper = jacksonObjectMapper()
 
     val consumer = ProductEventConsumer(
-        productSearchService = productSearchService,
+        searchFacade = searchFacade,
         objectMapper = objectMapper,
     )
 
@@ -47,9 +47,9 @@ class ProductEventConsumerTest : BehaviorSpec({
         When("Consumer가 메시지를 처리하면") {
             consumer.consume(record)
 
-            Then("ProductSearchService.indexProduct이 호출된다") {
+            Then("SearchFacade.handleProductCreated가 호출된다") {
                 verify(exactly = 1) {
-                    productSearchService.indexProduct(
+                    searchFacade.handleProductCreated(
                         productId = 1L,
                         name = "오버핏 맨투맨",
                         description = "편안한 맨투맨",
@@ -99,9 +99,9 @@ class ProductEventConsumerTest : BehaviorSpec({
         When("Consumer가 메시지를 처리하면") {
             consumer.consume(record)
 
-            Then("ProductSearchService.updateProduct이 호출된다") {
+            Then("SearchFacade.handleProductUpdated가 호출된다") {
                 verify(exactly = 1) {
-                    productSearchService.updateProduct(
+                    searchFacade.handleProductUpdated(
                         productId = 1L,
                         name = "오버핏 맨투맨 (리뉴얼)",
                         description = any(),
@@ -140,9 +140,9 @@ class ProductEventConsumerTest : BehaviorSpec({
         When("Consumer가 메시지를 처리하면") {
             consumer.consume(record)
 
-            Then("ProductSearchService.deleteProduct이 호출된다") {
+            Then("SearchFacade.handleProductDeleted가 호출된다") {
                 verify(exactly = 1) {
-                    productSearchService.deleteProduct(1L)
+                    searchFacade.handleProductDeleted(1L)
                 }
             }
         }
@@ -163,7 +163,7 @@ class ProductEventConsumerTest : BehaviorSpec({
             consumer.consume(record)
 
             Then("아무 서비스 호출도 발생하지 않는다") {
-                // no additional calls expected beyond previous test assertions
+                // unknown eventType이므로 무시
             }
         }
     }

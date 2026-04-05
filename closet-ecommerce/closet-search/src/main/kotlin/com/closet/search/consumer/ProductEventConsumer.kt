@@ -1,7 +1,7 @@
 package com.closet.search.consumer
 
 import com.closet.common.event.ClosetTopics
-import com.closet.search.application.service.ProductSearchService
+import com.closet.search.application.facade.SearchFacade
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.apache.kafka.clients.consumer.ConsumerRecord
@@ -20,12 +20,15 @@ private val logger = KotlinLogging.logger {}
  * - ProductUpdated: ES 문서 갱신
  * - ProductDeleted: ES 문서 삭제
  *
+ * Consumer는 이벤트 수신 및 라우팅만 담당하고,
+ * 실제 비즈니스 로직은 SearchFacade에 위임한다.
+ *
  * SEARCH_INDEXING_ENABLED Feature Flag로 활성화/비활성화를 제어한다.
  */
 @Component
 @ConditionalOnProperty(name = ["feature.search-indexing-enabled"], havingValue = "true", matchIfMissing = true)
 class ProductEventConsumer(
-    private val productSearchService: ProductSearchService,
+    private val searchFacade: SearchFacade,
     private val objectMapper: ObjectMapper,
 ) {
 
@@ -65,7 +68,7 @@ class ProductEventConsumer(
 
         try {
             when (payload.eventType) {
-                "ProductCreated" -> productSearchService.indexProduct(
+                "ProductCreated" -> searchFacade.handleProductCreated(
                     productId = payload.productId,
                     name = payload.name,
                     description = payload.description,
@@ -83,7 +86,7 @@ class ProductEventConsumer(
                     imageUrl = payload.imageUrl,
                 )
 
-                "ProductUpdated" -> productSearchService.updateProduct(
+                "ProductUpdated" -> searchFacade.handleProductUpdated(
                     productId = payload.productId,
                     name = payload.name,
                     description = payload.description,
@@ -101,7 +104,7 @@ class ProductEventConsumer(
                     imageUrl = payload.imageUrl,
                 )
 
-                "ProductDeleted" -> productSearchService.deleteProduct(payload.productId)
+                "ProductDeleted" -> searchFacade.handleProductDeleted(payload.productId)
 
                 else -> logger.info { "처리하지 않는 eventType 무시: ${payload.eventType}" }
             }

@@ -13,7 +13,6 @@ import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import org.apache.kafka.clients.consumer.ConsumerRecord
 
@@ -57,12 +56,13 @@ class ShippingStatusConsumerTest : BehaviorSpec({
     fun makeRecord(eventId: String, orderId: Long, shippingStatus: String): ConsumerRecord<String, String> {
         val payload = objectMapper.writeValueAsString(
             mapOf(
+                "eventType" to "ShippingStatusChanged",
                 "eventId" to eventId,
                 "orderId" to orderId,
                 "shippingStatus" to shippingStatus,
             )
         )
-        return ConsumerRecord("shipping.status.changed", 0, 0, orderId.toString(), payload)
+        return ConsumerRecord("event.closet.shipping", 0, 0, orderId.toString(), payload)
     }
 
     Given("PAID 상태 주문에 READY 배송 이벤트 수신") {
@@ -77,7 +77,7 @@ class ShippingStatusConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("shipping.status.changed(READY) 이벤트 수신") {
+        When("ShippingStatusChanged(READY) 이벤트 수신") {
             consumer.consume(makeRecord("evt-1", order.id, "READY"))
 
             Then("주문 상태가 PREPARING으로 변경된다") {
@@ -99,7 +99,7 @@ class ShippingStatusConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("shipping.status.changed(IN_TRANSIT) 이벤트 수신") {
+        When("ShippingStatusChanged(IN_TRANSIT) 이벤트 수신") {
             consumer.consume(makeRecord("evt-2", order.id, "IN_TRANSIT"))
 
             Then("주문 상태가 SHIPPED로 변경된다") {
@@ -122,7 +122,7 @@ class ShippingStatusConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("shipping.status.changed(DELIVERED) 이벤트 수신") {
+        When("ShippingStatusChanged(DELIVERED) 이벤트 수신") {
             consumer.consume(makeRecord("evt-3", order.id, "DELIVERED"))
 
             Then("주문 상태가 DELIVERED로 변경된다") {
@@ -142,7 +142,7 @@ class ShippingStatusConsumerTest : BehaviorSpec({
             block()
         }
 
-        When("shipping.status.changed(READY) 이벤트 수신") {
+        When("ShippingStatusChanged(READY) 이벤트 수신") {
             consumer.consume(makeRecord("evt-4", order.id, "READY"))
 
             Then("주문 상태가 변경되지 않는다") {
@@ -167,6 +167,24 @@ class ShippingStatusConsumerTest : BehaviorSpec({
 
             Then("주문 상태가 변경되지 않는다 (PAID -> SHIPPED 불가)") {
                 order.status shouldBe OrderStatus.PAID
+            }
+        }
+    }
+
+    Given("처리하지 않는 eventType 수신") {
+        val payload = objectMapper.writeValueAsString(
+            mapOf(
+                "eventType" to "ReturnApproved",
+                "orderId" to 1L,
+            )
+        )
+        val record = ConsumerRecord<String, String>("event.closet.shipping", 0, 0, "1", payload)
+
+        When("ReturnApproved 이벤트 수신") {
+            consumer.consume(record)
+
+            Then("무시된다") {
+                // eventType 필터에 의해 무시
             }
         }
     }
