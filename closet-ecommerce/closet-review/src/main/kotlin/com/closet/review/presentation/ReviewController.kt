@@ -4,7 +4,10 @@ import com.closet.common.auth.MemberRole
 import com.closet.common.auth.RoleRequired
 import com.closet.common.response.ApiResponse
 import com.closet.review.application.CreateReviewRequest
+import com.closet.review.application.PresignedUploadUrlRequest
+import com.closet.review.application.PresignedUploadUrlResponse
 import com.closet.review.application.ReviewEditHistoryResponse
+import com.closet.review.application.ReviewImageService
 import com.closet.review.application.ReviewResponse
 import com.closet.review.application.ReviewService
 import com.closet.review.application.ReviewSummaryResponse
@@ -20,6 +23,7 @@ import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
 import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
+import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestHeader
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
@@ -39,12 +43,14 @@ import org.springframework.web.multipart.MultipartFile
  * GET    /api/v1/reviews/my               - 내 리뷰 목록
  * GET    /api/v1/reviews/{id}/history     - 수정 이력 (CP-26)
  * GET    /api/v1/reviews/summary/{productId} - 리뷰 집계 (CP-25)
+ * POST   /api/v1/reviews/images/presigned-url - 이미지 Presigned Upload URL 발급
  */
 @RestController
 @RequestMapping("/api/v1/reviews")
 class ReviewController(
     private val reviewService: ReviewService,
     private val reviewSummaryService: ReviewSummaryService,
+    private val reviewImageService: ReviewImageService,
 ) {
 
     /**
@@ -143,6 +149,20 @@ class ReviewController(
     @GetMapping("/summary/{productId}")
     fun getReviewSummary(@PathVariable productId: Long): ApiResponse<ReviewSummaryResponse?> {
         val response = reviewSummaryService.getSummary(productId)
+        return ApiResponse.ok(response)
+    }
+
+    /**
+     * 리뷰 이미지 Presigned Upload URL 발급.
+     * 클라이언트가 이 URL로 MinIO/S3에 직접 업로드한다.
+     */
+    @PostMapping("/images/presigned-url")
+    @RoleRequired(MemberRole.BUYER)
+    fun getPresignedUploadUrl(
+        @RequestHeader("X-Member-Id") memberId: Long,
+        @RequestBody @Valid request: PresignedUploadUrlRequest,
+    ): ApiResponse<PresignedUploadUrlResponse> {
+        val response = reviewImageService.generatePresignedUploadUrl(memberId, request)
         return ApiResponse.ok(response)
     }
 }

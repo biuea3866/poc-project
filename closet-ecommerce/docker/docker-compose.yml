@@ -86,6 +86,40 @@ services:
         kafka-topics --bootstrap-server kafka:9092 --list
         echo '=== Kafka topic initialization complete ==='
 
+  minio:
+    image: minio/minio:latest
+    container_name: closet-minio
+    ports:
+      - "9000:9000"    # S3 API
+      - "9001:9001"    # Console UI
+    environment:
+      MINIO_ROOT_USER: closet-admin
+      MINIO_ROOT_PASSWORD: closet-secret-key
+    command: server /data --console-address ":9001"
+    volumes:
+      - minio-data:/data
+    healthcheck:
+      test: ["CMD", "mc", "ready", "local"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  minio-init:
+    image: minio/mc:latest
+    container_name: minio-init
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      mc alias set closet http://minio:9000 closet-admin closet-secret-key;
+      mc mb closet/closet-product-images --ignore-existing;
+      mc mb closet/closet-review-images --ignore-existing;
+      mc anonymous set download closet/closet-product-images;
+      mc anonymous set download closet/closet-review-images;
+      echo 'MinIO buckets created successfully';
+      "
+
   elasticsearch:
     build:
       context: ./elasticsearch
@@ -428,6 +462,7 @@ volumes:
   mysql-data:
   redis-data:
   es-data:
+  minio-data:
   prometheus-data:
   grafana-data:
   loki-data:
