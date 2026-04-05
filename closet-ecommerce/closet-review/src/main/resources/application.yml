@@ -39,6 +39,14 @@ review:
   image:
     upload-dir: ./uploads/reviews
 
+storage:
+  endpoint: http://localhost:9000
+  access-key: closet-admin
+  secret-key: closet-secret-key
+  region: ap-northeast-2
+  product-bucket: closet-product-images
+  review-bucket: closet-review-images
+
 logging:
   level:
     com.closet: DEBUG

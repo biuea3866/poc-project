@@ -7,6 +7,10 @@ dependencies {
 
     // Redisson (분산 락)
     implementation("org.redisson:redisson-spring-boot-starter:3.25.2")
+
+    // AWS S3 SDK (MinIO 호환 — endpoint만 변경하면 AWS S3로 전환 가능)
+    implementation(platform("software.amazon.awssdk:bom:2.25.0"))
+    implementation("software.amazon.awssdk:s3")
 }
 
 tasks.getByName<org.springframework.boot.gradle.tasks.bundling.BootJar>("bootJar") {
