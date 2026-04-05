@@ -1,0 +1,12 @@
+FROM amazoncorretto:17-alpine
+
+# Pinpoint Agent v2.5.1 base image
+# Spring Boot services can extend this image to include the Pinpoint Agent
+ARG PINPOINT_VERSION=2.5.1
+
+ADD https://github.com/pinpoint-apm/pinpoint/releases/download/v${PINPOINT_VERSION}/pinpoint-agent-${PINPOINT_VERSION}.tar.gz /opt/
+
+RUN tar -xzf /opt/pinpoint-agent-${PINPOINT_VERSION}.tar.gz -C /opt/ \
+    && rm /opt/pinpoint-agent-${PINPOINT_VERSION}.tar.gz
+
+ENV PINPOINT_AGENT_HOME=/opt/pinpoint-agent-${PINPOINT_VERSION}
