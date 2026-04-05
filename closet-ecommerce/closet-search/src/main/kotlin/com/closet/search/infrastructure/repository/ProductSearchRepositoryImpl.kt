@@ -12,9 +12,13 @@ import org.springframework.data.domain.Page
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.Pageable
 import org.springframework.data.elasticsearch.client.elc.NativeQuery
+import org.springframework.data.elasticsearch.client.elc.NativeQueryBuilder
 import org.springframework.data.elasticsearch.core.ElasticsearchOperations
-import org.springframework.data.elasticsearch.core.SearchHitSupport
+import org.springframework.data.elasticsearch.core.query.HighlightQuery
 import org.springframework.data.elasticsearch.core.query.Query
+import org.springframework.data.elasticsearch.core.query.highlight.Highlight
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightField
+import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters
 import org.springframework.stereotype.Repository
 import co.elastic.clients.elasticsearch._types.aggregations.Aggregation
 import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
@@ -41,7 +45,7 @@ class ProductSearchRepositoryImpl(
     private val operations: ElasticsearchOperations,
 ) : ProductSearchRepositoryCustom {
 
-    override fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductDocument> {
+    override fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductSearchResponse> {
         val boolQuery = buildBoolQuery(filter)
 
         val nativeQueryBuilder = NativeQuery.builder()
@@ -49,14 +53,17 @@ class ProductSearchRepositoryImpl(
             .withPageable(pageable)
 
         applySorting(nativeQueryBuilder, filter.sort)
+        applyHighlighting(nativeQueryBuilder)
 
         val query: Query = nativeQueryBuilder.build()
         val searchHits = operations.search(query, ProductDocument::class.java)
 
         logger.debug { "검색 결과: totalHits=${searchHits.totalHits}, keyword=${filter.keyword}" }
 
-        @Suppress("UNCHECKED_CAST")
-        return SearchHitSupport.searchPageFor(searchHits, pageable) as Page<ProductDocument>
+        val responses = searchHits.searchHits.map { hit ->
+            ProductSearchResponse.from(hit.content, hit.highlightFields)
+        }
+        return PageImpl(responses, pageable, searchHits.totalHits)
     }
 
     override fun searchWithFacets(filter: ProductSearchFilter, pageable: Pageable): FilterFacetResponse {
@@ -67,6 +74,7 @@ class ProductSearchRepositoryImpl(
             .withPageable(pageable)
 
         applySorting(nativeQueryBuilder, filter.sort)
+        applyHighlighting(nativeQueryBuilder)
 
         // Aggregation 추가 (카테고리, 브랜드, 사이즈, 색상, 가격 범위)
         nativeQueryBuilder.withAggregation(
@@ -105,8 +113,10 @@ class ProductSearchRepositoryImpl(
 
         logger.debug { "필터 검색 결과: totalHits=${searchHits.totalHits}, keyword=${filter.keyword}" }
 
-        // 상품 목록 매핑
-        val products = searchHits.searchHits.map { ProductSearchResponse.from(it.content) }
+        // 상품 목록 매핑 (하이라이팅 포함)
+        val products = searchHits.searchHits.map { hit ->
+            ProductSearchResponse.from(hit.content, hit.highlightFields)
+        }
 
         // Aggregation 결과 파싱
         val aggregations = searchHits.aggregations
@@ -288,7 +298,7 @@ class ProductSearchRepositoryImpl(
     /**
      * 정렬 옵션 적용.
      */
-    private fun applySorting(builder: NativeQuery.Builder, sort: String?) {
+    private fun applySorting(builder: NativeQueryBuilder, sort: String?) {
         when (sort) {
             "PRICE_ASC", "price_asc" -> builder.withSort { s -> s.field { f -> f.field("salePrice").order(SortOrder.Asc) } }
             "PRICE_DESC", "price_desc" -> builder.withSort { s -> s.field { f -> f.field("salePrice").order(SortOrder.Desc) } }
@@ -306,6 +316,25 @@ class ProductSearchRepositoryImpl(
                 builder.withSort { s -> s.field { f -> f.field("createdAt").order(SortOrder.Desc) } }
             }
         }
+    }
+
+    /**
+     * 하이라이팅 설정 적용.
+     * name, description, brandName 필드에 em 태그 하이라이팅을 적용한다.
+     */
+    private fun applyHighlighting(builder: NativeQueryBuilder) {
+        val highlight = Highlight(
+            HighlightParameters.builder()
+                .withPreTags("<em>")
+                .withPostTags("</em>")
+                .build(),
+            listOf(
+                HighlightField("name"),
+                HighlightField("description"),
+                HighlightField("brandName"),
+            ),
+        )
+        builder.withHighlightQuery(HighlightQuery(highlight, ProductDocument::class.java))
     }
 
     // ──────────────────────────── Aggregation 파싱 ────────────────────────────
@@ -357,9 +386,11 @@ class ProductSearchRepositoryImpl(
 
             val rangeAgg = agg.range()
             rangeAgg.buckets().array().map { bucket ->
+                val fromVal = bucket.from()
+                val toVal = bucket.to()
                 PriceRangeBucket(
-                    from = if (bucket.from() != null && !bucket.from().isInfinite()) bucket.from() else null,
-                    to = if (bucket.to() != null && !bucket.to().isInfinite()) bucket.to() else null,
+                    from = if (fromVal != null && !fromVal.isInfinite()) fromVal else null,
+                    to = if (toVal != null && !toVal.isInfinite()) toVal else null,
                     count = bucket.docCount(),
                 )
             }

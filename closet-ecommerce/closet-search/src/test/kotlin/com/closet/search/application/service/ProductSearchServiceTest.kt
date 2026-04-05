@@ -1,6 +1,7 @@
 package com.closet.search.application.service
 
 import com.closet.search.application.dto.ProductSearchFilter
+import com.closet.search.application.dto.ProductSearchResponse
 import com.closet.search.application.dto.ProductServicePageResponse
 import com.closet.search.application.dto.ProductServiceResponse
 import com.closet.search.domain.ProductDocument
@@ -16,7 +17,7 @@ import io.mockk.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.Optional
 
 class ProductSearchServiceTest : BehaviorSpec({
@@ -39,13 +40,10 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("상품 검색 시") {
 
-        val document = ProductDocument(
+        val searchResponse = ProductSearchResponse(
             productId = 1L,
             name = "오버핏 맨투맨",
-            description = "편안한 오버핏 맨투맨입니다",
-            brandId = 1L,
             brandName = "무신사 스탠다드",
-            categoryId = 1L,
             categoryName = "상의",
             basePrice = BigDecimal("39000"),
             salePrice = BigDecimal("29000"),
@@ -55,31 +53,29 @@ class ProductSearchServiceTest : BehaviorSpec({
             fitType = "OVERFIT",
             gender = "UNISEX",
             season = "FW",
-            status = "ACTIVE",
             imageUrl = "https://cdn.closet.com/product/1.jpg",
-            popularityScore = 85.0,
-            salesCount = 1200,
             reviewCount = 350,
             avgRating = 4.5,
-            createdAt = LocalDateTime.now(),
-            updatedAt = LocalDateTime.now(),
+            popularityScore = 85.0,
+            highlights = mapOf("name" to listOf("<em>맨투맨</em>")),
         )
 
         val filter = ProductSearchFilter(keyword = "맨투맨")
         val pageable = PageRequest.of(0, 20)
-        val page = PageImpl(listOf(document), pageable, 1)
+        val page = PageImpl(listOf(searchResponse), pageable, 1)
 
         every { productSearchRepositoryCustom.search(filter, pageable) } returns page
 
         When("키워드로 검색하면") {
             val result = service.search(filter, pageable)
 
-            Then("검색 결과가 반환된다") {
+            Then("검색 결과가 하이라이팅과 함께 반환된다") {
                 result.content.size shouldBe 1
                 result.content[0].productId shouldBe 1L
                 result.content[0].name shouldBe "오버핏 맨투맨"
                 result.content[0].brandName shouldBe "무신사 스탠다드"
                 result.content[0].salePrice shouldBe BigDecimal("29000")
+                result.content[0].highlights shouldNotBe emptyMap<String, List<String>>()
             }
         }
     }
