@@ -2,6 +2,7 @@ package com.closet.search.infrastructure.repository
 
 import com.closet.search.application.dto.FilterFacetResponse
 import com.closet.search.application.dto.ProductSearchFilter
+import com.closet.search.application.dto.ProductSearchResponse
 import com.closet.search.domain.ProductDocument
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
@@ -13,9 +14,9 @@ import org.springframework.data.domain.Pageable
 interface ProductSearchRepositoryCustom {
 
     /**
-     * 키워드 + 필터 + 정렬 복합 검색 (US-701, US-702).
+     * 키워드 + 필터 + 정렬 복합 검색 + 하이라이팅 (US-701, US-702).
      */
-    fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductDocument>
+    fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductSearchResponse>
 
     /**
      * 필터 검색 + facet 집계 (US-703).

@@ -23,6 +23,7 @@ data class ProductSearchResponse(
     val reviewCount: Int,
     val avgRating: Double,
     val popularityScore: Double,
+    val highlights: Map<String, List<String>> = emptyMap(),
 ) {
     companion object {
         fun from(doc: ProductDocument): ProductSearchResponse {
@@ -43,6 +44,28 @@ data class ProductSearchResponse(
                 reviewCount = doc.reviewCount,
                 avgRating = doc.avgRating,
                 popularityScore = doc.popularityScore,
+            )
+        }
+
+        fun from(doc: ProductDocument, highlightFields: Map<String, List<String>>): ProductSearchResponse {
+            return ProductSearchResponse(
+                productId = doc.productId,
+                name = doc.name,
+                brandName = doc.brandName,
+                categoryName = doc.categoryName,
+                basePrice = doc.basePrice,
+                salePrice = doc.salePrice,
+                discountRate = doc.discountRate,
+                sizes = doc.sizes,
+                colors = doc.colors,
+                fitType = doc.fitType,
+                gender = doc.gender,
+                season = doc.season,
+                imageUrl = doc.imageUrl,
+                reviewCount = doc.reviewCount,
+                avgRating = doc.avgRating,
+                popularityScore = doc.popularityScore,
+                highlights = highlightFields,
             )
         }
     }

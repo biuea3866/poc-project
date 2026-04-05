@@ -32,11 +32,10 @@ class ProductSearchService(
 ) {
 
     /**
-     * 키워드 + 필터 + 정렬 상품 검색.
+     * 키워드 + 필터 + 정렬 상품 검색 (하이라이팅 포함).
      */
     fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductSearchResponse> {
-        val page = productSearchRepositoryCustom.search(filter, pageable)
-        return page.map { ProductSearchResponse.from(it) }
+        return productSearchRepositoryCustom.search(filter, pageable)
     }
 
     /**
