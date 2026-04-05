@@ -9,10 +9,10 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
- * 리뷰 수정 이력 엔티티 (PD-32).
+ * 리뷰 수정 이력 엔티티 (US-801).
  *
  * CS 대응을 위해 수정 전 내용을 보존한다.
  */
@@ -38,7 +38,7 @@ class ReviewEditHistory(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     companion object {
         fun create(reviewId: Long, previousContent: String, newContent: String, editCount: Int): ReviewEditHistory {

@@ -17,16 +17,18 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
- * 리뷰 엔티티.
+ * 리뷰 엔티티 (US-801 ~ US-803).
  *
- * - 별점 1-5 (PD-38: TINYINT UNSIGNED)
- * - 이미지 최대 5장
- * - 수정 최대 3회, 작성 후 7일 이내 (PD-32)
- * - 별점 수정 불가 (PD-32)
+ * - 별점 1-5
+ * - 텍스트 20-1000자
+ * - 이미지 최대 5장 (Presigned URL)
+ * - 수정 최대 3회, 작성 후 7일 이내
+ * - 별점 수정 불가
  * - 상태: VISIBLE / HIDDEN / DELETED
+ * - 사이즈 후기: 키, 몸무게, 평소 사이즈, 구매 사이즈, 핏 평가
  */
 @Entity
 @Table(name = "review")
@@ -57,12 +59,15 @@ class Review(
     @Column(name = "has_image", nullable = false, columnDefinition = "TINYINT(1)")
     var hasImage: Boolean = false,
 
-    // 사이즈 후기 (CP-25)
+    // 사이즈 후기 (US-802)
     @Column(name = "height")
     var height: Int? = null,
 
     @Column(name = "weight")
     var weight: Int? = null,
+
+    @Column(name = "normal_size", length = 20)
+    var normalSize: String? = null,
 
     @Column(name = "purchased_size", length = 20)
     var purchasedSize: String? = null,
@@ -70,6 +75,9 @@ class Review(
     @Enumerated(EnumType.STRING)
     @Column(name = "fit_type", length = 20, columnDefinition = "VARCHAR(20)")
     var fitType: FitType? = null,
+
+    @Column(name = "helpful_count", nullable = false)
+    var helpfulCount: Int = 0,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -81,27 +89,29 @@ class Review(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
     @Column(name = "deleted_at", columnDefinition = "DATETIME(6)")
-    var deletedAt: LocalDateTime? = null
+    var deletedAt: ZonedDateTime? = null
 
     init {
         require(rating in 1..5) { "별점은 1~5 사이여야 합니다: $rating" }
-        require(content.length <= 2000) { "리뷰 내용은 2000자 이내여야 합니다" }
+        require(content.length in MIN_CONTENT_LENGTH..MAX_CONTENT_LENGTH) {
+            "리뷰 내용은 ${MIN_CONTENT_LENGTH}~${MAX_CONTENT_LENGTH}자 사이여야 합니다"
+        }
     }
 
     /**
-     * 리뷰 수정 (PD-32).
+     * 리뷰 수정 (US-801).
      * - 별점 수정 불가
      * - 최대 3회 수정
      * - 작성 후 7일 이내
      */
-    fun update(newContent: String, now: LocalDateTime = LocalDateTime.now()) {
+    fun update(newContent: String, now: ZonedDateTime = ZonedDateTime.now()) {
         if (status == ReviewStatus.DELETED) {
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "삭제된 리뷰는 수정할 수 없습니다")
         }
@@ -111,7 +121,9 @@ class Review(
         if (now.isAfter(createdAt.plusDays(EDIT_DEADLINE_DAYS))) {
             throw BusinessException(ErrorCode.INVALID_INPUT, "수정 가능 기한(${EDIT_DEADLINE_DAYS}일)이 지났습니다")
         }
-        require(newContent.length <= 2000) { "리뷰 내용은 2000자 이내여야 합니다" }
+        require(newContent.length in MIN_CONTENT_LENGTH..MAX_CONTENT_LENGTH) {
+            "리뷰 내용은 ${MIN_CONTENT_LENGTH}~${MAX_CONTENT_LENGTH}자 사이여야 합니다"
+        }
 
         this.content = newContent
         this.editCount++
@@ -152,11 +164,11 @@ class Review(
     fun delete() {
         status.validateTransitionTo(ReviewStatus.DELETED)
         status = ReviewStatus.DELETED
-        deletedAt = LocalDateTime.now()
+        deletedAt = ZonedDateTime.now()
     }
 
     /**
-     * 관리자 블라인드 (PD-35).
+     * 관리자 블라인드.
      */
     fun hide() {
         status.validateTransitionTo(ReviewStatus.HIDDEN)
@@ -172,14 +184,48 @@ class Review(
     }
 
     /**
-     * 포토 리뷰 여부 확인 (포인트 차등 적립용).
+     * 포토 리뷰 여부.
      */
     fun isPhotoReview(): Boolean = hasImage && images.isNotEmpty()
+
+    /**
+     * 사이즈 정보 포함 여부 (US-802, US-803).
+     * 키, 몸무게, 핏 타입 중 하나라도 입력했으면 사이즈 정보 포함으로 간주.
+     */
+    fun hasSizeInfo(): Boolean = height != null && weight != null && fitType != null
+
+    /**
+     * "도움이 됐어요" 카운트 증가.
+     */
+    fun incrementHelpfulCount() {
+        helpfulCount++
+    }
+
+    /**
+     * 포인트 계산 (US-803).
+     * 텍스트 100P, 포토 300P, 사이즈정보 +50P
+     * 최대 조합: 350P (300 + 50)
+     */
+    fun calculatePointAmount(): Int {
+        var amount = TEXT_REVIEW_POINT
+        if (isPhotoReview()) {
+            amount = PHOTO_REVIEW_POINT
+        }
+        if (hasSizeInfo()) {
+            amount += SIZE_INFO_BONUS_POINT
+        }
+        return amount
+    }
 
     companion object {
         const val MAX_EDIT_COUNT = 3
         const val MAX_IMAGE_COUNT = 5
         const val EDIT_DEADLINE_DAYS = 7L
+        const val MIN_CONTENT_LENGTH = 20
+        const val MAX_CONTENT_LENGTH = 1000
+        const val TEXT_REVIEW_POINT = 100
+        const val PHOTO_REVIEW_POINT = 300
+        const val SIZE_INFO_BONUS_POINT = 50
 
         fun create(
             productId: Long,
@@ -189,6 +235,7 @@ class Review(
             content: String,
             height: Int? = null,
             weight: Int? = null,
+            normalSize: String? = null,
             purchasedSize: String? = null,
             fitType: FitType? = null,
         ): Review {
@@ -200,6 +247,7 @@ class Review(
                 content = content,
                 height = height,
                 weight = weight,
+                normalSize = normalSize,
                 purchasedSize = purchasedSize,
                 fitType = fitType,
             )

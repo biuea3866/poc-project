@@ -6,34 +6,25 @@ import jakarta.persistence.EntityListeners
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.JoinColumn
-import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
 import java.time.ZonedDateTime
 
 /**
- * 리뷰 이미지 엔티티 (US-801).
+ * 리뷰 "도움이 됐어요" 엔티티.
  *
- * Presigned URL로 MinIO/S3에 업로드된 이미지의 URL을 저장한다.
+ * 회원당 리뷰 1건당 1회만 투표 가능하다.
  */
 @Entity
-@Table(name = "review_image")
+@Table(name = "review_helpful")
 @EntityListeners(AuditingEntityListener::class)
-class ReviewImage(
-    @ManyToOne
-    @JoinColumn(name = "review_id", nullable = false)
-    val review: Review,
+class ReviewHelpful(
+    @Column(name = "review_id", nullable = false)
+    val reviewId: Long,
 
-    @Column(name = "image_url", nullable = false, length = 500)
-    val imageUrl: String,
-
-    @Column(name = "thumbnail_url", nullable = false, length = 500)
-    val thumbnailUrl: String,
-
-    @Column(name = "display_order", nullable = false)
-    val displayOrder: Int,
+    @Column(name = "member_id", nullable = false)
+    val memberId: Long,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -42,4 +33,10 @@ class ReviewImage(
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
     lateinit var createdAt: ZonedDateTime
+
+    companion object {
+        fun create(reviewId: Long, memberId: Long): ReviewHelpful {
+            return ReviewHelpful(reviewId = reviewId, memberId = memberId)
+        }
+    }
 }

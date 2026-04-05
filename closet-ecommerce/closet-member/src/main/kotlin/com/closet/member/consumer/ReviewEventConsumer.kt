@@ -14,8 +14,8 @@ private val logger = KotlinLogging.logger {}
  * event.closet.review 토픽 Consumer (CP-27).
  *
  * 리뷰 도메인 이벤트를 수신하여 eventType으로 분기한다.
- * - ReviewCreated: 포인트 적립 (텍스트 200P, 포토 500P, 일일 한도 5,000P PD-37)
- * - ReviewDeleted: 포인트 회수 (잔액 부족 시 마이너스 허용, PD-36)
+ * - ReviewCreated: 포인트 적립 (텍스트 100P, 포토 300P, 사이즈정보 +50P, 최대 350P, 일일 한도 5,000P)
+ * - ReviewDeleted: 포인트 회수 (잔액 부족 시 마이너스 허용)
  */
 @Component
 @ConditionalOnProperty(name = ["feature.review-point-enabled"], havingValue = "true", matchIfMissing = true)
