@@ -1,5 +1,15 @@
 package com.closet.search.infrastructure.repository
 
+import co.elastic.clients.elasticsearch._types.FieldValue
+import co.elastic.clients.elasticsearch._types.SortOrder
+import co.elastic.clients.elasticsearch._types.aggregations.Aggregation
+import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
+import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery
+import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery
+import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery
+import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery
+import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
+import co.elastic.clients.json.JsonData
 import com.closet.search.application.dto.FacetBucket
 import com.closet.search.application.dto.FacetResult
 import com.closet.search.application.dto.FilterFacetResponse
@@ -20,16 +30,6 @@ import org.springframework.data.elasticsearch.core.query.highlight.Highlight
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightField
 import org.springframework.data.elasticsearch.core.query.highlight.HighlightParameters
 import org.springframework.stereotype.Repository
-import co.elastic.clients.elasticsearch._types.aggregations.Aggregation
-import co.elastic.clients.elasticsearch._types.query_dsl.BoolQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.MultiMatchQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.TermQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.TermsQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.MatchQuery
-import co.elastic.clients.elasticsearch._types.query_dsl.TextQueryType
-import co.elastic.clients.elasticsearch._types.FieldValue
-import co.elastic.clients.elasticsearch._types.SortOrder
-import co.elastic.clients.json.JsonData
 
 private val logger = KotlinLogging.logger {}
 
@@ -44,13 +44,16 @@ private val logger = KotlinLogging.logger {}
 class ProductSearchRepositoryImpl(
     private val operations: ElasticsearchOperations,
 ) : ProductSearchRepositoryCustom {
-
-    override fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductSearchResponse> {
+    override fun search(
+        filter: ProductSearchFilter,
+        pageable: Pageable,
+    ): Page<ProductSearchResponse> {
         val boolQuery = buildBoolQuery(filter)
 
-        val nativeQueryBuilder = NativeQuery.builder()
-            .withQuery { q -> q.bool(boolQuery.build()) }
-            .withPageable(pageable)
+        val nativeQueryBuilder =
+            NativeQuery.builder()
+                .withQuery { q -> q.bool(boolQuery.build()) }
+                .withPageable(pageable)
 
         applySorting(nativeQueryBuilder, filter.sort)
         applyHighlighting(nativeQueryBuilder)
@@ -60,18 +63,23 @@ class ProductSearchRepositoryImpl(
 
         logger.debug { "검색 결과: totalHits=${searchHits.totalHits}, keyword=${filter.keyword}" }
 
-        val responses = searchHits.searchHits.map { hit ->
-            ProductSearchResponse.from(hit.content, hit.highlightFields)
-        }
+        val responses =
+            searchHits.searchHits.map { hit ->
+                ProductSearchResponse.from(hit.content, hit.highlightFields)
+            }
         return PageImpl(responses, pageable, searchHits.totalHits)
     }
 
-    override fun searchWithFacets(filter: ProductSearchFilter, pageable: Pageable): FilterFacetResponse {
+    override fun searchWithFacets(
+        filter: ProductSearchFilter,
+        pageable: Pageable,
+    ): FilterFacetResponse {
         val boolQuery = buildBoolQuery(filter)
 
-        val nativeQueryBuilder = NativeQuery.builder()
-            .withQuery { q -> q.bool(boolQuery.build()) }
-            .withPageable(pageable)
+        val nativeQueryBuilder =
+            NativeQuery.builder()
+                .withQuery { q -> q.bool(boolQuery.build()) }
+                .withPageable(pageable)
 
         applySorting(nativeQueryBuilder, filter.sort)
         applyHighlighting(nativeQueryBuilder)
@@ -79,19 +87,19 @@ class ProductSearchRepositoryImpl(
         // Aggregation 추가 (카테고리, 브랜드, 사이즈, 색상, 가격 범위)
         nativeQueryBuilder.withAggregation(
             "categories",
-            Aggregation.of { a -> a.terms { t -> t.field("categoryName").size(50) } }
+            Aggregation.of { a -> a.terms { t -> t.field("categoryName").size(50) } },
         )
         nativeQueryBuilder.withAggregation(
             "brands",
-            Aggregation.of { a -> a.terms { t -> t.field("brandName").size(100) } }
+            Aggregation.of { a -> a.terms { t -> t.field("brandName").size(100) } },
         )
         nativeQueryBuilder.withAggregation(
             "sizes",
-            Aggregation.of { a -> a.terms { t -> t.field("sizes").size(30) } }
+            Aggregation.of { a -> a.terms { t -> t.field("sizes").size(30) } },
         )
         nativeQueryBuilder.withAggregation(
             "colors",
-            Aggregation.of { a -> a.terms { t -> t.field("colors").size(50) } }
+            Aggregation.of { a -> a.terms { t -> t.field("colors").size(50) } },
         )
         nativeQueryBuilder.withAggregation(
             "price_ranges",
@@ -105,7 +113,7 @@ class ProductSearchRepositoryImpl(
                         .ranges({ rr -> rr.from("100000").to("200000") })
                         .ranges({ rr -> rr.from("200000") })
                 }
-            }
+            },
         )
 
         val query: Query = nativeQueryBuilder.build()
@@ -114,9 +122,10 @@ class ProductSearchRepositoryImpl(
         logger.debug { "필터 검색 결과: totalHits=${searchHits.totalHits}, keyword=${filter.keyword}" }
 
         // 상품 목록 매핑 (하이라이팅 포함)
-        val products = searchHits.searchHits.map { hit ->
-            ProductSearchResponse.from(hit.content, hit.highlightFields)
-        }
+        val products =
+            searchHits.searchHits.map { hit ->
+                ProductSearchResponse.from(hit.content, hit.highlightFields)
+            }
 
         // Aggregation 결과 파싱
         val aggregations = searchHits.aggregations
@@ -128,9 +137,12 @@ class ProductSearchRepositoryImpl(
         val priceRanges = extractRangeBuckets(aggregations, "price_ranges")
 
         val totalHits = searchHits.totalHits
-        val totalPages = if (pageable.pageSize > 0) {
-            ((totalHits + pageable.pageSize - 1) / pageable.pageSize).toInt()
-        } else 0
+        val totalPages =
+            if (pageable.pageSize > 0) {
+                ((totalHits + pageable.pageSize - 1) / pageable.pageSize).toInt()
+            } else {
+                0
+            }
 
         return FilterFacetResponse(
             products = products,
@@ -138,54 +150,59 @@ class ProductSearchRepositoryImpl(
             totalPages = totalPages,
             page = pageable.pageNumber,
             size = pageable.pageSize,
-            facets = FacetResult(
-                categories = categories,
-                brands = brands,
-                sizes = sizes,
-                colors = colors,
-                priceRanges = priceRanges,
-            ),
+            facets =
+                FacetResult(
+                    categories = categories,
+                    brands = brands,
+                    sizes = sizes,
+                    colors = colors,
+                    priceRanges = priceRanges,
+                ),
         )
     }
 
-    override fun autocomplete(keyword: String, size: Int): List<ProductDocument> {
+    override fun autocomplete(
+        keyword: String,
+        size: Int,
+    ): List<ProductDocument> {
         if (keyword.isBlank()) return emptyList()
 
-        val query = NativeQuery.builder()
-            .withQuery { q ->
-                q.bool { b ->
-                    b.should { s ->
-                        s.match(
-                            MatchQuery.Builder()
-                                .field("name.autocomplete")
-                                .query(keyword)
-                                .build()
-                        )
+        val query =
+            NativeQuery.builder()
+                .withQuery { q ->
+                    q.bool { b ->
+                        b.should { s ->
+                            s.match(
+                                MatchQuery.Builder()
+                                    .field("name.autocomplete")
+                                    .query(keyword)
+                                    .build(),
+                            )
+                        }
+                        b.should { s ->
+                            s.match(
+                                MatchQuery.Builder()
+                                    .field("brandName.autocomplete")
+                                    .query(keyword)
+                                    .build(),
+                            )
+                        }
+                        b.should { s ->
+                            s.match(
+                                MatchQuery.Builder()
+                                    .field("categoryName.autocomplete")
+                                    .query(keyword)
+                                    .build(),
+                            )
+                        }
+                        b.filter { f ->
+                            f.term(TermQuery.Builder().field("status").value("ACTIVE").build())
+                        }
+                        b.minimumShouldMatch("1")
                     }
-                    b.should { s ->
-                        s.match(
-                            MatchQuery.Builder()
-                                .field("brandName.autocomplete")
-                                .query(keyword)
-                                .build()
-                        )
-                    }
-                    b.should { s ->
-                        s.match(
-                            MatchQuery.Builder()
-                                .field("categoryName.autocomplete")
-                                .query(keyword)
-                                .build()
-                        )
-                    }
-                    b.filter { f ->
-                        f.term(TermQuery.Builder().field("status").value("ACTIVE").build())
-                    }
-                    b.minimumShouldMatch("1")
                 }
-            }
-            .withMaxResults(size)
-            .build()
+                .withMaxResults(size)
+                .build()
 
         val searchHits = operations.search(query, ProductDocument::class.java)
         return searchHits.searchHits.map { it.content }
@@ -207,7 +224,7 @@ class ProductSearchRepositoryImpl(
                         .query(filter.keyword)
                         .fields("name^3", "description", "brandName^2", "categoryName")
                         .type(TextQueryType.BestFields)
-                        .build()
+                        .build(),
                 )
             }
         }
@@ -249,7 +266,7 @@ class ProductSearchRepositoryImpl(
                     TermsQuery.Builder()
                         .field("sizes")
                         .terms { t -> t.value(filter.sizes.map { FieldValue.of(it) }) }
-                        .build()
+                        .build(),
                 )
             }
         }
@@ -261,7 +278,7 @@ class ProductSearchRepositoryImpl(
                     TermsQuery.Builder()
                         .field("colors")
                         .terms { t -> t.value(filter.colors.map { FieldValue.of(it) }) }
-                        .build()
+                        .build(),
                 )
             }
         }
@@ -298,7 +315,10 @@ class ProductSearchRepositoryImpl(
     /**
      * 정렬 옵션 적용.
      */
-    private fun applySorting(builder: NativeQueryBuilder, sort: String?) {
+    private fun applySorting(
+        builder: NativeQueryBuilder,
+        sort: String?,
+    ) {
         when (sort) {
             "PRICE_ASC", "price_asc" -> builder.withSort { s -> s.field { f -> f.field("salePrice").order(SortOrder.Asc) } }
             "PRICE_DESC", "price_desc" -> builder.withSort { s -> s.field { f -> f.field("salePrice").order(SortOrder.Desc) } }
@@ -323,17 +343,18 @@ class ProductSearchRepositoryImpl(
      * name, description, brandName 필드에 em 태그 하이라이팅을 적용한다.
      */
     private fun applyHighlighting(builder: NativeQueryBuilder) {
-        val highlight = Highlight(
-            HighlightParameters.builder()
-                .withPreTags("<em>")
-                .withPostTags("</em>")
-                .build(),
-            listOf(
-                HighlightField("name"),
-                HighlightField("description"),
-                HighlightField("brandName"),
-            ),
-        )
+        val highlight =
+            Highlight(
+                HighlightParameters.builder()
+                    .withPreTags("<em>")
+                    .withPostTags("</em>")
+                    .build(),
+                listOf(
+                    HighlightField("name"),
+                    HighlightField("description"),
+                    HighlightField("brandName"),
+                ),
+            )
         builder.withHighlightQuery(HighlightQuery(highlight, ProductDocument::class.java))
     }
 
@@ -343,15 +364,20 @@ class ProductSearchRepositoryImpl(
      * Terms Aggregation 결과를 FacetBucket 리스트로 변환한다.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun extractTermBuckets(aggregations: Any?, name: String): List<FacetBucket> {
+    private fun extractTermBuckets(
+        aggregations: Any?,
+        name: String,
+    ): List<FacetBucket> {
         if (aggregations == null) return emptyList()
 
         return try {
-            val aggMap = aggregations as? org.springframework.data.elasticsearch.core.AggregationsContainer<*>
-                ?: return emptyList()
+            val aggMap =
+                aggregations as? org.springframework.data.elasticsearch.core.AggregationsContainer<*>
+                    ?: return emptyList()
 
-            val esAggregations = aggMap.aggregations() as? Map<String, co.elastic.clients.elasticsearch._types.aggregations.Aggregate>
-                ?: return emptyList()
+            val esAggregations =
+                aggMap.aggregations() as? Map<String, co.elastic.clients.elasticsearch._types.aggregations.Aggregate>
+                    ?: return emptyList()
 
             val agg = esAggregations[name] ?: return emptyList()
 
@@ -372,15 +398,20 @@ class ProductSearchRepositoryImpl(
      * Range Aggregation 결과를 PriceRangeBucket 리스트로 변환한다.
      */
     @Suppress("UNCHECKED_CAST")
-    private fun extractRangeBuckets(aggregations: Any?, name: String): List<PriceRangeBucket> {
+    private fun extractRangeBuckets(
+        aggregations: Any?,
+        name: String,
+    ): List<PriceRangeBucket> {
         if (aggregations == null) return emptyList()
 
         return try {
-            val aggMap = aggregations as? org.springframework.data.elasticsearch.core.AggregationsContainer<*>
-                ?: return emptyList()
+            val aggMap =
+                aggregations as? org.springframework.data.elasticsearch.core.AggregationsContainer<*>
+                    ?: return emptyList()
 
-            val esAggregations = aggMap.aggregations() as? Map<String, co.elastic.clients.elasticsearch._types.aggregations.Aggregate>
-                ?: return emptyList()
+            val esAggregations =
+                aggMap.aggregations() as? Map<String, co.elastic.clients.elasticsearch._types.aggregations.Aggregate>
+                    ?: return emptyList()
 
             val agg = esAggregations[name] ?: return emptyList()
 

@@ -29,7 +29,6 @@ class SearchFacade(
     private val popularKeywordService: PopularKeywordService,
     private val recentKeywordService: RecentKeywordService,
 ) {
-
     // ──────────────────────────── 검색 API ────────────────────────────
 
     /**
@@ -68,7 +67,10 @@ class SearchFacade(
     /**
      * 자동완성 검색 (US-704).
      */
-    fun autocomplete(keyword: String, size: Int): List<AutocompleteResponse> {
+    fun autocomplete(
+        keyword: String,
+        size: Int,
+    ): List<AutocompleteResponse> {
         return productSearchService.autocomplete(keyword, size)
     }
 
@@ -162,7 +164,11 @@ class SearchFacade(
     /**
      * 리뷰 집계 업데이트 이벤트 처리 → ES 문서 부분 갱신.
      */
-    fun handleReviewSummaryUpdated(productId: Long, reviewCount: Int, avgRating: Double) {
+    fun handleReviewSummaryUpdated(
+        productId: Long,
+        reviewCount: Int,
+        avgRating: Double,
+    ) {
         productSearchService.updateReviewSummary(productId, reviewCount, avgRating)
     }
 

@@ -13,5 +13,7 @@ class BffMyPageController(
     private val myPageFacade: MyPageBffFacade,
 ) {
     @GetMapping("/mypage")
-    fun getMyPage(@RequestHeader("X-Member-Id") memberId: Long) = ApiResponse.ok(myPageFacade.getMyPage(memberId))
+    fun getMyPage(
+        @RequestHeader("X-Member-Id") memberId: Long,
+    ) = ApiResponse.ok(myPageFacade.getMyPage(memberId))
 }

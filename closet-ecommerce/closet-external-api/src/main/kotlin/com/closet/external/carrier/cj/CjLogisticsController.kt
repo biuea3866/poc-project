@@ -13,36 +13,50 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/carrier/cj/api/v1")
 class CjLogisticsController(private val carrierService: CarrierService) {
-
     @PostMapping("/shipments")
-    fun register(@RequestBody request: Map<String, Any>): ResponseEntity<*> {
+    fun register(
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
         val shipment = carrierService.registerShipment("CJ_LOGISTICS", "CJ", request)
         return ResponseEntity.ok(resp(shipment))
     }
 
     @GetMapping("/tracking/{trackingNumber}")
-    fun track(@PathVariable trackingNumber: String): ResponseEntity<*> {
-        val shipment = carrierService.getTracking("CJ_LOGISTICS", trackingNumber)
-            ?: return ResponseEntity.notFound().build<Any>()
+    fun track(
+        @PathVariable trackingNumber: String,
+    ): ResponseEntity<*> {
+        val shipment =
+            carrierService.getTracking("CJ_LOGISTICS", trackingNumber)
+                ?: return ResponseEntity.notFound().build<Any>()
         return ResponseEntity.ok(resp(shipment))
     }
 
     @PostMapping("/tracking/{trackingNumber}/advance")
-    fun advance(@PathVariable trackingNumber: String): ResponseEntity<*> {
-        val shipment = carrierService.advanceStatus(trackingNumber)
-            ?: return ResponseEntity.notFound().build<Any>()
+    fun advance(
+        @PathVariable trackingNumber: String,
+    ): ResponseEntity<*> {
+        val shipment =
+            carrierService.advanceStatus(trackingNumber)
+                ?: return ResponseEntity.notFound().build<Any>()
         return ResponseEntity.ok(resp(shipment))
     }
 
     private fun resp(s: MockShipment) = mapOf("resultCode" to "0000", "data" to shipmentBody(s))
 
-    private fun shipmentBody(s: MockShipment) = mapOf(
-        "trackingNumber" to s.trackingNumber, "carrier" to s.carrier, "orderId" to s.orderId,
-        "status" to s.status, "senderName" to s.senderName,
-        "receiverName" to s.receiverName, "receiverAddress" to s.receiverAddress,
-        "deliveredAt" to s.deliveredAt?.toString(), "registeredAt" to s.createdAt.toString(),
-        "trackingHistory" to s.trackingHistory.map {
-            mapOf("status" to it.status, "description" to it.description, "location" to it.location, "time" to it.trackedAt.toString())
-        },
-    )
+    private fun shipmentBody(s: MockShipment) =
+        mapOf(
+            "trackingNumber" to s.trackingNumber, "carrier" to s.carrier, "orderId" to s.orderId,
+            "status" to s.status, "senderName" to s.senderName,
+            "receiverName" to s.receiverName, "receiverAddress" to s.receiverAddress,
+            "deliveredAt" to s.deliveredAt?.toString(), "registeredAt" to s.createdAt.toString(),
+            "trackingHistory" to
+                s.trackingHistory.map {
+                    mapOf(
+                        "status" to it.status,
+                        "description" to it.description,
+                        "location" to it.location,
+                        "time" to it.trackedAt.toString(),
+                    )
+                },
+        )
 }

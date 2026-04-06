@@ -34,7 +34,6 @@ class SearchController(
     private val popularKeywordService: PopularKeywordService,
     private val recentKeywordService: RecentKeywordService,
 ) {
-
     /**
      * 상품 검색 API.
      *
@@ -58,19 +57,20 @@ class SearchController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
     ): ResponseEntity<SearchPageResponse<ProductSearchResponse>> {
-        val filter = ProductSearchFilter(
-            keyword = keyword,
-            category = category,
-            brand = brand,
-            minPrice = minPrice,
-            maxPrice = maxPrice,
-            sizes = sizes,
-            colors = colors,
-            gender = gender,
-            season = season,
-            fitType = fitType,
-            sort = sort,
-        )
+        val filter =
+            ProductSearchFilter(
+                keyword = keyword,
+                category = category,
+                brand = brand,
+                minPrice = minPrice,
+                maxPrice = maxPrice,
+                sizes = sizes,
+                colors = colors,
+                gender = gender,
+                season = season,
+                fitType = fitType,
+                sort = sort,
+            )
 
         val result: Page<ProductSearchResponse> = productSearchService.search(filter, PageRequest.of(page, size))
 
@@ -89,7 +89,7 @@ class SearchController(
                 totalPages = result.totalPages,
                 page = result.number,
                 size = result.size,
-            )
+            ),
         )
     }
 

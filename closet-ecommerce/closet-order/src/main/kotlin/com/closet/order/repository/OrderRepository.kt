@@ -6,7 +6,7 @@ import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
 import org.springframework.data.jpa.repository.Query
 import org.springframework.data.repository.query.Param
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 interface OrderRepository : JpaRepository<Order, Long> {
     fun findByMemberIdAndDeletedAtIsNull(memberId: Long, pageable: Pageable): Page<Order>
@@ -23,5 +23,5 @@ interface OrderRepository : JpaRepository<Order, Long> {
         AND o.deliveredAt IS NOT NULL
         AND o.deliveredAt <= :cutoff
     """)
-    fun findAutoConfirmCandidates(@Param("cutoff") cutoff: LocalDateTime): List<Order>
+    fun findAutoConfirmCandidates(@Param("cutoff") cutoff: ZonedDateTime): List<Order>
 }

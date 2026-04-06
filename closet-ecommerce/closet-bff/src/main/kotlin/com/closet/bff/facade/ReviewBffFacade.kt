@@ -18,7 +18,6 @@ private val logger = KotlinLogging.logger {}
 class ReviewBffFacade(
     private val reviewClient: ReviewServiceClient,
 ) {
-
     data class ProductReviewBffResponse(
         val summary: ReviewSummaryBffResponse?,
         val reviews: Page<ReviewBffResponse>?,
@@ -27,7 +26,11 @@ class ReviewBffFacade(
     /**
      * 상품별 리뷰 집계 + 목록 조합.
      */
-    fun getProductReviews(productId: Long, page: Int = 0, size: Int = 10): ProductReviewBffResponse {
+    fun getProductReviews(
+        productId: Long,
+        page: Int = 0,
+        size: Int = 10,
+    ): ProductReviewBffResponse {
         val summary = runCatching { reviewClient.getReviewSummary(productId) }.getOrNull()?.data
         val reviews = runCatching { reviewClient.getReviewsByProductId(productId, page, size) }.getOrNull()?.data
 

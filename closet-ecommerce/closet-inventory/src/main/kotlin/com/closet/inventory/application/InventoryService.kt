@@ -29,7 +29,6 @@ class InventoryService(
     private val outboxEventPublisher: OutboxEventPublisher,
     private val objectMapper: ObjectMapper,
 ) {
-
     /**
      * 재고 생성.
      */
@@ -40,13 +39,14 @@ class InventoryService(
             throw BusinessException(ErrorCode.DUPLICATE_ENTITY, "이미 재고가 존재합니다. productOptionId=${request.productOptionId}")
         }
 
-        val inventory = Inventory.create(
-            productId = request.productId,
-            productOptionId = request.productOptionId,
-            sku = request.sku,
-            totalQuantity = request.totalQuantity,
-            safetyThreshold = request.safetyThreshold,
-        )
+        val inventory =
+            Inventory.create(
+                productId = request.productId,
+                productOptionId = request.productOptionId,
+                sku = request.sku,
+                totalQuantity = request.totalQuantity,
+                safetyThreshold = request.safetyThreshold,
+            )
 
         val saved = inventoryRepository.save(inventory)
         logger.info { "재고 생성 완료: id=${saved.id}, sku=${saved.sku}, total=${saved.totalQuantity}" }
@@ -65,8 +65,9 @@ class InventoryService(
      * 재고 조회 (by productOptionId).
      */
     fun findByProductOptionId(productOptionId: Long): InventoryResponse {
-        val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
-            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=$productOptionId")
+        val inventory =
+            inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=$productOptionId")
         return InventoryResponse.from(inventory)
     }
 
@@ -83,14 +84,18 @@ class InventoryService(
      * 여러 SKU 주문 시 하나라도 부족하면 전체 RELEASE.
      */
     @Transactional
-    fun reserveAll(orderId: Long, items: List<ReserveItemRequest>): InventoryResult {
+    fun reserveAll(
+        orderId: Long,
+        items: List<ReserveItemRequest>,
+    ): InventoryResult {
         val reserved = mutableListOf<Pair<Long, Int>>() // productOptionId, quantity
 
         try {
             for (item in items) {
                 inventoryLockService.withLock(item.productOptionId) {
-                    val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
-                        ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
+                    val inventory =
+                        inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
+                            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
 
                     val beforeTotal = inventory.totalQuantity
                     val beforeAvailable = inventory.availableQuantity
@@ -112,7 +117,7 @@ class InventoryService(
                             afterReserved = inventory.reservedQuantity,
                             referenceId = orderId.toString(),
                             referenceType = "ORDER",
-                        )
+                        ),
                     )
 
                     reserved.add(item.productOptionId to item.quantity)
@@ -147,8 +152,8 @@ class InventoryService(
                         sku = e.sku,
                         requested = e.requested,
                         available = e.available,
-                    )
-                )
+                    ),
+                ),
             )
         }
     }
@@ -157,11 +162,15 @@ class InventoryService(
      * 재고 차감 (결제 완료 시).
      */
     @Transactional
-    fun deductAll(orderId: Long, items: List<DeductItemRequest>) {
+    fun deductAll(
+        orderId: Long,
+        items: List<DeductItemRequest>,
+    ) {
         for (item in items) {
             inventoryLockService.withLock(item.productOptionId) {
-                val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
-                    ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
+                val inventory =
+                    inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
+                        ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
 
                 val beforeTotal = inventory.totalQuantity
                 val beforeAvailable = inventory.availableQuantity
@@ -183,7 +192,7 @@ class InventoryService(
                         afterReserved = inventory.reservedQuantity,
                         referenceId = orderId.toString(),
                         referenceType = "ORDER",
-                    )
+                    ),
                 )
             }
         }
@@ -195,11 +204,16 @@ class InventoryService(
      * 재고 해제 (주문 취소 시).
      */
     @Transactional
-    fun releaseAll(orderId: Long, items: List<ReleaseItemRequest>, reason: String? = null) {
+    fun releaseAll(
+        orderId: Long,
+        items: List<ReleaseItemRequest>,
+        reason: String? = null,
+    ) {
         for (item in items) {
             inventoryLockService.withLock(item.productOptionId) {
-                val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
-                    ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
+                val inventory =
+                    inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(item.productOptionId)
+                        ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=${item.productOptionId}")
 
                 val beforeTotal = inventory.totalQuantity
                 val beforeAvailable = inventory.availableQuantity
@@ -222,7 +236,7 @@ class InventoryService(
                         referenceId = orderId.toString(),
                         referenceType = "ORDER",
                         reason = reason,
-                    )
+                    ),
                 )
             }
         }
@@ -234,7 +248,10 @@ class InventoryService(
      * 입고.
      */
     @Transactional
-    fun inbound(id: Long, request: InboundRequest): InventoryResponse {
+    fun inbound(
+        id: Long,
+        request: InboundRequest,
+    ): InventoryResponse {
         return inventoryLockService.withLock(getInventoryOrThrow(id).productOptionId) {
             val inventory = getInventoryOrThrow(id)
 
@@ -257,7 +274,7 @@ class InventoryService(
                     beforeReserved = beforeReserved,
                     afterReserved = inventory.reservedQuantity,
                     reason = request.reason,
-                )
+                ),
             )
 
             // available 0 -> 양수 전환 시 재입고 알림 이벤트
@@ -274,10 +291,15 @@ class InventoryService(
      * 반품 양품 복구.
      */
     @Transactional
-    fun returnRestore(productOptionId: Long, quantity: Int, orderId: Long) {
+    fun returnRestore(
+        productOptionId: Long,
+        quantity: Int,
+        orderId: Long,
+    ) {
         inventoryLockService.withLock(productOptionId) {
-            val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
-                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=$productOptionId")
+            val inventory =
+                inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
+                    ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재고를 찾을 수 없습니다. productOptionId=$productOptionId")
 
             val beforeTotal = inventory.totalQuantity
             val beforeAvailable = inventory.availableQuantity
@@ -299,7 +321,7 @@ class InventoryService(
                     afterReserved = inventory.reservedQuantity,
                     referenceId = orderId.toString(),
                     referenceType = "RETURN",
-                )
+                ),
             )
 
             // available 0 -> 양수 전환 시 재입고 알림 이벤트
@@ -319,12 +341,16 @@ class InventoryService(
     /**
      * 보상 RELEASE: All-or-Nothing 실패 시 이미 예약한 건 원복.
      */
-    private fun releaseReserved(reserved: List<Pair<Long, Int>>, orderId: Long) {
+    private fun releaseReserved(
+        reserved: List<Pair<Long, Int>>,
+        orderId: Long,
+    ) {
         for ((productOptionId, quantity) in reserved) {
             try {
                 inventoryLockService.withLock(productOptionId) {
-                    val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
-                        ?: return@withLock
+                    val inventory =
+                        inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
+                            ?: return@withLock
 
                     val beforeTotal = inventory.totalQuantity
                     val beforeAvailable = inventory.availableQuantity
@@ -347,7 +373,7 @@ class InventoryService(
                             referenceId = orderId.toString(),
                             referenceType = "ORDER",
                             reason = "All-or-Nothing 보상 RELEASE",
-                        )
+                        ),
                     )
                 }
             } catch (e: Exception) {
@@ -357,10 +383,11 @@ class InventoryService(
     }
 
     private fun triggerRestockNotification(inventory: Inventory) {
-        val waitingNotifications = restockNotificationRepository.findByProductOptionIdAndStatus(
-            productOptionId = inventory.productOptionId,
-            status = RestockNotificationStatus.WAITING,
-        )
+        val waitingNotifications =
+            restockNotificationRepository.findByProductOptionIdAndStatus(
+                productOptionId = inventory.productOptionId,
+                status = RestockNotificationStatus.WAITING,
+            )
 
         if (waitingNotifications.isEmpty()) return
 
@@ -368,14 +395,15 @@ class InventoryService(
 
         waitingNotifications.forEach { it.markNotified() }
 
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "productOptionId" to inventory.productOptionId,
-                "sku" to inventory.sku,
-                "availableQuantity" to inventory.availableQuantity,
-                "memberIds" to memberIds,
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "productOptionId" to inventory.productOptionId,
+                    "sku" to inventory.sku,
+                    "availableQuantity" to inventory.availableQuantity,
+                    "memberIds" to memberIds,
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
@@ -390,14 +418,15 @@ class InventoryService(
     }
 
     private fun publishLowStockEvent(inventory: Inventory) {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "productOptionId" to inventory.productOptionId,
-                "sku" to inventory.sku,
-                "availableQuantity" to inventory.availableQuantity,
-                "safetyThreshold" to inventory.safetyThreshold,
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "productOptionId" to inventory.productOptionId,
+                    "sku" to inventory.sku,
+                    "availableQuantity" to inventory.availableQuantity,
+                    "safetyThreshold" to inventory.safetyThreshold,
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
@@ -412,12 +441,13 @@ class InventoryService(
     }
 
     private fun publishOutOfStockEvent(inventory: Inventory) {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "productOptionId" to inventory.productOptionId,
-                "sku" to inventory.sku,
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "productOptionId" to inventory.productOptionId,
+                    "sku" to inventory.sku,
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Inventory",
@@ -431,14 +461,18 @@ class InventoryService(
         logger.info { "품절 이벤트 발행: sku=${inventory.sku}" }
     }
 
-    private fun publishInsufficientEvent(orderId: Long, e: InsufficientStockException) {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventId" to "insufficient-$orderId-${System.currentTimeMillis()}",
-                "orderId" to orderId,
-                "reason" to "재고 부족: sku=${e.sku}, requested=${e.requested}, available=${e.available}",
+    private fun publishInsufficientEvent(
+        orderId: Long,
+        e: InsufficientStockException,
+    ) {
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "eventId" to "insufficient-$orderId-${System.currentTimeMillis()}",
+                    "orderId" to orderId,
+                    "reason" to "재고 부족: sku=${e.sku}, requested=${e.requested}, available=${e.available}",
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Inventory",

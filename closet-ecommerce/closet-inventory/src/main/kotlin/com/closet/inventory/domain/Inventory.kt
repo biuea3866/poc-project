@@ -13,7 +13,7 @@ import jakarta.persistence.Version
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "inventory")
@@ -21,22 +21,16 @@ import java.time.LocalDateTime
 class Inventory(
     @Column(name = "product_id", nullable = false)
     val productId: Long,
-
     @Column(name = "product_option_id", nullable = false)
     val productOptionId: Long,
-
     @Column(name = "sku", nullable = false, length = 50)
     val sku: String,
-
     @Column(name = "total_quantity", nullable = false)
     var totalQuantity: Int,
-
     @Column(name = "available_quantity", nullable = false)
     var availableQuantity: Int,
-
     @Column(name = "reserved_quantity", nullable = false)
     var reservedQuantity: Int = 0,
-
     @Column(name = "safety_threshold", nullable = false)
     var safetyThreshold: Int = 10,
 ) {
@@ -50,14 +44,14 @@ class Inventory(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
     @Column(name = "deleted_at", columnDefinition = "DATETIME(6)")
-    var deletedAt: LocalDateTime? = null
+    var deletedAt: ZonedDateTime? = null
 
     /**
      * 재고 예약 (주문 생성 시).
@@ -87,7 +81,7 @@ class Inventory(
         if (reservedQuantity < quantity) {
             throw BusinessException(
                 ErrorCode.INVALID_STATE_TRANSITION,
-                "예약된 재고가 부족합니다. reserved=$reservedQuantity, requested=$quantity"
+                "예약된 재고가 부족합니다. reserved=$reservedQuantity, requested=$quantity",
             )
         }
         reservedQuantity -= quantity
@@ -104,7 +98,7 @@ class Inventory(
         if (reservedQuantity < quantity) {
             throw BusinessException(
                 ErrorCode.INVALID_STATE_TRANSITION,
-                "예약된 재고가 부족합니다. reserved=$reservedQuantity, requested=$quantity"
+                "예약된 재고가 부족합니다. reserved=$reservedQuantity, requested=$quantity",
             )
         }
         reservedQuantity -= quantity

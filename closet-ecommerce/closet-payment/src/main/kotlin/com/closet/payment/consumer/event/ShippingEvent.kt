@@ -13,7 +13,6 @@ data class ShippingEvent(
     val refundAmount: Long? = null,
     val shippingFee: Long? = null,
 ) {
-
     fun toReturnApprovedEvent(): ReturnApprovedEvent {
         return ReturnApprovedEvent(
             orderId = orderId ?: 0L,

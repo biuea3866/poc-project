@@ -16,9 +16,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/brands")
 class BrandController(
-    private val brandService: BrandService
+    private val brandService: BrandService,
 ) {
-
     @GetMapping
     fun findAll(): ApiResponse<List<BrandResponse>> {
         return ApiResponse.ok(brandService.findAll())
@@ -26,7 +25,9 @@ class BrandController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: BrandCreateRequest): ApiResponse<BrandResponse> {
+    fun create(
+        @Valid @RequestBody request: BrandCreateRequest,
+    ): ApiResponse<BrandResponse> {
         return ApiResponse.created(brandService.create(request))
     }
 }

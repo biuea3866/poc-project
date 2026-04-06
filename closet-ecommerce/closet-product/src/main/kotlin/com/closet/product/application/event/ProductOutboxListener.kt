@@ -23,7 +23,6 @@ class ProductOutboxListener(
     private val outboxEventPublisher: OutboxEventPublisher,
     private val objectMapper: ObjectMapper,
 ) {
-
     companion object {
         private const val AGGREGATE_TYPE = "Product"
     }

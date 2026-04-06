@@ -13,13 +13,18 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(name = "inventory-service", url = "\${service.inventory.url}")
 interface InventoryServiceClient {
-
     @GetMapping("/api/v1/inventories/option/{productOptionId}")
-    fun getInventoryByProductOptionId(@PathVariable productOptionId: Long): ApiResponse<InventoryBffResponse>
+    fun getInventoryByProductOptionId(
+        @PathVariable productOptionId: Long,
+    ): ApiResponse<InventoryBffResponse>
 
     @GetMapping("/api/v1/inventories")
-    fun getInventoriesByProductId(@RequestParam productId: Long): ApiResponse<List<InventoryBffResponse>>
+    fun getInventoriesByProductId(
+        @RequestParam productId: Long,
+    ): ApiResponse<List<InventoryBffResponse>>
 
     @GetMapping("/api/v1/inventories/restock-notification/count")
-    fun getRestockNotificationCount(@RequestParam productOptionId: Long): ApiResponse<Long>
+    fun getRestockNotificationCount(
+        @RequestParam productOptionId: Long,
+    ): ApiResponse<Long>
 }

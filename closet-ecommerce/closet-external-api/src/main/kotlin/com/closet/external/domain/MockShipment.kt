@@ -14,7 +14,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "mock_shipment")
@@ -22,30 +22,22 @@ import java.time.LocalDateTime
 class MockShipment(
     @Column(name = "carrier", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val carrier: String,
-
     @Column(name = "tracking_number", nullable = false, length = 50)
     val trackingNumber: String,
-
     @Column(name = "order_id", nullable = false, length = 100)
     val orderId: String,
-
     @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: String = "ACCEPTED",
-
     @Column(name = "sender_name", nullable = false, length = 50)
     val senderName: String,
-
     @Column(name = "receiver_name", nullable = false, length = 50)
     val receiverName: String,
-
     @Column(name = "receiver_address", nullable = false, length = 500)
     val receiverAddress: String,
-
     @Column(name = "receiver_phone", nullable = false, length = 20)
     val receiverPhone: String,
-
     @Column(name = "delivered_at", columnDefinition = "DATETIME(6)")
-    var deliveredAt: LocalDateTime? = null,
+    var deliveredAt: ZonedDateTime? = null,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -57,24 +49,29 @@ class MockShipment(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
-    fun addTrackingEvent(status: String, description: String, location: String) {
+    fun addTrackingEvent(
+        status: String,
+        description: String,
+        location: String,
+    ) {
         this.status = status
-        val event = MockTrackingHistory(
-            shipment = this,
-            status = status,
-            description = description,
-            location = location,
-            trackedAt = LocalDateTime.now(),
-        )
+        val event =
+            MockTrackingHistory(
+                shipment = this,
+                status = status,
+                description = description,
+                location = location,
+                trackedAt = ZonedDateTime.now(),
+            )
         this.trackingHistory.add(event)
         if (status == "DELIVERED") {
-            this.deliveredAt = LocalDateTime.now()
+            this.deliveredAt = ZonedDateTime.now()
         }
     }
 }
@@ -86,18 +83,14 @@ class MockTrackingHistory(
     @jakarta.persistence.ManyToOne(fetch = FetchType.LAZY)
     @jakarta.persistence.JoinColumn(name = "shipment_id", nullable = false)
     val shipment: MockShipment,
-
     @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val status: String,
-
     @Column(name = "description", nullable = false, length = 200)
     val description: String,
-
     @Column(name = "location", nullable = false, length = 100)
     val location: String,
-
     @Column(name = "tracked_at", nullable = false, columnDefinition = "DATETIME(6)")
-    val trackedAt: LocalDateTime,
+    val trackedAt: ZonedDateTime,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -105,5 +98,5 @@ class MockTrackingHistory(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 }

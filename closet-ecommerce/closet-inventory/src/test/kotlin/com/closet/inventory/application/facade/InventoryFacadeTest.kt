@@ -20,10 +20,11 @@ class InventoryFacadeTest : BehaviorSpec({
     val inventoryService = mockk<InventoryService>(relaxed = true)
     val idempotencyChecker = mockk<IdempotencyChecker>()
 
-    val facade = InventoryFacade(
-        inventoryService = inventoryService,
-        idempotencyChecker = idempotencyChecker,
-    )
+    val facade =
+        InventoryFacade(
+            inventoryService = inventoryService,
+            idempotencyChecker = idempotencyChecker,
+        )
 
     // IdempotencyChecker 모킹: 항상 block 실행
     beforeSpec {
@@ -34,14 +35,16 @@ class InventoryFacadeTest : BehaviorSpec({
     }
 
     Given("OrderCreatedEvent 수신") {
-        val event = OrderCreatedEvent(
-            orderId = 1L,
-            memberId = 100L,
-            items = listOf(
-                OrderCreatedEvent.OrderItemInfo(productOptionId = 10L, quantity = 3),
-                OrderCreatedEvent.OrderItemInfo(productOptionId = 20L, quantity = 2),
-            ),
-        )
+        val event =
+            OrderCreatedEvent(
+                orderId = 1L,
+                memberId = 100L,
+                items =
+                    listOf(
+                        OrderCreatedEvent.OrderItemInfo(productOptionId = 10L, quantity = 3),
+                        OrderCreatedEvent.OrderItemInfo(productOptionId = 20L, quantity = 2),
+                    ),
+            )
 
         When("handleOrderCreated 호출") {
             every { inventoryService.reserveAll(any(), any()) } returns InventoryResult.success()
@@ -74,13 +77,15 @@ class InventoryFacadeTest : BehaviorSpec({
     }
 
     Given("OrderCancelledEvent 수신") {
-        val event = OrderCancelledEvent(
-            orderId = 2L,
-            reason = "고객 취소",
-            items = listOf(
-                OrderCancelledEvent.OrderItemInfo(productOptionId = 10L, quantity = 3),
-            ),
-        )
+        val event =
+            OrderCancelledEvent(
+                orderId = 2L,
+                reason = "고객 취소",
+                items =
+                    listOf(
+                        OrderCancelledEvent.OrderItemInfo(productOptionId = 10L, quantity = 3),
+                    ),
+            )
 
         When("handleOrderCancelled 호출") {
             every { idempotencyChecker.process(any(), any(), any(), any<() -> Any?>()) } answers {
@@ -103,12 +108,14 @@ class InventoryFacadeTest : BehaviorSpec({
     }
 
     Given("ReturnApprovedEvent 수신") {
-        val event = ReturnApprovedEvent(
-            orderId = 3L,
-            items = listOf(
-                ReturnApprovedEvent.ReturnItemInfo(productOptionId = 30L, quantity = 1),
-            ),
-        )
+        val event =
+            ReturnApprovedEvent(
+                orderId = 3L,
+                items =
+                    listOf(
+                        ReturnApprovedEvent.ReturnItemInfo(productOptionId = 30L, quantity = 1),
+                    ),
+            )
 
         When("handleReturnApproved 호출") {
             every { idempotencyChecker.process(any(), any(), any(), any<() -> Any?>()) } answers {

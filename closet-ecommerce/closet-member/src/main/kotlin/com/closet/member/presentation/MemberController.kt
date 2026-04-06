@@ -29,13 +29,17 @@ class MemberController(
     /** 회원가입 */
     @PostMapping("/register")
     @ResponseStatus(HttpStatus.CREATED)
-    fun register(@Valid @RequestBody request: RegisterRequest): ApiResponse<MemberResponse> {
+    fun register(
+        @Valid @RequestBody request: RegisterRequest,
+    ): ApiResponse<MemberResponse> {
         return ApiResponse.created(memberService.register(request))
     }
 
     /** 로그인 */
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest): ApiResponse<LoginResponse> {
+    fun login(
+        @Valid @RequestBody request: LoginRequest,
+    ): ApiResponse<LoginResponse> {
         return ApiResponse.ok(memberService.login(request))
     }
 
@@ -56,7 +60,9 @@ class MemberController(
 
     /** 토큰 갱신 */
     @PostMapping("/auth/refresh")
-    fun refresh(@Valid @RequestBody request: RefreshTokenRequest): ApiResponse<LoginResponse> {
+    fun refresh(
+        @Valid @RequestBody request: RefreshTokenRequest,
+    ): ApiResponse<LoginResponse> {
         return ApiResponse.ok(authService.refresh(request))
     }
 }

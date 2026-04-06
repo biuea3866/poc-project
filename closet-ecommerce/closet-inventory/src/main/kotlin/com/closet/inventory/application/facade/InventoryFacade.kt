@@ -24,7 +24,6 @@ class InventoryFacade(
     private val inventoryService: InventoryService,
     private val idempotencyChecker: IdempotencyChecker,
 ) {
-
     companion object {
         private const val CONSUMER_GROUP = "inventory-service"
     }
@@ -37,12 +36,13 @@ class InventoryFacade(
         logger.info { "주문 생성 이벤트 처리 시작: orderId=${event.orderId}, items=${event.items.size}" }
 
         idempotencyChecker.process(eventId, ClosetTopics.ORDER, CONSUMER_GROUP) {
-            val reserveItems = event.items.map {
-                ReserveItemRequest(
-                    productOptionId = it.productOptionId,
-                    quantity = it.quantity,
-                )
-            }
+            val reserveItems =
+                event.items.map {
+                    ReserveItemRequest(
+                        productOptionId = it.productOptionId,
+                        quantity = it.quantity,
+                    )
+                }
 
             inventoryService.reserveAll(event.orderId, reserveItems)
         }
@@ -56,12 +56,13 @@ class InventoryFacade(
         logger.info { "주문 취소 이벤트 처리 시작: orderId=${event.orderId}, reason=${event.reason}" }
 
         idempotencyChecker.process(eventId, ClosetTopics.ORDER, CONSUMER_GROUP) {
-            val releaseItems = event.items.map {
-                ReleaseItemRequest(
-                    productOptionId = it.productOptionId,
-                    quantity = it.quantity,
-                )
-            }
+            val releaseItems =
+                event.items.map {
+                    ReleaseItemRequest(
+                        productOptionId = it.productOptionId,
+                        quantity = it.quantity,
+                    )
+                }
 
             inventoryService.releaseAll(event.orderId, releaseItems, event.reason)
         }

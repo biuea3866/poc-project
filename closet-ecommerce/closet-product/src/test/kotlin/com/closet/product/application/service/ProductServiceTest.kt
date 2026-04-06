@@ -17,7 +17,6 @@ import com.closet.product.domain.repository.ProductRepository
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
@@ -33,18 +32,19 @@ class ProductServiceTest : BehaviorSpec({
     val productService = ProductService(productRepository, eventPublisher)
 
     Given("상품 생성 요청이 주어졌을 때") {
-        val request = ProductCreateRequest(
-            name = "오버핏 반팔 티셔츠",
-            description = "시원한 여름 반팔 티셔츠",
-            brandId = 1L,
-            categoryId = 10L,
-            basePrice = BigDecimal(39000),
-            salePrice = BigDecimal(29000),
-            discountRate = 25,
-            season = Season.SS,
-            fitType = FitType.OVERSIZED,
-            gender = Gender.UNISEX
-        )
+        val request =
+            ProductCreateRequest(
+                name = "오버핏 반팔 티셔츠",
+                description = "시원한 여름 반팔 티셔츠",
+                brandId = 1L,
+                categoryId = 10L,
+                basePrice = BigDecimal(39000),
+                salePrice = BigDecimal(29000),
+                discountRate = 25,
+                season = Season.SS,
+                fitType = FitType.OVERSIZED,
+                gender = Gender.UNISEX,
+            )
 
         val productSlot = slot<Product>()
         every { productRepository.save(capture(productSlot)) } answers {
@@ -72,19 +72,20 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("DRAFT 상태의 상품이 존재할 때") {
-        val product = Product(
-            name = "슬림 청바지",
-            description = "스트레치 슬림핏 청바지",
-            brandId = 1L,
-            categoryId = 20L,
-            basePrice = Money(BigDecimal(59000)),
-            salePrice = Money(BigDecimal(49000)),
-            discountRate = 16,
-            status = ProductStatus.DRAFT,
-            season = Season.ALL,
-            fitType = FitType.SLIM,
-            gender = Gender.MALE
-        )
+        val product =
+            Product(
+                name = "슬림 청바지",
+                description = "스트레치 슬림핏 청바지",
+                brandId = 1L,
+                categoryId = 20L,
+                basePrice = Money(BigDecimal(59000)),
+                salePrice = Money(BigDecimal(49000)),
+                discountRate = 16,
+                status = ProductStatus.DRAFT,
+                season = Season.ALL,
+                fitType = FitType.SLIM,
+                gender = Gender.MALE,
+            )
 
         every { productRepository.findById(1L) } returns Optional.of(product)
 
@@ -98,16 +99,17 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("ACTIVE 상태의 상품이 존재할 때") {
-        val product = Product(
-            name = "레귤러 셔츠",
-            description = "베이직 셔츠",
-            brandId = 1L,
-            categoryId = 10L,
-            basePrice = Money(BigDecimal(45000)),
-            salePrice = Money(BigDecimal(35000)),
-            discountRate = 22,
-            status = ProductStatus.ACTIVE
-        )
+        val product =
+            Product(
+                name = "레귤러 셔츠",
+                description = "베이직 셔츠",
+                brandId = 1L,
+                categoryId = 10L,
+                basePrice = Money(BigDecimal(45000)),
+                salePrice = Money(BigDecimal(35000)),
+                discountRate = 22,
+                status = ProductStatus.ACTIVE,
+            )
 
         every { productRepository.findById(2L) } returns Optional.of(product)
 
@@ -121,16 +123,17 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("INACTIVE 상태의 상품이 존재할 때") {
-        val product = Product(
-            name = "겨울 패딩",
-            description = "따뜻한 패딩",
-            brandId = 1L,
-            categoryId = 30L,
-            basePrice = Money(BigDecimal(199000)),
-            salePrice = Money(BigDecimal(149000)),
-            discountRate = 25,
-            status = ProductStatus.INACTIVE
-        )
+        val product =
+            Product(
+                name = "겨울 패딩",
+                description = "따뜻한 패딩",
+                brandId = 1L,
+                categoryId = 30L,
+                basePrice = Money(BigDecimal(199000)),
+                salePrice = Money(BigDecimal(149000)),
+                discountRate = 25,
+                status = ProductStatus.INACTIVE,
+            )
 
         every { productRepository.findById(3L) } returns Optional.of(product)
 
@@ -144,27 +147,29 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("상품에 옵션을 추가할 때") {
-        val product = Product(
-            name = "기본 티셔츠",
-            description = "기본 반팔",
-            brandId = 1L,
-            categoryId = 10L,
-            basePrice = Money(BigDecimal(25000)),
-            salePrice = Money(BigDecimal(19000)),
-            discountRate = 24,
-            status = ProductStatus.DRAFT
-        )
+        val product =
+            Product(
+                name = "기본 티셔츠",
+                description = "기본 반팔",
+                brandId = 1L,
+                categoryId = 10L,
+                basePrice = Money(BigDecimal(25000)),
+                salePrice = Money(BigDecimal(19000)),
+                discountRate = 24,
+                status = ProductStatus.DRAFT,
+            )
 
         every { productRepository.findById(4L) } returns Optional.of(product)
         every { productRepository.flush() } returns Unit
 
-        val optionRequest = ProductOptionCreateRequest(
-            size = Size.M,
-            colorName = "블랙",
-            colorHex = "#000000",
-            skuCode = "TSH-BLK-M-001",
-            additionalPrice = BigDecimal.ZERO
-        )
+        val optionRequest =
+            ProductOptionCreateRequest(
+                size = Size.M,
+                colorName = "블랙",
+                colorHex = "#000000",
+                skuCode = "TSH-BLK-M-001",
+                additionalPrice = BigDecimal.ZERO,
+            )
 
         When("addOption을 호출하면") {
             val response = productService.addOption(4L, optionRequest)
@@ -192,16 +197,17 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("상품 삭제 요청이 주어졌을 때") {
-        val product = Product(
-            name = "삭제할 티셔츠",
-            description = "삭제 대상 상품",
-            brandId = 1L,
-            categoryId = 10L,
-            basePrice = Money(BigDecimal(30000)),
-            salePrice = Money(BigDecimal(25000)),
-            discountRate = 16,
-            status = ProductStatus.DRAFT
-        )
+        val product =
+            Product(
+                name = "삭제할 티셔츠",
+                description = "삭제 대상 상품",
+                brandId = 1L,
+                categoryId = 10L,
+                basePrice = Money(BigDecimal(30000)),
+                salePrice = Money(BigDecimal(25000)),
+                discountRate = 16,
+                status = ProductStatus.DRAFT,
+            )
 
         every { productRepository.findById(5L) } returns Optional.of(product)
 
@@ -219,16 +225,17 @@ class ProductServiceTest : BehaviorSpec({
     }
 
     Given("DRAFT 상태의 상품을 ACTIVE로 변경할 때") {
-        val product = Product(
-            name = "상태변경 테스트 상품",
-            description = "상태 변경 이벤트 테스트",
-            brandId = 1L,
-            categoryId = 10L,
-            basePrice = Money(BigDecimal(40000)),
-            salePrice = Money(BigDecimal(35000)),
-            discountRate = 12,
-            status = ProductStatus.DRAFT
-        )
+        val product =
+            Product(
+                name = "상태변경 테스트 상품",
+                description = "상태 변경 이벤트 테스트",
+                brandId = 1L,
+                categoryId = 10L,
+                basePrice = Money(BigDecimal(40000)),
+                salePrice = Money(BigDecimal(35000)),
+                discountRate = 12,
+                status = ProductStatus.DRAFT,
+            )
 
         every { productRepository.findById(6L) } returns Optional.of(product)
 

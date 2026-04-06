@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 class BffReviewController(
     private val reviewFacade: ReviewBffFacade,
 ) {
-
     /**
      * 상품별 리뷰 집계 + 목록.
      */

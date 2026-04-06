@@ -3,7 +3,7 @@ package com.closet.common.exception
 enum class ErrorCode(
     val code: String,
     val message: String,
-    val status: Int
+    val status: Int,
 ) {
     // Common
     INVALID_INPUT("C001", "잘못된 입력값입니다", 400),

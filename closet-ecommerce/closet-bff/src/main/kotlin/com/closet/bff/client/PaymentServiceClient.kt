@@ -10,13 +10,19 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(name = "payment-service", url = "\${service.payment.url}")
 interface PaymentServiceClient {
-
     @GetMapping("/payments/orders/{orderId}")
-    fun getPaymentByOrderId(@PathVariable orderId: Long): ApiResponse<PaymentResponse>
+    fun getPaymentByOrderId(
+        @PathVariable orderId: Long,
+    ): ApiResponse<PaymentResponse>
 
     @PostMapping("/payments/confirm")
-    fun confirmPayment(@RequestBody request: Any): ApiResponse<PaymentResponse>
+    fun confirmPayment(
+        @RequestBody request: Any,
+    ): ApiResponse<PaymentResponse>
 
     @PostMapping("/payments/{id}/cancel")
-    fun cancelPayment(@PathVariable id: Long, @RequestBody request: Any): ApiResponse<PaymentResponse>
+    fun cancelPayment(
+        @PathVariable id: Long,
+        @RequestBody request: Any,
+    ): ApiResponse<PaymentResponse>
 }

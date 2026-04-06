@@ -13,25 +13,39 @@ class ProductBffFacade(
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
     fun getProductDetail(productId: Long): ProductDetailBffResponse {
-        val productFuture = CompletableFuture.supplyAsync(
-            { productClient.getProduct(productId) },
-            executor,
-        )
-        val relatedFuture = CompletableFuture.supplyAsync(
-            { productClient.getProducts(categoryId = null, brandId = null, minPrice = null, maxPrice = null, page = 0, size = 4, sort = "newest") },
-            executor,
-        )
+        val productFuture =
+            CompletableFuture.supplyAsync(
+                { productClient.getProduct(productId) },
+                executor,
+            )
+        val relatedFuture =
+            CompletableFuture.supplyAsync(
+                {
+                    productClient.getProducts(
+                        categoryId = null,
+                        brandId = null,
+                        minPrice = null,
+                        maxPrice = null,
+                        page = 0,
+                        size = 4,
+                        sort = "newest",
+                    )
+                },
+                executor,
+            )
 
         CompletableFuture.allOf(productFuture, relatedFuture).join()
 
         val product = productFuture.get().data!!
-        val relatedProducts = relatedFuture.get().data?.content
-            ?.filter { it.id != productId }
-            ?.take(4)
+        val relatedProducts =
+            relatedFuture.get().data?.content
+                ?.filter { it.id != productId }
+                ?.take(4)
 
         return ProductDetailBffResponse(
             product = product,
-            reviewSummary = null, // Phase 2
+            // Phase 2
+            reviewSummary = null,
             relatedProducts = relatedProducts,
         )
     }

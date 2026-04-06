@@ -17,21 +17,24 @@ import reactor.core.publisher.Mono
 
 @Component
 class JwtAuthenticationFilter(
-    @Value("\${jwt.secret}") private val secret: String
+    @Value("\${jwt.secret}") private val secret: String,
 ) : GlobalFilter, Ordered {
+    private val publicPaths =
+        listOf(
+            "/api/v1/members/register",
+            "/api/v1/members/login",
+            "/api/v1/members/auth/refresh",
+            "/api/v1/products",
+            "/api/v1/categories",
+            "/api/v1/brands",
+            "/api/v1/bff/products",
+            "/api/v1/bff/auth",
+        )
 
-    private val publicPaths = listOf(
-        "/api/v1/members/register",
-        "/api/v1/members/login",
-        "/api/v1/members/auth/refresh",
-        "/api/v1/products",
-        "/api/v1/categories",
-        "/api/v1/brands",
-        "/api/v1/bff/products",
-        "/api/v1/bff/auth",
-    )
-
-    override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: GatewayFilterChain,
+    ): Mono<Void> {
         val request = exchange.request
         val path = request.uri.path
         val method = request.method
@@ -42,8 +45,9 @@ class JwtAuthenticationFilter(
         }
 
         // Extract and validate JWT
-        val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
-            ?: return onError(exchange, "Authorization header missing", HttpStatus.UNAUTHORIZED)
+        val authHeader =
+            request.headers.getFirst(HttpHeaders.AUTHORIZATION)
+                ?: return onError(exchange, "Authorization header missing", HttpStatus.UNAUTHORIZED)
 
         if (!authHeader.startsWith("Bearer ")) {
             return onError(exchange, "Invalid authorization format", HttpStatus.UNAUTHORIZED)
@@ -55,9 +59,10 @@ class JwtAuthenticationFilter(
             val memberId = claims.subject
 
             // Forward memberId to downstream services
-            val mutatedRequest = request.mutate()
-                .header("X-Member-Id", memberId)
-                .build()
+            val mutatedRequest =
+                request.mutate()
+                    .header("X-Member-Id", memberId)
+                    .build()
             chain.filter(exchange.mutate().request(mutatedRequest).build())
         } catch (e: Exception) {
             onError(exchange, "Invalid token", HttpStatus.UNAUTHORIZED)
@@ -72,7 +77,10 @@ class JwtAuthenticationFilter(
             .payload
     }
 
-    private fun isPublicPath(path: String, method: HttpMethod?): Boolean {
+    private fun isPublicPath(
+        path: String,
+        method: HttpMethod?,
+    ): Boolean {
         if (publicPaths.any { path.startsWith(it) }) {
             // For product/category/brand/bff listings, only GET is public
             if (path.startsWith("/api/v1/products") ||
@@ -87,7 +95,11 @@ class JwtAuthenticationFilter(
         return false
     }
 
-    private fun onError(exchange: ServerWebExchange, message: String, status: HttpStatus): Mono<Void> {
+    private fun onError(
+        exchange: ServerWebExchange,
+        message: String,
+        status: HttpStatus,
+    ): Mono<Void> {
         exchange.response.statusCode = status
         exchange.response.headers.contentType = MediaType.APPLICATION_JSON
         val body = """{"success":false,"error":{"code":"AUTH001","message":"$message"}}"""

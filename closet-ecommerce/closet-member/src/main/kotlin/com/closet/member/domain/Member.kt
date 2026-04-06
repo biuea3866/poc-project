@@ -18,32 +18,24 @@ import jakarta.persistence.Table
 class Member(
     @Column(nullable = false, unique = true, length = 200)
     val email: String,
-
     @Column(name = "password_hash", length = 200)
     var passwordHash: String?,
-
     @Column(nullable = false, length = 50)
     var name: String,
-
     @Column(length = 20)
     var phone: String? = null,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var grade: MemberGrade = MemberGrade.NORMAL,
-
     @Column(name = "point_balance", nullable = false)
     var pointBalance: Int = 0,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: MemberStatus = MemberStatus.ACTIVE,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20, columnDefinition = "VARCHAR(20) COMMENT '회원 역할 (BUYER/SELLER/ADMIN)'")
     var role: MemberRole = MemberRole.BUYER,
 ) : BaseEntity() {
-
     companion object {
         /** 회원 가입 팩토리 메서드 */
         fun register(

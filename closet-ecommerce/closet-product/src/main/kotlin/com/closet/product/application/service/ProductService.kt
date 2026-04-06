@@ -32,21 +32,21 @@ class ProductService(
     private val productRepository: ProductRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
-
     @Transactional
     fun create(request: ProductCreateRequest): ProductResponse {
-        val product = Product(
-            name = request.name,
-            description = request.description,
-            brandId = request.brandId,
-            categoryId = request.categoryId,
-            basePrice = Money(request.basePrice),
-            salePrice = Money(request.salePrice),
-            discountRate = request.discountRate,
-            season = request.season,
-            fitType = request.fitType,
-            gender = request.gender
-        )
+        val product =
+            Product(
+                name = request.name,
+                description = request.description,
+                brandId = request.brandId,
+                categoryId = request.categoryId,
+                basePrice = Money(request.basePrice),
+                salePrice = Money(request.salePrice),
+                discountRate = request.discountRate,
+                season = request.season,
+                fitType = request.fitType,
+                gender = request.gender,
+            )
         val saved = productRepository.save(product)
         logger.info { "상품 생성 완료: id=${saved.id}, name=${saved.name}" }
         eventPublisher.publishEvent(ProductCreatedEvent.from(saved))
@@ -54,7 +54,10 @@ class ProductService(
     }
 
     @Transactional
-    fun update(id: Long, request: ProductUpdateRequest): ProductResponse {
+    fun update(
+        id: Long,
+        request: ProductUpdateRequest,
+    ): ProductResponse {
         val product = findProductById(id)
         product.update(
             name = request.name,
@@ -66,7 +69,7 @@ class ProductService(
             discountRate = request.discountRate,
             season = request.season,
             fitType = request.fitType,
-            gender = request.gender
+            gender = request.gender,
         )
         eventPublisher.publishEvent(ProductUpdatedEvent.from(product))
         return ProductResponse.from(product)
@@ -83,7 +86,7 @@ class ProductService(
         minPrice: BigDecimal?,
         maxPrice: BigDecimal?,
         status: ProductStatus?,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<ProductListResponse> {
         return productRepository.findByFilter(categoryId, brandId, minPrice, maxPrice, status, pageable)
             .map { ProductListResponse.from(it) }
@@ -100,12 +103,15 @@ class ProductService(
                 name = product.name,
                 brandId = product.brandId,
                 categoryId = product.categoryId,
-            )
+            ),
         )
     }
 
     @Transactional
-    fun changeStatus(id: Long, targetStatus: ProductStatus): ProductResponse {
+    fun changeStatus(
+        id: Long,
+        targetStatus: ProductStatus,
+    ): ProductResponse {
         val product = findProductById(id)
         product.changeStatus(targetStatus)
         logger.info { "상품 상태 변경: id=$id, status=$targetStatus" }
@@ -114,15 +120,19 @@ class ProductService(
     }
 
     @Transactional
-    fun addOption(productId: Long, request: ProductOptionCreateRequest): ProductOptionResponse {
+    fun addOption(
+        productId: Long,
+        request: ProductOptionCreateRequest,
+    ): ProductOptionResponse {
         val product = findProductById(productId)
-        val option = ProductOption(
-            size = request.size,
-            colorName = request.colorName,
-            colorHex = request.colorHex,
-            skuCode = request.skuCode,
-            additionalPrice = Money(request.additionalPrice)
-        )
+        val option =
+            ProductOption(
+                size = request.size,
+                colorName = request.colorName,
+                colorHex = request.colorHex,
+                skuCode = request.skuCode,
+                additionalPrice = Money(request.additionalPrice),
+            )
         product.addOption(option)
         productRepository.flush()
         logger.info { "상품 옵션 추가: productId=$productId, skuCode=${request.skuCode}" }
@@ -130,7 +140,10 @@ class ProductService(
     }
 
     @Transactional
-    fun removeOption(productId: Long, optionId: Long) {
+    fun removeOption(
+        productId: Long,
+        optionId: Long,
+    ) {
         val product = findProductById(productId)
         product.removeOption(optionId)
         logger.info { "상품 옵션 삭제: productId=$productId, optionId=$optionId" }

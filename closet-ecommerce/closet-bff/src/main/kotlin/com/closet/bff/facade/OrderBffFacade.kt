@@ -24,22 +24,25 @@ class OrderBffFacade(
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
     fun getOrderDetail(orderId: Long): OrderDetailBffResponse {
-        val orderFuture = CompletableFuture.supplyAsync(
-            { orderClient.getOrder(orderId) },
-            executor,
-        )
-        val paymentFuture = CompletableFuture.supplyAsync(
-            { runCatching { paymentClient.getPaymentByOrderId(orderId) }.getOrNull() },
-            executor,
-        )
-        val shipmentFuture = CompletableFuture.supplyAsync(
-            {
-                runCatching { shippingClient.getShipmentByOrderId(orderId) }.getOrNull()?.data?.let {
-                    ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
-                }
-            },
-            executor,
-        )
+        val orderFuture =
+            CompletableFuture.supplyAsync(
+                { orderClient.getOrder(orderId) },
+                executor,
+            )
+        val paymentFuture =
+            CompletableFuture.supplyAsync(
+                { runCatching { paymentClient.getPaymentByOrderId(orderId) }.getOrNull() },
+                executor,
+            )
+        val shipmentFuture =
+            CompletableFuture.supplyAsync(
+                {
+                    runCatching { shippingClient.getShipmentByOrderId(orderId) }.getOrNull()?.data?.let {
+                        ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
+                    }
+                },
+                executor,
+            )
 
         CompletableFuture.allOf(orderFuture, paymentFuture, shipmentFuture).join()
 
@@ -51,14 +54,16 @@ class OrderBffFacade(
     }
 
     fun getCheckout(memberId: Long): CheckoutBffResponse {
-        val cartFuture = CompletableFuture.supplyAsync(
-            { orderClient.getCart(memberId) },
-            executor,
-        )
-        val addressesFuture = CompletableFuture.supplyAsync(
-            { memberClient.getAddresses(memberId) },
-            executor,
-        )
+        val cartFuture =
+            CompletableFuture.supplyAsync(
+                { orderClient.getCart(memberId) },
+                executor,
+            )
+        val addressesFuture =
+            CompletableFuture.supplyAsync(
+                { memberClient.getAddresses(memberId) },
+                executor,
+            )
 
         CompletableFuture.allOf(cartFuture, addressesFuture).join()
 
@@ -69,30 +74,37 @@ class OrderBffFacade(
             cart = cart,
             addresses = addresses,
             defaultAddress = addresses.find { it.isDefault },
-            availableCoupons = null, // Phase 3
+            // Phase 3
+            availableCoupons = null,
         )
     }
 
-    fun placeOrder(memberId: Long, request: CreateOrderBffRequest): OrderDetailBffResponse {
+    fun placeOrder(
+        memberId: Long,
+        request: CreateOrderBffRequest,
+    ): OrderDetailBffResponse {
         val order = orderClient.createOrder(memberId, request).data!!
         return OrderDetailBffResponse(
             order = order,
             payment = null,
-            shipment = null, // 주문 직후에는 배송 정보 없음
+            // 주문 직후에는 배송 정보 없음
+            shipment = null,
         )
     }
 
     fun confirmPayment(request: ConfirmPaymentBffRequest): OrderDetailBffResponse {
-        val paymentRequest = ConfirmPaymentRequest(
-            paymentKey = request.paymentKey,
-            orderId = request.orderId,
-            amount = request.amount,
-        )
+        val paymentRequest =
+            ConfirmPaymentRequest(
+                paymentKey = request.paymentKey,
+                orderId = request.orderId,
+                amount = request.amount,
+            )
         val payment = paymentClient.confirmPayment(paymentRequest).data!!
         val order = orderClient.getOrder(request.orderId).data!!
-        val shipment = runCatching { shippingClient.getShipmentByOrderId(request.orderId) }.getOrNull()?.data?.let {
-            ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
-        }
+        val shipment =
+            runCatching { shippingClient.getShipmentByOrderId(request.orderId) }.getOrNull()?.data?.let {
+                ShipmentResponse(id = it.id, trackingNumber = it.trackingNumber, status = it.status)
+            }
         return OrderDetailBffResponse(
             order = order,
             payment = payment,
@@ -100,13 +112,17 @@ class OrderBffFacade(
         )
     }
 
-    fun cancelOrder(orderId: Long, reason: String): OrderDetailBffResponse {
+    fun cancelOrder(
+        orderId: Long,
+        reason: String,
+    ): OrderDetailBffResponse {
         val order = orderClient.cancelOrder(orderId, mapOf("reason" to reason)).data!!
         val payment = runCatching { paymentClient.getPaymentByOrderId(orderId) }.getOrNull()?.data
         return OrderDetailBffResponse(
             order = order,
             payment = payment,
-            shipment = null, // 취소된 주문은 배송 불필요
+            // 취소된 주문은 배송 불필요
+            shipment = null,
         )
     }
 }

@@ -26,7 +26,6 @@ class ReturnApprovedConsumer(
     private val paymentRepository: PaymentRepository,
     private val idempotencyChecker: IdempotencyChecker,
 ) {
-
     companion object {
         private const val CONSUMER_GROUP = "payment-service"
     }
@@ -41,8 +40,9 @@ class ReturnApprovedConsumer(
                 val eventId = "payment-return-approved-${returnApproved.returnRequestId}"
 
                 idempotencyChecker.process(eventId, ClosetTopics.SHIPPING, CONSUMER_GROUP) {
-                    val payment = paymentRepository.findByOrderId(returnApproved.orderId)
-                        .orElse(null)
+                    val payment =
+                        paymentRepository.findByOrderId(returnApproved.orderId)
+                            .orElse(null)
                     if (payment == null) {
                         logger.warn { "결제 정보를 찾을 수 없습니다: orderId=${returnApproved.orderId}" }
                         return@process
@@ -52,8 +52,8 @@ class ReturnApprovedConsumer(
                         payment.id,
                         RefundPaymentRequest(
                             amount = returnApproved.refundAmount,
-                            reason = "반품 승인 환불 (returnRequestId=${returnApproved.returnRequestId})"
-                        )
+                            reason = "반품 승인 환불 (returnRequestId=${returnApproved.returnRequestId})",
+                        ),
                     )
                 }
             }

@@ -9,14 +9,15 @@ import io.kotest.matchers.shouldNotBe
 class JwtTokenProviderTest : BehaviorSpec({
 
     val secret = "closet-member-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256"
-    val accessTokenExpiryMs = 1800000L  // 30분
+    val accessTokenExpiryMs = 1800000L // 30분
     val refreshTokenExpiryMs = 604800000L // 7일
 
-    val jwtTokenProvider = JwtTokenProvider(
-        secret = secret,
-        accessTokenExpiryMs = accessTokenExpiryMs,
-        refreshTokenExpiryMs = refreshTokenExpiryMs,
-    )
+    val jwtTokenProvider =
+        JwtTokenProvider(
+            secret = secret,
+            accessTokenExpiryMs = accessTokenExpiryMs,
+            refreshTokenExpiryMs = refreshTokenExpiryMs,
+        )
 
     Given("Access Token 생성") {
 
@@ -72,11 +73,13 @@ class JwtTokenProviderTest : BehaviorSpec({
     Given("레거시 JWT 하위 호환") {
 
         When("만료된 토큰을 검증하면") {
-            val expiredProvider = JwtTokenProvider(
-                secret = secret,
-                accessTokenExpiryMs = -1000L, // 이미 만료
-                refreshTokenExpiryMs = refreshTokenExpiryMs,
-            )
+            val expiredProvider =
+                JwtTokenProvider(
+                    secret = secret,
+                    // 이미 만료
+                    accessTokenExpiryMs = -1000L,
+                    refreshTokenExpiryMs = refreshTokenExpiryMs,
+                )
             val token = expiredProvider.generateAccessToken(1L, MemberRole.BUYER)
 
             Then("validate가 false를 반환한다") {

@@ -32,7 +32,9 @@ class BffCartController(
     ) = ApiResponse.ok(cartFacade.updateCartItemQuantity(itemId, request.quantity))
 
     @DeleteMapping("/items/{itemId}")
-    fun removeCartItem(@PathVariable itemId: Long): ResponseEntity<Void> {
+    fun removeCartItem(
+        @PathVariable itemId: Long,
+    ): ResponseEntity<Void> {
         cartFacade.removeCartItem(itemId)
         return ResponseEntity.noContent().build()
     }

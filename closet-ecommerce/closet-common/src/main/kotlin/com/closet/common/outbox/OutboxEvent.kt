@@ -11,7 +11,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "outbox_event")
@@ -19,22 +19,16 @@ import java.time.LocalDateTime
 class OutboxEvent(
     @Column(name = "aggregate_type", nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
     val aggregateType: String,
-
     @Column(name = "aggregate_id", nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
     val aggregateId: String,
-
     @Column(name = "event_type", nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
     val eventType: String,
-
     @Column(name = "topic", nullable = false, length = 200, columnDefinition = "VARCHAR(200)")
     val topic: String,
-
     @Column(name = "partition_key", nullable = false, length = 100, columnDefinition = "VARCHAR(100)")
     val partitionKey: String,
-
     @Column(name = "payload", nullable = false, columnDefinition = "TEXT")
     val payload: String,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     var status: OutboxEventStatus = OutboxEventStatus.PENDING,
@@ -45,15 +39,15 @@ class OutboxEvent(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @Column(name = "published_at", columnDefinition = "DATETIME(6)")
-    var publishedAt: LocalDateTime? = null
+    var publishedAt: ZonedDateTime? = null
 
     fun markPublished() {
         status.validateTransitionTo(OutboxEventStatus.PUBLISHED)
         this.status = OutboxEventStatus.PUBLISHED
-        this.publishedAt = LocalDateTime.now()
+        this.publishedAt = ZonedDateTime.now()
     }
 
     fun markFailed() {

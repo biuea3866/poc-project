@@ -8,7 +8,6 @@ import org.springframework.transaction.annotation.Transactional
 class OutboxEventPublisher(
     private val outboxEventRepository: OutboxEventRepository,
 ) {
-
     /**
      * Outbox 이벤트를 저장한다.
      * 호출하는 서비스의 비즈니스 트랜잭션 내에서 호출되어야 하며,
@@ -23,14 +22,15 @@ class OutboxEventPublisher(
         partitionKey: String,
         payload: String,
     ): OutboxEvent {
-        val event = OutboxEvent.create(
-            aggregateType = aggregateType,
-            aggregateId = aggregateId,
-            eventType = eventType,
-            topic = topic,
-            partitionKey = partitionKey,
-            payload = payload,
-        )
+        val event =
+            OutboxEvent.create(
+                aggregateType = aggregateType,
+                aggregateId = aggregateId,
+                eventType = eventType,
+                topic = topic,
+                partitionKey = partitionKey,
+                payload = payload,
+            )
         return outboxEventRepository.save(event)
     }
 }

@@ -8,11 +8,17 @@ import org.springframework.stereotype.Service
 class CartBffFacade(
     private val orderClient: OrderServiceClient,
 ) {
-    fun addCartItem(memberId: Long, request: AddCartItemRequest): Any {
+    fun addCartItem(
+        memberId: Long,
+        request: AddCartItemRequest,
+    ): Any {
         return orderClient.addCartItem(memberId, request).data!!
     }
 
-    fun updateCartItemQuantity(itemId: Long, quantity: Int): Any {
+    fun updateCartItemQuantity(
+        itemId: Long,
+        quantity: Int,
+    ): Any {
         return orderClient.updateCartItemQuantity(itemId, mapOf("quantity" to quantity)).data!!
     }
 

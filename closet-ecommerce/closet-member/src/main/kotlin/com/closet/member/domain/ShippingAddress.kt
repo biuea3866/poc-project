@@ -13,26 +13,19 @@ import jakarta.persistence.Table
 class ShippingAddress(
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
-
     @Column(nullable = false, length = 50)
     var name: String,
-
     @Column(nullable = false, length = 20)
     var phone: String,
-
     @Column(name = "zip_code", nullable = false, length = 10)
     var zipCode: String,
-
     @Column(nullable = false, length = 200)
     var address: String,
-
     @Column(name = "detail_address", length = 200)
     var detailAddress: String? = null,
-
     @Column(name = "is_default", nullable = false, columnDefinition = "TINYINT(1)")
     var isDefault: Boolean = false,
 ) : BaseEntity() {
-
     fun update(
         name: String,
         phone: String,

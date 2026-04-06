@@ -101,7 +101,7 @@ class BannedKeywordServiceTest : BehaviorSpec({
 
             Then("Redis의 최신 금칙어로 로컬 캐시가 교체된다") {
                 service.isBanned("새로운금칙어") shouldBe true
-                service.isBanned("욕설") shouldBe false  // 이전 캐시 데이터 제거됨
+                service.isBanned("욕설") shouldBe false // 이전 캐시 데이터 제거됨
             }
         }
     }

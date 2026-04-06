@@ -13,26 +13,21 @@ import jakarta.persistence.JoinColumn
 import jakarta.persistence.ManyToOne
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "product_image")
 class ProductImage(
-
     @Column(name = "image_url", nullable = false, length = 500)
     val imageUrl: String,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val type: ImageType,
-
     @Column(name = "sort_order", nullable = false)
     val sortOrder: Int = 0,
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "product_id", nullable = false)
-    var product: Product? = null
-
+    var product: Product? = null,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -40,5 +35,5 @@ class ProductImage(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 }

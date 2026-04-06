@@ -17,7 +17,6 @@ private val logger = KotlinLogging.logger {}
 class RecentKeywordService(
     private val redisTemplate: StringRedisTemplate,
 ) {
-
     companion object {
         private const val KEY_PREFIX = "search:recent:"
         private const val MAX_SIZE = 20L
@@ -28,7 +27,10 @@ class RecentKeywordService(
      * 최근 검색어 저장.
      * 중복 제거 후 최신을 리스트 앞에 추가한다.
      */
-    fun saveRecentKeyword(memberId: Long, keyword: String) {
+    fun saveRecentKeyword(
+        memberId: Long,
+        keyword: String,
+    ) {
         val trimmed = keyword.trim()
         if (trimmed.isBlank()) return
 
@@ -52,17 +54,24 @@ class RecentKeywordService(
     /**
      * 최근 검색어 목록 조회.
      */
-    fun getRecentKeywords(memberId: Long, size: Int = 20): List<String> {
+    fun getRecentKeywords(
+        memberId: Long,
+        size: Int = 20,
+    ): List<String> {
         val key = "$KEY_PREFIX$memberId"
-        val results = redisTemplate.opsForList().range(key, 0, (size - 1).toLong())
-            ?: emptyList()
+        val results =
+            redisTemplate.opsForList().range(key, 0, (size - 1).toLong())
+                ?: emptyList()
         return results
     }
 
     /**
      * 특정 최근 검색어 삭제.
      */
-    fun deleteRecentKeyword(memberId: Long, keyword: String) {
+    fun deleteRecentKeyword(
+        memberId: Long,
+        keyword: String,
+    ) {
         val key = "$KEY_PREFIX$memberId"
         redisTemplate.opsForList().remove(key, 0, keyword.trim())
         logger.debug { "최근 검색어 삭제: memberId=$memberId, keyword=${keyword.trim()}" }

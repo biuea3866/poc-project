@@ -3,7 +3,6 @@ package com.closet.inventory.domain
 import org.springframework.data.jpa.repository.JpaRepository
 
 interface RestockNotificationRepository : JpaRepository<RestockNotification, Long> {
-
     fun findByProductOptionIdAndStatus(
         productOptionId: Long,
         status: RestockNotificationStatus,

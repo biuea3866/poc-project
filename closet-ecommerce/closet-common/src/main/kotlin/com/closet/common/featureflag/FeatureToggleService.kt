@@ -16,7 +16,6 @@ private val logger = KotlinLogging.logger {}
 class FeatureToggleService(
     private val featureToggleRepository: FeatureToggleRepository,
 ) {
-
     /**
      * Feature Toggle이 활성화되어 있는지 확인한다.
      *
@@ -42,18 +41,22 @@ class FeatureToggleService(
      * @param enabled 활성화 여부
      */
     @Transactional
-    fun setEnabled(featureKey: FeatureKey, enabled: Boolean) {
+    fun setEnabled(
+        featureKey: FeatureKey,
+        enabled: Boolean,
+    ) {
         val toggle = featureToggleRepository.findByConfigKey(featureKey.key).orElse(null)
 
         if (toggle != null) {
             toggle.updateValue(if (enabled) "true" else "false")
             featureToggleRepository.save(toggle)
         } else {
-            val newToggle = FeatureToggle(
-                configKey = featureKey.key,
-                configValue = if (enabled) "true" else "false",
-                description = featureKey.description,
-            )
+            val newToggle =
+                FeatureToggle(
+                    configKey = featureKey.key,
+                    configValue = if (enabled) "true" else "false",
+                    description = featureKey.description,
+                )
             featureToggleRepository.save(newToggle)
         }
 

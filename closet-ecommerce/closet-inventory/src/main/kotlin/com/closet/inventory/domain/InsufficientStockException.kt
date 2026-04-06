@@ -9,6 +9,6 @@ class InsufficientStockException(
     val requested: Int,
     val available: Int,
 ) : BusinessException(
-    ErrorCode.INVALID_INPUT,
-    "재고가 부족합니다. sku=$sku, requested=$requested, available=$available"
-)
+        ErrorCode.INVALID_INPUT,
+        "재고가 부족합니다. sku=$sku, requested=$requested, available=$available",
+    )

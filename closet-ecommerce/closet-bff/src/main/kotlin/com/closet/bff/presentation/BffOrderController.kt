@@ -19,10 +19,14 @@ class BffOrderController(
     private val orderFacade: OrderBffFacade,
 ) {
     @GetMapping("/orders/{id}")
-    fun getOrderDetail(@PathVariable id: Long) = ApiResponse.ok(orderFacade.getOrderDetail(id))
+    fun getOrderDetail(
+        @PathVariable id: Long,
+    ) = ApiResponse.ok(orderFacade.getOrderDetail(id))
 
     @GetMapping("/checkout")
-    fun getCheckout(@RequestHeader("X-Member-Id") memberId: Long) = ApiResponse.ok(orderFacade.getCheckout(memberId))
+    fun getCheckout(
+        @RequestHeader("X-Member-Id") memberId: Long,
+    ) = ApiResponse.ok(orderFacade.getCheckout(memberId))
 
     @PostMapping("/orders")
     fun placeOrder(

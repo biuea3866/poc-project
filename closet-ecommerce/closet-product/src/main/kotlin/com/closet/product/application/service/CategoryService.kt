@@ -13,9 +13,8 @@ private val logger = KotlinLogging.logger {}
 @Service
 @Transactional(readOnly = true)
 class CategoryService(
-    private val categoryRepository: CategoryRepository
+    private val categoryRepository: CategoryRepository,
 ) {
-
     fun findAll(): List<CategoryResponse> {
         val allCategories = categoryRepository.findByDeletedAtIsNullOrderByDepthAscSortOrderAsc()
         return buildTree(allCategories)
@@ -23,12 +22,13 @@ class CategoryService(
 
     @Transactional
     fun create(request: CategoryCreateRequest): CategoryResponse {
-        val category = Category(
-            parentId = request.parentId,
-            name = request.name,
-            depth = request.depth,
-            sortOrder = request.sortOrder
-        )
+        val category =
+            Category(
+                parentId = request.parentId,
+                name = request.name,
+                depth = request.depth,
+                sortOrder = request.sortOrder,
+            )
         val saved = categoryRepository.save(category)
         logger.info { "카테고리 생성 완료: id=${saved.id}, name=${saved.name}" }
         return CategoryResponse.from(saved)
@@ -51,7 +51,7 @@ class CategoryService(
 
     private fun buildCategoryResponse(
         category: Category,
-        childrenMap: Map<Long, List<Category>>
+        childrenMap: Map<Long, List<Category>>,
     ): CategoryResponse {
         val children = childrenMap[category.id]?.map { buildCategoryResponse(it, childrenMap) } ?: emptyList()
         return CategoryResponse.from(category, children)

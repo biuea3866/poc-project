@@ -14,16 +14,15 @@ import java.math.BigDecimal
 
 @Repository
 class ProductRepositoryImpl(
-    private val queryFactory: JPAQueryFactory
+    private val queryFactory: JPAQueryFactory,
 ) : ProductRepositoryCustom {
-
     override fun findByFilter(
         categoryId: Long?,
         brandId: Long?,
         minPrice: BigDecimal?,
         maxPrice: BigDecimal?,
         status: ProductStatus?,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<Product> {
         val builder = BooleanBuilder()
         builder.and(product.deletedAt.isNull)
@@ -35,19 +34,21 @@ class ProductRepositoryImpl(
         // status 파라미터가 없으면 ACTIVE 상품만 기본 조회 (DRAFT 노출 방지)
         builder.and(product.status.eq(status ?: ProductStatus.ACTIVE))
 
-        val results = queryFactory
-            .selectFrom(product)
-            .where(builder)
-            .offset(pageable.offset)
-            .limit(pageable.pageSize.toLong())
-            .orderBy(product.createdAt.desc())
-            .fetch()
+        val results =
+            queryFactory
+                .selectFrom(product)
+                .where(builder)
+                .offset(pageable.offset)
+                .limit(pageable.pageSize.toLong())
+                .orderBy(product.createdAt.desc())
+                .fetch()
 
-        val total = queryFactory
-            .select(product.count())
-            .from(product)
-            .where(builder)
-            .fetchOne() ?: 0L
+        val total =
+            queryFactory
+                .select(product.count())
+                .from(product)
+                .where(builder)
+                .fetchOne() ?: 0L
 
         return PageImpl(results, pageable, total)
     }

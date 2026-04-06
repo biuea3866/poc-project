@@ -24,7 +24,6 @@ class PopularKeywordService(
     private val redisTemplate: StringRedisTemplate,
     private val bannedKeywordService: BannedKeywordService,
 ) {
-
     companion object {
         /** 현재 인기 검색어 카운트 키 */
         private const val POPULAR_KEY = "search:popular_keywords"
@@ -61,9 +60,10 @@ class PopularKeywordService(
      * 이전 스냅샷과 비교하여 순위 변동(RankChange)을 계산한다.
      */
     fun getPopularKeywords(size: Int = DEFAULT_TOP_SIZE): List<PopularKeywordResponse> {
-        val currentResults = redisTemplate.opsForZSet()
-            .reverseRangeWithScores(POPULAR_KEY, 0, (size - 1).toLong())
-            ?: emptySet()
+        val currentResults =
+            redisTemplate.opsForZSet()
+                .reverseRangeWithScores(POPULAR_KEY, 0, (size - 1).toLong())
+                ?: emptySet()
 
         // 이전 스냅샷 조회 (키워드 → 순위 맵)
         val previousRanks = getPreviousRanks()
@@ -73,13 +73,14 @@ class PopularKeywordService(
             val currentRank = index + 1
             val previousRank = previousRanks[keyword]
 
-            val rankChange = when {
-                keyword.isBlank() -> RankChange.SAME
-                previousRank == null -> RankChange.NEW
-                previousRank > currentRank -> RankChange.UP
-                previousRank < currentRank -> RankChange.DOWN
-                else -> RankChange.SAME
-            }
+            val rankChange =
+                when {
+                    keyword.isBlank() -> RankChange.SAME
+                    previousRank == null -> RankChange.NEW
+                    previousRank > currentRank -> RankChange.UP
+                    previousRank < currentRank -> RankChange.DOWN
+                    else -> RankChange.SAME
+                }
 
             PopularKeywordResponse(
                 rank = currentRank,
@@ -94,9 +95,10 @@ class PopularKeywordService(
      * 이전 스냅샷에서 키워드별 순위 맵을 가져온다.
      */
     private fun getPreviousRanks(): Map<String, Int> {
-        val previousResults = redisTemplate.opsForZSet()
-            .reverseRangeWithScores(PREVIOUS_SNAPSHOT_KEY, 0, (DEFAULT_TOP_SIZE - 1).toLong())
-            ?: emptySet()
+        val previousResults =
+            redisTemplate.opsForZSet()
+                .reverseRangeWithScores(PREVIOUS_SNAPSHOT_KEY, 0, (DEFAULT_TOP_SIZE - 1).toLong())
+                ?: emptySet()
 
         return previousResults.mapIndexed { index, tuple ->
             (tuple.value ?: "") to (index + 1)
@@ -112,9 +114,10 @@ class PopularKeywordService(
     @Scheduled(fixedRate = 3_600_000) // 1시간
     fun refreshSnapshot() {
         // 현재 TOP N을 이전 스냅샷으로 복사
-        val currentTopN = redisTemplate.opsForZSet()
-            .reverseRangeWithScores(POPULAR_KEY, 0, (DEFAULT_TOP_SIZE - 1).toLong())
-            ?: emptySet()
+        val currentTopN =
+            redisTemplate.opsForZSet()
+                .reverseRangeWithScores(POPULAR_KEY, 0, (DEFAULT_TOP_SIZE - 1).toLong())
+                ?: emptySet()
 
         // 이전 스냅샷 초기화 후 다시 저장
         redisTemplate.delete(PREVIOUS_SNAPSHOT_KEY)
@@ -134,8 +137,9 @@ class PopularKeywordService(
      * Sliding window 정리 (저점수 항목 제거).
      */
     fun cleanupOldEntries() {
-        val removed = redisTemplate.opsForZSet()
-            .removeRangeByScore(POPULAR_KEY, Double.NEGATIVE_INFINITY, 0.0)
+        val removed =
+            redisTemplate.opsForZSet()
+                .removeRangeByScore(POPULAR_KEY, Double.NEGATIVE_INFINITY, 0.0)
         if (removed != null && removed > 0) {
             logger.info { "인기 검색어 정리 완료: $removed 건 제거" }
         }
@@ -157,10 +161,13 @@ class PopularKeywordService(
 enum class RankChange {
     /** 신규 진입 */
     NEW,
+
     /** 순위 상승 */
     UP,
+
     /** 순위 하락 */
     DOWN,
+
     /** 순위 유지 */
     SAME,
 }

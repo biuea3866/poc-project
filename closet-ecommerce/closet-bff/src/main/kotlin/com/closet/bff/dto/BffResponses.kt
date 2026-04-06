@@ -5,15 +5,18 @@ package com.closet.bff.dto
 /** 상품 상세 (상품 + 리뷰 요약 + 재고 상태) */
 data class ProductDetailBffResponse(
     val product: ProductResponse,
-    val reviewSummary: ReviewSummaryResponse?, // Phase 2
-    val relatedProducts: List<ProductResponse>?, // 같은 카테고리 상품
+    // Phase 2
+    val reviewSummary: ReviewSummaryResponse?,
+    // 같은 카테고리 상품
+    val relatedProducts: List<ProductResponse>?,
 )
 
 /** 주문 상세 (주문 + 결제 + 배송) */
 data class OrderDetailBffResponse(
     val order: OrderResponse,
     val payment: PaymentResponse?,
-    val shipment: ShipmentResponse?, // Phase 2
+    // Phase 2
+    val shipment: ShipmentResponse?,
 )
 
 /** 마이페이지 (회원 + 최근 주문 + 포인트) */
@@ -28,15 +31,18 @@ data class CheckoutBffResponse(
     val cart: CartResponse,
     val addresses: List<ShippingAddressResponse>,
     val defaultAddress: ShippingAddressResponse?,
-    val availableCoupons: List<CouponResponse>?, // Phase 3
+    // Phase 3
+    val availableCoupons: List<CouponResponse>?,
 )
 
 /** 메인 페이지 (배너 + 랭킹 + 신상품 + 기획전) */
 data class HomeBffResponse(
-    val banners: List<BannerResponse>?, // Phase 3
+    // Phase 3
+    val banners: List<BannerResponse>?,
     val rankings: List<ProductResponse>,
     val newArrivals: List<ProductResponse>,
-    val exhibitions: List<ExhibitionResponse>?, // Phase 3
+    // Phase 3
+    val exhibitions: List<ExhibitionResponse>?,
 )
 
 // === Downstream Service Response DTOs ===

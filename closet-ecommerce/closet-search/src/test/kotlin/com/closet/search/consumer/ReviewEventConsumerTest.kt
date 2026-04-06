@@ -10,18 +10,20 @@ class ReviewEventConsumerTest : BehaviorSpec({
 
     val searchFacade = mockk<SearchFacade>(relaxed = true)
 
-    val consumer = ReviewEventConsumer(
-        searchFacade = searchFacade,
-    )
+    val consumer =
+        ReviewEventConsumer(
+            searchFacade = searchFacade,
+        )
 
     Given("ReviewSummaryUpdated 이벤트가 event.closet.review로 수신되면") {
 
-        val event = ReviewEvent(
-            eventType = "ReviewSummaryUpdated",
-            productId = 5L,
-            reviewCount = 55,
-            avgRating = 4.3,
-        )
+        val event =
+            ReviewEvent(
+                eventType = "ReviewSummaryUpdated",
+                productId = 5L,
+                reviewCount = 55,
+                avgRating = 4.3,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -40,10 +42,11 @@ class ReviewEventConsumerTest : BehaviorSpec({
 
     Given("처리하지 않는 eventType이 수신되면") {
 
-        val event = ReviewEvent(
-            eventType = "ReviewCreated",
-            productId = 5L,
-        )
+        val event =
+            ReviewEvent(
+                eventType = "ReviewCreated",
+                productId = 5L,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)

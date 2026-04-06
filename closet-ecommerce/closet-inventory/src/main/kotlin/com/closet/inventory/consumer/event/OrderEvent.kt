@@ -23,12 +23,13 @@ data class OrderEvent(
         return OrderCreatedEvent(
             orderId = orderId,
             memberId = memberId ?: 0L,
-            items = items.map {
-                OrderCreatedEvent.OrderItemInfo(
-                    productOptionId = it.productOptionId,
-                    quantity = it.quantity,
-                )
-            },
+            items =
+                items.map {
+                    OrderCreatedEvent.OrderItemInfo(
+                        productOptionId = it.productOptionId,
+                        quantity = it.quantity,
+                    )
+                },
         )
     }
 
@@ -36,12 +37,13 @@ data class OrderEvent(
         return OrderCancelledEvent(
             orderId = orderId,
             reason = reason ?: "",
-            items = items.map {
-                OrderCancelledEvent.OrderItemInfo(
-                    productOptionId = it.productOptionId,
-                    quantity = it.quantity,
-                )
-            },
+            items =
+                items.map {
+                    OrderCancelledEvent.OrderItemInfo(
+                        productOptionId = it.productOptionId,
+                        quantity = it.quantity,
+                    )
+                },
         )
     }
 }

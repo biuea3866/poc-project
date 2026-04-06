@@ -17,7 +17,6 @@ data class ReviewEvent(
     val isPhotoReview: Boolean? = null,
     val pointAmount: Int? = null,
 ) {
-
     fun toReviewCreatedEvent(): ReviewCreatedEvent {
         return ReviewCreatedEvent(
             reviewId = reviewId ?: 0L,

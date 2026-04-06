@@ -25,35 +25,37 @@ class SearchFacadeTest : BehaviorSpec({
     val popularKeywordService = mockk<PopularKeywordService>(relaxed = true)
     val recentKeywordService = mockk<RecentKeywordService>(relaxed = true)
 
-    val facade = SearchFacade(
-        productSearchService = productSearchService,
-        popularKeywordService = popularKeywordService,
-        recentKeywordService = recentKeywordService,
-    )
+    val facade =
+        SearchFacade(
+            productSearchService = productSearchService,
+            popularKeywordService = popularKeywordService,
+            recentKeywordService = recentKeywordService,
+        )
 
     Given("검색 API 호출 시 (US-701, US-702)") {
 
         val filter = ProductSearchFilter(keyword = "맨투맨")
         val pageable = PageRequest.of(0, 20)
-        val response = ProductSearchResponse(
-            productId = 1L,
-            name = "오버핏 맨투맨",
-            brandName = "무신사 스탠다드",
-            categoryName = "상의",
-            basePrice = BigDecimal("39000"),
-            salePrice = BigDecimal("29000"),
-            discountRate = 25,
-            sizes = listOf("M", "L"),
-            colors = listOf("블랙"),
-            fitType = "OVERFIT",
-            gender = "UNISEX",
-            season = "FW",
-            imageUrl = null,
-            reviewCount = 10,
-            avgRating = 4.5,
-            popularityScore = 50.0,
-            highlights = mapOf("name" to listOf("<em>맨투맨</em>")),
-        )
+        val response =
+            ProductSearchResponse(
+                productId = 1L,
+                name = "오버핏 맨투맨",
+                brandName = "무신사 스탠다드",
+                categoryName = "상의",
+                basePrice = BigDecimal("39000"),
+                salePrice = BigDecimal("29000"),
+                discountRate = 25,
+                sizes = listOf("M", "L"),
+                colors = listOf("블랙"),
+                fitType = "OVERFIT",
+                gender = "UNISEX",
+                season = "FW",
+                imageUrl = null,
+                reviewCount = 10,
+                avgRating = 4.5,
+                popularityScore = 50.0,
+                highlights = mapOf("name" to listOf("<em>맨투맨</em>")),
+            )
         val page = PageImpl(listOf(response), pageable, 1)
         every { productSearchService.search(filter, pageable) } returns page
 
@@ -85,14 +87,15 @@ class SearchFacadeTest : BehaviorSpec({
         val filter = ProductSearchFilter(category = "상의", brand = "무신사 스탠다드")
         val pageable = PageRequest.of(0, 20)
 
-        every { productSearchService.searchWithFacets(filter, pageable) } returns FilterFacetResponse(
-            products = emptyList(),
-            totalElements = 0,
-            totalPages = 0,
-            page = 0,
-            size = 20,
-            facets = FacetResult(),
-        )
+        every { productSearchService.searchWithFacets(filter, pageable) } returns
+            FilterFacetResponse(
+                products = emptyList(),
+                totalElements = 0,
+                totalPages = 0,
+                page = 0,
+                size = 20,
+                facets = FacetResult(),
+            )
 
         When("facet 검색을 호출하면") {
             val result = facade.searchWithFacets(filter, pageable)
@@ -106,10 +109,11 @@ class SearchFacadeTest : BehaviorSpec({
 
     Given("자동완성 검색 시 (US-704)") {
 
-        every { productSearchService.autocomplete("오버", 10) } returns listOf(
-            AutocompleteResponse(1L, "오버핏 맨투맨", "무신사 스탠다드", "상의", null),
-            AutocompleteResponse(2L, "오버핏 후드티", "무신사 스탠다드", "상의", null),
-        )
+        every { productSearchService.autocomplete("오버", 10) } returns
+            listOf(
+                AutocompleteResponse(1L, "오버핏 맨투맨", "무신사 스탠다드", "상의", null),
+                AutocompleteResponse(2L, "오버핏 후드티", "무신사 스탠다드", "상의", null),
+            )
 
         When("2자 이상 키워드로 자동완성 검색하면") {
             val result = facade.autocomplete("오버", 10)
@@ -189,12 +193,13 @@ class SearchFacadeTest : BehaviorSpec({
 
     Given("벌크 리인덱싱 시 (US-708)") {
 
-        every { productSearchService.bulkReindex() } returns IndexSyncResponse(
-            totalRequested = 1000,
-            totalIndexed = 995,
-            totalFailed = 5,
-            elapsedMillis = 3000,
-        )
+        every { productSearchService.bulkReindex() } returns
+            IndexSyncResponse(
+                totalRequested = 1000,
+                totalIndexed = 995,
+                totalFailed = 5,
+                elapsedMillis = 3000,
+            )
 
         When("벌크 리인덱싱을 호출하면") {
             val result = facade.bulkReindex()

@@ -27,27 +27,30 @@ private val logger = KotlinLogging.logger {}
 class DistributedLockAspect(
     private val redissonClient: RedissonClient,
 ) {
-
     private val parser = SpelExpressionParser()
     private val nameDiscoverer = DefaultParameterNameDiscoverer()
 
     @Around("@annotation(distributedLock)")
-    fun around(joinPoint: ProceedingJoinPoint, distributedLock: DistributedLock): Any? {
+    fun around(
+        joinPoint: ProceedingJoinPoint,
+        distributedLock: DistributedLock,
+    ): Any? {
         val lockKey = resolveKey(joinPoint, distributedLock.key)
         val lock = redissonClient.getLock(lockKey)
 
         var lastException: Exception? = null
 
         for (attempt in 1..distributedLock.maxRetries) {
-            val acquired = try {
-                lock.tryLock(distributedLock.waitTime, distributedLock.leaseTime, TimeUnit.SECONDS)
-            } catch (e: InterruptedException) {
-                Thread.currentThread().interrupt()
-                throw BusinessException(
-                    ErrorCode.INTERNAL_SERVER_ERROR,
-                    "분산 락 획득 중 인터럽트가 발생했습니다. key=$lockKey"
-                )
-            }
+            val acquired =
+                try {
+                    lock.tryLock(distributedLock.waitTime, distributedLock.leaseTime, TimeUnit.SECONDS)
+                } catch (e: InterruptedException) {
+                    Thread.currentThread().interrupt()
+                    throw BusinessException(
+                        ErrorCode.INTERNAL_SERVER_ERROR,
+                        "분산 락 획득 중 인터럽트가 발생했습니다. key=$lockKey",
+                    )
+                }
 
             if (acquired) {
                 return try {
@@ -61,22 +64,26 @@ class DistributedLockAspect(
             }
 
             logger.warn { "분산 락 획득 실패 (시도 $attempt/${distributedLock.maxRetries}): key=$lockKey" }
-            lastException = BusinessException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "분산 락 획득에 실패했습니다. key=$lockKey"
-            )
+            lastException =
+                BusinessException(
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "분산 락 획득에 실패했습니다. key=$lockKey",
+                )
         }
 
         throw lastException ?: BusinessException(
             ErrorCode.INTERNAL_SERVER_ERROR,
-            "분산 락 획득에 실패했습니다. 잠시 후 다시 시도해주세요. key=$lockKey"
+            "분산 락 획득에 실패했습니다. 잠시 후 다시 시도해주세요. key=$lockKey",
         )
     }
 
     /**
      * SpEL 표현식을 파싱하여 실제 락 키를 생성한다.
      */
-    private fun resolveKey(joinPoint: ProceedingJoinPoint, keyExpression: String): String {
+    private fun resolveKey(
+        joinPoint: ProceedingJoinPoint,
+        keyExpression: String,
+    ): String {
         val signature = joinPoint.signature as MethodSignature
         val method = signature.method
         val parameterNames = nameDiscoverer.getParameterNames(method) ?: return keyExpression

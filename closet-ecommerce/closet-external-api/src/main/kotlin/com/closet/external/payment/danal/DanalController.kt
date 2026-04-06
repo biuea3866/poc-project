@@ -23,24 +23,39 @@ class DanalController(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/ready")
-    fun ready(@RequestBody request: Map<String, Any>): ResponseEntity<*> {
-        val orderId = request["orderId"]?.toString()
-            ?: return ResponseEntity.badRequest().body(danalResp("4000", "orderId는 필수입니다", null))
-        val amount = request["amount"]?.toString()?.toLongOrNull()
-            ?: return ResponseEntity.badRequest().body(danalResp("4000", "amount는 필수입니다", null))
+    fun ready(
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
+        val orderId =
+            request["orderId"]?.toString()
+                ?: return ResponseEntity.badRequest().body(danalResp("4000", "orderId는 필수입니다", null))
+        val amount =
+            request["amount"]?.toString()?.toLongOrNull()
+                ?: return ResponseEntity.badRequest().body(danalResp("4000", "amount는 필수입니다", null))
 
         val tid = pgService.generateKey("DN")
-        val payment = pgService.createPayment("DANAL", tid, orderId, amount, request["itemName"]?.toString(),
-            request["buyerName"]?.toString(), request["buyerTel"]?.toString())
+        val payment =
+            pgService.createPayment(
+                "DANAL",
+                tid,
+                orderId,
+                amount,
+                request["itemName"]?.toString(),
+                request["buyerName"]?.toString(),
+                request["buyerTel"]?.toString(),
+            )
         log.info("[Danal] 결제 준비: tid={}, orderId={}, amount={}", tid, orderId, amount)
 
         return ResponseEntity.ok(danalResp("0000", "성공", toDanalBody(payment)))
     }
 
     @PostMapping("/approve")
-    fun approve(@RequestBody request: Map<String, Any>): ResponseEntity<*> {
-        val tid = request["tid"]?.toString()
-            ?: return ResponseEntity.badRequest().body(danalResp("4000", "tid는 필수입니다", null))
+    fun approve(
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
+        val tid =
+            request["tid"]?.toString()
+                ?: return ResponseEntity.badRequest().body(danalResp("4000", "tid는 필수입니다", null))
         return try {
             val payment = pgService.approvePayment(tid, request["payMethod"]?.toString() ?: "PHONE")
             log.info("[Danal] 결제 승인: tid={}", tid)
@@ -51,10 +66,17 @@ class DanalController(
     }
 
     @PostMapping("/{tid}/cancel")
-    fun cancel(@PathVariable tid: String, @RequestBody request: Map<String, Any>): ResponseEntity<*> {
+    fun cancel(
+        @PathVariable tid: String,
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
         return try {
-            val payment = pgService.cancelPayment(tid, request["cancelReason"]?.toString() ?: "고객 요청",
-                request["cancelAmount"]?.toString()?.toLongOrNull())
+            val payment =
+                pgService.cancelPayment(
+                    tid,
+                    request["cancelReason"]?.toString() ?: "고객 요청",
+                    request["cancelAmount"]?.toString()?.toLongOrNull(),
+                )
             log.info("[Danal] 결제 취소: tid={}", tid)
             ResponseEntity.ok(danalResp("0000", "성공", toDanalBody(payment)))
         } catch (e: IllegalArgumentException) {
@@ -63,18 +85,25 @@ class DanalController(
     }
 
     @GetMapping("/{tid}")
-    fun get(@PathVariable tid: String): ResponseEntity<*> {
+    fun get(
+        @PathVariable tid: String,
+    ): ResponseEntity<*> {
         val payment = pgService.findByPaymentKey(tid) ?: return ResponseEntity.notFound().build<Any>()
         return ResponseEntity.ok(danalResp("0000", "성공", toDanalBody(payment)))
     }
 
-    private fun toDanalBody(p: MockPayment) = mapOf(
-        "tid" to p.paymentKey, "orderId" to p.orderId, "amount" to p.totalAmount,
-        "status" to if (p.status == "DONE") "PAID" else p.status,
-        "payMethod" to (p.method ?: "PHONE"), "itemName" to p.orderName,
-        "authNo" to p.approveNo, "approvedAt" to p.approvedAt?.toString(),
-        "canceledAt" to p.canceledAt?.toString(), "cancelAmount" to p.cancelAmount,
-    )
+    private fun toDanalBody(p: MockPayment) =
+        mapOf(
+            "tid" to p.paymentKey, "orderId" to p.orderId, "amount" to p.totalAmount,
+            "status" to if (p.status == "DONE") "PAID" else p.status,
+            "payMethod" to (p.method ?: "PHONE"), "itemName" to p.orderName,
+            "authNo" to p.approveNo, "approvedAt" to p.approvedAt?.toString(),
+            "canceledAt" to p.canceledAt?.toString(), "cancelAmount" to p.cancelAmount,
+        )
 
-    private fun danalResp(code: String, msg: String, data: Any?) = mapOf("resultCode" to code, "resultMessage" to msg, "data" to data)
+    private fun danalResp(
+        code: String,
+        msg: String,
+        data: Any?,
+    ) = mapOf("resultCode" to code, "resultMessage" to msg, "data" to data)
 }

@@ -16,7 +16,6 @@ import org.springframework.web.bind.annotation.RestController
 class BffSearchController(
     private val searchFacade: SearchBffFacade,
 ) {
-
     /**
      * 통합 검색 (검색 결과 + 인기 검색어 + 최근 검색어).
      */

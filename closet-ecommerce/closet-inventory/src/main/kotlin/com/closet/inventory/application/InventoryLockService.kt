@@ -32,25 +32,29 @@ class InventoryLockService(
      * @param block 락 내에서 실행할 비즈니스 로직
      * @throws BusinessException 락 획득 실패 시
      */
-    fun <T> withLock(productOptionId: Long, block: () -> T): T {
+    fun <T> withLock(
+        productOptionId: Long,
+        block: () -> T,
+    ): T {
         val lockKey = "$LOCK_KEY_PREFIX$productOptionId"
         val lock = redissonClient.getLock(lockKey)
 
-        val acquired = try {
-            lock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)
-        } catch (e: InterruptedException) {
-            Thread.currentThread().interrupt()
-            throw BusinessException(
-                ErrorCode.INTERNAL_SERVER_ERROR,
-                "재고 락 획득 중 인터럽트가 발생했습니다. productOptionId=$productOptionId"
-            )
-        }
+        val acquired =
+            try {
+                lock.tryLock(WAIT_TIME, LEASE_TIME, TimeUnit.SECONDS)
+            } catch (e: InterruptedException) {
+                Thread.currentThread().interrupt()
+                throw BusinessException(
+                    ErrorCode.INTERNAL_SERVER_ERROR,
+                    "재고 락 획득 중 인터럽트가 발생했습니다. productOptionId=$productOptionId",
+                )
+            }
 
         if (!acquired) {
             logger.warn { "재고 락 획득 실패: productOptionId=$productOptionId" }
             throw BusinessException(
                 ErrorCode.INTERNAL_SERVER_ERROR,
-                "재고 락 획득에 실패했습니다. 잠시 후 다시 시도해주세요. productOptionId=$productOptionId"
+                "재고 락 획득에 실패했습니다. 잠시 후 다시 시도해주세요. productOptionId=$productOptionId",
             )
         }
 

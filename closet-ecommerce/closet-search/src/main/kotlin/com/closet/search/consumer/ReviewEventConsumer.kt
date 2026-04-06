@@ -26,18 +26,18 @@ private val logger = KotlinLogging.logger {}
 class ReviewEventConsumer(
     private val searchFacade: SearchFacade,
 ) {
-
     @KafkaListener(topics = [ClosetTopics.REVIEW], groupId = "search-service")
     fun handle(event: ReviewEvent) {
         logger.info { "${ClosetTopics.REVIEW} 수신: eventType=${event.eventType}, productId=${event.productId}" }
 
         try {
             when (event.eventType) {
-                "ReviewSummaryUpdated" -> searchFacade.handleReviewSummaryUpdated(
-                    productId = event.productId,
-                    reviewCount = event.reviewCount,
-                    avgRating = event.avgRating,
-                )
+                "ReviewSummaryUpdated" ->
+                    searchFacade.handleReviewSummaryUpdated(
+                        productId = event.productId,
+                        reviewCount = event.reviewCount,
+                        avgRating = event.avgRating,
+                    )
 
                 else -> logger.info { "처리하지 않는 eventType 무시: ${event.eventType}" }
             }

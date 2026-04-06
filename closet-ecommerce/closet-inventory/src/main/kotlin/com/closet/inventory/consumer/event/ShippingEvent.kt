@@ -19,12 +19,13 @@ data class ShippingEvent(
     fun toReturnApprovedEvent(): ReturnApprovedEvent {
         return ReturnApprovedEvent(
             orderId = orderId,
-            items = items.map {
-                ReturnApprovedEvent.ReturnItemInfo(
-                    productOptionId = it.productOptionId,
-                    quantity = it.quantity,
-                )
-            },
+            items =
+                items.map {
+                    ReturnApprovedEvent.ReturnItemInfo(
+                        productOptionId = it.productOptionId,
+                        quantity = it.quantity,
+                    )
+                },
         )
     }
 }

@@ -16,25 +16,38 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(name = "shipping-service", url = "\${service.shipping.url}")
 interface ShippingServiceClient {
-
     @GetMapping("/api/v1/shippings")
-    fun getShipmentByOrderId(@RequestParam orderId: Long): ApiResponse<ShipmentBffResponse>
+    fun getShipmentByOrderId(
+        @RequestParam orderId: Long,
+    ): ApiResponse<ShipmentBffResponse>
 
     @GetMapping("/api/v1/shippings/{id}")
-    fun getShipment(@PathVariable id: Long): ApiResponse<ShipmentBffResponse>
+    fun getShipment(
+        @PathVariable id: Long,
+    ): ApiResponse<ShipmentBffResponse>
 
     @GetMapping("/api/v1/shippings/{id}/tracking")
-    fun getTrackingLogs(@PathVariable id: Long): ApiResponse<List<TrackingLogBffResponse>>
+    fun getTrackingLogs(
+        @PathVariable id: Long,
+    ): ApiResponse<List<TrackingLogBffResponse>>
 
     @GetMapping("/api/v1/returns")
-    fun getReturnsByOrderId(@RequestParam orderId: Long): ApiResponse<List<ReturnRequestBffResponse>>
+    fun getReturnsByOrderId(
+        @RequestParam orderId: Long,
+    ): ApiResponse<List<ReturnRequestBffResponse>>
 
     @GetMapping("/api/v1/returns/{id}")
-    fun getReturn(@PathVariable id: Long): ApiResponse<ReturnRequestBffResponse>
+    fun getReturn(
+        @PathVariable id: Long,
+    ): ApiResponse<ReturnRequestBffResponse>
 
     @GetMapping("/api/v1/exchanges")
-    fun getExchangesByOrderId(@RequestParam orderId: Long): ApiResponse<List<ExchangeRequestResponse>>
+    fun getExchangesByOrderId(
+        @RequestParam orderId: Long,
+    ): ApiResponse<List<ExchangeRequestResponse>>
 
     @GetMapping("/api/v1/exchanges/{id}")
-    fun getExchange(@PathVariable id: Long): ApiResponse<ExchangeRequestResponse>
+    fun getExchange(
+        @PathVariable id: Long,
+    ): ApiResponse<ExchangeRequestResponse>
 }

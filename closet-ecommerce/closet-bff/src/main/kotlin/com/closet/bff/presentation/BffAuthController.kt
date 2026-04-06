@@ -15,10 +15,12 @@ class BffAuthController(
     private val authFacade: AuthBffFacade,
 ) {
     @PostMapping("/register")
-    fun register(@RequestBody request: RegisterRequest) =
-        ApiResponse.created(authFacade.register(request))
+    fun register(
+        @RequestBody request: RegisterRequest,
+    ) = ApiResponse.created(authFacade.register(request))
 
     @PostMapping("/login")
-    fun login(@RequestBody request: LoginRequest) =
-        ApiResponse.ok(authFacade.login(request))
+    fun login(
+        @RequestBody request: LoginRequest,
+    ) = ApiResponse.ok(authFacade.login(request))
 }

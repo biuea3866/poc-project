@@ -27,23 +27,24 @@ class MinioStorageService(
     private val s3Presigner: S3Presigner,
     private val storageProperties: StorageProperties,
 ) : StorageService {
-
     override fun generatePresignedUploadUrl(
         bucket: String,
         key: String,
         contentType: String,
         expirationMinutes: Long,
     ): String {
-        val putObjectRequest = PutObjectRequest.builder()
-            .bucket(bucket)
-            .key(key)
-            .contentType(contentType)
-            .build()
+        val putObjectRequest =
+            PutObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .contentType(contentType)
+                .build()
 
-        val presignRequest = PutObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofMinutes(expirationMinutes))
-            .putObjectRequest(putObjectRequest)
-            .build()
+        val presignRequest =
+            PutObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(expirationMinutes))
+                .putObjectRequest(putObjectRequest)
+                .build()
 
         val presignedUrl = s3Presigner.presignPutObject(presignRequest).url().toString()
         logger.debug { "Presigned upload URL 생성: bucket=$bucket, key=$key, expiration=${expirationMinutes}min" }
@@ -55,32 +56,41 @@ class MinioStorageService(
         key: String,
         expirationMinutes: Long,
     ): String {
-        val getObjectRequest = GetObjectRequest.builder()
-            .bucket(bucket)
-            .key(key)
-            .build()
+        val getObjectRequest =
+            GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build()
 
-        val presignRequest = GetObjectPresignRequest.builder()
-            .signatureDuration(Duration.ofMinutes(expirationMinutes))
-            .getObjectRequest(getObjectRequest)
-            .build()
+        val presignRequest =
+            GetObjectPresignRequest.builder()
+                .signatureDuration(Duration.ofMinutes(expirationMinutes))
+                .getObjectRequest(getObjectRequest)
+                .build()
 
         val presignedUrl = s3Presigner.presignGetObject(presignRequest).url().toString()
         logger.debug { "Presigned download URL 생성: bucket=$bucket, key=$key, expiration=${expirationMinutes}min" }
         return presignedUrl
     }
 
-    override fun deleteObject(bucket: String, key: String) {
-        val deleteRequest = DeleteObjectRequest.builder()
-            .bucket(bucket)
-            .key(key)
-            .build()
+    override fun deleteObject(
+        bucket: String,
+        key: String,
+    ) {
+        val deleteRequest =
+            DeleteObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build()
 
         s3Client.deleteObject(deleteRequest)
         logger.info { "오브젝트 삭제 완료: bucket=$bucket, key=$key" }
     }
 
-    override fun getPublicUrl(bucket: String, key: String): String {
+    override fun getPublicUrl(
+        bucket: String,
+        key: String,
+    ): String {
         return "${storageProperties.endpoint}/$bucket/$key"
     }
 }

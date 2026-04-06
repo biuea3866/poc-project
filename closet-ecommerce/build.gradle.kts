@@ -5,6 +5,7 @@ plugins {
     kotlin("kapt") version Versions.KOTLIN apply false
     id("org.springframework.boot") version Versions.SPRING_BOOT apply false
     id("io.spring.dependency-management") version Versions.SPRING_DEPENDENCY_MANAGEMENT apply false
+    id("org.jlleitschuh.gradle.ktlint") version Versions.KTLINT apply false
 }
 
 allprojects {
@@ -24,6 +25,18 @@ subprojects {
     apply(plugin = "org.jetbrains.kotlin.plugin.spring")
     apply(plugin = "org.springframework.boot")
     apply(plugin = "io.spring.dependency-management")
+    apply(plugin = "org.jlleitschuh.gradle.ktlint")
+
+    configure<org.jlleitschuh.gradle.ktlint.KtlintExtension> {
+        version.set("1.1.1")
+        android.set(false)
+        outputToConsole.set(true)
+        ignoreFailures.set(false)
+        filter {
+            exclude("**/generated/**")
+            exclude("**/build/**")
+        }
+    }
 
     java {
         toolchain {

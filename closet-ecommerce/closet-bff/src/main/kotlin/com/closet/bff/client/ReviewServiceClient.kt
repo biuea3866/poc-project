@@ -15,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(name = "review-service", url = "\${service.review.url}")
 interface ReviewServiceClient {
-
     @GetMapping("/api/v1/reviews")
     fun getReviewsByProductId(
         @RequestParam productId: Long,
@@ -24,8 +23,12 @@ interface ReviewServiceClient {
     ): ApiResponse<Page<ReviewBffResponse>>
 
     @GetMapping("/api/v1/reviews/{id}")
-    fun getReview(@PathVariable id: Long): ApiResponse<ReviewBffResponse>
+    fun getReview(
+        @PathVariable id: Long,
+    ): ApiResponse<ReviewBffResponse>
 
     @GetMapping("/api/v1/reviews/summary/{productId}")
-    fun getReviewSummary(@PathVariable productId: Long): ApiResponse<ReviewSummaryBffResponse?>
+    fun getReviewSummary(
+        @PathVariable productId: Long,
+    ): ApiResponse<ReviewSummaryBffResponse?>
 }

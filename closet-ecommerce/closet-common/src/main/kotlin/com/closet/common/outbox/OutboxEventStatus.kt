@@ -3,7 +3,8 @@ package com.closet.common.outbox
 enum class OutboxEventStatus {
     PENDING,
     PUBLISHED,
-    FAILED;
+    FAILED,
+    ;
 
     fun canTransitionTo(target: OutboxEventStatus): Boolean {
         return when (this) {

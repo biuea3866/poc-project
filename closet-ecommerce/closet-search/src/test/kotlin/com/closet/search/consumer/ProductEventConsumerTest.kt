@@ -11,30 +11,32 @@ class ProductEventConsumerTest : BehaviorSpec({
 
     val searchFacade = mockk<SearchFacade>(relaxed = true)
 
-    val consumer = ProductEventConsumer(
-        searchFacade = searchFacade,
-    )
+    val consumer =
+        ProductEventConsumer(
+            searchFacade = searchFacade,
+        )
 
     Given("ProductCreated 이벤트가 event.closet.product로 수신되면") {
 
-        val event = ProductEvent(
-            eventType = "ProductCreated",
-            productId = 1L,
-            name = "오버핏 맨투맨",
-            description = "편안한 맨투맨",
-            brandId = 1L,
-            categoryId = 1L,
-            basePrice = BigDecimal("39000"),
-            salePrice = BigDecimal("29000"),
-            discountRate = 25,
-            status = "ACTIVE",
-            season = "FW",
-            fitType = "OVERFIT",
-            gender = "UNISEX",
-            sizes = listOf("S", "M", "L"),
-            colors = listOf("블랙"),
-            imageUrl = "https://cdn.closet.com/1.jpg",
-        )
+        val event =
+            ProductEvent(
+                eventType = "ProductCreated",
+                productId = 1L,
+                name = "오버핏 맨투맨",
+                description = "편안한 맨투맨",
+                brandId = 1L,
+                categoryId = 1L,
+                basePrice = BigDecimal("39000"),
+                salePrice = BigDecimal("29000"),
+                discountRate = 25,
+                status = "ACTIVE",
+                season = "FW",
+                fitType = "OVERFIT",
+                gender = "UNISEX",
+                sizes = listOf("S", "M", "L"),
+                colors = listOf("블랙"),
+                imageUrl = "https://cdn.closet.com/1.jpg",
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -65,24 +67,25 @@ class ProductEventConsumerTest : BehaviorSpec({
 
     Given("ProductUpdated 이벤트가 event.closet.product로 수신되면") {
 
-        val event = ProductEvent(
-            eventType = "ProductUpdated",
-            productId = 1L,
-            name = "오버핏 맨투맨 (리뉴얼)",
-            description = "개선된 맨투맨",
-            brandId = 1L,
-            categoryId = 1L,
-            basePrice = BigDecimal("39000"),
-            salePrice = BigDecimal("25000"),
-            discountRate = 35,
-            status = "ACTIVE",
-            season = "FW",
-            fitType = "OVERFIT",
-            gender = "UNISEX",
-            sizes = listOf("S", "M", "L", "XL"),
-            colors = listOf("블랙", "그레이"),
-            imageUrl = "https://cdn.closet.com/1-v2.jpg",
-        )
+        val event =
+            ProductEvent(
+                eventType = "ProductUpdated",
+                productId = 1L,
+                name = "오버핏 맨투맨 (리뉴얼)",
+                description = "개선된 맨투맨",
+                brandId = 1L,
+                categoryId = 1L,
+                basePrice = BigDecimal("39000"),
+                salePrice = BigDecimal("25000"),
+                discountRate = 35,
+                status = "ACTIVE",
+                season = "FW",
+                fitType = "OVERFIT",
+                gender = "UNISEX",
+                sizes = listOf("S", "M", "L", "XL"),
+                colors = listOf("블랙", "그레이"),
+                imageUrl = "https://cdn.closet.com/1-v2.jpg",
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -113,13 +116,14 @@ class ProductEventConsumerTest : BehaviorSpec({
 
     Given("ProductDeleted 이벤트가 event.closet.product로 수신되면") {
 
-        val event = ProductEvent(
-            eventType = "ProductDeleted",
-            productId = 1L,
-            name = "삭제된 상품",
-            brandId = 1L,
-            categoryId = 1L,
-        )
+        val event =
+            ProductEvent(
+                eventType = "ProductDeleted",
+                productId = 1L,
+                name = "삭제된 상품",
+                brandId = 1L,
+                categoryId = 1L,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -134,10 +138,11 @@ class ProductEventConsumerTest : BehaviorSpec({
 
     Given("처리하지 않는 eventType이 수신되면") {
 
-        val event = ProductEvent(
-            eventType = "SomeUnknownEvent",
-            productId = 1L,
-        )
+        val event =
+            ProductEvent(
+                eventType = "SomeUnknownEvent",
+                productId = 1L,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)

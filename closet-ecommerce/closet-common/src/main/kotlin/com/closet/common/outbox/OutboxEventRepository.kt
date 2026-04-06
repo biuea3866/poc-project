@@ -7,10 +7,12 @@ import org.springframework.data.jpa.repository.Lock
 import org.springframework.data.jpa.repository.Query
 
 interface OutboxEventRepository : JpaRepository<OutboxEvent, Long> {
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @Query(
-        "SELECT o FROM OutboxEvent o WHERE o.status = :status ORDER BY o.createdAt ASC"
+        "SELECT o FROM OutboxEvent o WHERE o.status = :status ORDER BY o.createdAt ASC",
     )
-    fun findByStatusForUpdate(status: OutboxEventStatus, pageable: Pageable): List<OutboxEvent>
+    fun findByStatusForUpdate(
+        status: OutboxEventStatus,
+        pageable: Pageable,
+    ): List<OutboxEvent>
 }

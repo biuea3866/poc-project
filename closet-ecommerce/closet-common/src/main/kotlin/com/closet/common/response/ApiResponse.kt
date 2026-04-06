@@ -3,7 +3,7 @@ package com.closet.common.response
 data class ApiResponse<T>(
     val success: Boolean,
     val data: T? = null,
-    val error: ErrorResponse? = null
+    val error: ErrorResponse? = null,
 ) {
     companion object {
         fun <T> ok(data: T): ApiResponse<T> = ApiResponse(success = true, data = data)
@@ -17,5 +17,5 @@ data class ApiResponse<T>(
 data class ErrorResponse(
     val code: String,
     val message: String,
-    val details: List<String> = emptyList()
+    val details: List<String> = emptyList(),
 )

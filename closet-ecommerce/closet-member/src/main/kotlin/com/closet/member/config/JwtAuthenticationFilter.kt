@@ -15,17 +15,17 @@ import org.springframework.web.filter.OncePerRequestFilter
 class JwtAuthenticationFilter(
     private val jwtTokenProvider: JwtTokenProvider,
 ) : OncePerRequestFilter() {
-
     companion object {
         const val MEMBER_ID_ATTRIBUTE = "memberId"
         private const val BEARER_PREFIX = "Bearer "
 
         /** 인증이 필요 없는 경로 */
-        private val PERMIT_ALL_PATHS = listOf(
-            "/api/v1/members/register",
-            "/api/v1/members/login",
-            "/api/v1/auth/refresh",
-        )
+        private val PERMIT_ALL_PATHS =
+            listOf(
+                "/api/v1/members/register",
+                "/api/v1/members/login",
+                "/api/v1/auth/refresh",
+            )
     }
 
     override fun doFilterInternal(

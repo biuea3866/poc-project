@@ -21,12 +21,14 @@ private val logger = KotlinLogging.logger {}
  */
 @Component
 class StripInternalHeaderFilter : GlobalFilter, Ordered {
-
     companion object {
         const val HEADER_INTERNAL_API_KEY = "X-Internal-Api-Key"
     }
 
-    override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: GatewayFilterChain,
+    ): Mono<Void> {
         val request = exchange.request
 
         // X-Internal-Api-Key 헤더가 있으면 제거
@@ -34,9 +36,10 @@ class StripInternalHeaderFilter : GlobalFilter, Ordered {
             logger.warn {
                 "[Gateway] Stripped X-Internal-Api-Key header from external request: ${request.method} ${request.uri.path}"
             }
-            val mutatedRequest = request.mutate()
-                .headers { it.remove(HEADER_INTERNAL_API_KEY) }
-                .build()
+            val mutatedRequest =
+                request.mutate()
+                    .headers { it.remove(HEADER_INTERNAL_API_KEY) }
+                    .build()
             return chain.filter(exchange.mutate().request(mutatedRequest).build())
         }
 

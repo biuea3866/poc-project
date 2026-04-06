@@ -18,14 +18,17 @@ import org.springframework.web.bind.annotation.RestController
 class PaymentController(
     private val paymentService: PaymentService,
 ) {
-
     @GetMapping("/orders/{orderId}")
-    fun getByOrderId(@PathVariable orderId: Long): ApiResponse<PaymentResponse> {
+    fun getByOrderId(
+        @PathVariable orderId: Long,
+    ): ApiResponse<PaymentResponse> {
         return ApiResponse.ok(paymentService.getByOrderId(orderId))
     }
 
     @PostMapping("/confirm")
-    fun confirm(@RequestBody request: ConfirmPaymentRequest): ApiResponse<PaymentResponse> {
+    fun confirm(
+        @RequestBody request: ConfirmPaymentRequest,
+    ): ApiResponse<PaymentResponse> {
         return ApiResponse.ok(paymentService.confirm(request))
     }
 

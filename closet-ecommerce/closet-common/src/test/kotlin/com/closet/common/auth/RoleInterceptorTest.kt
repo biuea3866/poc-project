@@ -72,9 +72,10 @@ class RoleInterceptorTest : BehaviorSpec({
             val request = createRequest(role = "BUYER")
 
             Then("FORBIDDEN 예외가 발생한다") {
-                val exception = shouldThrow<BusinessException> {
-                    interceptor.preHandle(request, response, handler)
-                }
+                val exception =
+                    shouldThrow<BusinessException> {
+                        interceptor.preHandle(request, response, handler)
+                    }
                 exception.errorCode shouldBe ErrorCode.FORBIDDEN
             }
         }

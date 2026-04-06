@@ -28,12 +28,13 @@ class MemberService(
             throw BusinessException(ErrorCode.DUPLICATE_ENTITY, "이미 사용 중인 이메일입니다")
         }
 
-        val member = Member.register(
-            email = request.email,
-            passwordHash = passwordEncoder.encode(request.password),
-            name = request.name,
-            phone = request.phone,
-        )
+        val member =
+            Member.register(
+                email = request.email,
+                passwordHash = passwordEncoder.encode(request.password),
+                name = request.name,
+                phone = request.phone,
+            )
 
         val saved = memberRepository.save(member)
         return MemberResponse.from(saved)
@@ -41,8 +42,9 @@ class MemberService(
 
     /** 로그인 */
     fun login(request: LoginRequest): LoginResponse {
-        val member = memberRepository.findByEmail(request.email)
-            ?: throw BusinessException(ErrorCode.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다")
+        val member =
+            memberRepository.findByEmail(request.email)
+                ?: throw BusinessException(ErrorCode.UNAUTHORIZED, "이메일 또는 비밀번호가 올바르지 않습니다")
 
         if (member.isDeleted()) {
             throw BusinessException(ErrorCode.UNAUTHORIZED, "탈퇴한 회원입니다")
@@ -64,8 +66,9 @@ class MemberService(
 
     /** 내 정보 조회 */
     fun findById(memberId: Long): MemberResponse {
-        val member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
-            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다")
+        val member =
+            memberRepository.findByIdAndDeletedAtIsNull(memberId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다")
 
         return MemberResponse.from(member)
     }
@@ -73,8 +76,9 @@ class MemberService(
     /** 회원 탈퇴 */
     @Transactional
     fun withdraw(memberId: Long) {
-        val member = memberRepository.findByIdAndDeletedAtIsNull(memberId)
-            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다")
+        val member =
+            memberRepository.findByIdAndDeletedAtIsNull(memberId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "회원을 찾을 수 없습니다")
 
         member.withdraw()
     }

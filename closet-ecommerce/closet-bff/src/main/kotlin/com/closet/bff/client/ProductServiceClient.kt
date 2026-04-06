@@ -12,9 +12,10 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(name = "product-service", url = "\${service.product.url}")
 interface ProductServiceClient {
-
     @GetMapping("/products/{id}")
-    fun getProduct(@PathVariable id: Long): ApiResponse<ProductResponse>
+    fun getProduct(
+        @PathVariable id: Long,
+    ): ApiResponse<ProductResponse>
 
     @GetMapping("/products")
     fun getProducts(

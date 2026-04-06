@@ -20,14 +20,15 @@ class MinioStorageServiceTest : BehaviorSpec({
 
     val s3Client = mockk<S3Client>()
     val s3Presigner = mockk<S3Presigner>()
-    val storageProperties = StorageProperties(
-        endpoint = "http://localhost:9000",
-        accessKey = "closet-admin",
-        secretKey = "closet-secret-key",
-        region = "ap-northeast-2",
-        productBucket = "closet-product-images",
-        reviewBucket = "closet-review-images",
-    )
+    val storageProperties =
+        StorageProperties(
+            endpoint = "http://localhost:9000",
+            accessKey = "closet-admin",
+            secretKey = "closet-secret-key",
+            region = "ap-northeast-2",
+            productBucket = "closet-product-images",
+            reviewBucket = "closet-review-images",
+        )
 
     val storageService = MinioStorageService(s3Client, s3Presigner, storageProperties)
 
@@ -37,7 +38,9 @@ class MinioStorageServiceTest : BehaviorSpec({
         val contentType = "image/jpeg"
 
         val presignedPutRequest = mockk<PresignedPutObjectRequest>()
-        every { presignedPutRequest.url() } returns URI("http://localhost:9000/closet-review-images/reviews/1/test-uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256").toURL()
+        every {
+            presignedPutRequest.url()
+        } returns URI("http://localhost:9000/closet-review-images/reviews/1/test-uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256").toURL()
         every { s3Presigner.presignPutObject(any<PutObjectPresignRequest>()) } returns presignedPutRequest
 
         When("generatePresignedUploadUrl을 호출하면") {
@@ -56,7 +59,9 @@ class MinioStorageServiceTest : BehaviorSpec({
         val key = "reviews/1/test-uuid.jpg"
 
         val presignedGetRequest = mockk<PresignedGetObjectRequest>()
-        every { presignedGetRequest.url() } returns URI("http://localhost:9000/closet-review-images/reviews/1/test-uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256").toURL()
+        every {
+            presignedGetRequest.url()
+        } returns URI("http://localhost:9000/closet-review-images/reviews/1/test-uuid.jpg?X-Amz-Algorithm=AWS4-HMAC-SHA256").toURL()
         every { s3Presigner.presignGetObject(any<GetObjectPresignRequest>()) } returns presignedGetRequest
 
         When("generatePresignedDownloadUrl을 호출하면") {

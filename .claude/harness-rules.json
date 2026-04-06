@@ -97,8 +97,28 @@
         "exclude_glob": "**/ClosetTopics.kt",
         "message": "Kafka 토픽 문자열 하드코딩 금지 — ClosetTopics 상수를 사용하세요.",
         "severity": "error"
+      },
+      {
+        "id": "no-any-type-dto",
+        "pattern": ":\\s*Any[\\s,)>?]",
+        "file_glob": "*Dto*.kt,*Response*.kt,*Request*.kt",
+        "message": "DTO에서 Any 타입 사용 금지 — 구체적인 타입(ZonedDateTime 등)을 사용하세요.",
+        "severity": "error"
       }
     ]
+  },
+
+  "doc_sync": {
+    "description": "docs/ 하위 .md 파일 변경 시 노션 자동 동기화",
+    "trigger": "PostToolUse(Write|Edit) — docs/**/*.md 파일 변경 감지",
+    "script": ".claude/harness-doc-sync.py",
+    "mapping": {
+      "docs/roadmap.md": "로드맵",
+      "docs/ddd-architecture-review.md": "DDD 아키텍처 리뷰",
+      "docs/adr/*": "ADR 문서",
+      "docs/prd/*": "PRD 문서"
+    },
+    "message": "docs/ .md 파일이 변경되면 노션에 자동 동기화됩니다."
   },
 
   "git_guard": {

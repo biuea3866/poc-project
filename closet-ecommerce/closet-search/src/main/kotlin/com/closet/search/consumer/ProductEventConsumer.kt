@@ -28,48 +28,49 @@ private val logger = KotlinLogging.logger {}
 class ProductEventConsumer(
     private val searchFacade: SearchFacade,
 ) {
-
     @KafkaListener(topics = [ClosetTopics.PRODUCT], groupId = "search-service")
     fun handle(event: ProductEvent) {
         logger.info { "${ClosetTopics.PRODUCT} 수신: eventType=${event.eventType}, productId=${event.productId}" }
 
         try {
             when (event.eventType) {
-                "ProductCreated" -> searchFacade.handleProductCreated(
-                    productId = event.productId,
-                    name = event.name,
-                    description = event.description,
-                    brandId = event.brandId,
-                    categoryId = event.categoryId,
-                    basePrice = event.basePrice,
-                    salePrice = event.salePrice,
-                    discountRate = event.discountRate,
-                    status = event.status,
-                    season = event.season,
-                    fitType = event.fitType,
-                    gender = event.gender,
-                    sizes = event.sizes,
-                    colors = event.colors,
-                    imageUrl = event.imageUrl,
-                )
+                "ProductCreated" ->
+                    searchFacade.handleProductCreated(
+                        productId = event.productId,
+                        name = event.name,
+                        description = event.description,
+                        brandId = event.brandId,
+                        categoryId = event.categoryId,
+                        basePrice = event.basePrice,
+                        salePrice = event.salePrice,
+                        discountRate = event.discountRate,
+                        status = event.status,
+                        season = event.season,
+                        fitType = event.fitType,
+                        gender = event.gender,
+                        sizes = event.sizes,
+                        colors = event.colors,
+                        imageUrl = event.imageUrl,
+                    )
 
-                "ProductUpdated" -> searchFacade.handleProductUpdated(
-                    productId = event.productId,
-                    name = event.name,
-                    description = event.description,
-                    brandId = event.brandId,
-                    categoryId = event.categoryId,
-                    basePrice = event.basePrice,
-                    salePrice = event.salePrice,
-                    discountRate = event.discountRate,
-                    status = event.status,
-                    season = event.season,
-                    fitType = event.fitType,
-                    gender = event.gender,
-                    sizes = event.sizes,
-                    colors = event.colors,
-                    imageUrl = event.imageUrl,
-                )
+                "ProductUpdated" ->
+                    searchFacade.handleProductUpdated(
+                        productId = event.productId,
+                        name = event.name,
+                        description = event.description,
+                        brandId = event.brandId,
+                        categoryId = event.categoryId,
+                        basePrice = event.basePrice,
+                        salePrice = event.salePrice,
+                        discountRate = event.discountRate,
+                        status = event.status,
+                        season = event.season,
+                        fitType = event.fitType,
+                        gender = event.gender,
+                        sizes = event.sizes,
+                        colors = event.colors,
+                        imageUrl = event.imageUrl,
+                    )
 
                 "ProductDeleted" -> searchFacade.handleProductDeleted(event.productId)
 

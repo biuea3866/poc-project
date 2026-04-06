@@ -34,27 +34,31 @@ class ShippingBffFacade(
      * 주문별 배송 상세 (배송 + 추적 + 반품 + 교환 집계).
      */
     fun getShippingDetail(orderId: Long): ShippingDetailBffResponse {
-        val shipmentFuture = CompletableFuture.supplyAsync(
-            { runCatching { shippingClient.getShipmentByOrderId(orderId) }.getOrNull() },
-            executor,
-        )
-        val returnsFuture = CompletableFuture.supplyAsync(
-            { runCatching { shippingClient.getReturnsByOrderId(orderId) }.getOrNull() },
-            executor,
-        )
-        val exchangesFuture = CompletableFuture.supplyAsync(
-            { runCatching { shippingClient.getExchangesByOrderId(orderId) }.getOrNull() },
-            executor,
-        )
+        val shipmentFuture =
+            CompletableFuture.supplyAsync(
+                { runCatching { shippingClient.getShipmentByOrderId(orderId) }.getOrNull() },
+                executor,
+            )
+        val returnsFuture =
+            CompletableFuture.supplyAsync(
+                { runCatching { shippingClient.getReturnsByOrderId(orderId) }.getOrNull() },
+                executor,
+            )
+        val exchangesFuture =
+            CompletableFuture.supplyAsync(
+                { runCatching { shippingClient.getExchangesByOrderId(orderId) }.getOrNull() },
+                executor,
+            )
 
         CompletableFuture.allOf(shipmentFuture, returnsFuture, exchangesFuture).join()
 
         val shipment = shipmentFuture.get()?.data
-        val trackingLogs = if (shipment != null) {
-            runCatching { shippingClient.getTrackingLogs(shipment.id) }.getOrNull()?.data ?: emptyList()
-        } else {
-            emptyList()
-        }
+        val trackingLogs =
+            if (shipment != null) {
+                runCatching { shippingClient.getTrackingLogs(shipment.id) }.getOrNull()?.data ?: emptyList()
+            } else {
+                emptyList()
+            }
 
         return ShippingDetailBffResponse(
             shipment = shipment,

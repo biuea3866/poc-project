@@ -24,13 +24,13 @@ import java.net.URI
 class StorageConfig(
     private val storageProperties: StorageProperties,
 ) {
-
     @Bean
     fun s3Client(): S3Client {
-        val credentials = AwsBasicCredentials.create(
-            storageProperties.accessKey,
-            storageProperties.secretKey,
-        )
+        val credentials =
+            AwsBasicCredentials.create(
+                storageProperties.accessKey,
+                storageProperties.secretKey,
+            )
 
         return S3Client.builder()
             .endpointOverride(URI.create(storageProperties.endpoint))
@@ -39,7 +39,7 @@ class StorageConfig(
             .serviceConfiguration(
                 S3Configuration.builder()
                     .pathStyleAccessEnabled(true)
-                    .build()
+                    .build(),
             )
             .forcePathStyle(true)
             .build()
@@ -47,10 +47,11 @@ class StorageConfig(
 
     @Bean
     fun s3Presigner(): S3Presigner {
-        val credentials = AwsBasicCredentials.create(
-            storageProperties.accessKey,
-            storageProperties.secretKey,
-        )
+        val credentials =
+            AwsBasicCredentials.create(
+                storageProperties.accessKey,
+                storageProperties.secretKey,
+            )
 
         return S3Presigner.builder()
             .endpointOverride(URI.create(storageProperties.endpoint))
@@ -59,7 +60,7 @@ class StorageConfig(
             .serviceConfiguration(
                 S3Configuration.builder()
                     .pathStyleAccessEnabled(true)
-                    .build()
+                    .build(),
             )
             .build()
     }

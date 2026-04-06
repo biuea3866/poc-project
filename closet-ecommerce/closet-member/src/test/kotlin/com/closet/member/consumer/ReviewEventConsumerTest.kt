@@ -12,19 +12,21 @@ class ReviewEventConsumerTest : BehaviorSpec({
 
     val pointService = mockk<PointService>(relaxed = true)
 
-    val consumer = ReviewEventConsumer(
-        pointService = pointService,
-    )
+    val consumer =
+        ReviewEventConsumer(
+            pointService = pointService,
+        )
 
     Given("ReviewCreated 이벤트가 수신되면") {
         every { pointService.earnReviewPoint(any(), any(), any()) } returns 200
 
-        val event = ReviewEvent(
-            eventType = "ReviewCreated",
-            reviewId = 1L,
-            memberId = 10L,
-            pointAmount = 200,
-        )
+        val event =
+            ReviewEvent(
+                eventType = "ReviewCreated",
+                reviewId = 1L,
+                memberId = 10L,
+                pointAmount = 200,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -44,12 +46,13 @@ class ReviewEventConsumerTest : BehaviorSpec({
     Given("ReviewDeleted 이벤트가 수신되면") {
         clearMocks(pointService)
 
-        val event = ReviewEvent(
-            eventType = "ReviewDeleted",
-            reviewId = 2L,
-            memberId = 10L,
-            pointAmount = 500,
-        )
+        val event =
+            ReviewEvent(
+                eventType = "ReviewDeleted",
+                reviewId = 2L,
+                memberId = 10L,
+                pointAmount = 500,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -67,10 +70,11 @@ class ReviewEventConsumerTest : BehaviorSpec({
     }
 
     Given("처리하지 않는 eventType 수신") {
-        val event = ReviewEvent(
-            eventType = "ReviewUpdated",
-            reviewId = 3L,
-        )
+        val event =
+            ReviewEvent(
+                eventType = "ReviewUpdated",
+                reviewId = 3L,
+            )
 
         When("ReviewUpdated 이벤트 수신") {
             consumer.handle(event)
