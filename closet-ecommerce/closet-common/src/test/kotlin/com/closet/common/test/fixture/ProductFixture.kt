@@ -1,7 +1,7 @@
 package com.closet.common.test.fixture
 
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
  * Product 도메인 테스트 Fixture.
@@ -11,7 +11,6 @@ import java.time.LocalDateTime
  * 엔티티 구현 후 실제 타입으로 교체한다.
  */
 object ProductFixture {
-
     fun createProduct(
         name: String = "오버핏 코튼 티셔츠",
         brandName: String = "CLOSET",
@@ -24,20 +23,21 @@ object ProductFixture {
         gender: String = "UNISEX",
         material: String = "면 100%",
         fit: String = "OVERFIT",
-    ): Map<String, Any?> = mapOf(
-        "name" to name,
-        "brandName" to brandName,
-        "categoryCode" to categoryCode,
-        "price" to price,
-        "salePrice" to salePrice,
-        "description" to description,
-        "status" to status,
-        "season" to season,
-        "gender" to gender,
-        "material" to material,
-        "fit" to fit,
-        "createdAt" to LocalDateTime.now(),
-    )
+    ): Map<String, Any?> =
+        mapOf(
+            "name" to name,
+            "brandName" to brandName,
+            "categoryCode" to categoryCode,
+            "price" to price,
+            "salePrice" to salePrice,
+            "description" to description,
+            "status" to status,
+            "season" to season,
+            "gender" to gender,
+            "material" to material,
+            "fit" to fit,
+            "createdAt" to ZonedDateTime.now(),
+        )
 
     fun createProductOption(
         productId: Long = 1L,
@@ -46,15 +46,16 @@ object ProductFixture {
         stockQuantity: Int = 100,
         additionalPrice: BigDecimal = BigDecimal.ZERO,
         skuCode: String = "CLO-TOP001-BK-L",
-    ): Map<String, Any?> = mapOf(
-        "productId" to productId,
-        "size" to size,
-        "color" to color,
-        "stockQuantity" to stockQuantity,
-        "additionalPrice" to additionalPrice,
-        "skuCode" to skuCode,
-        "createdAt" to LocalDateTime.now(),
-    )
+    ): Map<String, Any?> =
+        mapOf(
+            "productId" to productId,
+            "size" to size,
+            "color" to color,
+            "stockQuantity" to stockQuantity,
+            "additionalPrice" to additionalPrice,
+            "skuCode" to skuCode,
+            "createdAt" to ZonedDateTime.now(),
+        )
 
     fun createProductWithOptions(
         name: String = "슬림핏 데님 팬츠",
@@ -64,23 +65,25 @@ object ProductFixture {
         basePrice: BigDecimal = BigDecimal("59900"),
         stockPerOption: Int = 50,
     ): Map<String, Any?> {
-        val product = createProduct(
-            name = name,
-            brandName = brandName,
-            price = basePrice,
-            salePrice = basePrice,
-            categoryCode = "BOTTOM_001",
-        )
-        val options = sizes.flatMapIndexed { sIdx, size ->
-            colors.mapIndexed { cIdx, color ->
-                createProductOption(
-                    size = size,
-                    color = color,
-                    stockQuantity = stockPerOption,
-                    skuCode = "CLO-BTM001-${color.take(2)}-$size",
-                )
+        val product =
+            createProduct(
+                name = name,
+                brandName = brandName,
+                price = basePrice,
+                salePrice = basePrice,
+                categoryCode = "BOTTOM_001",
+            )
+        val options =
+            sizes.flatMapIndexed { sIdx, size ->
+                colors.mapIndexed { cIdx, color ->
+                    createProductOption(
+                        size = size,
+                        color = color,
+                        stockQuantity = stockPerOption,
+                        skuCode = "CLO-BTM001-${color.take(2)}-$size",
+                    )
+                }
             }
-        }
         return product + ("options" to options)
     }
 }

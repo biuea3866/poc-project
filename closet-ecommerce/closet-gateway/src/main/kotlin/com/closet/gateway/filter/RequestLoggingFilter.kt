@@ -14,24 +14,29 @@ import reactor.core.publisher.Mono
 class RequestLoggingFilter : GlobalFilter, Ordered {
     private val log = LoggerFactory.getLogger(javaClass)
 
-    override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: GatewayFilterChain,
+    ): Mono<Void> {
         val request = exchange.request
         log.info(
             "[Gateway] {} {} -> {}",
             request.method,
             request.uri.path,
-            exchange.getAttribute<Route>(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR)?.id ?: "unknown"
+            exchange.getAttribute<Route>(ServerWebExchangeUtils.GATEWAY_ROUTE_ATTR)?.id ?: "unknown",
         )
         val start = System.currentTimeMillis()
-        return chain.filter(exchange).then(Mono.fromRunnable {
-            log.info(
-                "[Gateway] {} {} -> {} ({}ms)",
-                request.method,
-                request.uri.path,
-                exchange.response.statusCode,
-                System.currentTimeMillis() - start
-            )
-        })
+        return chain.filter(exchange).then(
+            Mono.fromRunnable {
+                log.info(
+                    "[Gateway] {} {} -> {} ({}ms)",
+                    request.method,
+                    request.uri.path,
+                    exchange.response.statusCode,
+                    System.currentTimeMillis() - start,
+                )
+            },
+        )
     }
 
     override fun getOrder(): Int = -2

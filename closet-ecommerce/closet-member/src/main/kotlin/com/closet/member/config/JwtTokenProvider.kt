@@ -17,10 +17,8 @@ import javax.crypto.SecretKey
 class JwtTokenProvider(
     @Value("\${jwt.secret}")
     private val secret: String,
-
     @Value("\${jwt.access-token-expiry-ms}")
     private val accessTokenExpiryMs: Long,
-
     @Value("\${jwt.refresh-token-expiry-ms}")
     private val refreshTokenExpiryMs: Long,
 ) {
@@ -29,7 +27,10 @@ class JwtTokenProvider(
     }
 
     /** Access Token 생성 (30분) — role claim 포함 */
-    fun generateAccessToken(memberId: Long, role: MemberRole = MemberRole.BUYER): String {
+    fun generateAccessToken(
+        memberId: Long,
+        role: MemberRole = MemberRole.BUYER,
+    ): String {
         val now = Date()
         val expiry = Date(now.time + accessTokenExpiryMs)
 
@@ -44,7 +45,10 @@ class JwtTokenProvider(
     }
 
     /** Refresh Token 생성 (7일) — role claim 포함 */
-    fun generateRefreshToken(memberId: Long, role: MemberRole = MemberRole.BUYER): String {
+    fun generateRefreshToken(
+        memberId: Long,
+        role: MemberRole = MemberRole.BUYER,
+    ): String {
         val now = Date()
         val expiry = Date(now.time + refreshTokenExpiryMs)
 

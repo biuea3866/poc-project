@@ -22,7 +22,6 @@ private val logger = KotlinLogging.logger {}
 class ReviewEventConsumer(
     private val pointService: PointService,
 ) {
-
     @KafkaListener(topics = [ClosetTopics.REVIEW], groupId = "member-service")
     fun handle(event: ReviewEvent) {
         logger.info { "${ClosetTopics.REVIEW} 수신: eventType=${event.eventType}" }
@@ -31,18 +30,19 @@ class ReviewEventConsumer(
             when (event.eventType) {
                 "ReviewCreated" -> {
                     val created = event.toReviewCreatedEvent()
-                    logger.info { "ReviewCreated: reviewId=${created.reviewId}, memberId=${created.memberId}, pointAmount=${created.pointAmount}" }
+                    logger.info { "ReviewCreated: reviewId=${created.reviewId}, memberId=${created.memberId}" }
 
-                    val earned = pointService.earnReviewPoint(
-                        memberId = created.memberId,
-                        reviewId = created.reviewId,
-                        amount = created.pointAmount,
-                    )
+                    val earned =
+                        pointService.earnReviewPoint(
+                            memberId = created.memberId,
+                            reviewId = created.reviewId,
+                            amount = created.pointAmount,
+                        )
                     logger.info { "리뷰 포인트 적립 처리 완료: reviewId=${created.reviewId}, earned=$earned" }
                 }
                 "ReviewDeleted" -> {
                     val deleted = event.toReviewDeletedEvent()
-                    logger.info { "ReviewDeleted: reviewId=${deleted.reviewId}, memberId=${deleted.memberId}, pointAmount=${deleted.pointAmount}" }
+                    logger.info { "ReviewDeleted: reviewId=${deleted.reviewId}, memberId=${deleted.memberId}" }
 
                     pointService.revokeReviewPoint(
                         memberId = deleted.memberId,

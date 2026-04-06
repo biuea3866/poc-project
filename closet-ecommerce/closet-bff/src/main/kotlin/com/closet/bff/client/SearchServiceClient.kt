@@ -4,7 +4,6 @@ import com.closet.bff.dto.AutocompleteBffResponse
 import com.closet.bff.dto.PopularKeywordBffResponse
 import com.closet.bff.dto.SearchPageBffResponse
 import com.closet.bff.dto.SearchProductBffResponse
-import com.closet.common.response.ApiResponse
 import org.springframework.cloud.openfeign.FeignClient
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.RequestHeader
@@ -16,7 +15,6 @@ import org.springframework.web.bind.annotation.RequestParam
  */
 @FeignClient(name = "search-service", url = "\${service.search.url}")
 interface SearchServiceClient {
-
     @GetMapping("/api/v1/search/products")
     fun searchProducts(
         @RequestHeader("X-Member-Id", required = false) memberId: Long?,
@@ -40,7 +38,9 @@ interface SearchServiceClient {
     ): List<AutocompleteBffResponse>
 
     @GetMapping("/api/v1/search/keywords/popular")
-    fun getPopularKeywords(@RequestParam(defaultValue = "10") size: Int): List<PopularKeywordBffResponse>
+    fun getPopularKeywords(
+        @RequestParam(defaultValue = "10") size: Int,
+    ): List<PopularKeywordBffResponse>
 
     @GetMapping("/api/v1/search/keywords/recent")
     fun getRecentKeywords(

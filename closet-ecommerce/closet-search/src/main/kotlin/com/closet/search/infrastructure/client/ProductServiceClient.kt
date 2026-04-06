@@ -1,7 +1,6 @@
 package com.closet.search.infrastructure.client
 
 import com.closet.search.application.dto.ProductServicePageResponse
-import com.closet.search.application.dto.ProductServiceResponse
 import mu.KotlinLogging
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.core.ParameterizedTypeReference
@@ -21,7 +20,6 @@ class ProductServiceClient(
     @Value("\${product-service.base-url:http://localhost:8082}")
     private val baseUrl: String,
 ) {
-
     /**
      * 상품 목록 조회 (페이지네이션).
      *
@@ -29,7 +27,10 @@ class ProductServiceClient(
      * @param size 페이지 크기
      * @return 상품 목록 페이지 응답
      */
-    fun fetchAllProducts(page: Int, size: Int): ProductServicePageResponse {
+    fun fetchAllProducts(
+        page: Int,
+        size: Int,
+    ): ProductServicePageResponse {
         val url = "$baseUrl/api/v1/products?page=$page&size=$size"
 
         logger.debug { "상품 서비스 호출: $url" }

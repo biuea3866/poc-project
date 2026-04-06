@@ -11,7 +11,6 @@ import org.aspectj.lang.ProceedingJoinPoint
 import org.aspectj.lang.reflect.MethodSignature
 import org.redisson.api.RLock
 import org.redisson.api.RedissonClient
-import java.util.concurrent.TimeUnit
 
 class DistributedLockAspectTest : BehaviorSpec({
 
@@ -32,12 +31,13 @@ class DistributedLockAspectTest : BehaviorSpec({
         every { joinPoint.args } returns arrayOf()
         every { joinPoint.proceed() } returns "result"
 
-        val annotation = DistributedLock(
-            key = "'test:lock:key'",
-            waitTime = 5L,
-            leaseTime = 3L,
-            maxRetries = 3,
-        )
+        val annotation =
+            DistributedLock(
+                key = "'test:lock:key'",
+                waitTime = 5L,
+                leaseTime = 3L,
+                maxRetries = 3,
+            )
 
         When("around 실행") {
             // 어노테이션의 리터럴 SpEL 키를 사용
@@ -65,12 +65,13 @@ class DistributedLockAspectTest : BehaviorSpec({
         every { signature.method } returns DistributedLockAspectTest::class.java.getMethod("toString")
         every { joinPoint.args } returns arrayOf()
 
-        val annotation = DistributedLock(
-            key = "'test:lock:fail'",
-            waitTime = 1L,
-            leaseTime = 1L,
-            maxRetries = 2,
-        )
+        val annotation =
+            DistributedLock(
+                key = "'test:lock:fail'",
+                waitTime = 1L,
+                leaseTime = 1L,
+                maxRetries = 2,
+            )
 
         When("around 실행") {
             Then("BusinessException이 발생한다") {
@@ -99,12 +100,13 @@ class DistributedLockAspectTest : BehaviorSpec({
         every { joinPoint.args } returns arrayOf()
         every { joinPoint.proceed() } throws RuntimeException("비즈니스 로직 오류")
 
-        val annotation = DistributedLock(
-            key = "'test:lock:error'",
-            waitTime = 5L,
-            leaseTime = 3L,
-            maxRetries = 1,
-        )
+        val annotation =
+            DistributedLock(
+                key = "'test:lock:error'",
+                waitTime = 5L,
+                leaseTime = 3L,
+                maxRetries = 1,
+            )
 
         When("around 실행") {
             Then("예외가 전파되고 락은 해제된다") {

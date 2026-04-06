@@ -29,14 +29,15 @@ class InventoryServiceTest : BehaviorSpec({
     val outboxEventPublisher = mockk<OutboxEventPublisher>(relaxed = true)
     val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-    val inventoryService = InventoryService(
-        inventoryRepository = inventoryRepository,
-        inventoryHistoryRepository = inventoryHistoryRepository,
-        restockNotificationRepository = restockNotificationRepository,
-        inventoryLockService = inventoryLockService,
-        outboxEventPublisher = outboxEventPublisher,
-        objectMapper = objectMapper,
-    )
+    val inventoryService =
+        InventoryService(
+            inventoryRepository = inventoryRepository,
+            inventoryHistoryRepository = inventoryHistoryRepository,
+            restockNotificationRepository = restockNotificationRepository,
+            inventoryLockService = inventoryLockService,
+            outboxEventPublisher = outboxEventPublisher,
+            objectMapper = objectMapper,
+        )
 
     // 분산 락 모킹: 즉시 block 실행
     beforeSpec {
@@ -47,13 +48,14 @@ class InventoryServiceTest : BehaviorSpec({
     }
 
     Given("재고 생성") {
-        val request = CreateInventoryRequest(
-            productId = 1L,
-            productOptionId = 100L,
-            sku = "SKU-001",
-            totalQuantity = 50,
-            safetyThreshold = 10,
-        )
+        val request =
+            CreateInventoryRequest(
+                productId = 1L,
+                productOptionId = 100L,
+                sku = "SKU-001",
+                totalQuantity = 50,
+                safetyThreshold = 10,
+            )
 
         When("신규 재고 생성") {
             every { inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(100L) } returns null
@@ -74,12 +76,13 @@ class InventoryServiceTest : BehaviorSpec({
         }
 
         When("이미 존재하는 productOptionId로 생성 시도") {
-            val existing = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 50,
-            )
+            val existing =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 50,
+                )
             every { inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(100L) } returns existing
 
             Then("BusinessException이 발생한다") {
@@ -102,10 +105,11 @@ class InventoryServiceTest : BehaviorSpec({
             val historySlot = slot<InventoryHistory>()
             every { inventoryHistoryRepository.save(capture(historySlot)) } answers { historySlot.captured }
 
-            val items = listOf(
-                ReserveItemRequest(productOptionId = 100L, quantity = 5),
-                ReserveItemRequest(productOptionId = 200L, quantity = 3),
-            )
+            val items =
+                listOf(
+                    ReserveItemRequest(productOptionId = 100L, quantity = 5),
+                    ReserveItemRequest(productOptionId = 200L, quantity = 3),
+                )
 
             val result = inventoryService.reserveAll(orderId = 1L, items = items)
 
@@ -138,10 +142,12 @@ class InventoryServiceTest : BehaviorSpec({
             every { inventoryHistoryRepository.save(any()) } answers { firstArg() }
             every { outboxEventPublisher.publish(any(), any(), any(), any(), any(), any()) } returns mockk<OutboxEvent>()
 
-            val items = listOf(
-                ReserveItemRequest(productOptionId = 100L, quantity = 5),
-                ReserveItemRequest(productOptionId = 200L, quantity = 10), // 재고 부족
-            )
+            val items =
+                listOf(
+                    ReserveItemRequest(productOptionId = 100L, quantity = 5),
+                    // 재고 부족
+                    ReserveItemRequest(productOptionId = 200L, quantity = 10),
+                )
 
             val result = inventoryService.reserveAll(orderId = 2L, items = items)
 

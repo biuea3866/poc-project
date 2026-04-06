@@ -12,10 +12,7 @@ enum class Phase2FeatureKey(
     override val key: String,
     override val description: String,
 ) : FeatureKey {
-
-    // === Sprint 5 ===
-
-    /** Outbox Poller 활성화 (Transactional Outbox 패턴) */
+    /** Outbox Poller 활성화 (Transactional Outbox 패턴) — Sprint 5 */
     OUTBOX_POLLING_ENABLED(
         key = "OUTBOX_POLLING_ENABLED",
         description = "Outbox Poller를 통한 Kafka 이벤트 발행 활성화",

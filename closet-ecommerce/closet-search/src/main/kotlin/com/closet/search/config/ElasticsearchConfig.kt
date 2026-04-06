@@ -18,7 +18,6 @@ class ElasticsearchConfig(
     @Value("\${spring.elasticsearch.uris:http://localhost:9200}")
     private val esUri: String,
 ) : ElasticsearchConfiguration() {
-
     override fun clientConfiguration(): ClientConfiguration {
         return ClientConfiguration.builder()
             .connectedTo(esUri.removePrefix("http://").removePrefix("https://"))

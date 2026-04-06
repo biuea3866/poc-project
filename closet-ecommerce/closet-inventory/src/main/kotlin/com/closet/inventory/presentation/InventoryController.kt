@@ -35,29 +35,36 @@ class InventoryController(
     private val inventoryService: InventoryService,
     private val safetyStockService: SafetyStockService,
 ) {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
     @RoleRequired(MemberRole.SELLER, MemberRole.ADMIN)
-    fun createInventory(@RequestBody @Valid request: CreateInventoryRequest): ApiResponse<InventoryResponse> {
+    fun createInventory(
+        @RequestBody @Valid request: CreateInventoryRequest,
+    ): ApiResponse<InventoryResponse> {
         val response = inventoryService.createInventory(request)
         return ApiResponse.created(response)
     }
 
     @GetMapping("/{id}")
-    fun getInventory(@PathVariable id: Long): ApiResponse<InventoryResponse> {
+    fun getInventory(
+        @PathVariable id: Long,
+    ): ApiResponse<InventoryResponse> {
         val response = inventoryService.findById(id)
         return ApiResponse.ok(response)
     }
 
     @GetMapping("/option/{productOptionId}")
-    fun getInventoryByProductOptionId(@PathVariable productOptionId: Long): ApiResponse<InventoryResponse> {
+    fun getInventoryByProductOptionId(
+        @PathVariable productOptionId: Long,
+    ): ApiResponse<InventoryResponse> {
         val response = inventoryService.findByProductOptionId(productOptionId)
         return ApiResponse.ok(response)
     }
 
     @GetMapping
-    fun getInventoriesByProductId(@RequestParam productId: Long): ApiResponse<List<InventoryResponse>> {
+    fun getInventoriesByProductId(
+        @RequestParam productId: Long,
+    ): ApiResponse<List<InventoryResponse>> {
         val response = inventoryService.findByProductId(productId)
         return ApiResponse.ok(response)
     }
@@ -76,13 +83,16 @@ class InventoryController(
      * 내부 API: 재고 예약 (order-service에서 호출).
      */
     @PostMapping("/reserve")
-    fun reserve(@RequestBody @Valid request: ReserveRequest): ApiResponse<InventoryResult> {
-        val items = request.items.map {
-            ReserveItemRequest(
-                productOptionId = it.productOptionId,
-                quantity = it.quantity,
-            )
-        }
+    fun reserve(
+        @RequestBody @Valid request: ReserveRequest,
+    ): ApiResponse<InventoryResult> {
+        val items =
+            request.items.map {
+                ReserveItemRequest(
+                    productOptionId = it.productOptionId,
+                    quantity = it.quantity,
+                )
+            }
         val result = inventoryService.reserveAll(request.orderId, items)
         return ApiResponse.ok(result)
     }
@@ -91,13 +101,16 @@ class InventoryController(
      * 내부 API: 재고 차감 (payment 완료 시 호출).
      */
     @PostMapping("/deduct")
-    fun deduct(@RequestBody @Valid request: DeductRequest): ApiResponse<Unit> {
-        val items = request.items.map {
-            DeductItemRequest(
-                productOptionId = it.productOptionId,
-                quantity = it.quantity,
-            )
-        }
+    fun deduct(
+        @RequestBody @Valid request: DeductRequest,
+    ): ApiResponse<Unit> {
+        val items =
+            request.items.map {
+                DeductItemRequest(
+                    productOptionId = it.productOptionId,
+                    quantity = it.quantity,
+                )
+            }
         inventoryService.deductAll(request.orderId, items)
         return ApiResponse.ok(Unit)
     }
@@ -106,13 +119,16 @@ class InventoryController(
      * 내부 API: 재고 해제 (주문 취소 시 호출).
      */
     @PostMapping("/release")
-    fun release(@RequestBody @Valid request: ReleaseRequest): ApiResponse<Unit> {
-        val items = request.items.map {
-            ReleaseItemRequest(
-                productOptionId = it.productOptionId,
-                quantity = it.quantity,
-            )
-        }
+    fun release(
+        @RequestBody @Valid request: ReleaseRequest,
+    ): ApiResponse<Unit> {
+        val items =
+            request.items.map {
+                ReleaseItemRequest(
+                    productOptionId = it.productOptionId,
+                    quantity = it.quantity,
+                )
+            }
         inventoryService.releaseAll(request.orderId, items, request.reason)
         return ApiResponse.ok(Unit)
     }
@@ -159,11 +175,14 @@ class InventoryController(
      * 재입고 알림 대기 건수 조회.
      */
     @GetMapping("/restock-notification/count")
-    fun getRestockNotificationCount(@RequestParam productOptionId: Long): ApiResponse<Long> {
+    fun getRestockNotificationCount(
+        @RequestParam productOptionId: Long,
+    ): ApiResponse<Long> {
         val count = safetyStockService.getWaitingCount(productOptionId)
         return ApiResponse.ok(count)
     }
 
     data class UpdateSafetyThresholdRequest(val threshold: Int)
+
     data class RegisterRestockNotificationRequest(val productOptionId: Long)
 }

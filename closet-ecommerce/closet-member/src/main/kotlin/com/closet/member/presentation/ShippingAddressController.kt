@@ -56,7 +56,10 @@ class ShippingAddressController(
     /** 배송지 삭제 */
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(request: HttpServletRequest, @PathVariable id: Long) {
+    fun delete(
+        request: HttpServletRequest,
+        @PathVariable id: Long,
+    ) {
         val memberId = request.getAttribute(JwtAuthenticationFilter.MEMBER_ID_ATTRIBUTE) as Long
         shippingAddressService.delete(memberId, id)
     }

@@ -19,31 +19,30 @@ class PointHistory(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
-
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val type: PointType,
-
     @Column(nullable = false)
     val amount: Int,
-
     @Column(name = "balance_after", nullable = false)
     val balanceAfter: Int,
-
     @Column(nullable = false, length = 200)
     val reason: String,
-
     @Column(name = "reference_id", length = 100)
     val referenceId: String? = null,
-
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
     val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
     companion object {
-        fun earn(memberId: Long, amount: Int, balanceAfter: Int, reason: String, referenceId: String? = null): PointHistory {
+        fun earn(
+            memberId: Long,
+            amount: Int,
+            balanceAfter: Int,
+            reason: String,
+            referenceId: String? = null,
+        ): PointHistory {
             return PointHistory(
                 memberId = memberId,
                 type = PointType.EARN,
@@ -54,7 +53,13 @@ class PointHistory(
             )
         }
 
-        fun use(memberId: Long, amount: Int, balanceAfter: Int, reason: String, referenceId: String? = null): PointHistory {
+        fun use(
+            memberId: Long,
+            amount: Int,
+            balanceAfter: Int,
+            reason: String,
+            referenceId: String? = null,
+        ): PointHistory {
             return PointHistory(
                 memberId = memberId,
                 type = PointType.USE,

@@ -15,7 +15,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "payment")
@@ -23,22 +23,17 @@ import java.time.LocalDateTime
 class Payment(
     @Column(name = "order_id", nullable = false)
     val orderId: Long,
-
     @Column(name = "payment_key", length = 200)
     var paymentKey: String? = null,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "method", length = 30, columnDefinition = "VARCHAR(30)")
     var method: PaymentMethod? = null,
-
     @Embedded
     @AttributeOverride(name = "amount", column = Column(name = "final_amount", nullable = false, columnDefinition = "DECIMAL(15,2)"))
     var finalAmount: Money,
-
     @Embedded
     @AttributeOverride(name = "amount", column = Column(name = "refund_amount", nullable = false, columnDefinition = "DECIMAL(15,2)"))
     var refundAmount: Money = Money.ZERO,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     var status: PaymentStatus = PaymentStatus.PENDING,
@@ -49,13 +44,16 @@ class Payment(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
-    fun confirm(paymentKey: String, method: PaymentMethod) {
+    fun confirm(
+        paymentKey: String,
+        method: PaymentMethod,
+    ) {
         this.paymentKey = paymentKey
         this.method = method
         this.status = PaymentStatus.PAID
@@ -86,7 +84,10 @@ class Payment(
     }
 
     companion object {
-        fun create(orderId: Long, finalAmount: Money): Payment {
+        fun create(
+            orderId: Long,
+            finalAmount: Money,
+        ): Payment {
             return Payment(
                 orderId = orderId,
                 finalAmount = finalAmount,
@@ -96,9 +97,15 @@ class Payment(
 }
 
 enum class PaymentStatus {
-    PENDING, PAID, CANCELLED, REFUNDED
+    PENDING,
+    PAID,
+    CANCELLED,
+    REFUNDED,
 }
 
 enum class PaymentMethod {
-    CARD, BANK_TRANSFER, VIRTUAL_ACCOUNT, MOBILE
+    CARD,
+    BANK_TRANSFER,
+    VIRTUAL_ACCOUNT,
+    MOBILE,
 }

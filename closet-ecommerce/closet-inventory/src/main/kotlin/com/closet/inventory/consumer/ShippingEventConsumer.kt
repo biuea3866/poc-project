@@ -23,7 +23,6 @@ private val logger = KotlinLogging.logger {}
 class ShippingEventConsumer(
     private val inventoryFacade: InventoryFacade,
 ) {
-
     @KafkaListener(topics = [ClosetTopics.SHIPPING], groupId = "inventory-service")
     fun handle(event: ShippingEvent) {
         logger.info { "${ClosetTopics.SHIPPING} 수신: eventType=${event.eventType}, orderId=${event.orderId}" }

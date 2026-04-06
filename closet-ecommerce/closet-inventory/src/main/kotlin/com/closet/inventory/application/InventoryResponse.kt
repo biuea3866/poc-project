@@ -1,7 +1,7 @@
 package com.closet.inventory.application
 
 import com.closet.inventory.domain.Inventory
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class InventoryResponse(
     val id: Long,
@@ -14,8 +14,8 @@ data class InventoryResponse(
     val safetyThreshold: Int,
     val belowSafetyThreshold: Boolean,
     val outOfStock: Boolean,
-    val createdAt: LocalDateTime?,
-    val updatedAt: LocalDateTime?,
+    val createdAt: ZonedDateTime?,
+    val updatedAt: ZonedDateTime?,
 ) {
     companion object {
         fun from(inventory: Inventory): InventoryResponse {

@@ -15,18 +15,21 @@ class MyPageBffFacade(
     private val executor = Executors.newVirtualThreadPerTaskExecutor()
 
     fun getMyPage(memberId: Long): MyPageBffResponse {
-        val memberFuture = CompletableFuture.supplyAsync(
-            { memberClient.getMember(memberId) },
-            executor,
-        )
-        val ordersFuture = CompletableFuture.supplyAsync(
-            { orderClient.getOrders(memberId, 0, 5) },
-            executor,
-        )
-        val addressesFuture = CompletableFuture.supplyAsync(
-            { memberClient.getAddresses(memberId) },
-            executor,
-        )
+        val memberFuture =
+            CompletableFuture.supplyAsync(
+                { memberClient.getMember(memberId) },
+                executor,
+            )
+        val ordersFuture =
+            CompletableFuture.supplyAsync(
+                { orderClient.getOrders(memberId, 0, 5) },
+                executor,
+            )
+        val addressesFuture =
+            CompletableFuture.supplyAsync(
+                { memberClient.getAddresses(memberId) },
+                executor,
+            )
 
         CompletableFuture.allOf(memberFuture, ordersFuture, addressesFuture).join()
 

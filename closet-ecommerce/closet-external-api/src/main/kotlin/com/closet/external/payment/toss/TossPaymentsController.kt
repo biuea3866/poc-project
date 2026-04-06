@@ -22,13 +22,18 @@ class TossPaymentsController(
     private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/confirm")
-    fun confirm(@RequestBody request: Map<String, Any>): ResponseEntity<*> {
-        val paymentKey = request["paymentKey"]?.toString()
-            ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "paymentKey는 필수입니다"))
-        val orderId = request["orderId"]?.toString()
-            ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "orderId는 필수입니다"))
-        val amount = request["amount"]?.toString()?.toLongOrNull()
-            ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "amount는 필수입니다"))
+    fun confirm(
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
+        val paymentKey =
+            request["paymentKey"]?.toString()
+                ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "paymentKey는 필수입니다"))
+        val orderId =
+            request["orderId"]?.toString()
+                ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "orderId는 필수입니다"))
+        val amount =
+            request["amount"]?.toString()?.toLongOrNull()
+                ?: return ResponseEntity.badRequest().body(err("INVALID_REQUEST", "amount는 필수입니다"))
 
         pgService.createPayment("TOSS", paymentKey, orderId, amount, request["orderName"]?.toString())
         pgService.approvePayment(paymentKey, "CARD")
@@ -39,7 +44,10 @@ class TossPaymentsController(
     }
 
     @PostMapping("/{paymentKey}/cancel")
-    fun cancel(@PathVariable paymentKey: String, @RequestBody request: Map<String, Any>): ResponseEntity<*> {
+    fun cancel(
+        @PathVariable paymentKey: String,
+        @RequestBody request: Map<String, Any>,
+    ): ResponseEntity<*> {
         val reason = request["cancelReason"]?.toString() ?: "고객 요청"
         val cancelAmount = request["cancelAmount"]?.toString()?.toLongOrNull()
         return try {
@@ -52,26 +60,41 @@ class TossPaymentsController(
     }
 
     @GetMapping("/{paymentKey}")
-    fun getByPaymentKey(@PathVariable paymentKey: String): ResponseEntity<*> {
+    fun getByPaymentKey(
+        @PathVariable paymentKey: String,
+    ): ResponseEntity<*> {
         val payment = pgService.findByPaymentKey(paymentKey) ?: return ResponseEntity.notFound().build<Any>()
         return ResponseEntity.ok(toTossResponse(payment))
     }
 
     @GetMapping("/orders/{orderId}")
-    fun getByOrderId(@PathVariable orderId: String): ResponseEntity<*> {
+    fun getByOrderId(
+        @PathVariable orderId: String,
+    ): ResponseEntity<*> {
         val payment = pgService.findByOrderId(orderId) ?: return ResponseEntity.notFound().build<Any>()
         return ResponseEntity.ok(toTossResponse(payment))
     }
 
-    private fun toTossResponse(p: com.closet.external.domain.MockPayment) = mapOf(
-        "paymentKey" to p.paymentKey, "orderId" to p.orderId, "orderName" to p.orderName,
-        "status" to if (p.status == "DONE") "DONE" else if (p.status == "CANCELED") "CANCELED" else p.status,
-        "method" to "카드", "totalAmount" to p.totalAmount, "balanceAmount" to p.balanceAmount,
-        "suppliedAmount" to (p.totalAmount * 10 / 11), "vat" to (p.totalAmount / 11),
-        "requestedAt" to p.createdAt.toString(), "approvedAt" to p.approvedAt?.toString(),
-        "currency" to "KRW",
-        "card" to mapOf("number" to p.cardNumber, "approveNo" to p.approveNo, "cardType" to p.cardType),
-    )
+    private fun toTossResponse(p: com.closet.external.domain.MockPayment) =
+        mapOf(
+            "paymentKey" to p.paymentKey, "orderId" to p.orderId, "orderName" to p.orderName,
+            "status" to
+                if (p.status == "DONE") {
+                    "DONE"
+                } else if (p.status == "CANCELED") {
+                    "CANCELED"
+                } else {
+                    p.status
+                },
+            "method" to "카드", "totalAmount" to p.totalAmount, "balanceAmount" to p.balanceAmount,
+            "suppliedAmount" to (p.totalAmount * 10 / 11), "vat" to (p.totalAmount / 11),
+            "requestedAt" to p.createdAt.toString(), "approvedAt" to p.approvedAt?.toString(),
+            "currency" to "KRW",
+            "card" to mapOf("number" to p.cardNumber, "approveNo" to p.approveNo, "cardType" to p.cardType),
+        )
 
-    private fun err(code: String, msg: String) = mapOf("code" to code, "message" to msg)
+    private fun err(
+        code: String,
+        msg: String,
+    ) = mapOf("code" to code, "message" to msg)
 }

@@ -30,11 +30,13 @@ class ProductSearchService(
     private val productSearchRepositoryCustom: ProductSearchRepositoryCustom,
     private val productServiceClient: ProductServiceClient,
 ) {
-
     /**
      * 키워드 + 필터 + 정렬 상품 검색 (하이라이팅 포함).
      */
-    fun search(filter: ProductSearchFilter, pageable: Pageable): Page<ProductSearchResponse> {
+    fun search(
+        filter: ProductSearchFilter,
+        pageable: Pageable,
+    ): Page<ProductSearchResponse> {
         return productSearchRepositoryCustom.search(filter, pageable)
     }
 
@@ -43,7 +45,10 @@ class ProductSearchService(
      *
      * 검색 결과와 함께 카테고리/브랜드/사이즈/색상별 개수를 aggregation으로 반환한다.
      */
-    fun searchWithFacets(filter: ProductSearchFilter, pageable: Pageable): FilterFacetResponse {
+    fun searchWithFacets(
+        filter: ProductSearchFilter,
+        pageable: Pageable,
+    ): FilterFacetResponse {
         return productSearchRepositoryCustom.searchWithFacets(filter, pageable)
     }
 
@@ -52,7 +57,10 @@ class ProductSearchService(
      *
      * 2자 이상의 키워드에 대해 상품명, 브랜드명, 카테고리명을 대상으로 자동완성 후보를 반환한다.
      */
-    fun autocomplete(keyword: String, size: Int = 10): List<AutocompleteResponse> {
+    fun autocomplete(
+        keyword: String,
+        size: Int = 10,
+    ): List<AutocompleteResponse> {
         if (keyword.length < 2) return emptyList()
 
         val docs = productSearchRepositoryCustom.autocomplete(keyword, size)
@@ -87,25 +95,26 @@ class ProductSearchService(
         colors: List<String>,
         imageUrl: String?,
     ) {
-        val document = ProductDocument(
-            productId = productId,
-            name = name,
-            description = description,
-            brandId = brandId,
-            categoryId = categoryId,
-            basePrice = basePrice,
-            salePrice = salePrice,
-            discountRate = discountRate,
-            status = status,
-            season = season,
-            fitType = fitType,
-            gender = gender,
-            sizes = sizes,
-            colors = colors,
-            imageUrl = imageUrl,
-            createdAt = ZonedDateTime.now(),
-            updatedAt = ZonedDateTime.now(),
-        )
+        val document =
+            ProductDocument(
+                productId = productId,
+                name = name,
+                description = description,
+                brandId = brandId,
+                categoryId = categoryId,
+                basePrice = basePrice,
+                salePrice = salePrice,
+                discountRate = discountRate,
+                status = status,
+                season = season,
+                fitType = fitType,
+                gender = gender,
+                sizes = sizes,
+                colors = colors,
+                imageUrl = imageUrl,
+                createdAt = ZonedDateTime.now(),
+                updatedAt = ZonedDateTime.now(),
+            )
 
         productSearchRepository.save(document)
         logger.info { "상품 인덱싱 완료: productId=$productId, name=$name" }
@@ -133,29 +142,30 @@ class ProductSearchService(
     ) {
         val existing = productSearchRepository.findById(productId).orElse(null)
 
-        val document = ProductDocument(
-            productId = productId,
-            name = name,
-            description = description,
-            brandId = brandId,
-            categoryId = categoryId,
-            basePrice = basePrice,
-            salePrice = salePrice,
-            discountRate = discountRate,
-            status = status,
-            season = season,
-            fitType = fitType,
-            gender = gender,
-            sizes = sizes,
-            colors = colors,
-            imageUrl = imageUrl,
-            popularityScore = existing?.popularityScore ?: 0.0,
-            salesCount = existing?.salesCount ?: 0,
-            reviewCount = existing?.reviewCount ?: 0,
-            avgRating = existing?.avgRating ?: 0.0,
-            createdAt = existing?.createdAt,
-            updatedAt = ZonedDateTime.now(),
-        )
+        val document =
+            ProductDocument(
+                productId = productId,
+                name = name,
+                description = description,
+                brandId = brandId,
+                categoryId = categoryId,
+                basePrice = basePrice,
+                salePrice = salePrice,
+                discountRate = discountRate,
+                status = status,
+                season = season,
+                fitType = fitType,
+                gender = gender,
+                sizes = sizes,
+                colors = colors,
+                imageUrl = imageUrl,
+                popularityScore = existing?.popularityScore ?: 0.0,
+                salesCount = existing?.salesCount ?: 0,
+                reviewCount = existing?.reviewCount ?: 0,
+                avgRating = existing?.avgRating ?: 0.0,
+                createdAt = existing?.createdAt,
+                updatedAt = ZonedDateTime.now(),
+            )
 
         productSearchRepository.save(document)
         logger.info { "상품 업데이트 인덱싱 완료: productId=$productId, name=$name" }
@@ -177,49 +187,64 @@ class ProductSearchService(
      * 리뷰 집계 부분 업데이트 (review.summary.updated 이벤트).
      * 리뷰 집계 변경 시 인기순 복합 점수도 함께 재계산한다.
      */
-    fun updateReviewSummary(productId: Long, reviewCount: Int, avgRating: Double) {
+    fun updateReviewSummary(
+        productId: Long,
+        reviewCount: Int,
+        avgRating: Double,
+    ) {
         val existing = productSearchRepository.findById(productId).orElse(null)
         if (existing == null) {
             logger.warn { "리뷰 집계 업데이트 대상 상품 인덱스 없음: productId=$productId" }
             return
         }
 
-        val updated = existing.copy(
-            reviewCount = reviewCount,
-            avgRating = avgRating,
-            popularityScore = calculatePopularityScore(
-                salesCount = existing.salesCount,
+        val updated =
+            existing.copy(
                 reviewCount = reviewCount,
                 avgRating = avgRating,
-                viewCount = existing.viewCount,
-            ),
-            updatedAt = ZonedDateTime.now(),
-        )
+                popularityScore =
+                    calculatePopularityScore(
+                        salesCount = existing.salesCount,
+                        reviewCount = reviewCount,
+                        avgRating = avgRating,
+                        viewCount = existing.viewCount,
+                    ),
+                updatedAt = ZonedDateTime.now(),
+            )
 
         productSearchRepository.save(updated)
-        logger.info { "리뷰 집계 업데이트 완료: productId=$productId, reviewCount=$reviewCount, avgRating=$avgRating, popularityScore=${updated.popularityScore}" }
+        logger.info {
+            "리뷰 집계 업데이트 완료: productId=$productId, " +
+                "reviewCount=$reviewCount, avgRating=$avgRating, " +
+                "popularityScore=${updated.popularityScore}"
+        }
     }
 
     /**
      * 판매량 업데이트 + 인기순 복합 점수 재계산.
      */
-    fun updateSalesCount(productId: Long, salesCount: Int) {
+    fun updateSalesCount(
+        productId: Long,
+        salesCount: Int,
+    ) {
         val existing = productSearchRepository.findById(productId).orElse(null)
         if (existing == null) {
             logger.warn { "판매량 업데이트 대상 상품 인덱스 없음: productId=$productId" }
             return
         }
 
-        val updated = existing.copy(
-            salesCount = salesCount,
-            popularityScore = calculatePopularityScore(
+        val updated =
+            existing.copy(
                 salesCount = salesCount,
-                reviewCount = existing.reviewCount,
-                avgRating = existing.avgRating,
-                viewCount = existing.viewCount,
-            ),
-            updatedAt = ZonedDateTime.now(),
-        )
+                popularityScore =
+                    calculatePopularityScore(
+                        salesCount = salesCount,
+                        reviewCount = existing.reviewCount,
+                        avgRating = existing.avgRating,
+                        viewCount = existing.viewCount,
+                    ),
+                updatedAt = ZonedDateTime.now(),
+            )
 
         productSearchRepository.save(updated)
         logger.info { "판매량 업데이트 완료: productId=$productId, salesCount=$salesCount, popularityScore=${updated.popularityScore}" }
@@ -238,10 +263,10 @@ class ProductSearchService(
         avgRating: Double,
         viewCount: Int,
     ): Double {
-        val normalizedSales = (salesCount.coerceAtMost(1000) / 10.0)       // 0~100
-        val normalizedReviews = (reviewCount.coerceAtMost(500) / 5.0)      // 0~100
-        val normalizedRating = (avgRating / 5.0) * 100.0                    // 0~100
-        val normalizedViews = (viewCount.coerceAtMost(10000) / 100.0)      // 0~100
+        val normalizedSales = (salesCount.coerceAtMost(1000) / 10.0) // 0~100
+        val normalizedReviews = (reviewCount.coerceAtMost(500) / 5.0) // 0~100
+        val normalizedRating = (avgRating / 5.0) * 100.0 // 0~100
+        val normalizedViews = (viewCount.coerceAtMost(10000) / 100.0) // 0~100
 
         return normalizedSales * 0.4 + normalizedReviews * 0.3 + normalizedRating * 0.2 + normalizedViews * 0.1
     }
@@ -262,12 +287,13 @@ class ProductSearchService(
         logger.info { "벌크 리인덱싱 시작" }
 
         while (true) {
-            val pageResponse = try {
-                productServiceClient.fetchAllProducts(page, pageSize)
-            } catch (e: Exception) {
-                logger.error(e) { "상품 서비스 호출 실패: page=$page" }
-                break
-            }
+            val pageResponse =
+                try {
+                    productServiceClient.fetchAllProducts(page, pageSize)
+                } catch (e: Exception) {
+                    logger.error(e) { "상품 서비스 호출 실패: page=$page" }
+                    break
+                }
 
             if (pageResponse.content.isEmpty()) break
 
@@ -289,7 +315,11 @@ class ProductSearchService(
         }
 
         val elapsed = System.currentTimeMillis() - startTime
-        logger.info { "벌크 리인덱싱 완료: totalRequested=$totalRequested, totalIndexed=$totalIndexed, totalFailed=$totalFailed, elapsed=${elapsed}ms" }
+        logger.info {
+            "벌크 리인덱싱 완료: totalRequested=$totalRequested, " +
+                "totalIndexed=$totalIndexed, totalFailed=$totalFailed, " +
+                "elapsed=${elapsed}ms"
+        }
 
         return IndexSyncResponse(
             totalRequested = totalRequested,

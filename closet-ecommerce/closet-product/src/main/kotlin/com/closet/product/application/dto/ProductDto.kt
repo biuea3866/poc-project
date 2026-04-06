@@ -34,7 +34,7 @@ data class ProductCreateRequest(
     val discountRate: Int = 0,
     val season: Season? = null,
     val fitType: FitType? = null,
-    val gender: Gender? = null
+    val gender: Gender? = null,
 )
 
 data class ProductUpdateRequest(
@@ -53,12 +53,12 @@ data class ProductUpdateRequest(
     val discountRate: Int = 0,
     val season: Season? = null,
     val fitType: FitType? = null,
-    val gender: Gender? = null
+    val gender: Gender? = null,
 )
 
 data class ProductStatusChangeRequest(
     @field:NotNull(message = "상태값은 필수입니다")
-    val status: ProductStatus
+    val status: ProductStatus,
 )
 
 data class ProductResponse(
@@ -75,25 +75,26 @@ data class ProductResponse(
     val fitType: FitType?,
     val gender: Gender?,
     val options: List<ProductOptionResponse>,
-    val images: List<ProductImageResponse>
+    val images: List<ProductImageResponse>,
 ) {
     companion object {
-        fun from(product: Product): ProductResponse = ProductResponse(
-            id = product.id,
-            name = product.name,
-            description = product.description,
-            brandId = product.brandId,
-            categoryId = product.categoryId,
-            basePrice = product.basePrice.amount,
-            salePrice = product.salePrice.amount,
-            discountRate = product.discountRate,
-            status = product.status,
-            season = product.season,
-            fitType = product.fitType,
-            gender = product.gender,
-            options = product.options.map { ProductOptionResponse.from(it) },
-            images = product.images.map { ProductImageResponse.from(it) }
-        )
+        fun from(product: Product): ProductResponse =
+            ProductResponse(
+                id = product.id,
+                name = product.name,
+                description = product.description,
+                brandId = product.brandId,
+                categoryId = product.categoryId,
+                basePrice = product.basePrice.amount,
+                salePrice = product.salePrice.amount,
+                discountRate = product.discountRate,
+                status = product.status,
+                season = product.season,
+                fitType = product.fitType,
+                gender = product.gender,
+                options = product.options.map { ProductOptionResponse.from(it) },
+                images = product.images.map { ProductImageResponse.from(it) },
+            )
     }
 }
 
@@ -108,22 +109,23 @@ data class ProductListResponse(
     val status: ProductStatus,
     val season: Season?,
     val fitType: FitType?,
-    val gender: Gender?
+    val gender: Gender?,
 ) {
     companion object {
-        fun from(product: Product): ProductListResponse = ProductListResponse(
-            id = product.id,
-            name = product.name,
-            brandId = product.brandId,
-            categoryId = product.categoryId,
-            basePrice = product.basePrice.amount,
-            salePrice = product.salePrice.amount,
-            discountRate = product.discountRate,
-            status = product.status,
-            season = product.season,
-            fitType = product.fitType,
-            gender = product.gender
-        )
+        fun from(product: Product): ProductListResponse =
+            ProductListResponse(
+                id = product.id,
+                name = product.name,
+                brandId = product.brandId,
+                categoryId = product.categoryId,
+                basePrice = product.basePrice.amount,
+                salePrice = product.salePrice.amount,
+                discountRate = product.discountRate,
+                status = product.status,
+                season = product.season,
+                fitType = product.fitType,
+                gender = product.gender,
+            )
     }
 }
 
@@ -138,7 +140,7 @@ data class ProductOptionCreateRequest(
     val colorHex: String,
     @field:NotBlank(message = "SKU 코드는 필수입니다")
     val skuCode: String,
-    val additionalPrice: BigDecimal = BigDecimal.ZERO
+    val additionalPrice: BigDecimal = BigDecimal.ZERO,
 )
 
 data class ProductOptionResponse(
@@ -147,17 +149,18 @@ data class ProductOptionResponse(
     val colorName: String,
     val colorHex: String,
     val skuCode: String,
-    val additionalPrice: BigDecimal
+    val additionalPrice: BigDecimal,
 ) {
     companion object {
-        fun from(option: ProductOption): ProductOptionResponse = ProductOptionResponse(
-            id = option.id,
-            size = option.size,
-            colorName = option.colorName,
-            colorHex = option.colorHex,
-            skuCode = option.skuCode,
-            additionalPrice = option.additionalPrice.amount
-        )
+        fun from(option: ProductOption): ProductOptionResponse =
+            ProductOptionResponse(
+                id = option.id,
+                size = option.size,
+                colorName = option.colorName,
+                colorHex = option.colorHex,
+                skuCode = option.skuCode,
+                additionalPrice = option.additionalPrice.amount,
+            )
     }
 }
 
@@ -167,15 +170,16 @@ data class ProductImageResponse(
     val id: Long,
     val imageUrl: String,
     val type: ImageType,
-    val sortOrder: Int
+    val sortOrder: Int,
 ) {
     companion object {
-        fun from(image: ProductImage): ProductImageResponse = ProductImageResponse(
-            id = image.id,
-            imageUrl = image.imageUrl,
-            type = image.type,
-            sortOrder = image.sortOrder
-        )
+        fun from(image: ProductImage): ProductImageResponse =
+            ProductImageResponse(
+                id = image.id,
+                imageUrl = image.imageUrl,
+                type = image.type,
+                sortOrder = image.sortOrder,
+            )
     }
 }
 
@@ -186,7 +190,7 @@ data class CategoryCreateRequest(
     val name: String,
     val parentId: Long? = null,
     val depth: Int = 1,
-    val sortOrder: Int = 0
+    val sortOrder: Int = 0,
 )
 
 data class CategoryResponse(
@@ -196,10 +200,13 @@ data class CategoryResponse(
     val depth: Int,
     val sortOrder: Int,
     val status: Boolean,
-    val children: List<CategoryResponse> = emptyList()
+    val children: List<CategoryResponse> = emptyList(),
 ) {
     companion object {
-        fun from(category: Category, children: List<CategoryResponse> = emptyList()): CategoryResponse =
+        fun from(
+            category: Category,
+            children: List<CategoryResponse> = emptyList(),
+        ): CategoryResponse =
             CategoryResponse(
                 id = category.id,
                 parentId = category.parentId,
@@ -207,7 +214,7 @@ data class CategoryResponse(
                 depth = category.depth,
                 sortOrder = category.sortOrder,
                 status = category.status,
-                children = children
+                children = children,
             )
     }
 }
@@ -220,7 +227,7 @@ data class BrandCreateRequest(
     val logoUrl: String? = null,
     val description: String? = null,
     @field:NotNull(message = "셀러 ID는 필수입니다")
-    val sellerId: Long
+    val sellerId: Long,
 )
 
 data class BrandResponse(
@@ -229,16 +236,17 @@ data class BrandResponse(
     val logoUrl: String?,
     val description: String?,
     val sellerId: Long,
-    val status: Boolean
+    val status: Boolean,
 ) {
     companion object {
-        fun from(brand: Brand): BrandResponse = BrandResponse(
-            id = brand.id,
-            name = brand.name,
-            logoUrl = brand.logoUrl,
-            description = brand.description,
-            sellerId = brand.sellerId,
-            status = brand.status
-        )
+        fun from(brand: Brand): BrandResponse =
+            BrandResponse(
+                id = brand.id,
+                name = brand.name,
+                logoUrl = brand.logoUrl,
+                description = brand.description,
+                sellerId = brand.sellerId,
+                status = brand.status,
+            )
     }
 }

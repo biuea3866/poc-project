@@ -31,7 +31,6 @@ class AdminSearchController(
     private val bannedKeywordService: BannedKeywordService,
     private val popularKeywordService: PopularKeywordService,
 ) {
-
     /**
      * 벌크 리인덱싱 API.
      */
@@ -39,7 +38,10 @@ class AdminSearchController(
     fun reindex(): ResponseEntity<IndexSyncResponse> {
         logger.info { "벌크 리인덱싱 API 호출" }
         val result = productSearchService.bulkReindex()
-        logger.info { "벌크 리인덱싱 완료: totalIndexed=${result.totalIndexed}, totalFailed=${result.totalFailed}, elapsed=${result.elapsedMillis}ms" }
+        logger.info {
+            "벌크 리인덱싱 완료: totalIndexed=${result.totalIndexed}, " +
+                "totalFailed=${result.totalFailed}, elapsed=${result.elapsedMillis}ms"
+        }
         return ResponseEntity.ok(result)
     }
 
@@ -55,7 +57,9 @@ class AdminSearchController(
      * 금칙어 추가 (CP-21, PD-39).
      */
     @PostMapping("/banned-keywords")
-    fun addBannedKeyword(@RequestBody request: BannedKeywordRequest): ResponseEntity<Void> {
+    fun addBannedKeyword(
+        @RequestBody request: BannedKeywordRequest,
+    ): ResponseEntity<Void> {
         bannedKeywordService.addBannedKeyword(request.keyword)
         return ResponseEntity.ok().build()
     }
@@ -64,7 +68,9 @@ class AdminSearchController(
      * 금칙어 삭제 (CP-21, PD-39).
      */
     @DeleteMapping("/banned-keywords")
-    fun removeBannedKeyword(@RequestBody request: BannedKeywordRequest): ResponseEntity<Void> {
+    fun removeBannedKeyword(
+        @RequestBody request: BannedKeywordRequest,
+    ): ResponseEntity<Void> {
         bannedKeywordService.removeBannedKeyword(request.keyword)
         return ResponseEntity.noContent().build()
     }

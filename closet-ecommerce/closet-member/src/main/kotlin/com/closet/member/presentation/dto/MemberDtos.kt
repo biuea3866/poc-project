@@ -6,22 +6,19 @@ import com.closet.member.domain.MemberStatus
 import jakarta.validation.constraints.Email
 import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.Size
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /** 회원가입 요청 */
 data class RegisterRequest(
     @field:NotBlank(message = "이메일은 필수입니다")
     @field:Email(message = "이메일 형식이 올바르지 않습니다")
     val email: String,
-
     @field:NotBlank(message = "비밀번호는 필수입니다")
     @field:Size(min = 8, max = 50, message = "비밀번호는 8~50자여야 합니다")
     val password: String,
-
     @field:NotBlank(message = "이름은 필수입니다")
     @field:Size(min = 2, max = 50, message = "이름은 2~50자여야 합니다")
     val name: String,
-
     val phone: String? = null,
 )
 
@@ -30,7 +27,6 @@ data class LoginRequest(
     @field:NotBlank(message = "이메일은 필수입니다")
     @field:Email(message = "이메일 형식이 올바르지 않습니다")
     val email: String,
-
     @field:NotBlank(message = "비밀번호는 필수입니다")
     val password: String,
 )
@@ -57,18 +53,19 @@ data class MemberResponse(
     val grade: MemberGrade,
     val pointBalance: Int,
     val status: MemberStatus,
-    val createdAt: LocalDateTime,
+    val createdAt: ZonedDateTime,
 ) {
     companion object {
-        fun from(member: Member): MemberResponse = MemberResponse(
-            id = member.id,
-            email = member.email,
-            name = member.name,
-            phone = member.phone,
-            grade = member.grade,
-            pointBalance = member.pointBalance,
-            status = member.status,
-            createdAt = member.createdAt,
-        )
+        fun from(member: Member): MemberResponse =
+            MemberResponse(
+                id = member.id,
+                email = member.email,
+                name = member.name,
+                phone = member.phone,
+                grade = member.grade,
+                pointBalance = member.pointBalance,
+                status = member.status,
+                createdAt = member.createdAt,
+            )
     }
 }

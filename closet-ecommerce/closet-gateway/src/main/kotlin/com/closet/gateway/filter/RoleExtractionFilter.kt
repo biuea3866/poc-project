@@ -24,14 +24,16 @@ private val logger = KotlinLogging.logger {}
 class RoleExtractionFilter(
     @Value("\${jwt.secret}") private val secret: String,
 ) : GlobalFilter, Ordered {
-
     companion object {
         const val HEADER_MEMBER_ROLE = "X-Member-Role"
         private const val BEARER_PREFIX = "Bearer "
         private const val DEFAULT_ROLE = "BUYER"
     }
 
-    override fun filter(exchange: ServerWebExchange, chain: GatewayFilterChain): Mono<Void> {
+    override fun filter(
+        exchange: ServerWebExchange,
+        chain: GatewayFilterChain,
+    ): Mono<Void> {
         val request = exchange.request
         val authHeader = request.headers.getFirst(HttpHeaders.AUTHORIZATION)
 
@@ -43,20 +45,22 @@ class RoleExtractionFilter(
         val token = authHeader.substring(BEARER_PREFIX.length)
         val role = extractRoleFromToken(token)
 
-        val mutatedRequest = request.mutate()
-            .header(HEADER_MEMBER_ROLE, role)
-            .build()
+        val mutatedRequest =
+            request.mutate()
+                .header(HEADER_MEMBER_ROLE, role)
+                .build()
 
         return chain.filter(exchange.mutate().request(mutatedRequest).build())
     }
 
     private fun extractRoleFromToken(token: String): String {
         return try {
-            val claims = Jwts.parser()
-                .verifyWith(Keys.hmacShaKeyFor(secret.toByteArray()))
-                .build()
-                .parseSignedClaims(token)
-                .payload
+            val claims =
+                Jwts.parser()
+                    .verifyWith(Keys.hmacShaKeyFor(secret.toByteArray()))
+                    .build()
+                    .parseSignedClaims(token)
+                    .payload
 
             val role = claims["role"] as? String
             if (role.isNullOrBlank()) {

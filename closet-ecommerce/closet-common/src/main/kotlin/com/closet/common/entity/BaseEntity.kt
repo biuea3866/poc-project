@@ -9,29 +9,28 @@ import jakarta.persistence.MappedSuperclass
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener::class)
 abstract class BaseEntity {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0
 
     @CreatedDate
     @Column(nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
     @Column(columnDefinition = "DATETIME(6)")
-    var deletedAt: LocalDateTime? = null
+    var deletedAt: ZonedDateTime? = null
 
     fun softDelete() {
-        this.deletedAt = LocalDateTime.now()
+        this.deletedAt = ZonedDateTime.now()
     }
 
     fun isDeleted(): Boolean = deletedAt != null

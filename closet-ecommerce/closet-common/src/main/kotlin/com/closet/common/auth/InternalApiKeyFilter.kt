@@ -25,11 +25,9 @@ private val logger = KotlinLogging.logger {}
 class InternalApiKeyFilter(
     @Value("\${internal.api.key}")
     private val internalApiKey: String,
-
     @Value("\${internal.api.paths:/internal/**}")
     private val internalPaths: String,
 ) : OncePerRequestFilter() {
-
     companion object {
         const val HEADER_INTERNAL_API_KEY = "X-Internal-Api-Key"
     }
@@ -59,7 +57,7 @@ class InternalApiKeyFilter(
             response.contentType = MediaType.APPLICATION_JSON_VALUE
             response.characterEncoding = "UTF-8"
             response.writer.write(
-                """{"success":false,"error":{"code":"C004","message":"내부 API 인증이 필요합니다"}}"""
+                """{"success":false,"error":{"code":"C004","message":"내부 API 인증이 필요합니다"}}""",
             )
             return
         }
@@ -75,7 +73,10 @@ class InternalApiKeyFilter(
 
     // Ant 스타일 패턴 매칭 (간소화 버전)
     // /internal/ + ** 패턴은 /internal/xxx, /internal/xxx/yyy 등 매칭
-    private fun matchPath(pattern: String, path: String): Boolean {
+    private fun matchPath(
+        pattern: String,
+        path: String,
+    ): Boolean {
         if (pattern.endsWith("/**")) {
             val prefix = pattern.removeSuffix("/**")
             return path.startsWith(prefix)

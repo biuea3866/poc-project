@@ -26,29 +26,29 @@ import org.testcontainers.junit.jupiter.Testcontainers
 @SpringBootTest
 @ActiveProfiles("test")
 abstract class BaseIntegrationTest {
-
     companion object {
-
         private const val MYSQL_IMAGE = "mysql:8.0"
         private const val REDIS_IMAGE = "redis:7.0-alpine"
         private const val REDIS_PORT = 6379
 
         @JvmStatic
-        private val mysqlContainer: MySQLContainer<*> = MySQLContainer(MYSQL_IMAGE)
-            .withDatabaseName("closet_test")
-            .withUsername("test")
-            .withPassword("test")
-            .withCommand(
-                "--character-set-server=utf8mb4",
-                "--collation-server=utf8mb4_unicode_ci",
-                "--default-time-zone=+09:00"
-            )
-            .apply { start() }
+        private val mysqlContainer: MySQLContainer<*> =
+            MySQLContainer(MYSQL_IMAGE)
+                .withDatabaseName("closet_test")
+                .withUsername("test")
+                .withPassword("test")
+                .withCommand(
+                    "--character-set-server=utf8mb4",
+                    "--collation-server=utf8mb4_unicode_ci",
+                    "--default-time-zone=+09:00",
+                )
+                .apply { start() }
 
         @JvmStatic
-        private val redisContainer: GenericContainer<*> = GenericContainer(REDIS_IMAGE)
-            .withExposedPorts(REDIS_PORT)
-            .apply { start() }
+        private val redisContainer: GenericContainer<*> =
+            GenericContainer(REDIS_IMAGE)
+                .withExposedPorts(REDIS_PORT)
+                .apply { start() }
 
         @JvmStatic
         @DynamicPropertySource

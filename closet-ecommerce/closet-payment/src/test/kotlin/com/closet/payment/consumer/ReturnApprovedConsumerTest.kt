@@ -19,11 +19,12 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
     val paymentRepository = mockk<PaymentRepository>()
     val idempotencyChecker = mockk<IdempotencyChecker>()
 
-    val consumer = ReturnApprovedConsumer(
-        paymentService = paymentService,
-        paymentRepository = paymentRepository,
-        idempotencyChecker = idempotencyChecker,
-    )
+    val consumer =
+        ReturnApprovedConsumer(
+            paymentService = paymentService,
+            paymentRepository = paymentRepository,
+            idempotencyChecker = idempotencyChecker,
+        )
 
     Given("반품 승인 이벤트가 수신되면") {
         val payment = mockk<Payment>()
@@ -35,12 +36,13 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
             block()
         }
 
-        val event = ShippingEvent(
-            eventType = "ReturnApproved",
-            orderId = 1L,
-            returnRequestId = 50L,
-            refundAmount = 39900L,
-        )
+        val event =
+            ShippingEvent(
+                eventType = "ReturnApproved",
+                orderId = 1L,
+                returnRequestId = 50L,
+                refundAmount = 39900L,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -51,8 +53,8 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
                         100L,
                         RefundPaymentRequest(
                             amount = 39900L,
-                            reason = "반품 승인 환불 (returnRequestId=50)"
-                        )
+                            reason = "반품 승인 환불 (returnRequestId=50)",
+                        ),
                     )
                 }
             }
@@ -68,12 +70,13 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
             block()
         }
 
-        val event = ShippingEvent(
-            eventType = "ReturnApproved",
-            orderId = 999L,
-            returnRequestId = 51L,
-            refundAmount = 10000L,
-        )
+        val event =
+            ShippingEvent(
+                eventType = "ReturnApproved",
+                orderId = 999L,
+                returnRequestId = 51L,
+                refundAmount = 10000L,
+            )
 
         When("Consumer가 메시지를 처리하면") {
             consumer.handle(event)
@@ -85,10 +88,11 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
     }
 
     Given("처리하지 않는 eventType 수신") {
-        val event = ShippingEvent(
-            eventType = "ShippingStatusChanged",
-            orderId = 1L,
-        )
+        val event =
+            ShippingEvent(
+                eventType = "ShippingStatusChanged",
+                orderId = 1L,
+            )
 
         When("ShippingStatusChanged 이벤트 수신") {
             consumer.handle(event)

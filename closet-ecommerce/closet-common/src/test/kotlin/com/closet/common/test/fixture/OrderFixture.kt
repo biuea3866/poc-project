@@ -1,7 +1,7 @@
 package com.closet.common.test.fixture
 
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.util.UUID
 
 /**
@@ -12,7 +12,6 @@ import java.util.UUID
  * 엔티티 구현 후 실제 타입으로 교체한다.
  */
 object OrderFixture {
-
     fun createOrder(
         memberId: Long = 1L,
         orderNumber: String = generateOrderNumber(),
@@ -21,17 +20,18 @@ object OrderFixture {
         shippingFee: BigDecimal = BigDecimal("3000"),
         shippingAddressId: Long = 1L,
         items: List<Map<String, Any?>> = listOf(createOrderItem()),
-    ): Map<String, Any?> = mapOf(
-        "memberId" to memberId,
-        "orderNumber" to orderNumber,
-        "status" to status,
-        "totalAmount" to totalAmount,
-        "shippingFee" to shippingFee,
-        "shippingAddressId" to shippingAddressId,
-        "items" to items,
-        "orderedAt" to LocalDateTime.now(),
-        "createdAt" to LocalDateTime.now(),
-    )
+    ): Map<String, Any?> =
+        mapOf(
+            "memberId" to memberId,
+            "orderNumber" to orderNumber,
+            "status" to status,
+            "totalAmount" to totalAmount,
+            "shippingFee" to shippingFee,
+            "shippingAddressId" to shippingAddressId,
+            "items" to items,
+            "orderedAt" to ZonedDateTime.now(),
+            "createdAt" to ZonedDateTime.now(),
+        )
 
     fun createOrderItem(
         productId: Long = 1L,
@@ -42,45 +42,48 @@ object OrderFixture {
         unitPrice: BigDecimal = BigDecimal("24900"),
         totalPrice: BigDecimal = BigDecimal("49800"),
         status: String = "ORDERED",
-    ): Map<String, Any?> = mapOf(
-        "productId" to productId,
-        "productOptionId" to productOptionId,
-        "productName" to productName,
-        "optionDescription" to optionDescription,
-        "quantity" to quantity,
-        "unitPrice" to unitPrice,
-        "totalPrice" to totalPrice,
-        "status" to status,
-    )
+    ): Map<String, Any?> =
+        mapOf(
+            "productId" to productId,
+            "productOptionId" to productOptionId,
+            "productName" to productName,
+            "optionDescription" to optionDescription,
+            "quantity" to quantity,
+            "unitPrice" to unitPrice,
+            "totalPrice" to totalPrice,
+            "status" to status,
+        )
 
     fun createCartItem(
         memberId: Long = 1L,
         productId: Long = 1L,
         productOptionId: Long = 1L,
         quantity: Int = 1,
-    ): Map<String, Any?> = mapOf(
-        "memberId" to memberId,
-        "productId" to productId,
-        "productOptionId" to productOptionId,
-        "quantity" to quantity,
-        "addedAt" to LocalDateTime.now(),
-    )
+    ): Map<String, Any?> =
+        mapOf(
+            "memberId" to memberId,
+            "productId" to productId,
+            "productOptionId" to productOptionId,
+            "quantity" to quantity,
+            "addedAt" to ZonedDateTime.now(),
+        )
 
     fun createOrderWithMultipleItems(
         memberId: Long = 1L,
         itemCount: Int = 3,
     ): Map<String, Any?> {
-        val items = (1..itemCount).map { idx ->
-            createOrderItem(
-                productId = idx.toLong(),
-                productOptionId = idx.toLong(),
-                productName = "테스트 상품 $idx",
-                optionDescription = "옵션 $idx",
-                unitPrice = BigDecimal("${10000 + idx * 5000}"),
-                totalPrice = BigDecimal("${10000 + idx * 5000}"),
-                quantity = 1,
-            )
-        }
+        val items =
+            (1..itemCount).map { idx ->
+                createOrderItem(
+                    productId = idx.toLong(),
+                    productOptionId = idx.toLong(),
+                    productName = "테스트 상품 $idx",
+                    optionDescription = "옵션 $idx",
+                    unitPrice = BigDecimal("${10000 + idx * 5000}"),
+                    totalPrice = BigDecimal("${10000 + idx * 5000}"),
+                    quantity = 1,
+                )
+            }
         val totalAmount = items.sumOf { (it["totalPrice"] as BigDecimal) }
         return createOrder(
             memberId = memberId,
@@ -90,7 +93,7 @@ object OrderFixture {
     }
 
     private fun generateOrderNumber(): String {
-        val now = LocalDateTime.now()
+        val now = ZonedDateTime.now()
         val datePart = "%d%02d%02d".format(now.year, now.monthValue, now.dayOfMonth)
         val randomPart = UUID.randomUUID().toString().take(8).uppercase()
         return "ORD-$datePart-$randomPart"

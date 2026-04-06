@@ -103,16 +103,28 @@ if [ -n "$SENSITIVE" ]; then
     exit 1
 fi
 
-# ─── 4. ktlint 체크 ───
+# ─── 4. ktlint 체크 (스테이지된 파일이 속한 모듈만) ───
 if [ -n "$KT_FILES" ] && [ -f "closet-ecommerce/gradlew" ]; then
-    echo -e "${YELLOW}[ktlint] Kotlin 파일 린트 체크 중...${NC}"
-    cd closet-ecommerce
-    if ! JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Contents/Home \
-         ./gradlew ktlintCheck --daemon -q 2>/dev/null; then
-        echo -e "${RED}[ERROR] ktlint 체크 실패 — ./gradlew ktlintFormat 으로 자동 수정하세요.${NC}"
-        ERRORS=$((ERRORS + 1))
+    # 스테이지된 kt 파일에서 변경된 모듈 추출
+    CHANGED_MODULES=$(echo "$KT_FILES" | grep "closet-ecommerce/" | sed 's|closet-ecommerce/\([^/]*\)/.*|\1|' | sort -u)
+    if [ -n "$CHANGED_MODULES" ]; then
+        echo -e "${YELLOW}[ktlint] 변경된 모듈 린트 체크 중...${NC}"
+        cd closet-ecommerce
+        KTLINT_TASKS=""
+        for mod in $CHANGED_MODULES; do
+            if [ -d "$mod" ] && grep -q "$mod" settings.gradle.kts 2>/dev/null; then
+                KTLINT_TASKS="$KTLINT_TASKS :${mod}:ktlintCheck"
+            fi
+        done
+        if [ -n "$KTLINT_TASKS" ]; then
+            if ! JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Contents/Home \
+                 ./gradlew $KTLINT_TASKS --daemon -q 2>/dev/null; then
+                echo -e "${RED}[ERROR] ktlint 체크 실패 — ./gradlew ktlintFormat 으로 자동 수정하세요.${NC}"
+                ERRORS=$((ERRORS + 1))
+            fi
+        fi
+        cd ..
     fi
-    cd ..
 fi
 
 # ─── 결과 ───

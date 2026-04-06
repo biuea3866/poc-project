@@ -18,10 +18,11 @@ class PopularKeywordServiceTest : BehaviorSpec({
     every { redisTemplate.opsForZSet() } returns zSetOps
     every { bannedKeywordService.isBanned(any()) } returns false
 
-    val service = PopularKeywordService(
-        redisTemplate = redisTemplate,
-        bannedKeywordService = bannedKeywordService,
-    )
+    val service =
+        PopularKeywordService(
+            redisTemplate = redisTemplate,
+            bannedKeywordService = bannedKeywordService,
+        )
 
     Given("인기 검색어 기록 시") {
 
@@ -96,15 +97,15 @@ class PopularKeywordServiceTest : BehaviorSpec({
                 result[0].rank shouldBe 1
                 result[0].keyword shouldBe "맨투맨"
                 result[0].score shouldBe 100L
-                result[0].rankChange shouldBe RankChange.UP  // 2위 → 1위
+                result[0].rankChange shouldBe RankChange.UP // 2위 → 1위
 
                 result[1].rank shouldBe 2
                 result[1].keyword shouldBe "후드티"
-                result[1].rankChange shouldBe RankChange.DOWN  // 1위 → 2위
+                result[1].rankChange shouldBe RankChange.DOWN // 1위 → 2위
 
                 result[2].rank shouldBe 3
                 result[2].keyword shouldBe "청바지"
-                result[2].rankChange shouldBe RankChange.NEW  // 이전에 없음
+                result[2].rankChange shouldBe RankChange.NEW // 이전에 없음
             }
         }
     }

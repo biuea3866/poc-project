@@ -16,9 +16,8 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/v1/categories")
 class CategoryController(
-    private val categoryService: CategoryService
+    private val categoryService: CategoryService,
 ) {
-
     @GetMapping
     fun findAll(): ApiResponse<List<CategoryResponse>> {
         return ApiResponse.ok(categoryService.findAll())
@@ -26,7 +25,9 @@ class CategoryController(
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: CategoryCreateRequest): ApiResponse<CategoryResponse> {
+    fun create(
+        @Valid @RequestBody request: CategoryCreateRequest,
+    ): ApiResponse<CategoryResponse> {
         return ApiResponse.created(categoryService.create(request))
     }
 }

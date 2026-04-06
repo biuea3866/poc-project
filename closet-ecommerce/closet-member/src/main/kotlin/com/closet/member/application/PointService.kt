@@ -32,7 +32,6 @@ class PointService(
     private val pointHistoryRepository: PointHistoryRepository,
     private val redisTemplate: StringRedisTemplate,
 ) {
-
     companion object {
         private const val DAILY_LIMIT = 5000
         private const val DAILY_KEY_PREFIX = "review:daily_point:"
@@ -45,7 +44,11 @@ class PointService(
      *
      * @return 실제 적립된 포인트 (일일 한도 초과 시 0)
      */
-    fun earnReviewPoint(memberId: Long, reviewId: Long, amount: Int): Int {
+    fun earnReviewPoint(
+        memberId: Long,
+        reviewId: Long,
+        amount: Int,
+    ): Int {
         val member = getMemberOrThrow(memberId)
 
         // 일일 한도 체크 (PD-37)
@@ -68,7 +71,7 @@ class PointService(
                 balanceAfter = member.pointBalance,
                 reason = "리뷰 작성 포인트 적립",
                 referenceId = "review:$reviewId",
-            )
+            ),
         )
 
         // Redis 일일 누적 업데이트
@@ -86,7 +89,11 @@ class PointService(
      * 리뷰 삭제 시 적립 포인트를 회수한다.
      * 잔액 부족 시 마이너스 잔액 허용 (다음 적립에서 상계).
      */
-    fun revokeReviewPoint(memberId: Long, reviewId: Long, amount: Int) {
+    fun revokeReviewPoint(
+        memberId: Long,
+        reviewId: Long,
+        amount: Int,
+    ) {
         val member = getMemberOrThrow(memberId)
 
         // 마이너스 잔액 허용 (PD-36)
@@ -100,7 +107,7 @@ class PointService(
                 balanceAfter = member.pointBalance,
                 reason = "리뷰 삭제 포인트 회수",
                 referenceId = "review:$reviewId",
-            )
+            ),
         )
 
         logger.info { "리뷰 포인트 회수 완료: memberId=$memberId, amount=$amount, balance=${member.pointBalance}" }
@@ -113,7 +120,7 @@ class PointService(
 
     private fun getDailyKey(memberId: Long): String {
         val today = LocalDate.now(KST)
-        return "${DAILY_KEY_PREFIX}${memberId}:$today"
+        return "${DAILY_KEY_PREFIX}$memberId:$today"
     }
 
     private fun calculateTtlUntilMidnightKST(): Duration {

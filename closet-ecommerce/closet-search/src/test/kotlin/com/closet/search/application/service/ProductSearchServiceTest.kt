@@ -17,7 +17,6 @@ import io.mockk.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
 import java.math.BigDecimal
-import java.time.ZonedDateTime
 import java.util.Optional
 
 class ProductSearchServiceTest : BehaviorSpec({
@@ -32,33 +31,35 @@ class ProductSearchServiceTest : BehaviorSpec({
     every { productSearchRepository.existsById(any()) } returns false
     every { productSearchRepository.deleteById(any()) } returns Unit
 
-    val service = ProductSearchService(
-        productSearchRepository = productSearchRepository,
-        productSearchRepositoryCustom = productSearchRepositoryCustom,
-        productServiceClient = productServiceClient,
-    )
+    val service =
+        ProductSearchService(
+            productSearchRepository = productSearchRepository,
+            productSearchRepositoryCustom = productSearchRepositoryCustom,
+            productServiceClient = productServiceClient,
+        )
 
     Given("상품 검색 시") {
 
-        val searchResponse = ProductSearchResponse(
-            productId = 1L,
-            name = "오버핏 맨투맨",
-            brandName = "무신사 스탠다드",
-            categoryName = "상의",
-            basePrice = BigDecimal("39000"),
-            salePrice = BigDecimal("29000"),
-            discountRate = 25,
-            sizes = listOf("S", "M", "L", "XL"),
-            colors = listOf("블랙", "화이트"),
-            fitType = "OVERFIT",
-            gender = "UNISEX",
-            season = "FW",
-            imageUrl = "https://cdn.closet.com/product/1.jpg",
-            reviewCount = 350,
-            avgRating = 4.5,
-            popularityScore = 85.0,
-            highlights = mapOf("name" to listOf("<em>맨투맨</em>")),
-        )
+        val searchResponse =
+            ProductSearchResponse(
+                productId = 1L,
+                name = "오버핏 맨투맨",
+                brandName = "무신사 스탠다드",
+                categoryName = "상의",
+                basePrice = BigDecimal("39000"),
+                salePrice = BigDecimal("29000"),
+                discountRate = 25,
+                sizes = listOf("S", "M", "L", "XL"),
+                colors = listOf("블랙", "화이트"),
+                fitType = "OVERFIT",
+                gender = "UNISEX",
+                season = "FW",
+                imageUrl = "https://cdn.closet.com/product/1.jpg",
+                reviewCount = 350,
+                avgRating = 4.5,
+                popularityScore = 85.0,
+                highlights = mapOf("name" to listOf("<em>맨투맨</em>")),
+            )
 
         val filter = ProductSearchFilter(keyword = "맨투맨")
         val pageable = PageRequest.of(0, 20)
@@ -82,32 +83,33 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("자동완성 검색 시") {
 
-        val documents = listOf(
-            ProductDocument(
-                productId = 1L,
-                name = "오버핏 맨투맨",
-                description = "",
-                brandId = 1L,
-                brandName = "무신사 스탠다드",
-                categoryId = 1L,
-                basePrice = BigDecimal("39000"),
-                salePrice = BigDecimal("29000"),
-                status = "ACTIVE",
-                imageUrl = "https://cdn.closet.com/1.jpg",
-            ),
-            ProductDocument(
-                productId = 2L,
-                name = "오버핏 후드티",
-                description = "",
-                brandId = 1L,
-                brandName = "무신사 스탠다드",
-                categoryId = 1L,
-                basePrice = BigDecimal("45000"),
-                salePrice = BigDecimal("35000"),
-                status = "ACTIVE",
-                imageUrl = "https://cdn.closet.com/2.jpg",
-            ),
-        )
+        val documents =
+            listOf(
+                ProductDocument(
+                    productId = 1L,
+                    name = "오버핏 맨투맨",
+                    description = "",
+                    brandId = 1L,
+                    brandName = "무신사 스탠다드",
+                    categoryId = 1L,
+                    basePrice = BigDecimal("39000"),
+                    salePrice = BigDecimal("29000"),
+                    status = "ACTIVE",
+                    imageUrl = "https://cdn.closet.com/1.jpg",
+                ),
+                ProductDocument(
+                    productId = 2L,
+                    name = "오버핏 후드티",
+                    description = "",
+                    brandId = 1L,
+                    brandName = "무신사 스탠다드",
+                    categoryId = 1L,
+                    basePrice = BigDecimal("45000"),
+                    salePrice = BigDecimal("35000"),
+                    status = "ACTIVE",
+                    imageUrl = "https://cdn.closet.com/2.jpg",
+                ),
+            )
 
         every { productSearchRepositoryCustom.autocomplete("오버", 10) } returns documents
 
@@ -151,20 +153,21 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("상품 업데이트 시") {
 
-        val existingDoc = ProductDocument(
-            productId = 10L,
-            name = "슬림핏 청바지",
-            description = "스트레치 데님 소재",
-            brandId = 2L,
-            categoryId = 3L,
-            basePrice = BigDecimal("59000"),
-            salePrice = BigDecimal("49000"),
-            status = "ACTIVE",
-            popularityScore = 70.0,
-            salesCount = 500,
-            reviewCount = 100,
-            avgRating = 4.2,
-        )
+        val existingDoc =
+            ProductDocument(
+                productId = 10L,
+                name = "슬림핏 청바지",
+                description = "스트레치 데님 소재",
+                brandId = 2L,
+                categoryId = 3L,
+                basePrice = BigDecimal("59000"),
+                salePrice = BigDecimal("49000"),
+                status = "ACTIVE",
+                popularityScore = 70.0,
+                salesCount = 500,
+                reviewCount = 100,
+                avgRating = 4.2,
+            )
 
         every { productSearchRepository.findById(10L) } returns Optional.of(existingDoc)
 
@@ -189,11 +192,13 @@ class ProductSearchServiceTest : BehaviorSpec({
 
             Then("기존 popularityScore/reviewCount가 유지되며 업데이트된다") {
                 verify(exactly = 1) {
-                    productSearchRepository.save(match {
-                        it.name == "슬림핏 청바지 (리뉴얼)" &&
-                            it.popularityScore == 70.0 &&
-                            it.reviewCount == 100
-                    })
+                    productSearchRepository.save(
+                        match {
+                            it.name == "슬림핏 청바지 (리뉴얼)" &&
+                                it.popularityScore == 70.0 &&
+                                it.reviewCount == 100
+                        },
+                    )
                 }
             }
         }
@@ -224,18 +229,19 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("리뷰 집계 업데이트 시") {
 
-        val existingDoc = ProductDocument(
-            productId = 5L,
-            name = "니트 스웨터",
-            description = "부드러운 울 소재",
-            brandId = 1L,
-            categoryId = 1L,
-            basePrice = BigDecimal("49000"),
-            salePrice = BigDecimal("39000"),
-            status = "ACTIVE",
-            reviewCount = 50,
-            avgRating = 4.0,
-        )
+        val existingDoc =
+            ProductDocument(
+                productId = 5L,
+                name = "니트 스웨터",
+                description = "부드러운 울 소재",
+                brandId = 1L,
+                categoryId = 1L,
+                basePrice = BigDecimal("49000"),
+                salePrice = BigDecimal("39000"),
+                status = "ACTIVE",
+                reviewCount = 50,
+                avgRating = 4.0,
+            )
 
         every { productSearchRepository.findById(5L) } returns Optional.of(existingDoc)
 
@@ -244,12 +250,14 @@ class ProductSearchServiceTest : BehaviorSpec({
 
             Then("reviewCount와 avgRating만 업데이트된다") {
                 verify(exactly = 1) {
-                    productSearchRepository.save(match {
-                        it.productId == 5L &&
-                            it.reviewCount == 55 &&
-                            it.avgRating == 4.1 &&
-                            it.name == "니트 스웨터"
-                    })
+                    productSearchRepository.save(
+                        match {
+                            it.productId == 5L &&
+                                it.reviewCount == 55 &&
+                                it.avgRating == 4.1 &&
+                                it.name == "니트 스웨터"
+                        },
+                    )
                 }
             }
         }
@@ -257,36 +265,38 @@ class ProductSearchServiceTest : BehaviorSpec({
 
     Given("벌크 리인덱싱 시") {
 
-        val products = (1..3).map { i ->
-            ProductServiceResponse(
-                id = i.toLong(),
-                name = "상품 $i",
-                description = "설명 $i",
-                brandId = 1L,
-                brandName = "브랜드 A",
-                categoryId = 1L,
-                categoryName = "상의",
-                basePrice = BigDecimal("30000"),
-                salePrice = BigDecimal("25000"),
-                discountRate = 16,
-                status = "ACTIVE",
-                season = null,
-                fitType = null,
-                gender = null,
-                sizes = listOf("M", "L"),
-                colors = listOf("블랙"),
-                imageUrl = null,
-            )
-        }
+        val products =
+            (1..3).map { i ->
+                ProductServiceResponse(
+                    id = i.toLong(),
+                    name = "상품 $i",
+                    description = "설명 $i",
+                    brandId = 1L,
+                    brandName = "브랜드 A",
+                    categoryId = 1L,
+                    categoryName = "상의",
+                    basePrice = BigDecimal("30000"),
+                    salePrice = BigDecimal("25000"),
+                    discountRate = 16,
+                    status = "ACTIVE",
+                    season = null,
+                    fitType = null,
+                    gender = null,
+                    sizes = listOf("M", "L"),
+                    colors = listOf("블랙"),
+                    imageUrl = null,
+                )
+            }
 
-        val pageResponse = ProductServicePageResponse(
-            content = products,
-            totalElements = 3,
-            totalPages = 1,
-            number = 0,
-            size = 1000,
-            last = true,
-        )
+        val pageResponse =
+            ProductServicePageResponse(
+                content = products,
+                totalElements = 3,
+                totalPages = 1,
+                number = 0,
+                size = 1000,
+                last = true,
+            )
 
         every { productServiceClient.fetchAllProducts(0, 1000) } returns pageResponse
 

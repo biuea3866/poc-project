@@ -11,7 +11,7 @@ import jakarta.persistence.Id
 import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 @Entity
 @Table(name = "restock_notification")
@@ -19,16 +19,13 @@ import java.time.LocalDateTime
 class RestockNotification(
     @Column(name = "product_option_id", nullable = false)
     val productOptionId: Long,
-
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     var status: RestockNotificationStatus = RestockNotificationStatus.WAITING,
-
     @Column(name = "expired_at", nullable = false, columnDefinition = "DATETIME(6)")
-    val expiredAt: LocalDateTime,
+    val expiredAt: ZonedDateTime,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -36,14 +33,14 @@ class RestockNotification(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @Column(name = "notified_at", columnDefinition = "DATETIME(6)")
-    var notifiedAt: LocalDateTime? = null
+    var notifiedAt: ZonedDateTime? = null
 
     fun markNotified() {
         this.status = RestockNotificationStatus.NOTIFIED
-        this.notifiedAt = LocalDateTime.now()
+        this.notifiedAt = ZonedDateTime.now()
     }
 
     fun markExpired() {
@@ -51,7 +48,7 @@ class RestockNotification(
     }
 
     fun isExpired(): Boolean {
-        return status == RestockNotificationStatus.EXPIRED || LocalDateTime.now().isAfter(expiredAt)
+        return status == RestockNotificationStatus.EXPIRED || ZonedDateTime.now().isAfter(expiredAt)
     }
 
     companion object {
@@ -61,7 +58,7 @@ class RestockNotification(
             productOptionId: Long,
             memberId: Long,
         ): RestockNotification {
-            val now = LocalDateTime.now()
+            val now = ZonedDateTime.now()
             return RestockNotification(
                 productOptionId = productOptionId,
                 memberId = memberId,

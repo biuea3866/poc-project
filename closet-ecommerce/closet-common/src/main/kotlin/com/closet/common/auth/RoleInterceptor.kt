@@ -25,7 +25,6 @@ class RoleInterceptor(
     @Value("\${feature-flag.role-authorization-enabled:false}")
     private val roleAuthorizationEnabled: Boolean,
 ) : HandlerInterceptor {
-
     companion object {
         const val HEADER_MEMBER_ROLE = "X-Member-Role"
     }

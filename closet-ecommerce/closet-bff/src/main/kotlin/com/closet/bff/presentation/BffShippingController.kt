@@ -15,10 +15,11 @@ import org.springframework.web.bind.annotation.RestController
 class BffShippingController(
     private val shippingFacade: ShippingBffFacade,
 ) {
-
     /**
      * 주문별 배송 상세 (배송 + 추적 + 반품 + 교환 집계).
      */
     @GetMapping("/orders/shipping")
-    fun getShippingDetail(@RequestParam orderId: Long) = ApiResponse.ok(shippingFacade.getShippingDetail(orderId))
+    fun getShippingDetail(
+        @RequestParam orderId: Long,
+    ) = ApiResponse.ok(shippingFacade.getShippingDetail(orderId))
 }

@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank
 import jakarta.validation.constraints.NotEmpty
 import jakarta.validation.constraints.NotNull
 import java.math.BigDecimal
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 data class CreateOrderRequest(
     @field:NotNull val memberId: Long,
@@ -53,7 +53,7 @@ data class OrderResponse(
     val zipCode: String,
     val address: String,
     val detailAddress: String,
-    val orderedAt: LocalDateTime?,
+    val orderedAt: ZonedDateTime?,
     val items: List<OrderItemResponse>,
 ) {
     companion object {

@@ -7,7 +7,6 @@ package com.closet.common.featureflag
  * 각 Phase의 Feature Key enum이 이 인터페이스를 구현한다.
  */
 interface FeatureKey {
-
     /** DB에 저장되는 고유 키 문자열 */
     val key: String
 

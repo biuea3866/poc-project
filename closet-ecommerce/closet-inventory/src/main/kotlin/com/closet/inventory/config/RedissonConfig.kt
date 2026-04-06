@@ -12,11 +12,9 @@ import org.springframework.context.annotation.Configuration
 class RedissonConfig(
     @Value("\${spring.data.redis.host:localhost}")
     private val redisHost: String,
-
     @Value("\${spring.data.redis.port:6379}")
     private val redisPort: Int,
 ) {
-
     @Bean
     fun redissonClient(): RedissonClient {
         val config = Config()

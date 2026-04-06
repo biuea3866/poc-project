@@ -13,6 +13,6 @@ interface ProductRepositoryCustom {
         minPrice: BigDecimal?,
         maxPrice: BigDecimal?,
         status: ProductStatus?,
-        pageable: Pageable
+        pageable: Pageable,
     ): Page<Product>
 }

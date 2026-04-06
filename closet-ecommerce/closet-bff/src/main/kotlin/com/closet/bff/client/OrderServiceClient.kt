@@ -17,7 +17,6 @@ import org.springframework.web.bind.annotation.RequestParam
 
 @FeignClient(name = "order-service", url = "\${service.order.url}")
 interface OrderServiceClient {
-
     @GetMapping("/orders")
     fun getOrders(
         @RequestParam memberId: Long,
@@ -26,23 +25,41 @@ interface OrderServiceClient {
     ): ApiResponse<PageResponse<OrderResponse>>
 
     @GetMapping("/orders/{id}")
-    fun getOrder(@PathVariable id: Long): ApiResponse<OrderResponse>
+    fun getOrder(
+        @PathVariable id: Long,
+    ): ApiResponse<OrderResponse>
 
     @PostMapping("/orders")
-    fun createOrder(@RequestHeader("X-Member-Id") memberId: Long, @RequestBody request: Any): ApiResponse<OrderResponse>
+    fun createOrder(
+        @RequestHeader("X-Member-Id") memberId: Long,
+        @RequestBody request: Any,
+    ): ApiResponse<OrderResponse>
 
     @PostMapping("/orders/{id}/cancel")
-    fun cancelOrder(@PathVariable id: Long, @RequestBody request: Any): ApiResponse<OrderResponse>
+    fun cancelOrder(
+        @PathVariable id: Long,
+        @RequestBody request: Any,
+    ): ApiResponse<OrderResponse>
 
     @GetMapping("/carts")
-    fun getCart(@RequestHeader("X-Member-Id") memberId: Long): ApiResponse<CartResponse>
+    fun getCart(
+        @RequestHeader("X-Member-Id") memberId: Long,
+    ): ApiResponse<CartResponse>
 
     @PostMapping("/carts/items")
-    fun addCartItem(@RequestHeader("X-Member-Id") memberId: Long, @RequestBody request: AddCartItemRequest): ApiResponse<Any>
+    fun addCartItem(
+        @RequestHeader("X-Member-Id") memberId: Long,
+        @RequestBody request: AddCartItemRequest,
+    ): ApiResponse<Any>
 
     @PutMapping("/carts/items/{itemId}")
-    fun updateCartItemQuantity(@PathVariable itemId: Long, @RequestBody request: Any): ApiResponse<Any>
+    fun updateCartItemQuantity(
+        @PathVariable itemId: Long,
+        @RequestBody request: Any,
+    ): ApiResponse<Any>
 
     @DeleteMapping("/carts/items/{itemId}")
-    fun removeCartItem(@PathVariable itemId: Long)
+    fun removeCartItem(
+        @PathVariable itemId: Long,
+    )
 }

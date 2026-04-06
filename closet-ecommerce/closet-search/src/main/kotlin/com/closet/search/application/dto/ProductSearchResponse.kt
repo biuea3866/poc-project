@@ -47,7 +47,10 @@ data class ProductSearchResponse(
             )
         }
 
-        fun from(doc: ProductDocument, highlightFields: Map<String, List<String>>): ProductSearchResponse {
+        fun from(
+            doc: ProductDocument,
+            highlightFields: Map<String, List<String>>,
+        ): ProductSearchResponse {
             return ProductSearchResponse(
                 productId = doc.productId,
                 name = doc.name,

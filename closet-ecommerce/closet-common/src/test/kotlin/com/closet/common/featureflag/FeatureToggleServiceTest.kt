@@ -17,11 +17,12 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
     Given("Feature Toggle이 DB에 존재할 때") {
 
-        val toggle = FeatureToggle(
-            configKey = "SEARCH_INDEXING_ENABLED",
-            configValue = "true",
-            description = "검색 인덱싱 활성화",
-        )
+        val toggle =
+            FeatureToggle(
+                configKey = "SEARCH_INDEXING_ENABLED",
+                configValue = "true",
+                description = "검색 인덱싱 활성화",
+            )
 
         every { repository.findByConfigKey("SEARCH_INDEXING_ENABLED") } returns Optional.of(toggle)
 
@@ -36,11 +37,12 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
     Given("Feature Toggle이 DB에 OFF로 존재할 때") {
 
-        val toggle = FeatureToggle(
-            configKey = "INVENTORY_KAFKA_ENABLED",
-            configValue = "false",
-            description = "재고 Kafka 비활성화",
-        )
+        val toggle =
+            FeatureToggle(
+                configKey = "INVENTORY_KAFKA_ENABLED",
+                configValue = "false",
+                description = "재고 Kafka 비활성화",
+            )
 
         every { repository.findByConfigKey("INVENTORY_KAFKA_ENABLED") } returns Optional.of(toggle)
 
@@ -68,11 +70,12 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
     Given("Feature Toggle을 ON으로 변경할 때") {
 
-        val toggle = FeatureToggle(
-            configKey = "SHIPPING_SERVICE_ENABLED",
-            configValue = "false",
-            description = "배송 서비스",
-        )
+        val toggle =
+            FeatureToggle(
+                configKey = "SHIPPING_SERVICE_ENABLED",
+                configValue = "false",
+                description = "배송 서비스",
+            )
 
         every { repository.findByConfigKey("SHIPPING_SERVICE_ENABLED") } returns Optional.of(toggle)
 
@@ -95,9 +98,11 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
             Then("새로운 Toggle이 생성된다") {
                 verify(exactly = 1) {
-                    repository.save(match {
-                        it.configKey == "EXCHANGE_REQUEST_ENABLED" && it.configValue == "true"
-                    })
+                    repository.save(
+                        match {
+                            it.configKey == "EXCHANGE_REQUEST_ENABLED" && it.configValue == "true"
+                        },
+                    )
                 }
             }
         }

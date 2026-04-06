@@ -21,4 +21,7 @@ object Versions {
 
     // Logging
     const val KOTLIN_LOGGING = "3.0.5"
+
+    // Lint
+    const val KTLINT = "12.1.0"
 }

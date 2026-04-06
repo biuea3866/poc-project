@@ -15,7 +15,9 @@ class BffProductController(
     private val homeFacade: HomeBffFacade,
 ) {
     @GetMapping("/products/{id}")
-    fun getProductDetail(@PathVariable id: Long) = ApiResponse.ok(productFacade.getProductDetail(id))
+    fun getProductDetail(
+        @PathVariable id: Long,
+    ) = ApiResponse.ok(productFacade.getProductDetail(id))
 
     @GetMapping("/home")
     fun getHome() = ApiResponse.ok(homeFacade.getHome())

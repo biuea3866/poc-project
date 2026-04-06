@@ -10,7 +10,7 @@ import org.springframework.context.ApplicationEventPublisher
 import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Component
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 private val logger = KotlinLogging.logger {}
 
@@ -42,7 +42,7 @@ class AutoConfirmBatchJob(
     @Scheduled(cron = "0 0 0,12 * * *")
     @Transactional
     fun execute() {
-        val cutoff = LocalDateTime.now().minusHours(CONFIRM_HOURS)
+        val cutoff = ZonedDateTime.now().minusHours(CONFIRM_HOURS)
         logger.info { "자동 구매확정 배치 시작: cutoff=$cutoff" }
 
         val candidates = orderRepository.findAutoConfirmCandidates(cutoff)

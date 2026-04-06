@@ -25,38 +25,46 @@ class PaymentPgService(
         buyerName: String? = null,
         buyerTel: String? = null,
     ): MockPayment {
-        val payment = MockPayment(
-            provider = provider,
-            paymentKey = paymentKey,
-            orderId = orderId,
-            totalAmount = amount,
-            balanceAmount = amount,
-            orderName = orderName,
-            buyerName = buyerName,
-            buyerTel = buyerTel,
-        )
+        val payment =
+            MockPayment(
+                provider = provider,
+                paymentKey = paymentKey,
+                orderId = orderId,
+                totalAmount = amount,
+                balanceAmount = amount,
+                orderName = orderName,
+                buyerName = buyerName,
+                buyerTel = buyerTel,
+            )
         return paymentRepository.save(payment)
     }
 
     @Transactional
-    fun approvePayment(paymentKey: String, method: String): MockPayment {
-        val payment = paymentRepository.findByPaymentKey(paymentKey)
-            .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
+    fun approvePayment(
+        paymentKey: String,
+        method: String,
+    ): MockPayment {
+        val payment =
+            paymentRepository.findByPaymentKey(paymentKey)
+                .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
         payment.approve(method, "A${System.currentTimeMillis() % 100000000}")
         return payment
     }
 
     @Transactional
-    fun cancelPayment(paymentKey: String, reason: String, cancelAmount: Long? = null): MockPayment {
-        val payment = paymentRepository.findByPaymentKey(paymentKey)
-            .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
+    fun cancelPayment(
+        paymentKey: String,
+        reason: String,
+        cancelAmount: Long? = null,
+    ): MockPayment {
+        val payment =
+            paymentRepository.findByPaymentKey(paymentKey)
+                .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
         payment.cancel(reason, cancelAmount)
         return payment
     }
 
-    fun findByPaymentKey(paymentKey: String): MockPayment? =
-        paymentRepository.findByPaymentKey(paymentKey).orElse(null)
+    fun findByPaymentKey(paymentKey: String): MockPayment? = paymentRepository.findByPaymentKey(paymentKey).orElse(null)
 
-    fun findByOrderId(orderId: String): MockPayment? =
-        paymentRepository.findByOrderId(orderId).orElse(null)
+    fun findByOrderId(orderId: String): MockPayment? = paymentRepository.findByOrderId(orderId).orElse(null)
 }

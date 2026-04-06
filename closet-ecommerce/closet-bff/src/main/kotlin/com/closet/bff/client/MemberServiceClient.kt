@@ -19,28 +19,48 @@ import org.springframework.web.bind.annotation.RequestBody
 
 @FeignClient(name = "member-service", url = "\${service.member.url}")
 interface MemberServiceClient {
-
     @GetMapping("/members/{id}")
-    fun getMember(@PathVariable id: Long): ApiResponse<MemberResponse>
+    fun getMember(
+        @PathVariable id: Long,
+    ): ApiResponse<MemberResponse>
 
     @GetMapping("/members/{memberId}/addresses")
-    fun getAddresses(@PathVariable memberId: Long): ApiResponse<List<ShippingAddressResponse>>
+    fun getAddresses(
+        @PathVariable memberId: Long,
+    ): ApiResponse<List<ShippingAddressResponse>>
 
     @PostMapping("/members/register")
-    fun register(@RequestBody request: RegisterRequest): ApiResponse<MemberResponse>
+    fun register(
+        @RequestBody request: RegisterRequest,
+    ): ApiResponse<MemberResponse>
 
     @PostMapping("/members/login")
-    fun login(@RequestBody request: LoginRequest): ApiResponse<LoginResponse>
+    fun login(
+        @RequestBody request: LoginRequest,
+    ): ApiResponse<LoginResponse>
 
     @PostMapping("/members/{memberId}/addresses")
-    fun addAddress(@PathVariable memberId: Long, @RequestBody request: AddAddressRequest): ApiResponse<ShippingAddressResponse>
+    fun addAddress(
+        @PathVariable memberId: Long,
+        @RequestBody request: AddAddressRequest,
+    ): ApiResponse<ShippingAddressResponse>
 
     @PutMapping("/members/{memberId}/addresses/{addressId}")
-    fun updateAddress(@PathVariable memberId: Long, @PathVariable addressId: Long, @RequestBody request: UpdateAddressRequest): ApiResponse<ShippingAddressResponse>
+    fun updateAddress(
+        @PathVariable memberId: Long,
+        @PathVariable addressId: Long,
+        @RequestBody request: UpdateAddressRequest,
+    ): ApiResponse<ShippingAddressResponse>
 
     @DeleteMapping("/members/{memberId}/addresses/{addressId}")
-    fun deleteAddress(@PathVariable memberId: Long, @PathVariable addressId: Long)
+    fun deleteAddress(
+        @PathVariable memberId: Long,
+        @PathVariable addressId: Long,
+    )
 
     @PatchMapping("/members/{memberId}/addresses/{addressId}/default")
-    fun setDefaultAddress(@PathVariable memberId: Long, @PathVariable addressId: Long): ApiResponse<ShippingAddressResponse>
+    fun setDefaultAddress(
+        @PathVariable memberId: Long,
+        @PathVariable addressId: Long,
+    ): ApiResponse<ShippingAddressResponse>
 }

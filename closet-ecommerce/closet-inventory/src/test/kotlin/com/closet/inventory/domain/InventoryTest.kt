@@ -8,13 +8,14 @@ import io.kotest.matchers.shouldBe
 class InventoryTest : BehaviorSpec({
 
     Given("재고가 total=100, available=100, reserved=0 인 상태") {
-        fun createInventory() = Inventory.create(
-            productId = 1L,
-            productOptionId = 100L,
-            sku = "SKU-001",
-            totalQuantity = 100,
-            safetyThreshold = 10,
-        )
+        fun createInventory() =
+            Inventory.create(
+                productId = 1L,
+                productOptionId = 100L,
+                sku = "SKU-001",
+                totalQuantity = 100,
+                safetyThreshold = 10,
+            )
 
         When("reserve(10) 실행") {
             val inventory = createInventory()
@@ -48,7 +49,10 @@ class InventoryTest : BehaviorSpec({
             }
 
             Then("재고 수량이 변경되지 않는다") {
-                try { inventory.reserve(101) } catch (_: InsufficientStockException) {}
+                try {
+                    inventory.reserve(101)
+                } catch (_: InsufficientStockException) {
+                }
                 inventory.totalQuantity shouldBe 100
                 inventory.availableQuantity shouldBe 100
                 inventory.reservedQuantity shouldBe 0
@@ -58,12 +62,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("재고가 total=100, available=90, reserved=10 인 상태") {
         fun createReservedInventory(): Inventory {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 100,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 100,
+                )
             inventory.reserve(10)
             return inventory
         }
@@ -103,12 +108,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("재고가 total=100, available=90, reserved=10 이고 release 시") {
         fun createReservedInventory(): Inventory {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 100,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 100,
+                )
             inventory.reserve(10)
             return inventory
         }
@@ -148,12 +154,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("재고 입고") {
         When("inbound(50) 실행") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 100,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 100,
+                )
             val previousAvailable = inventory.inbound(50)
 
             Then("total이 150, available이 150이 된다") {
@@ -168,12 +175,13 @@ class InventoryTest : BehaviorSpec({
         }
 
         When("available이 0인 상태에서 inbound(10) 실행") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 10,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 10,
+                )
             inventory.reserve(10) // available = 0
             val previousAvailable = inventory.inbound(10)
 
@@ -191,12 +199,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("반품 양품 복구") {
         When("returnRestore(5) 실행") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 90,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 90,
+                )
             val previousAvailable = inventory.returnRestore(5)
 
             Then("total이 95, available이 95가 된다") {
@@ -213,13 +222,14 @@ class InventoryTest : BehaviorSpec({
 
     Given("안전재고 확인") {
         When("available이 safetyThreshold 이하") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 10,
-                safetyThreshold = 10,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 10,
+                    safetyThreshold = 10,
+                )
 
             Then("isBelowSafetyThreshold가 true") {
                 inventory.isBelowSafetyThreshold() shouldBe true
@@ -227,13 +237,14 @@ class InventoryTest : BehaviorSpec({
         }
 
         When("available이 safetyThreshold 초과") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 100,
-                safetyThreshold = 10,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 100,
+                    safetyThreshold = 10,
+                )
 
             Then("isBelowSafetyThreshold가 false") {
                 inventory.isBelowSafetyThreshold() shouldBe false
@@ -243,12 +254,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("품절 확인") {
         When("available이 0") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 10,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 10,
+                )
             inventory.reserve(10)
 
             Then("isOutOfStock이 true") {
@@ -259,12 +271,13 @@ class InventoryTest : BehaviorSpec({
 
     Given("불변 조건") {
         When("reserve 후 항상 total == available + reserved") {
-            val inventory = Inventory.create(
-                productId = 1L,
-                productOptionId = 100L,
-                sku = "SKU-001",
-                totalQuantity = 100,
-            )
+            val inventory =
+                Inventory.create(
+                    productId = 1L,
+                    productOptionId = 100L,
+                    sku = "SKU-001",
+                    totalQuantity = 100,
+                )
 
             inventory.reserve(30)
             Then("total == available + reserved") {
@@ -289,12 +302,13 @@ class InventoryTest : BehaviorSpec({
     }
 
     Given("음수 수량 방어") {
-        val inventory = Inventory.create(
-            productId = 1L,
-            productOptionId = 100L,
-            sku = "SKU-001",
-            totalQuantity = 100,
-        )
+        val inventory =
+            Inventory.create(
+                productId = 1L,
+                productOptionId = 100L,
+                sku = "SKU-001",
+                totalQuantity = 100,
+            )
 
         When("reserve(0)") {
             Then("IllegalArgumentException이 발생한다") {

@@ -17,22 +17,23 @@ private val logger = KotlinLogging.logger {}
 class PaymentService(
     private val paymentRepository: PaymentRepository,
 ) {
-
     fun getByOrderId(orderId: Long): PaymentResponse {
-        val payment = paymentRepository.findByOrderId(orderId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: orderId=$orderId") }
+        val payment =
+            paymentRepository.findByOrderId(orderId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: orderId=$orderId") }
         return PaymentResponse.from(payment)
     }
 
     @Transactional
     fun confirm(request: ConfirmPaymentRequest): PaymentResponse {
-        val payment = paymentRepository.findByOrderId(request.orderId)
-            .orElseGet {
-                Payment.create(
-                    orderId = request.orderId,
-                    finalAmount = Money(request.amount.toBigDecimal()),
-                )
-            }
+        val payment =
+            paymentRepository.findByOrderId(request.orderId)
+                .orElseGet {
+                    Payment.create(
+                        orderId = request.orderId,
+                        finalAmount = Money(request.amount.toBigDecimal()),
+                    )
+                }
         payment.confirm(
             paymentKey = request.paymentKey,
             method = PaymentMethod.CARD,
@@ -43,9 +44,13 @@ class PaymentService(
     }
 
     @Transactional
-    fun cancel(id: Long, request: CancelPaymentRequest): PaymentResponse {
-        val payment = paymentRepository.findById(id)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
+    fun cancel(
+        id: Long,
+        request: CancelPaymentRequest,
+    ): PaymentResponse {
+        val payment =
+            paymentRepository.findById(id)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
         payment.cancel()
         logger.info { "결제 취소 완료: id=$id, reason=${request.reason}" }
         return PaymentResponse.from(payment)
@@ -56,9 +61,13 @@ class PaymentService(
      * 반품 승인 시 배송비 공제 후 환불. PG사에 부분 취소(cancelAmount) 요청.
      */
     @Transactional
-    fun refund(id: Long, request: RefundPaymentRequest): PaymentResponse {
-        val payment = paymentRepository.findById(id)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
+    fun refund(
+        id: Long,
+        request: RefundPaymentRequest,
+    ): PaymentResponse {
+        val payment =
+            paymentRepository.findById(id)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
         payment.refund(Money(request.amount.toBigDecimal()))
         logger.info { "부분 환불 완료: id=$id, refundAmount=${request.amount}, reason=${request.reason}" }
         return PaymentResponse.from(payment)

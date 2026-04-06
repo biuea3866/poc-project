@@ -17,7 +17,7 @@ import jakarta.persistence.Table
 import org.springframework.data.annotation.CreatedDate
 import org.springframework.data.annotation.LastModifiedDate
 import org.springframework.data.jpa.domain.support.AuditingEntityListener
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 @Entity
@@ -69,13 +69,13 @@ class Order(
     val detailAddress: String,
 
     @Column(name = "reservation_expires_at", columnDefinition = "DATETIME(6)")
-    var reservationExpiresAt: LocalDateTime? = null,
+    var reservationExpiresAt: ZonedDateTime? = null,
 
     @Column(name = "ordered_at", columnDefinition = "DATETIME(6)")
-    var orderedAt: LocalDateTime? = null,
+    var orderedAt: ZonedDateTime? = null,
 
     @Column(name = "delivered_at", columnDefinition = "DATETIME(6)")
-    var deliveredAt: LocalDateTime? = null,
+    var deliveredAt: ZonedDateTime? = null,
 ) {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -83,14 +83,14 @@ class Order(
 
     @CreatedDate
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    lateinit var createdAt: LocalDateTime
+    lateinit var createdAt: ZonedDateTime
 
     @LastModifiedDate
     @Column(name = "updated_at", nullable = false, columnDefinition = "DATETIME(6)")
-    lateinit var updatedAt: LocalDateTime
+    lateinit var updatedAt: ZonedDateTime
 
     @Column(name = "deleted_at", columnDefinition = "DATETIME(6)")
-    var deletedAt: LocalDateTime? = null
+    var deletedAt: ZonedDateTime? = null
 
     private fun transitionTo(newStatus: OrderStatus, reason: String? = null) {
         status.validateTransitionTo(newStatus)
@@ -99,8 +99,8 @@ class Order(
 
     fun place() {
         transitionTo(OrderStatus.STOCK_RESERVED)
-        this.reservationExpiresAt = LocalDateTime.now().plusMinutes(15)
-        this.orderedAt = LocalDateTime.now()
+        this.reservationExpiresAt = ZonedDateTime.now().plusMinutes(15)
+        this.orderedAt = ZonedDateTime.now()
     }
 
     fun pay() {
@@ -117,7 +117,7 @@ class Order(
 
     fun deliver() {
         transitionTo(OrderStatus.DELIVERED)
-        this.deliveredAt = LocalDateTime.now()
+        this.deliveredAt = ZonedDateTime.now()
     }
 
     fun confirm() {
@@ -155,7 +155,7 @@ class Order(
         private val ORDER_NUMBER_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmss")
 
         fun generateOrderNumber(): String {
-            val now = LocalDateTime.now()
+            val now = ZonedDateTime.now()
             val datePart = now.format(ORDER_NUMBER_DATE_FORMAT)
             val randomPart = (100000..999999).random().toString()
             return "$datePart$randomPart"

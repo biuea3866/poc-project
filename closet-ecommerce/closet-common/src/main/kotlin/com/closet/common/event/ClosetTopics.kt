@@ -8,7 +8,6 @@ package com.closet.common.event
  * 이벤트 유형은 메시지 내 eventType 필드로 구분한다.
  */
 object ClosetTopics {
-
     const val ORDER = "event.closet.order"
     const val PRODUCT = "event.closet.product"
     const val INVENTORY = "event.closet.inventory"
@@ -17,4 +16,5 @@ object ClosetTopics {
     const val PAYMENT = "event.closet.payment"
     const val MEMBER = "event.closet.member"
     const val NOTIFICATION = "event.closet.notification"
+    const val PROMOTION = "event.closet.promotion"
 }

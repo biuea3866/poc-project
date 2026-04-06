@@ -17,12 +17,12 @@ private val logger = KotlinLogging.logger {}
 class BannedKeywordService(
     private val redisTemplate: StringRedisTemplate,
 ) {
-
     companion object {
         private const val BANNED_KEY = "search:banned_keywords"
     }
 
     private val localCache = ConcurrentHashMap.newKeySet<String>()
+
     @Volatile
     private var cacheLoaded = false
 

@@ -11,7 +11,6 @@ private val logger = KotlinLogging.logger {}
 class IdempotencyChecker(
     private val processedEventRepository: ProcessedEventRepository,
 ) {
-
     /**
      * 이벤트 멱등성을 보장하며 비즈니스 로직을 실행한다.
      *
@@ -27,18 +26,24 @@ class IdempotencyChecker(
      * @return 비즈니스 로직 실행 결과. 이미 처리된 이벤트인 경우 null
      */
     @Transactional
-    fun <T> process(eventId: String, topic: String, consumerGroup: String, block: () -> T): T? {
+    fun <T> process(
+        eventId: String,
+        topic: String,
+        consumerGroup: String,
+        block: () -> T,
+    ): T? {
         if (processedEventRepository.existsByEventId(eventId)) {
             logger.info { "이미 처리된 이벤트입니다. eventId=$eventId, topic=$topic, consumerGroup=$consumerGroup" }
             return null
         }
 
         return try {
-            val processedEvent = ProcessedEvent.create(
-                eventId = eventId,
-                topic = topic,
-                consumerGroup = consumerGroup,
-            )
+            val processedEvent =
+                ProcessedEvent.create(
+                    eventId = eventId,
+                    topic = topic,
+                    consumerGroup = consumerGroup,
+                )
             processedEventRepository.save(processedEvent)
 
             val result = block()

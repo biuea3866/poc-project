@@ -20,7 +20,6 @@ class OutboxPoller(
     private val outboxEventRepository: OutboxEventRepository,
     private val kafkaTemplate: KafkaTemplate<String, String>,
 ) {
-
     companion object {
         private const val BATCH_SIZE = 100
     }
@@ -28,10 +27,11 @@ class OutboxPoller(
     @Scheduled(fixedDelay = 5000)
     @Transactional
     fun poll() {
-        val pendingEvents = outboxEventRepository.findByStatusForUpdate(
-            status = OutboxEventStatus.PENDING,
-            pageable = PageRequest.of(0, BATCH_SIZE),
-        )
+        val pendingEvents =
+            outboxEventRepository.findByStatusForUpdate(
+                status = OutboxEventStatus.PENDING,
+                pageable = PageRequest.of(0, BATCH_SIZE),
+            )
 
         if (pendingEvents.isEmpty()) return
 

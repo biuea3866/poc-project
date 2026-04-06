@@ -31,25 +31,28 @@ import java.math.BigDecimal
 @RestController
 @RequestMapping("/api/v1/products")
 class ProductController(
-    private val productService: ProductService
+    private val productService: ProductService,
 ) {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun create(@Valid @RequestBody request: ProductCreateRequest): ApiResponse<ProductResponse> {
+    fun create(
+        @Valid @RequestBody request: ProductCreateRequest,
+    ): ApiResponse<ProductResponse> {
         return ApiResponse.created(productService.create(request))
     }
 
     @PutMapping("/{id}")
     fun update(
         @PathVariable id: Long,
-        @Valid @RequestBody request: ProductUpdateRequest
+        @Valid @RequestBody request: ProductUpdateRequest,
     ): ApiResponse<ProductResponse> {
         return ApiResponse.ok(productService.update(id, request))
     }
 
     @GetMapping("/{id}")
-    fun findById(@PathVariable id: Long): ApiResponse<ProductResponse> {
+    fun findById(
+        @PathVariable id: Long,
+    ): ApiResponse<ProductResponse> {
         return ApiResponse.ok(productService.findById(id))
     }
 
@@ -60,21 +63,23 @@ class ProductController(
         @RequestParam(required = false) minPrice: BigDecimal?,
         @RequestParam(required = false) maxPrice: BigDecimal?,
         @RequestParam(required = false) status: ProductStatus?,
-        @PageableDefault(size = 20) pageable: Pageable
+        @PageableDefault(size = 20) pageable: Pageable,
     ): ApiResponse<Page<ProductListResponse>> {
         return ApiResponse.ok(productService.findAll(categoryId, brandId, minPrice, maxPrice, status, pageable))
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun delete(@PathVariable id: Long) {
+    fun delete(
+        @PathVariable id: Long,
+    ) {
         productService.delete(id)
     }
 
     @PatchMapping("/{id}/status")
     fun changeStatus(
         @PathVariable id: Long,
-        @Valid @RequestBody request: ProductStatusChangeRequest
+        @Valid @RequestBody request: ProductStatusChangeRequest,
     ): ApiResponse<ProductResponse> {
         return ApiResponse.ok(productService.changeStatus(id, request.status))
     }
@@ -83,7 +88,7 @@ class ProductController(
     @ResponseStatus(HttpStatus.CREATED)
     fun addOption(
         @PathVariable id: Long,
-        @Valid @RequestBody request: ProductOptionCreateRequest
+        @Valid @RequestBody request: ProductOptionCreateRequest,
     ): ApiResponse<ProductOptionResponse> {
         return ApiResponse.created(productService.addOption(id, request))
     }
@@ -92,7 +97,7 @@ class ProductController(
     @ResponseStatus(HttpStatus.NO_CONTENT)
     fun removeOption(
         @PathVariable id: Long,
-        @PathVariable optionId: Long
+        @PathVariable optionId: Long,
     ) {
         productService.removeOption(id, optionId)
     }
