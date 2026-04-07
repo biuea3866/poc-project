@@ -25,28 +25,22 @@ import java.time.ZonedDateTime
 class ReviewSummary(
     @Column(name = "product_id", nullable = false, unique = true)
     val productId: Long,
-
     @Column(name = "total_count", nullable = false)
     var totalCount: Int = 0,
-
     @Column(name = "avg_rating", nullable = false)
     var avgRating: Double = 0.0,
-
     @Column(name = "total_rating_sum", nullable = false)
     var totalRatingSum: Long = 0,
-
     /** 별점 분포 (1~5점 각각의 개수) */
     @Column(name = "rating_1_count", nullable = false) var rating1Count: Int = 0,
     @Column(name = "rating_2_count", nullable = false) var rating2Count: Int = 0,
     @Column(name = "rating_3_count", nullable = false) var rating3Count: Int = 0,
     @Column(name = "rating_4_count", nullable = false) var rating4Count: Int = 0,
     @Column(name = "rating_5_count", nullable = false) var rating5Count: Int = 0,
-
     /** 사이즈핏 분포 (US-802: SMALL/PERFECT/LARGE) */
     @Column(name = "fit_small_count", nullable = false) var fitSmallCount: Int = 0,
     @Column(name = "fit_perfect_count", nullable = false) var fitPerfectCount: Int = 0,
     @Column(name = "fit_large_count", nullable = false) var fitLargeCount: Int = 0,
-
     @Column(name = "photo_review_count", nullable = false)
     var photoReviewCount: Int = 0,
 ) {
@@ -65,7 +59,11 @@ class ReviewSummary(
     /**
      * 리뷰 추가 시 집계 갱신.
      */
-    fun addReview(rating: Int, fitType: FitType?, isPhotoReview: Boolean) {
+    fun addReview(
+        rating: Int,
+        fitType: FitType?,
+        isPhotoReview: Boolean,
+    ) {
         totalCount++
         totalRatingSum += rating
         avgRating = totalRatingSum.toDouble() / totalCount
@@ -77,7 +75,11 @@ class ReviewSummary(
     /**
      * 리뷰 삭제 시 집계 갱신.
      */
-    fun removeReview(rating: Int, fitType: FitType?, isPhotoReview: Boolean) {
+    fun removeReview(
+        rating: Int,
+        fitType: FitType?,
+        isPhotoReview: Boolean,
+    ) {
         if (totalCount <= 0) return
         totalCount--
         totalRatingSum -= rating

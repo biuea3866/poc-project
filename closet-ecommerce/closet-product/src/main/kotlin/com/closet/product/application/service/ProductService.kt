@@ -20,6 +20,7 @@ import mu.KotlinLogging
 import org.springframework.context.ApplicationEventPublisher
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -150,8 +151,8 @@ class ProductService(
     }
 
     private fun findProductById(id: Long): Product {
-        return productRepository.findById(id)
-            .filter { !it.isDeleted() }
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "상품을 찾을 수 없습니다: $id") }
+        return productRepository.findByIdOrNull(id)
+            ?.takeUnless { it.isDeleted() }
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "상품을 찾을 수 없습니다: $id")
     }
 }

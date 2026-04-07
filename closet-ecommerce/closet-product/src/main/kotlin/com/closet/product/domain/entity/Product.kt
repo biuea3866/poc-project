@@ -92,9 +92,7 @@ class Product(
     }
 
     fun removeOption(optionId: Long) {
-        val option =
-            options.find { it.id == optionId }
-                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "옵션을 찾을 수 없습니다: $optionId")
+        val option = options.find { it.id == optionId } ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "옵션을 찾을 수 없습니다: $optionId")
         options.remove(option)
     }
 

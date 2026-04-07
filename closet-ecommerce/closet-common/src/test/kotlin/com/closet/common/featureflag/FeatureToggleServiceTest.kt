@@ -5,7 +5,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.util.Optional
 
 class FeatureToggleServiceTest : BehaviorSpec({
 
@@ -24,7 +23,7 @@ class FeatureToggleServiceTest : BehaviorSpec({
                 description = "검색 인덱싱 활성화",
             )
 
-        every { repository.findByConfigKey("SEARCH_INDEXING_ENABLED") } returns Optional.of(toggle)
+        every { repository.findByConfigKey("SEARCH_INDEXING_ENABLED") } returns toggle
 
         When("isEnabled를 호출하면") {
             val result = service.isEnabled(Phase2FeatureKey.SEARCH_INDEXING_ENABLED)
@@ -44,7 +43,7 @@ class FeatureToggleServiceTest : BehaviorSpec({
                 description = "재고 Kafka 비활성화",
             )
 
-        every { repository.findByConfigKey("INVENTORY_KAFKA_ENABLED") } returns Optional.of(toggle)
+        every { repository.findByConfigKey("INVENTORY_KAFKA_ENABLED") } returns toggle
 
         When("isEnabled를 호출하면") {
             val result = service.isEnabled(Phase2FeatureKey.INVENTORY_KAFKA_ENABLED)
@@ -57,7 +56,7 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
     Given("Feature Toggle이 DB에 존재하지 않을 때") {
 
-        every { repository.findByConfigKey("POPULAR_KEYWORDS_ENABLED") } returns Optional.empty()
+        every { repository.findByConfigKey("POPULAR_KEYWORDS_ENABLED") } returns null
 
         When("isEnabled를 호출하면") {
             val result = service.isEnabled(Phase2FeatureKey.POPULAR_KEYWORDS_ENABLED)
@@ -77,7 +76,7 @@ class FeatureToggleServiceTest : BehaviorSpec({
                 description = "배송 서비스",
             )
 
-        every { repository.findByConfigKey("SHIPPING_SERVICE_ENABLED") } returns Optional.of(toggle)
+        every { repository.findByConfigKey("SHIPPING_SERVICE_ENABLED") } returns toggle
 
         When("setEnabled(true)를 호출하면") {
             service.setEnabled(Phase2FeatureKey.SHIPPING_SERVICE_ENABLED, true)
@@ -91,7 +90,7 @@ class FeatureToggleServiceTest : BehaviorSpec({
 
     Given("DB에 없는 Feature Toggle을 ON으로 변경할 때") {
 
-        every { repository.findByConfigKey("EXCHANGE_REQUEST_ENABLED") } returns Optional.empty()
+        every { repository.findByConfigKey("EXCHANGE_REQUEST_ENABLED") } returns null
 
         When("setEnabled(true)를 호출하면") {
             service.setEnabled(Phase2FeatureKey.EXCHANGE_REQUEST_ENABLED, true)

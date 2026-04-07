@@ -1,0 +1,265 @@
+{
+  "tickets": [
+    {
+      "id": "CP-43",
+      "title": "[BE] Promotion - 쿠폰 발급/사용/만료 도메인",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.995760+00:00",
+      "completed_at": "2026-04-06T13:16:43.782491+00:00"
+    },
+    {
+      "id": "CP-44",
+      "title": "[BE] Promotion - 할인 정책 엔진 정률/정액/조건부",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996557+00:00",
+      "completed_at": "2026-04-06T13:16:43.824121+00:00"
+    },
+    {
+      "id": "CP-45",
+      "title": "[BE] Promotion - 타임세일/한정수량 세일",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996559+00:00",
+      "completed_at": "2026-04-06T13:36:29.162187+00:00"
+    },
+    {
+      "id": "CP-46",
+      "title": "[BE] Promotion - 적립금 적립/사용",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996561+00:00",
+      "completed_at": "2026-04-06T13:36:29.206148+00:00"
+    },
+    {
+      "id": "CP-47",
+      "title": "[BE] Display - 배너 관리 메인/카테고리",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996563+00:00",
+      "completed_at": "2026-04-06T13:16:43.872341+00:00"
+    },
+    {
+      "id": "CP-48",
+      "title": "[BE] Display - 기획전/컬렉션",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996565+00:00",
+      "completed_at": "2026-04-06T13:16:43.916885+00:00"
+    },
+    {
+      "id": "CP-49",
+      "title": "[BE] Display - 랭킹 베스트/신상/브랜드별",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996567+00:00",
+      "completed_at": "2026-04-06T13:16:43.955233+00:00"
+    },
+    {
+      "id": "CP-56",
+      "title": "[BE] Display - 스타일 매거진 (content 병합)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996568+00:00",
+      "completed_at": "2026-04-06T13:36:29.293816+00:00"
+    },
+    {
+      "id": "CP-57",
+      "title": "[BE] Display - 코디 추천/OOTD 스냅 (content 병합)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996569+00:00",
+      "completed_at": "2026-04-06T13:36:29.335515+00:00"
+    },
+    {
+      "id": "CP-50",
+      "title": "[BE] Notification - SMS/푸시 알림 인프라",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996571+00:00",
+      "completed_at": "2026-04-06T13:16:43.998844+00:00"
+    },
+    {
+      "id": "CP-51",
+      "title": "[BE] Notification - 주문/배송 알림 자동화",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996572+00:00",
+      "completed_at": "2026-04-06T13:16:44.037098+00:00"
+    },
+    {
+      "id": "CP-52",
+      "title": "[BE] Notification - 마케팅/재입고 알림",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996574+00:00",
+      "completed_at": "2026-04-06T13:16:44.075077+00:00"
+    },
+    {
+      "id": "CP-53",
+      "title": "[BE] Fulfillment - 1:1 문의/답변 도메인 (cs 병합)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996575+00:00",
+      "completed_at": "2026-04-06T13:16:44.119357+00:00"
+    },
+    {
+      "id": "CP-54",
+      "title": "[BE] Fulfillment - FAQ 관리 (cs 병합)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996577+00:00",
+      "completed_at": "2026-04-06T13:16:44.158213+00:00"
+    },
+    {
+      "id": "CP-55",
+      "title": "[BE] Fulfillment - 반품/교환 접수 통합 (cs 병합)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-05T16:21:29.996578+00:00",
+      "completed_at": "2026-04-06T13:36:29.251348+00:00"
+    },
+    {
+      "id": "CP-58",
+      "title": "[FE] 프로모션 페이지 (쿠폰함, 타임세일)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996579+00:00",
+      "worker": "worker-cp-58"
+    },
+    {
+      "id": "CP-59",
+      "title": "[FE] 전시/콘텐츠 페이지 (메인, 기획전, 매거진)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996581+00:00",
+      "worker": "worker-cp-59"
+    },
+    {
+      "id": "CP-60",
+      "title": "[FE] 알림 설정/목록 UI",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996582+00:00",
+      "worker": "worker-cp-60"
+    },
+    {
+      "id": "CP-61",
+      "title": "[FE] CS 페이지 (문의, FAQ)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996584+00:00",
+      "worker": "worker-cp-61"
+    },
+    {
+      "id": "CP-63",
+      "title": "[DevOps] Phase 3 서비스 Docker/CI-CD 구성",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996586+00:00",
+      "worker": "worker-cp-63"
+    },
+    {
+      "id": "CP-64",
+      "title": "[DevOps] 알림 인프라 (FCM/SMS Gateway)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996587+00:00",
+      "worker": "worker-cp-64"
+    },
+    {
+      "id": "CP-65",
+      "title": "[QA] Phase 3 테스트 케이스 작성",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996590+00:00",
+      "worker": "worker-cp-65"
+    },
+    {
+      "id": "CP-66",
+      "title": "[QA] 프로모션 정합성 테스트",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996592+00:00",
+      "worker": "worker-cp-66"
+    },
+    {
+      "id": "CP-67",
+      "title": "[QA] Phase 3 E2E 시나리오 테스트",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-05T16:21:29.996593+00:00",
+      "worker": "worker-cp-67"
+    }
+  ],
+  "current_index": -1,
+  "completed": [
+    "CP-43",
+    "CP-44",
+    "CP-47",
+    "CP-48",
+    "CP-49",
+    "CP-50",
+    "CP-51",
+    "CP-52",
+    "CP-53",
+    "CP-54",
+    "CP-45",
+    "CP-46",
+    "CP-55",
+    "CP-56",
+    "CP-57"
+  ],
+  "skipped": [],
+  "started_at": "2026-04-05T16:21:29.996595+00:00",
+  "updated_at": "2026-04-06T13:36:29.335959+00:00"
+}

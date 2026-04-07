@@ -17,7 +17,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.core.ValueOperations
-import java.util.Optional
 
 class ShippingServiceTest : BehaviorSpec({
 
@@ -44,7 +43,7 @@ class ShippingServiceTest : BehaviorSpec({
     Given("배송 준비 정보 사전 저장") {
 
         When("신규 주문에 대해 prepareShipment 호출") {
-            every { shipmentRepository.findByOrderId(1L) } returns Optional.empty()
+            every { shipmentRepository.findByOrderId(1L) } returns null
             every { shipmentRepository.save(any()) } answers { firstArg() }
 
             val response =
@@ -80,7 +79,7 @@ class ShippingServiceTest : BehaviorSpec({
                     address = "서울",
                     detailAddress = "101호",
                 )
-            every { shipmentRepository.findByOrderId(2L) } returns Optional.of(existingShipment)
+            every { shipmentRepository.findByOrderId(2L) } returns existingShipment
 
             val response =
                 shippingService.prepareShipment(
@@ -106,7 +105,7 @@ class ShippingServiceTest : BehaviorSpec({
     Given("송장 등록") {
 
         When("존재하지 않는 주문으로 송장 등록") {
-            every { shipmentRepository.findByOrderId(999L) } returns Optional.empty()
+            every { shipmentRepository.findByOrderId(999L) } returns null
 
             Then("BusinessException 발생") {
                 shouldThrow<BusinessException> {
@@ -130,7 +129,7 @@ class ShippingServiceTest : BehaviorSpec({
                     detailAddress = "101호",
                 )
             shipment.registerTracking("CJ", "CJ1234567890")
-            every { shipmentRepository.findByOrderId(10L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(10L) } returns shipment
 
             Then("BusinessException 발생 (중복 등록 에러)") {
                 shouldThrow<BusinessException> {
@@ -153,7 +152,7 @@ class ShippingServiceTest : BehaviorSpec({
                     address = "서울시 서초구",
                     detailAddress = "서초동",
                 )
-            every { shipmentRepository.findByOrderId(20L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(20L) } returns shipment
             every { shipmentRepository.save(any()) } answers { firstArg() }
 
             val mockAdapter = mockk<CarrierAdapter>()
@@ -209,7 +208,7 @@ class ShippingServiceTest : BehaviorSpec({
                     address = "서울",
                     detailAddress = "101호",
                 )
-            every { shipmentRepository.findByOrderId(30L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(30L) } returns shipment
 
             val mockAdapter = mockk<CarrierAdapter>()
             every { mockAdapter.validateTrackingNumber("INVALID") } returns false
@@ -241,7 +240,7 @@ class ShippingServiceTest : BehaviorSpec({
                 )
             shipment.updateStatus(ShippingStatus.IN_TRANSIT)
             shipment.updateStatus(ShippingStatus.DELIVERED)
-            every { shipmentRepository.findByOrderId(40L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(40L) } returns shipment
 
             val response = shippingService.confirmOrder(40L)
 
@@ -275,7 +274,7 @@ class ShippingServiceTest : BehaviorSpec({
                     address = "서울",
                     detailAddress = "101호",
                 )
-            every { shipmentRepository.findByOrderId(41L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(41L) } returns shipment
 
             Then("BusinessException 발생") {
                 shouldThrow<BusinessException> {

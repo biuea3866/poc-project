@@ -11,7 +11,6 @@ import io.mockk.clearMocks
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import java.util.Optional
 
 class ReturnApprovedConsumerTest : BehaviorSpec({
 
@@ -30,7 +29,7 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
         val payment = mockk<Payment>()
         every { payment.id } returns 100L
 
-        every { paymentRepository.findByOrderId(1L) } returns Optional.of(payment)
+        every { paymentRepository.findByOrderId(1L) } returns payment
         every { idempotencyChecker.process<Unit>(any(), any(), any(), any()) } answers {
             val block = arg<() -> Unit>(3)
             block()
@@ -64,7 +63,7 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
     Given("결제 정보를 찾을 수 없는 경우") {
         clearMocks(paymentService)
 
-        every { paymentRepository.findByOrderId(999L) } returns Optional.empty()
+        every { paymentRepository.findByOrderId(999L) } returns null
         every { idempotencyChecker.process<Unit>(any(), any(), any(), any()) } answers {
             val block = arg<() -> Unit>(3)
             block()

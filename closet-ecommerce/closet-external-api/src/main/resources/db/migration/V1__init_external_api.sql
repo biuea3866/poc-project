@@ -18,7 +18,7 @@ CREATE TABLE mock_payment (
     approve_no      VARCHAR(30)     NULL COMMENT '승인번호',
     approved_at     DATETIME(6)     NULL COMMENT '승인 일시',
     canceled_at     DATETIME(6)     NULL COMMENT '취소 일시',
-    extra_data      TEXT            NULL COMMENT 'PG사별 추가 데이터 (JSON)',
+    extra_data      TEXT            NULL COMMENT 'PG사별 추가 데이터 문자열',
     created_at      DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6),
     updated_at      DATETIME(6)     NOT NULL DEFAULT CURRENT_TIMESTAMP(6) ON UPDATE CURRENT_TIMESTAMP(6),
     PRIMARY KEY (id),

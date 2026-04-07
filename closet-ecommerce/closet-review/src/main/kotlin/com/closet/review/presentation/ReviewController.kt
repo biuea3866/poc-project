@@ -52,7 +52,6 @@ import org.springframework.web.bind.annotation.RestController
 class ReviewController(
     private val reviewFacade: ReviewFacade,
 ) {
-
     /**
      * 리뷰 작성 (US-801).
      * JSON 요청 (이미지는 Presigned URL로 사전 업로드).
@@ -100,7 +99,9 @@ class ReviewController(
      * 리뷰 상세 조회.
      */
     @GetMapping("/{id}")
-    fun getReview(@PathVariable id: Long): ApiResponse<ReviewResponse> {
+    fun getReview(
+        @PathVariable id: Long,
+    ): ApiResponse<ReviewResponse> {
         val response = reviewFacade.getReview(id)
         return ApiResponse.ok(response)
     }
@@ -118,15 +119,16 @@ class ReviewController(
         @RequestParam(required = false) myHeight: Int?,
         @RequestParam(required = false) myWeight: Int?,
     ): ApiResponse<Page<ReviewResponse>> {
-        val query = ReviewListQuery(
-            productId = productId,
-            sort = sort,
-            photoOnly = photoOnly,
-            page = page,
-            size = size,
-            myHeight = myHeight,
-            myWeight = myWeight,
-        )
+        val query =
+            ReviewListQuery(
+                productId = productId,
+                sort = sort,
+                photoOnly = photoOnly,
+                page = page,
+                size = size,
+                myHeight = myHeight,
+                myWeight = myWeight,
+            )
         val response = reviewFacade.getReviews(query)
         return ApiResponse.ok(response)
     }
@@ -149,7 +151,9 @@ class ReviewController(
      * 리뷰 수정 이력 조회.
      */
     @GetMapping("/{id}/history")
-    fun getEditHistory(@PathVariable id: Long): ApiResponse<List<ReviewEditHistoryResponse>> {
+    fun getEditHistory(
+        @PathVariable id: Long,
+    ): ApiResponse<List<ReviewEditHistoryResponse>> {
         val response = reviewFacade.getEditHistory(id)
         return ApiResponse.ok(response)
     }
@@ -158,7 +162,9 @@ class ReviewController(
      * 상품별 리뷰 집계 조회 (US-804).
      */
     @GetMapping("/summary/{productId}")
-    fun getReviewSummary(@PathVariable productId: Long): ApiResponse<ReviewSummaryResponse?> {
+    fun getReviewSummary(
+        @PathVariable productId: Long,
+    ): ApiResponse<ReviewSummaryResponse?> {
         val response = reviewFacade.getSummary(productId)
         return ApiResponse.ok(response)
     }

@@ -7,6 +7,7 @@ import com.closet.product.application.dto.BrandResponse
 import com.closet.product.domain.entity.Brand
 import com.closet.product.domain.repository.BrandRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -24,9 +25,9 @@ class BrandService(
 
     fun findById(id: Long): BrandResponse {
         val brand =
-            brandRepository.findById(id)
-                .filter { !it.isDeleted() }
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "브랜드를 찾을 수 없습니다: $id") }
+            brandRepository.findByIdOrNull(id)
+                ?.takeUnless { it.isDeleted() }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "브랜드를 찾을 수 없습니다: $id")
         return BrandResponse.from(brand)
     }
 

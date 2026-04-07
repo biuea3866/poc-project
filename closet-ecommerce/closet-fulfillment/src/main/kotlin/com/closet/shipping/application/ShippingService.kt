@@ -13,6 +13,7 @@ import com.closet.shipping.domain.ShippingTrackingLogRepository
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.Duration
@@ -41,9 +42,9 @@ class ShippingService(
     @Transactional
     fun prepareShipment(request: PrepareShipmentRequest): ShipmentResponse {
         val existing = shipmentRepository.findByOrderId(request.orderId)
-        if (existing.isPresent) {
+        if (existing != null) {
             logger.info { "이미 배송 정보가 존재합니다: orderId=${request.orderId}" }
-            return ShipmentResponse.from(existing.get())
+            return ShipmentResponse.from(existing)
         }
 
         val shipment =
@@ -70,7 +71,7 @@ class ShippingService(
     fun registerShipment(request: RegisterShipmentRequest): ShipmentResponse {
         val shipment =
             shipmentRepository.findByOrderId(request.orderId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}")
 
         if (shipment.trackingNumber != null) {
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "이미 송장이 등록된 배송입니다: orderId=${request.orderId}")
@@ -125,8 +126,8 @@ class ShippingService(
      */
     fun findById(id: Long): ShipmentResponse {
         val shipment =
-            shipmentRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: id=$id") }
+            shipmentRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: id=$id")
         return ShipmentResponse.from(shipment)
     }
 
@@ -136,7 +137,7 @@ class ShippingService(
     fun findByOrderId(orderId: Long): ShipmentResponse {
         val shipment =
             shipmentRepository.findByOrderId(orderId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=$orderId") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=$orderId")
         return ShipmentResponse.from(shipment)
     }
 
@@ -157,8 +158,8 @@ class ShippingService(
         }
 
         val shipment =
-            shipmentRepository.findById(shipmentId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: id=$shipmentId") }
+            shipmentRepository.findByIdOrNull(shipmentId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: id=$shipmentId")
 
         // 택배사 API로 최신 상태 조회
         if (shipment.carrier != null && shipment.trackingNumber != null) {
@@ -299,7 +300,7 @@ class ShippingService(
     fun confirmOrder(orderId: Long): ShipmentResponse {
         val shipment =
             shipmentRepository.findByOrderId(orderId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=$orderId") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=$orderId")
 
         if (shipment.status != ShippingStatus.DELIVERED) {
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 구매확정할 수 있습니다: status=${shipment.status}")

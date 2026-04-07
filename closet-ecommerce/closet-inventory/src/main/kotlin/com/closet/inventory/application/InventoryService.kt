@@ -348,9 +348,7 @@ class InventoryService(
         for ((productOptionId, quantity) in reserved) {
             try {
                 inventoryLockService.withLock(productOptionId) {
-                    val inventory =
-                        inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId)
-                            ?: return@withLock
+                    val inventory = inventoryRepository.findByProductOptionIdAndDeletedAtIsNull(productOptionId) ?: return@withLock
 
                     val beforeTotal = inventory.totalQuantity
                     val beforeAvailable = inventory.availableQuantity

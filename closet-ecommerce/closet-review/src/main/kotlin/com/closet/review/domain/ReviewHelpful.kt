@@ -22,7 +22,6 @@ import java.time.ZonedDateTime
 class ReviewHelpful(
     @Column(name = "review_id", nullable = false)
     val reviewId: Long,
-
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
 ) {
@@ -35,7 +34,10 @@ class ReviewHelpful(
     lateinit var createdAt: ZonedDateTime
 
     companion object {
-        fun create(reviewId: Long, memberId: Long): ReviewHelpful {
+        fun create(
+            reviewId: Long,
+            memberId: Long,
+        ): ReviewHelpful {
             return ReviewHelpful(reviewId = reviewId, memberId = memberId)
         }
     }

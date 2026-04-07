@@ -65,11 +65,12 @@ class ReviewSummaryTest : BehaviorSpec({
     Given("리뷰 삭제 시 집계 갱신") {
 
         When("리뷰를 삭제하면") {
-            val summary = ReviewSummary.create(10L).apply {
-                addReview(5, FitType.PERFECT, true)
-                addReview(4, FitType.SMALL, false)
-                addReview(3, null, true)
-            }
+            val summary =
+                ReviewSummary.create(10L).apply {
+                    addReview(5, FitType.PERFECT, true)
+                    addReview(4, FitType.SMALL, false)
+                    addReview(3, null, true)
+                }
             summary.removeReview(5, FitType.PERFECT, true)
 
             Then("해당 리뷰의 정보가 차감된다") {

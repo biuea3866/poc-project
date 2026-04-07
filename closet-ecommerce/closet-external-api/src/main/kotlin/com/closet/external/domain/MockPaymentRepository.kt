@@ -1,12 +1,11 @@
 package com.closet.external.domain
 
 import org.springframework.data.jpa.repository.JpaRepository
-import java.util.Optional
 
 interface MockPaymentRepository : JpaRepository<MockPayment, Long> {
-    fun findByPaymentKey(paymentKey: String): Optional<MockPayment>
+    fun findByPaymentKey(paymentKey: String): MockPayment?
 
-    fun findByOrderId(orderId: String): Optional<MockPayment>
+    fun findByOrderId(orderId: String): MockPayment?
 
     fun findByProviderAndStatus(
         provider: String,
@@ -15,9 +14,9 @@ interface MockPaymentRepository : JpaRepository<MockPayment, Long> {
 }
 
 interface MockShipmentRepository : JpaRepository<MockShipment, Long> {
-    fun findByTrackingNumber(trackingNumber: String): Optional<MockShipment>
+    fun findByTrackingNumber(trackingNumber: String): MockShipment?
 
-    fun findByOrderId(orderId: String): Optional<MockShipment>
+    fun findByOrderId(orderId: String): MockShipment?
 
     fun findByCarrier(carrier: String): List<MockShipment>
 

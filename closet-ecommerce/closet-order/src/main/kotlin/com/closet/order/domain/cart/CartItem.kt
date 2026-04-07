@@ -21,16 +21,12 @@ import java.time.ZonedDateTime
 class CartItem(
     @Column(name = "cart_id", nullable = false)
     val cartId: Long,
-
     @Column(name = "product_id", nullable = false)
     val productId: Long,
-
     @Column(name = "product_option_id", nullable = false)
     val productOptionId: Long,
-
     @Column(name = "quantity", nullable = false)
     var quantity: Int,
-
     @Embedded
     @AttributeOverride(name = "amount", column = Column(name = "unit_price", nullable = false, columnDefinition = "DECIMAL(15,2)"))
     val unitPrice: Money,

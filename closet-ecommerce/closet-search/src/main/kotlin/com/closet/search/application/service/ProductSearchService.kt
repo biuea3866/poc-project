@@ -13,6 +13,7 @@ import com.closet.search.infrastructure.repository.ProductSearchRepositoryCustom
 import mu.KotlinLogging
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.ZonedDateTime
@@ -140,7 +141,7 @@ class ProductSearchService(
         colors: List<String>,
         imageUrl: String?,
     ) {
-        val existing = productSearchRepository.findById(productId).orElse(null)
+        val existing = productSearchRepository.findByIdOrNull(productId)
 
         val document =
             ProductDocument(
@@ -192,7 +193,7 @@ class ProductSearchService(
         reviewCount: Int,
         avgRating: Double,
     ) {
-        val existing = productSearchRepository.findById(productId).orElse(null)
+        val existing = productSearchRepository.findByIdOrNull(productId)
         if (existing == null) {
             logger.warn { "리뷰 집계 업데이트 대상 상품 인덱스 없음: productId=$productId" }
             return
@@ -227,7 +228,7 @@ class ProductSearchService(
         productId: Long,
         salesCount: Int,
     ) {
-        val existing = productSearchRepository.findById(productId).orElse(null)
+        val existing = productSearchRepository.findByIdOrNull(productId)
         if (existing == null) {
             logger.warn { "판매량 업데이트 대상 상품 인덱스 없음: productId=$productId" }
             return

@@ -43,7 +43,7 @@ class ReturnServiceTest : BehaviorSpec({
 
         When("CHANGE_OF_MIND 사유로 반품 신청") {
             val deliveredShipment = createDeliveredShipment(orderId = 1L)
-            every { shipmentRepository.findByOrderId(1L) } returns Optional.of(deliveredShipment)
+            every { shipmentRepository.findByOrderId(1L) } returns deliveredShipment
 
             val policy =
                 ShippingFeePolicy(
@@ -52,7 +52,7 @@ class ReturnServiceTest : BehaviorSpec({
                     payer = "BUYER",
                     fee = Money.of(3000),
                 )
-            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", "CHANGE_OF_MIND") } returns Optional.of(policy)
+            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", "CHANGE_OF_MIND") } returns policy
             every { returnRequestRepository.save(any()) } answers { firstArg() }
 
             val response =
@@ -90,7 +90,7 @@ class ReturnServiceTest : BehaviorSpec({
 
         When("DEFECTIVE 사유로 반품 신청") {
             val deliveredShipment = createDeliveredShipment(orderId = 1L)
-            every { shipmentRepository.findByOrderId(1L) } returns Optional.of(deliveredShipment)
+            every { shipmentRepository.findByOrderId(1L) } returns deliveredShipment
 
             val policy =
                 ShippingFeePolicy(
@@ -99,7 +99,7 @@ class ReturnServiceTest : BehaviorSpec({
                     payer = "SELLER",
                     fee = Money.ZERO,
                 )
-            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", "DEFECTIVE") } returns Optional.of(policy)
+            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", "DEFECTIVE") } returns policy
             every { returnRequestRepository.save(any()) } answers { firstArg() }
 
             val response =
@@ -231,7 +231,7 @@ class ReturnServiceTest : BehaviorSpec({
                     address = "서울",
                     detailAddress = "101호",
                 )
-            every { shipmentRepository.findByOrderId(100L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(100L) } returns shipment
 
             Then("BusinessException 발생 (배송 완료 상태에서만 가능)") {
                 shouldThrow<BusinessException> {
@@ -257,7 +257,7 @@ class ReturnServiceTest : BehaviorSpec({
 
         When("배송 완료 후 8일 경과") {
             val shipment = createDeliveredShipment(orderId = 101L, daysAgo = 8)
-            every { shipmentRepository.findByOrderId(101L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(101L) } returns shipment
 
             Then("BusinessException 발생 (기한 경과)") {
                 shouldThrow<BusinessException> {

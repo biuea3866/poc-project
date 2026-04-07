@@ -1,0 +1,22 @@
+{
+  "phase": "idle",
+  "ticket": {
+    "id": null,
+    "title": null,
+    "url": null
+  },
+  "test_files": [],
+  "impl_files": [],
+  "review": {
+    "status": null,
+    "reviewer": null,
+    "attempts": 0,
+    "comments": []
+  },
+  "pr": {
+    "url": null,
+    "number": null
+  },
+  "started_at": null,
+  "updated_at": "2026-04-05T16:21:29.891958+00:00"
+}

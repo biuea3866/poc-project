@@ -43,7 +43,7 @@ class ExchangeServiceTest : BehaviorSpec({
 
         When("CHANGE_OF_MIND 사유로 교환 신청") {
             val shipment = createDeliveredShipment(orderId = 1L)
-            every { shipmentRepository.findByOrderId(1L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(1L) } returns shipment
 
             val policy =
                 ShippingFeePolicy(
@@ -57,7 +57,7 @@ class ExchangeServiceTest : BehaviorSpec({
                     "EXCHANGE",
                     "CHANGE_OF_MIND",
                 )
-            } returns Optional.of(policy)
+            } returns policy
             every { exchangeRequestRepository.save(any()) } answers { firstArg() }
 
             val response =
@@ -104,7 +104,7 @@ class ExchangeServiceTest : BehaviorSpec({
 
         When("DEFECTIVE 사유로 교환 신청") {
             val shipment = createDeliveredShipment(orderId = 2L)
-            every { shipmentRepository.findByOrderId(2L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(2L) } returns shipment
 
             val policy =
                 ShippingFeePolicy(
@@ -113,7 +113,7 @@ class ExchangeServiceTest : BehaviorSpec({
                     payer = "SELLER",
                     fee = Money.ZERO,
                 )
-            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("EXCHANGE", "DEFECTIVE") } returns Optional.of(policy)
+            every { shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("EXCHANGE", "DEFECTIVE") } returns policy
             every { exchangeRequestRepository.save(any()) } answers { firstArg() }
 
             val response =
@@ -142,7 +142,7 @@ class ExchangeServiceTest : BehaviorSpec({
 
         When("원본과 동일한 옵션 ID로 교환 신청") {
             val shipment = createDeliveredShipment(orderId = 3L)
-            every { shipmentRepository.findByOrderId(3L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(3L) } returns shipment
 
             Then("BusinessException 발생") {
                 shouldThrow<BusinessException> {
@@ -179,7 +179,7 @@ class ExchangeServiceTest : BehaviorSpec({
                     address = "서울",
                     detailAddress = "101호",
                 )
-            every { shipmentRepository.findByOrderId(4L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(4L) } returns shipment
 
             Then("BusinessException 발생 (배송 완료 상태에서만 가능)") {
                 shouldThrow<BusinessException> {
@@ -205,7 +205,7 @@ class ExchangeServiceTest : BehaviorSpec({
 
         When("배송 완료 후 8일 경과") {
             val shipment = createDeliveredShipment(orderId = 5L, daysAgo = 8)
-            every { shipmentRepository.findByOrderId(5L) } returns Optional.of(shipment)
+            every { shipmentRepository.findByOrderId(5L) } returns shipment
 
             Then("BusinessException 발생 (기한 경과)") {
                 shouldThrow<BusinessException> {

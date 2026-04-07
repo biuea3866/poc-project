@@ -9,7 +9,8 @@ enum class OrderItemStatus {
     RETURN_REQUESTED,
     RETURNED,
     EXCHANGE_REQUESTED,
-    EXCHANGE_COMPLETED;
+    EXCHANGE_COMPLETED,
+    ;
 
     fun canTransitionTo(target: OrderItemStatus): Boolean {
         return when (this) {

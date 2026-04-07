@@ -6,14 +6,12 @@ import com.closet.order.consumer.event.ShippingEvent
 import com.closet.order.domain.order.Order
 import com.closet.order.domain.order.OrderItem
 import com.closet.order.domain.order.OrderStatus
-import com.closet.order.domain.order.OrderStatusHistory
 import com.closet.order.repository.OrderRepository
 import com.closet.order.repository.OrderStatusHistoryRepository
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.verify
 
 class ShippingStatusConsumerTest : BehaviorSpec({
 
@@ -21,27 +19,29 @@ class ShippingStatusConsumerTest : BehaviorSpec({
     val orderStatusHistoryRepository = mockk<OrderStatusHistoryRepository>(relaxed = true)
     val idempotencyChecker = mockk<IdempotencyChecker>()
 
-    val consumer = ShippingStatusConsumer(
-        orderRepository = orderRepository,
-        orderStatusHistoryRepository = orderStatusHistoryRepository,
-        idempotencyChecker = idempotencyChecker,
-    )
+    val consumer =
+        ShippingStatusConsumer(
+            orderRepository = orderRepository,
+            orderStatusHistoryRepository = orderStatusHistoryRepository,
+            idempotencyChecker = idempotencyChecker,
+        )
 
     fun createOrder(): Order {
         return Order.create(
             memberId = 1L,
             sellerId = 10L,
-            items = listOf(
-                OrderItem.create(
-                    productId = 100L,
-                    productOptionId = 1000L,
-                    productName = "슬림핏 청바지",
-                    optionName = "M / 블루",
-                    categoryId = 5L,
-                    quantity = 1,
-                    unitPrice = Money.of(39900),
-                )
-            ),
+            items =
+                listOf(
+                    OrderItem.create(
+                        productId = 100L,
+                        productOptionId = 1000L,
+                        productName = "슬림핏 청바지",
+                        optionName = "M / 블루",
+                        categoryId = 5L,
+                        quantity = 1,
+                        unitPrice = Money.of(39900),
+                    ),
+                ),
             receiverName = "홍길동",
             receiverPhone = "010-1234-5678",
             zipCode = "06234",
@@ -50,7 +50,11 @@ class ShippingStatusConsumerTest : BehaviorSpec({
         )
     }
 
-    fun makeEvent(eventId: String, orderId: Long, shippingStatus: String): ShippingEvent {
+    fun makeEvent(
+        eventId: String,
+        orderId: Long,
+        shippingStatus: String,
+    ): ShippingEvent {
         return ShippingEvent(
             eventType = "ShippingStatusChanged",
             eventId = eventId,
@@ -62,7 +66,7 @@ class ShippingStatusConsumerTest : BehaviorSpec({
     Given("PAID 상태 주문에 READY 배송 이벤트 수신") {
         val order = createOrder()
         order.place() // PENDING -> STOCK_RESERVED
-        order.pay()   // STOCK_RESERVED -> PAID
+        order.pay() // STOCK_RESERVED -> PAID
 
         every { orderRepository.findByIdAndDeletedAtIsNull(any()) } returns order
         every { orderStatusHistoryRepository.save(any()) } answers { firstArg() }
@@ -166,10 +170,11 @@ class ShippingStatusConsumerTest : BehaviorSpec({
     }
 
     Given("처리하지 않는 eventType 수신") {
-        val event = ShippingEvent(
-            eventType = "ReturnApproved",
-            orderId = 1L,
-        )
+        val event =
+            ShippingEvent(
+                eventType = "ReturnApproved",
+                orderId = 1L,
+            )
 
         When("ReturnApproved 이벤트 수신") {
             consumer.handle(event)

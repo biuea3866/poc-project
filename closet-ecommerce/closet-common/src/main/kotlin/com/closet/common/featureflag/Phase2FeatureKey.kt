@@ -1,5 +1,7 @@
 package com.closet.common.featureflag
 
+import com.closet.common.event.ClosetTopics
+
 /**
  * Phase 2 Feature Flag 키 enum.
  *
@@ -33,7 +35,7 @@ enum class Phase2FeatureKey(
     /** 검색 인덱싱 활성화 (ES 인덱싱 파이프라인) */
     SEARCH_INDEXING_ENABLED(
         key = "SEARCH_INDEXING_ENABLED",
-        description = "event.closet.product Consumer -> ES 인덱싱 파이프라인 활성화",
+        description = "${ClosetTopics.PRODUCT} Consumer -> ES 인덱싱 파이프라인 활성화",
     ),
 
     // === Sprint 6 ===

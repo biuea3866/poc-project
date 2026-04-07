@@ -16,7 +16,6 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
-import java.util.Optional
 
 class PointServiceTest : BehaviorSpec({
 
@@ -31,7 +30,7 @@ class PointServiceTest : BehaviorSpec({
     Given("적립금 잔액 조회") {
         val balance = PointBalance.create(memberId = 1L)
 
-        every { pointBalanceRepository.findByMemberId(1L) } returns Optional.of(balance)
+        every { pointBalanceRepository.findByMemberId(1L) } returns balance
 
         When("회원의 잔액을 조회하면") {
             val response = pointService.getBalance(1L)
@@ -45,7 +44,7 @@ class PointServiceTest : BehaviorSpec({
     }
 
     Given("적립금 잔액이 없는 회원") {
-        every { pointBalanceRepository.findByMemberId(99L) } returns Optional.empty()
+        every { pointBalanceRepository.findByMemberId(99L) } returns null
 
         val balanceSlot = slot<PointBalance>()
         every { pointBalanceRepository.save(capture(balanceSlot)) } answers { balanceSlot.captured }
@@ -64,7 +63,7 @@ class PointServiceTest : BehaviorSpec({
     Given("적립금 적립") {
         val balance = PointBalance.create(memberId = 1L)
 
-        every { pointBalanceRepository.findByMemberId(1L) } returns Optional.of(balance)
+        every { pointBalanceRepository.findByMemberId(1L) } returns balance
         every { pointBalanceRepository.save(any()) } answers { firstArg() }
 
         val historySlot = slot<PointHistory>()
@@ -95,7 +94,7 @@ class PointServiceTest : BehaviorSpec({
         val balance = PointBalance.create(memberId = 2L)
         balance.earn(5000) // 5000원 적립
 
-        every { pointBalanceRepository.findByMemberId(2L) } returns Optional.of(balance)
+        every { pointBalanceRepository.findByMemberId(2L) } returns balance
         every { pointBalanceRepository.save(any()) } answers { firstArg() }
 
         val historySlot = slot<PointHistory>()
@@ -138,7 +137,7 @@ class PointServiceTest : BehaviorSpec({
         val balance = PointBalance.create(memberId = 3L)
         balance.earn(5000)
 
-        every { pointBalanceRepository.findByMemberId(3L) } returns Optional.of(balance)
+        every { pointBalanceRepository.findByMemberId(3L) } returns balance
         every { pointBalanceRepository.save(any()) } answers { firstArg() }
 
         val historySlot = slot<PointHistory>()
@@ -167,7 +166,7 @@ class PointServiceTest : BehaviorSpec({
         balance.earn(5000)
         balance.use(3000) // 잔액: 2000
 
-        every { pointBalanceRepository.findByMemberId(4L) } returns Optional.of(balance)
+        every { pointBalanceRepository.findByMemberId(4L) } returns balance
         every { pointBalanceRepository.save(any()) } answers { firstArg() }
 
         val historySlot = slot<PointHistory>()

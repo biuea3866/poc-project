@@ -31,7 +31,6 @@ class AutoConfirmBatchJob(
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
-
     companion object {
         private const val CONFIRM_HOURS = 168L // 7일
     }
@@ -45,7 +44,11 @@ class AutoConfirmBatchJob(
         val cutoff = ZonedDateTime.now().minusHours(CONFIRM_HOURS)
         logger.info { "자동 구매확정 배치 시작: cutoff=$cutoff" }
 
-        val candidates = orderRepository.findAutoConfirmCandidates(cutoff)
+        val candidates =
+            orderRepository.findByStatusAndDeletedAtIsNullAndDeliveredAtIsNotNullAndDeliveredAtLessThanEqual(
+                status = OrderStatus.DELIVERED,
+                cutoff = cutoff,
+            )
 
         var confirmedCount = 0
         var skippedCount = 0
@@ -72,7 +75,7 @@ class AutoConfirmBatchJob(
                         fromStatus = previousStatus,
                         toStatus = OrderStatus.CONFIRMED,
                         changedBy = "auto-confirm-batch",
-                    )
+                    ),
                 )
 
                 // OrderConfirmedEvent 발행
@@ -80,7 +83,7 @@ class AutoConfirmBatchJob(
                     com.closet.order.domain.event.OrderConfirmedEvent(
                         orderId = order.id,
                         memberId = order.memberId,
-                    )
+                    ),
                 )
 
                 confirmedCount++

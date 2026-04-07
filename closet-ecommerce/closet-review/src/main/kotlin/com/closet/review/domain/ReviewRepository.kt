@@ -3,55 +3,79 @@ package com.closet.review.domain
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
-import org.springframework.data.jpa.repository.Query
 
 interface ReviewRepository : JpaRepository<Review, Long> {
+    fun findByProductIdAndStatusInOrderByCreatedAtDesc(
+        productId: Long,
+        statuses: Collection<ReviewStatus>,
+        pageable: Pageable,
+    ): Page<Review>
 
-    fun findByProductIdAndStatusOrderByCreatedAtDesc(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByMemberIdAndStatusNotOrderByCreatedAtDesc(
+        memberId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    fun findByProductIdAndStatusInOrderByCreatedAtDesc(productId: Long, statuses: Collection<ReviewStatus>, pageable: Pageable): Page<Review>
+    fun existsByOrderItemIdAndMemberIdAndStatusNot(
+        orderItemId: Long,
+        memberId: Long,
+        status: ReviewStatus,
+    ): Boolean
 
-    fun findByMemberIdAndStatusNotOrderByCreatedAtDesc(memberId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByIdAndMemberId(
+        id: Long,
+        memberId: Long,
+    ): Review?
 
-    fun existsByOrderItemIdAndMemberIdAndStatusNot(orderItemId: Long, memberId: Long, status: ReviewStatus): Boolean
+    fun countByProductIdAndStatus(
+        productId: Long,
+        status: ReviewStatus,
+    ): Long
 
-    fun findByIdAndMemberId(id: Long, memberId: Long): Review?
+    fun findByProductIdLatest(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusOrderByCreatedAtDesc(productId, status, pageable)
 
-    fun countByProductIdAndStatus(productId: Long, status: ReviewStatus): Long
+    fun findByProductIdAndStatusOrderByCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    // 정렬: 최신순
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status ORDER BY r.createdAt DESC")
-    fun findByProductIdLatest(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByProductIdAndStatusOrderByRatingDescCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    // 정렬: 별점순 (높은 별점 우선)
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status ORDER BY r.rating DESC, r.createdAt DESC")
-    fun findByProductIdRating(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByProductIdAndStatusOrderByHelpfulCountDescCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    // 정렬: 도움이 됐어요 순
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status ORDER BY r.helpfulCount DESC, r.createdAt DESC")
-    fun findByProductIdHelpful(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByProductIdAndStatusAndHasImageTrueOrderByCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    // 포토리뷰 필터 + 정렬
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status AND r.hasImage = true ORDER BY r.createdAt DESC")
-    fun findByProductIdPhotoOnlyLatest(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByProductIdAndStatusAndHasImageTrueOrderByRatingDescCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status AND r.hasImage = true ORDER BY r.rating DESC, r.createdAt DESC")
-    fun findByProductIdPhotoOnlyRating(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
+    fun findByProductIdAndStatusAndHasImageTrueOrderByHelpfulCountDescCreatedAtDesc(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review>
 
-    @Query("SELECT r FROM Review r WHERE r.productId = :productId AND r.status = :status AND r.hasImage = true ORDER BY r.helpfulCount DESC, r.createdAt DESC")
-    fun findByProductIdPhotoOnlyHelpful(productId: Long, status: ReviewStatus, pageable: Pageable): Page<Review>
-
-    // "비슷한 체형" 필터 (키/몸무게 +-5 범위, US-802)
-    @Query("""
-        SELECT r FROM Review r
-        WHERE r.productId = :productId
-          AND r.status = :status
-          AND r.height IS NOT NULL AND r.weight IS NOT NULL
-          AND r.height BETWEEN :minHeight AND :maxHeight
-          AND r.weight BETWEEN :minWeight AND :maxWeight
-        ORDER BY r.createdAt DESC
-    """)
-    fun findBySimilarBody(
+    fun findByProductIdAndStatusAndHeightIsNotNullAndWeightIsNotNullAndHeightBetweenAndWeightBetweenOrderByCreatedAtDesc(
         productId: Long,
         status: ReviewStatus,
         minHeight: Int,
@@ -60,4 +84,53 @@ interface ReviewRepository : JpaRepository<Review, Long> {
         maxWeight: Int,
         pageable: Pageable,
     ): Page<Review>
+
+    fun findByProductIdRating(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusOrderByRatingDescCreatedAtDesc(productId, status, pageable)
+
+    fun findByProductIdHelpful(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusOrderByHelpfulCountDescCreatedAtDesc(productId, status, pageable)
+
+    fun findByProductIdPhotoOnlyLatest(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusAndHasImageTrueOrderByCreatedAtDesc(productId, status, pageable)
+
+    fun findByProductIdPhotoOnlyRating(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusAndHasImageTrueOrderByRatingDescCreatedAtDesc(productId, status, pageable)
+
+    fun findByProductIdPhotoOnlyHelpful(
+        productId: Long,
+        status: ReviewStatus,
+        pageable: Pageable,
+    ): Page<Review> = findByProductIdAndStatusAndHasImageTrueOrderByHelpfulCountDescCreatedAtDesc(productId, status, pageable)
+
+    fun findBySimilarBody(
+        productId: Long,
+        status: ReviewStatus,
+        minHeight: Int,
+        maxHeight: Int,
+        minWeight: Int,
+        maxWeight: Int,
+        pageable: Pageable,
+    ): Page<Review> =
+        findByProductIdAndStatusAndHeightIsNotNullAndWeightIsNotNullAndHeightBetweenAndWeightBetweenOrderByCreatedAtDesc(
+            productId = productId,
+            status = status,
+            minHeight = minHeight,
+            maxHeight = maxHeight,
+            minWeight = minWeight,
+            maxWeight = maxWeight,
+            pageable = pageable,
+        )
 }

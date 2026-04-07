@@ -10,7 +10,8 @@ package com.closet.review.domain
 enum class ReviewStatus {
     VISIBLE,
     HIDDEN,
-    DELETED;
+    DELETED,
+    ;
 
     fun canTransitionTo(target: ReviewStatus): Boolean {
         return when (this) {

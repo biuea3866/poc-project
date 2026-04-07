@@ -51,6 +51,19 @@ def find_files(scan_dirs, file_glob):
     return files
 
 
+def matches_any_glob(path: str, glob_value):
+    """단일 glob 또는 쉼표/리스트 기반 다중 glob 매칭."""
+    if not glob_value:
+        return False
+
+    if isinstance(glob_value, str):
+        patterns = [pattern.strip() for pattern in glob_value.split(",") if pattern.strip()]
+    else:
+        patterns = [pattern.strip() for pattern in glob_value if pattern and pattern.strip()]
+
+    return any(fnmatch(path, pattern) for pattern in patterns)
+
+
 def scan_file(file_path, rules):
     """파일 하나를 모든 규칙에 대해 스캔."""
     violations = []
@@ -59,28 +72,28 @@ def scan_file(file_path, rules):
     except (UnicodeDecodeError, PermissionError):
         return violations
 
-    lines = content.split("\n")
-
     for rule in rules:
         file_glob = rule.get("file_glob", "*")
         if not fnmatch(file_path.name, file_glob):
             continue
 
         exclude_glob = rule.get("exclude_glob")
-        if exclude_glob and fnmatch(str(file_path), exclude_glob):
+        relative_path = str(file_path.relative_to(PROJECT_ROOT))
+        if matches_any_glob(relative_path, exclude_glob):
             continue
 
         pattern = rule["pattern"]
-        for line_num, line in enumerate(lines, 1):
-            if re.search(pattern, line):
-                violations.append({
-                    "rule_id": rule["id"],
-                    "file": str(file_path.relative_to(PROJECT_ROOT)),
-                    "line": line_num,
-                    "content": line.strip(),
-                    "message": rule["message"],
-                    "severity": rule.get("severity", "error"),
-                })
+        for match in re.finditer(pattern, content, re.MULTILINE):
+            line_num = content.count("\n", 0, match.start()) + 1
+            matched_text = match.group(0).strip().replace("\n", "\\n")
+            violations.append({
+                "rule_id": rule["id"],
+                "file": relative_path,
+                "line": line_num,
+                "content": matched_text,
+                "message": rule["message"],
+                "severity": rule.get("severity", "error"),
+            })
 
     return violations
 
@@ -195,7 +208,7 @@ def cmd_fix(args):
         files = find_files(scan_dirs, file_glob)
 
         for f in files:
-            if exclude_glob and fnmatch(str(f), exclude_glob):
+            if matches_any_glob(str(f.relative_to(PROJECT_ROOT)), exclude_glob):
                 continue
 
             try:

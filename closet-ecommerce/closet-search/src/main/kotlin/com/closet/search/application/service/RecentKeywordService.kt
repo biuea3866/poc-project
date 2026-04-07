@@ -59,9 +59,7 @@ class RecentKeywordService(
         size: Int = 20,
     ): List<String> {
         val key = "$KEY_PREFIX$memberId"
-        val results =
-            redisTemplate.opsForList().range(key, 0, (size - 1).toLong())
-                ?: emptyList()
+        val results = redisTemplate.opsForList().range(key, 0, (size - 1).toLong()) ?: emptyList()
         return results
     }
 

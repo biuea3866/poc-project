@@ -57,7 +57,10 @@ data class OrderResponse(
     val items: List<OrderItemResponse>,
 ) {
     companion object {
-        fun from(order: Order, items: List<OrderItem>): OrderResponse {
+        fun from(
+            order: Order,
+            items: List<OrderItem>,
+        ): OrderResponse {
             return OrderResponse(
                 id = order.id,
                 orderNumber = order.orderNumber,

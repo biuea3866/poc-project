@@ -11,6 +11,7 @@ import com.closet.display.domain.enums.SnapStatus
 import com.closet.display.domain.repository.SnapLikeRepository
 import com.closet.display.domain.repository.SnapRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -117,8 +118,8 @@ class SnapService(
     }
 
     private fun findSnapById(id: Long): Snap {
-        return snapRepository.findById(id)
-            .filter { !it.isDeleted() }
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "스냅을 찾을 수 없습니다: $id") }
+        return snapRepository.findByIdOrNull(id)
+            ?.takeUnless { it.isDeleted() }
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "스냅을 찾을 수 없습니다: $id")
     }
 }

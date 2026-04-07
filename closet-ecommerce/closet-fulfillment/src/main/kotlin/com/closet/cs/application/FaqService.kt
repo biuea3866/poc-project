@@ -8,6 +8,7 @@ import com.closet.cs.domain.repository.FaqRepository
 import com.closet.cs.presentation.dto.CreateFaqRequest
 import com.closet.cs.presentation.dto.FaqResponse
 import com.closet.cs.presentation.dto.UpdateFaqRequest
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -38,8 +39,8 @@ class FaqService(
         request: UpdateFaqRequest,
     ): FaqResponse {
         val faq =
-            faqRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FAQ를 찾을 수 없습니다") }
+            faqRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FAQ를 찾을 수 없습니다")
 
         faq.updateContent(
             question = request.question,
@@ -66,8 +67,8 @@ class FaqService(
     @Transactional
     fun toggleVisibility(id: Long): FaqResponse {
         val faq =
-            faqRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FAQ를 찾을 수 없습니다") }
+            faqRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "FAQ를 찾을 수 없습니다")
 
         if (faq.isVisible) faq.hide() else faq.show()
         return FaqResponse.from(faq)

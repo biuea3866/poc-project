@@ -6,7 +6,7 @@ CREATE TABLE IF NOT EXISTS outbox_event (
     event_type     VARCHAR(100)  NOT NULL                 COMMENT '이벤트 타입 (예: product.created)',
     topic          VARCHAR(200)  NOT NULL                 COMMENT 'Kafka 토픽',
     partition_key  VARCHAR(100)  NOT NULL                 COMMENT 'Kafka 파티션 키 (productId 기반 순서 보장)',
-    payload        TEXT          NOT NULL                 COMMENT 'JSON 페이로드',
+    payload        TEXT          NOT NULL                 COMMENT '이벤트 페이로드 문자열',
     status         VARCHAR(20)   NOT NULL                 COMMENT '상태 (PENDING, PUBLISHED, FAILED)',
     created_at     DATETIME(6)   NOT NULL                 COMMENT '생성일시',
     published_at   DATETIME(6)   NULL                     COMMENT '발행일시',

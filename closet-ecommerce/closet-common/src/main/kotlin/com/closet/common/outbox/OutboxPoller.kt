@@ -28,7 +28,7 @@ class OutboxPoller(
     @Transactional
     fun poll() {
         val pendingEvents =
-            outboxEventRepository.findByStatusForUpdate(
+            outboxEventRepository.findByStatusOrderByCreatedAtAsc(
                 status = OutboxEventStatus.PENDING,
                 pageable = PageRequest.of(0, BATCH_SIZE),
             )

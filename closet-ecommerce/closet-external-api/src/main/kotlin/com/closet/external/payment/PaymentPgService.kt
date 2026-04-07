@@ -44,9 +44,7 @@ class PaymentPgService(
         paymentKey: String,
         method: String,
     ): MockPayment {
-        val payment =
-            paymentRepository.findByPaymentKey(paymentKey)
-                .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
+        val payment = paymentRepository.findByPaymentKey(paymentKey) ?: throw IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey")
         payment.approve(method, "A${System.currentTimeMillis() % 100000000}")
         return payment
     }
@@ -57,14 +55,12 @@ class PaymentPgService(
         reason: String,
         cancelAmount: Long? = null,
     ): MockPayment {
-        val payment =
-            paymentRepository.findByPaymentKey(paymentKey)
-                .orElseThrow { IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey") }
+        val payment = paymentRepository.findByPaymentKey(paymentKey) ?: throw IllegalArgumentException("결제 정보를 찾을 수 없습니다: $paymentKey")
         payment.cancel(reason, cancelAmount)
         return payment
     }
 
-    fun findByPaymentKey(paymentKey: String): MockPayment? = paymentRepository.findByPaymentKey(paymentKey).orElse(null)
+    fun findByPaymentKey(paymentKey: String): MockPayment? = paymentRepository.findByPaymentKey(paymentKey)
 
-    fun findByOrderId(orderId: String): MockPayment? = paymentRepository.findByOrderId(orderId).orElse(null)
+    fun findByOrderId(orderId: String): MockPayment? = paymentRepository.findByOrderId(orderId)
 }

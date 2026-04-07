@@ -124,18 +124,20 @@ data class ReviewSummaryResponse(
                 productId = summary.productId,
                 totalCount = summary.totalCount,
                 avgRating = summary.avgRating,
-                ratingDistribution = mapOf(
-                    1 to summary.rating1Count,
-                    2 to summary.rating2Count,
-                    3 to summary.rating3Count,
-                    4 to summary.rating4Count,
-                    5 to summary.rating5Count,
-                ),
-                fitDistribution = mapOf(
-                    "SMALL" to summary.fitSmallCount,
-                    "PERFECT" to summary.fitPerfectCount,
-                    "LARGE" to summary.fitLargeCount,
-                ),
+                ratingDistribution =
+                    mapOf(
+                        1 to summary.rating1Count,
+                        2 to summary.rating2Count,
+                        3 to summary.rating3Count,
+                        4 to summary.rating4Count,
+                        5 to summary.rating5Count,
+                    ),
+                fitDistribution =
+                    mapOf(
+                        "SMALL" to summary.fitSmallCount,
+                        "PERFECT" to summary.fitPerfectCount,
+                        "LARGE" to summary.fitLargeCount,
+                    ),
                 photoReviewCount = summary.photoReviewCount,
             )
         }

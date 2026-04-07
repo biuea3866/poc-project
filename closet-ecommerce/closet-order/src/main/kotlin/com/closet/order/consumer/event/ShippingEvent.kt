@@ -12,7 +12,6 @@ data class ShippingEvent(
     val orderId: Long? = null,
     val shippingStatus: String? = null,
 ) {
-
     fun toStatusChangedEvent(): ShippingStatusChangedEvent {
         return ShippingStatusChangedEvent(
             eventId = eventId ?: "",

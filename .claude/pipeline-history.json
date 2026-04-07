@@ -1,0 +1,36 @@
+{
+  "runs": [
+    {
+      "pipeline": "implementation",
+      "name": "상품 검색 필터 개선",
+      "current_phase": 0,
+      "total_phases": 5,
+      "phases": [
+        {
+          "name": "티켓 분석",
+          "gate": "ticket_required"
+        },
+        {
+          "name": "테스트 작성 (Red)",
+          "gate": "test_first"
+        },
+        {
+          "name": "코드 생성 (Green)",
+          "gate": "tests_exist"
+        },
+        {
+          "name": "컴파일 + 테스트 검증",
+          "gate": "build_pass"
+        },
+        {
+          "name": "리뷰 + PR 생성",
+          "gate": "review_required"
+        }
+      ],
+      "started_at": "2026-04-05T15:19:43.012126+00:00",
+      "phase_history": [],
+      "status": "aborted",
+      "aborted_at": "2026-04-05T15:19:43.148318+00:00"
+    }
+  ]
+}

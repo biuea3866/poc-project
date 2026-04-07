@@ -8,6 +8,7 @@ import com.closet.promotion.presentation.dto.CreateTimeSaleRequest
 import com.closet.promotion.presentation.dto.TimeSaleResponse
 import com.closet.promotion.repository.TimeSaleRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -42,8 +43,8 @@ class TimeSaleService(
     @Transactional
     fun purchaseTimeSale(timeSaleId: Long): TimeSaleResponse {
         val timeSale =
-            timeSaleRepository.findById(timeSaleId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "타임세일을 찾을 수 없습니다. id=$timeSaleId") }
+            timeSaleRepository.findByIdOrNull(timeSaleId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "타임세일을 찾을 수 없습니다. id=$timeSaleId")
 
         timeSale.purchase()
 

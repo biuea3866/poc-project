@@ -22,13 +22,10 @@ import java.time.ZonedDateTime
 class ReviewEditHistory(
     @Column(name = "review_id", nullable = false)
     val reviewId: Long,
-
     @Column(name = "previous_content", nullable = false, length = 2000)
     val previousContent: String,
-
     @Column(name = "new_content", nullable = false, length = 2000)
     val newContent: String,
-
     @Column(name = "edit_count", nullable = false)
     val editCount: Int,
 ) {
@@ -41,7 +38,12 @@ class ReviewEditHistory(
     lateinit var createdAt: ZonedDateTime
 
     companion object {
-        fun create(reviewId: Long, previousContent: String, newContent: String, editCount: Int): ReviewEditHistory {
+        fun create(
+            reviewId: Long,
+            previousContent: String,
+            newContent: String,
+            editCount: Int,
+        ): ReviewEditHistory {
             return ReviewEditHistory(
                 reviewId = reviewId,
                 previousContent = previousContent,

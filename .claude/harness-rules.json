@@ -52,6 +52,7 @@
         "id": "no-repository-in-consumer",
         "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
         "file_glob": "*Consumer*.kt",
+        "exclude_glob": "**/src/test/**",
         "message": "Consumer에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
         "severity": "error"
       },
@@ -94,7 +95,7 @@
         "id": "no-kafka-topic-hardcode",
         "pattern": "\"event\\.closet\\.",
         "file_glob": "*.kt",
-        "exclude_glob": "**/ClosetTopics.kt",
+        "exclude_glob": "**/ClosetTopics.kt,**/src/test/**",
         "message": "Kafka 토픽 문자열 하드코딩 금지 — ClosetTopics 상수를 사용하세요.",
         "severity": "error"
       },
@@ -104,6 +105,30 @@
         "file_glob": "*Dto*.kt,*Response*.kt,*Request*.kt",
         "message": "DTO에서 Any 타입 사용 금지 — 구체적인 타입(ZonedDateTime 등)을 사용하세요.",
         "severity": "error"
+      },
+      {
+        "id": "no-java-optional",
+        "pattern": "import\\s+java\\.util\\.Optional|Optional<",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/src/test/**",
+        "message": "Java Optional 사용 금지 — Kotlin nullable 타입(T?)으로 표현하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-optional-api",
+        "pattern": "\\.orElse\\(|\\.orElseGet\\(|\\.orElseThrow\\(",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/src/test/**",
+        "message": "Optional API 사용 금지 — Elvis(?:), if-null 처리, findByIdOrNull 등을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-simple-val-wrap",
+        "pattern": "val\\s+[A-Za-z_][A-Za-z0-9_]*\\s*=\\s*\\n\\s{8,}[a-z_][A-Za-z0-9_]*\\.",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/src/test/**",
+        "message": "단순 조회/대입은 한 줄로 유지하세요. 예: `val order = orderRepository.findByIdAndDeletedAtIsNull(id)`",
+        "severity": "warning"
       }
     ]
   },
@@ -154,14 +179,20 @@
     "description": "기존 코드베이스 전체 스캔 — 규칙 위반 감지 및 리포트",
     "scan_dirs": [
       "closet-ecommerce/closet-common/src",
+      "closet-ecommerce/closet-member/src",
       "closet-ecommerce/closet-order/src",
-      "closet-ecommerce/closet-product/src",
       "closet-ecommerce/closet-payment/src",
-      "closet-ecommerce/closet-shipping/src",
+      "closet-ecommerce/closet-product/src",
       "closet-ecommerce/closet-inventory/src",
       "closet-ecommerce/closet-review/src",
+      "closet-ecommerce/closet-fulfillment/src",
       "closet-ecommerce/closet-search/src",
-      "closet-ecommerce/closet-member/src"
+      "closet-ecommerce/closet-promotion/src",
+      "closet-ecommerce/closet-display/src",
+      "closet-ecommerce/closet-notification/src",
+      "closet-ecommerce/closet-bff/src",
+      "closet-ecommerce/closet-external-api/src",
+      "closet-ecommerce/closet-gateway/src"
     ],
     "auto_fixable": [
       "no-local-datetime",

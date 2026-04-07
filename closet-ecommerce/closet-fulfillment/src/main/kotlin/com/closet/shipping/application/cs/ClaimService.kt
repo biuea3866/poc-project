@@ -5,6 +5,7 @@ import com.closet.common.exception.ErrorCode
 import com.closet.shipping.domain.cs.claim.ClaimRequest
 import com.closet.shipping.domain.cs.claim.ClaimRequestRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -74,7 +75,7 @@ class ClaimService(
     }
 
     private fun findClaimById(claimId: Long): ClaimRequest {
-        return claimRequestRepository.findById(claimId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "클레임을 찾을 수 없습니다. id=$claimId") }
+        return claimRequestRepository.findByIdOrNull(claimId)
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "클레임을 찾을 수 없습니다. id=$claimId")
     }
 }

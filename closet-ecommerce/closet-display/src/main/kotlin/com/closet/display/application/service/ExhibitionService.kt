@@ -10,6 +10,7 @@ import com.closet.display.domain.entity.Exhibition
 import com.closet.display.domain.entity.ExhibitionProduct
 import com.closet.display.domain.repository.ExhibitionRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -95,8 +96,8 @@ class ExhibitionService(
     }
 
     private fun findExhibitionById(id: Long): Exhibition {
-        return exhibitionRepository.findById(id)
-            .filter { !it.isDeleted() }
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "기획전을 찾을 수 없습니다: $id") }
+        return exhibitionRepository.findByIdOrNull(id)
+            ?.takeUnless { it.isDeleted() }
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "기획전을 찾을 수 없습니다: $id")
     }
 }

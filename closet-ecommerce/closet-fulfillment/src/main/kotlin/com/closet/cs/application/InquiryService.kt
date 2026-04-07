@@ -14,6 +14,7 @@ import com.closet.cs.presentation.dto.InquiryReplyResponse
 import com.closet.cs.presentation.dto.InquiryResponse
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -54,8 +55,8 @@ class InquiryService(
     /** 문의 상세 (답변 포함) */
     fun findById(id: Long): InquiryDetailResponse {
         val inquiry =
-            inquiryRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다") }
+            inquiryRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다")
 
         val replies = inquiryReplyRepository.findByInquiryIdOrderByCreatedAtAsc(id)
         return InquiryDetailResponse.from(inquiry, replies)
@@ -68,8 +69,8 @@ class InquiryService(
         request: CreateReplyRequest,
     ): InquiryReplyResponse {
         val inquiry =
-            inquiryRepository.findById(inquiryId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다") }
+            inquiryRepository.findByIdOrNull(inquiryId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다")
 
         // 답변 등록 시 상태를 ANSWERED로 전이
         if (inquiry.status == InquiryStatus.OPEN) {
@@ -91,8 +92,8 @@ class InquiryService(
     @Transactional
     fun close(id: Long) {
         val inquiry =
-            inquiryRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다") }
+            inquiryRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다")
 
         inquiry.close()
     }

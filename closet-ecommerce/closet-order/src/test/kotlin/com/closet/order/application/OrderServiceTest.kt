@@ -30,36 +30,39 @@ class OrderServiceTest : BehaviorSpec({
     val orderStatusHistoryRepository = mockk<OrderStatusHistoryRepository>()
     val eventPublisher = mockk<ApplicationEventPublisher>(relaxed = true)
 
-    val orderService = OrderService(
-        orderRepository = orderRepository,
-        orderItemRepository = orderItemRepository,
-        orderStatusHistoryRepository = orderStatusHistoryRepository,
-        eventPublisher = eventPublisher,
-    )
+    val orderService =
+        OrderService(
+            orderRepository = orderRepository,
+            orderItemRepository = orderItemRepository,
+            orderStatusHistoryRepository = orderStatusHistoryRepository,
+            eventPublisher = eventPublisher,
+        )
 
     Given("주문 생성") {
-        val request = CreateOrderRequest(
-            memberId = 1L,
-            sellerId = 10L,
-            items = listOf(
-                CreateOrderItemRequest(
-                    productId = 100L,
-                    productOptionId = 1000L,
-                    productName = "슬림핏 청바지",
-                    optionName = "M / 블루",
-                    categoryId = 5L,
-                    quantity = 2,
-                    unitPrice = BigDecimal("39900"),
-                )
-            ),
-            receiverName = "홍길동",
-            receiverPhone = "010-1234-5678",
-            zipCode = "06234",
-            address = "서울시 강남구",
-            detailAddress = "역삼동 123-4",
-            shippingFee = BigDecimal("3000"),
-            discountAmount = BigDecimal.ZERO,
-        )
+        val request =
+            CreateOrderRequest(
+                memberId = 1L,
+                sellerId = 10L,
+                items =
+                    listOf(
+                        CreateOrderItemRequest(
+                            productId = 100L,
+                            productOptionId = 1000L,
+                            productName = "슬림핏 청바지",
+                            optionName = "M / 블루",
+                            categoryId = 5L,
+                            quantity = 2,
+                            unitPrice = BigDecimal("39900"),
+                        ),
+                    ),
+                receiverName = "홍길동",
+                receiverPhone = "010-1234-5678",
+                zipCode = "06234",
+                address = "서울시 강남구",
+                detailAddress = "역삼동 123-4",
+                shippingFee = BigDecimal("3000"),
+                discountAmount = BigDecimal.ZERO,
+            )
 
         val orderSlot = slot<Order>()
         val orderItemSlot = slot<OrderItem>()
@@ -100,11 +103,35 @@ class OrderServiceTest : BehaviorSpec({
 
     Given("주문 취소") {
         When("PAID 상태 주문 취소") {
-            val order = Order.create(
-                memberId = 1L,
-                sellerId = 10L,
-                items = listOf(
+            val order =
+                Order.create(
+                    memberId = 1L,
+                    sellerId = 10L,
+                    items =
+                        listOf(
+                            OrderItem.create(
+                                productId = 100L,
+                                productOptionId = 1000L,
+                                productName = "슬림핏 청바지",
+                                optionName = "M / 블루",
+                                categoryId = 5L,
+                                quantity = 1,
+                                unitPrice = Money.of(39900),
+                            ),
+                        ),
+                    receiverName = "홍길동",
+                    receiverPhone = "010-1234-5678",
+                    zipCode = "06234",
+                    address = "서울시 강남구",
+                    detailAddress = "역삼동 123-4",
+                )
+            order.place()
+            order.pay()
+
+            val items =
+                listOf(
                     OrderItem.create(
+                        orderId = order.id,
                         productId = 100L,
                         productOptionId = 1000L,
                         productName = "슬림핏 청바지",
@@ -112,29 +139,8 @@ class OrderServiceTest : BehaviorSpec({
                         categoryId = 5L,
                         quantity = 1,
                         unitPrice = Money.of(39900),
-                    )
-                ),
-                receiverName = "홍길동",
-                receiverPhone = "010-1234-5678",
-                zipCode = "06234",
-                address = "서울시 강남구",
-                detailAddress = "역삼동 123-4",
-            )
-            order.place()
-            order.pay()
-
-            val items = listOf(
-                OrderItem.create(
-                    orderId = order.id,
-                    productId = 100L,
-                    productOptionId = 1000L,
-                    productName = "슬림핏 청바지",
-                    optionName = "M / 블루",
-                    categoryId = 5L,
-                    quantity = 1,
-                    unitPrice = Money.of(39900),
+                    ),
                 )
-            )
 
             every { orderRepository.findByIdAndDeletedAtIsNull(any()) } returns order
             every { orderItemRepository.findByOrderId(any()) } returns items
@@ -148,26 +154,28 @@ class OrderServiceTest : BehaviorSpec({
         }
 
         When("SHIPPED 상태 주문 취소 시도") {
-            val order = Order.create(
-                memberId = 1L,
-                sellerId = 10L,
-                items = listOf(
-                    OrderItem.create(
-                        productId = 100L,
-                        productOptionId = 1000L,
-                        productName = "슬림핏 청바지",
-                        optionName = "M / 블루",
-                        categoryId = 5L,
-                        quantity = 1,
-                        unitPrice = Money.of(39900),
-                    )
-                ),
-                receiverName = "홍길동",
-                receiverPhone = "010-1234-5678",
-                zipCode = "06234",
-                address = "서울시 강남구",
-                detailAddress = "역삼동 123-4",
-            )
+            val order =
+                Order.create(
+                    memberId = 1L,
+                    sellerId = 10L,
+                    items =
+                        listOf(
+                            OrderItem.create(
+                                productId = 100L,
+                                productOptionId = 1000L,
+                                productName = "슬림핏 청바지",
+                                optionName = "M / 블루",
+                                categoryId = 5L,
+                                quantity = 1,
+                                unitPrice = Money.of(39900),
+                            ),
+                        ),
+                    receiverName = "홍길동",
+                    receiverPhone = "010-1234-5678",
+                    zipCode = "06234",
+                    address = "서울시 강남구",
+                    detailAddress = "역삼동 123-4",
+                )
             order.place()
             order.pay()
             order.prepare()
@@ -185,26 +193,28 @@ class OrderServiceTest : BehaviorSpec({
 
     Given("잘못된 상태 전이") {
         When("PENDING에서 PAID로 직접 전이 시도") {
-            val order = Order.create(
-                memberId = 1L,
-                sellerId = 10L,
-                items = listOf(
-                    OrderItem.create(
-                        productId = 100L,
-                        productOptionId = 1000L,
-                        productName = "슬림핏 청바지",
-                        optionName = "M / 블루",
-                        categoryId = 5L,
-                        quantity = 1,
-                        unitPrice = Money.of(39900),
-                    )
-                ),
-                receiverName = "홍길동",
-                receiverPhone = "010-1234-5678",
-                zipCode = "06234",
-                address = "서울시 강남구",
-                detailAddress = "역삼동 123-4",
-            )
+            val order =
+                Order.create(
+                    memberId = 1L,
+                    sellerId = 10L,
+                    items =
+                        listOf(
+                            OrderItem.create(
+                                productId = 100L,
+                                productOptionId = 1000L,
+                                productName = "슬림핏 청바지",
+                                optionName = "M / 블루",
+                                categoryId = 5L,
+                                quantity = 1,
+                                unitPrice = Money.of(39900),
+                            ),
+                        ),
+                    receiverName = "홍길동",
+                    receiverPhone = "010-1234-5678",
+                    zipCode = "06234",
+                    address = "서울시 강남구",
+                    detailAddress = "역삼동 123-4",
+                )
 
             Then("IllegalArgumentException이 발생한다") {
                 shouldThrow<IllegalArgumentException> {

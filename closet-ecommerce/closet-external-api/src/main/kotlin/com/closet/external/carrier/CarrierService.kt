@@ -54,14 +54,14 @@ class CarrierService(
         carrier: String,
         trackingNumber: String,
     ): MockShipment? {
-        val shipment = shipmentRepository.findByTrackingNumber(trackingNumber).orElse(null) ?: return null
+        val shipment = shipmentRepository.findByTrackingNumber(trackingNumber) ?: return null
         if (shipment.carrier != carrier) return null
         return shipment
     }
 
     @Transactional
     fun advanceStatus(trackingNumber: String): MockShipment? {
-        val shipment = shipmentRepository.findByTrackingNumber(trackingNumber).orElse(null) ?: return null
+        val shipment = shipmentRepository.findByTrackingNumber(trackingNumber) ?: return null
         val currentStep = shipment.trackingHistory.size - 1
 
         if (currentStep < trackingSteps.size - 1) {

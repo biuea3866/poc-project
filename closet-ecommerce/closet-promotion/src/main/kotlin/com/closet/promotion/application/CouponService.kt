@@ -11,6 +11,7 @@ import com.closet.promotion.repository.CouponRepository
 import com.closet.promotion.repository.MemberCouponRepository
 import mu.KotlinLogging
 import org.springframework.data.redis.core.StringRedisTemplate
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.math.BigDecimal
@@ -73,8 +74,8 @@ class CouponService(
         }
 
         val coupon =
-            couponRepository.findById(couponId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId") }
+            couponRepository.findByIdOrNull(couponId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId")
 
         val memberCoupon = coupon.issue(memberId)
         val saved = memberCouponRepository.save(memberCoupon)
@@ -99,8 +100,8 @@ class CouponService(
         memberCoupon.use(orderId)
 
         val coupon =
-            couponRepository.findById(couponId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId") }
+            couponRepository.findByIdOrNull(couponId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId")
 
         logger.info { "쿠폰 사용 완료: couponId=$couponId, memberId=$memberId, orderId=$orderId" }
         return MemberCouponResponse.from(memberCoupon, coupon)
@@ -121,8 +122,8 @@ class CouponService(
         orderAmount: BigDecimal,
     ): CouponValidationResponse {
         val coupon =
-            couponRepository.findById(couponId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId") }
+            couponRepository.findByIdOrNull(couponId)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "쿠폰을 찾을 수 없습니다. id=$couponId")
 
         val isValid = coupon.isValid() && orderAmount >= coupon.minOrderAmount
         val discountAmount =

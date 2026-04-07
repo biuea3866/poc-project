@@ -8,7 +8,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 /**
  * 포인트 변동 이력 엔티티
@@ -33,7 +33,7 @@ class PointHistory(
     @Column(name = "reference_id", length = 100)
     val referenceId: String? = null,
     @Column(name = "created_at", nullable = false, updatable = false, columnDefinition = "DATETIME(6)")
-    val createdAt: LocalDateTime = LocalDateTime.now(),
+    val createdAt: ZonedDateTime = ZonedDateTime.now(),
 ) {
     companion object {
         fun earn(

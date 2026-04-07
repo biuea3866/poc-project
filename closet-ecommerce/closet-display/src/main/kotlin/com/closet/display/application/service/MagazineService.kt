@@ -14,6 +14,7 @@ import com.closet.display.domain.entity.MagazineProduct
 import com.closet.display.domain.entity.MagazineTag
 import com.closet.display.domain.repository.MagazineRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -149,8 +150,8 @@ class MagazineService(
     }
 
     private fun findMagazineById(id: Long): Magazine {
-        return magazineRepository.findById(id)
-            .filter { !it.isDeleted() }
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "매거진을 찾을 수 없습니다: $id") }
+        return magazineRepository.findByIdOrNull(id)
+            ?.takeUnless { it.isDeleted() }
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "매거진을 찾을 수 없습니다: $id")
     }
 }

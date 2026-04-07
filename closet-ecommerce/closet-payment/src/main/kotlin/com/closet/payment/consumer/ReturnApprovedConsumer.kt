@@ -5,7 +5,6 @@ import com.closet.common.idempotency.IdempotencyChecker
 import com.closet.payment.application.PaymentService
 import com.closet.payment.application.RefundPaymentRequest
 import com.closet.payment.consumer.event.ShippingEvent
-import com.closet.payment.domain.PaymentRepository
 import mu.KotlinLogging
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
@@ -23,7 +22,6 @@ private val logger = KotlinLogging.logger {}
 @ConditionalOnProperty(name = ["feature.payment-kafka-enabled"], havingValue = "true", matchIfMissing = true)
 class ReturnApprovedConsumer(
     private val paymentService: PaymentService,
-    private val paymentRepository: PaymentRepository,
     private val idempotencyChecker: IdempotencyChecker,
 ) {
     companion object {
@@ -40,16 +38,8 @@ class ReturnApprovedConsumer(
                 val eventId = "payment-return-approved-${returnApproved.returnRequestId}"
 
                 idempotencyChecker.process(eventId, ClosetTopics.SHIPPING, CONSUMER_GROUP) {
-                    val payment =
-                        paymentRepository.findByOrderId(returnApproved.orderId)
-                            .orElse(null)
-                    if (payment == null) {
-                        logger.warn { "결제 정보를 찾을 수 없습니다: orderId=${returnApproved.orderId}" }
-                        return@process
-                    }
-
-                    paymentService.refund(
-                        payment.id,
+                    paymentService.refundByOrderId(
+                        returnApproved.orderId,
                         RefundPaymentRequest(
                             amount = returnApproved.refundAmount,
                             reason = "반품 승인 환불 (returnRequestId=${returnApproved.returnRequestId})",

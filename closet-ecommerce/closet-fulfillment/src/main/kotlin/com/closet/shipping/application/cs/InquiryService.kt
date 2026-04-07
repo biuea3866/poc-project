@@ -9,6 +9,7 @@ import com.closet.shipping.domain.cs.inquiry.InquiryAttachment
 import com.closet.shipping.domain.cs.inquiry.InquiryAttachmentRepository
 import com.closet.shipping.domain.cs.inquiry.InquiryRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -116,7 +117,7 @@ class InquiryService(
     }
 
     private fun getInquiryOrThrow(id: Long): Inquiry {
-        return inquiryRepository.findById(id)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다: id=$id") }
+        return inquiryRepository.findByIdOrNull(id)
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "문의를 찾을 수 없습니다: id=$id")
     }
 }

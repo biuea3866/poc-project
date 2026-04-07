@@ -12,6 +12,7 @@ import com.closet.shipping.domain.ShippingFeePolicyRepository
 import com.closet.shipping.domain.ShippingStatus
 import com.fasterxml.jackson.databind.ObjectMapper
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -45,7 +46,7 @@ class ReturnService(
         // 배송 완료 7일 이내인지 검증
         val shipment =
             shipmentRepository.findByOrderId(request.orderId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배송 정보를 찾을 수 없습니다: orderId=${request.orderId}")
 
         if (shipment.status != ShippingStatus.DELIVERED) {
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 반품 신청이 가능합니다: status=${shipment.status}")
@@ -63,7 +64,7 @@ class ReturnService(
         // 배송비 정책 조회
         val policy =
             shippingFeePolicyRepository.findByTypeAndReasonAndIsActiveTrue("RETURN", request.reason.name)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 배송비 정책을 찾을 수 없습니다: reason=${request.reason}") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 배송비 정책을 찾을 수 없습니다: reason=${request.reason}")
 
         val shippingFee = policy.fee
         val shippingFeePayer = policy.payer
@@ -102,8 +103,8 @@ class ReturnService(
      */
     fun findById(id: Long): ReturnRequestResponse {
         val returnRequest =
-            returnRequestRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 요청을 찾을 수 없습니다: id=$id") }
+            returnRequestRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 요청을 찾을 수 없습니다: id=$id")
         return ReturnRequestResponse.from(returnRequest)
     }
 
@@ -201,8 +202,8 @@ class ReturnService(
     }
 
     private fun getReturnRequestOrThrow(id: Long): ReturnRequest {
-        return returnRequestRepository.findById(id)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 요청을 찾을 수 없습니다: id=$id") }
+        return returnRequestRepository.findByIdOrNull(id)
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "반품 요청을 찾을 수 없습니다: id=$id")
     }
 
     private fun publishReturnApprovedEvent(returnRequest: ReturnRequest) {

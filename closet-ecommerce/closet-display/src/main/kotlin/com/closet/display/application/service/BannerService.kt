@@ -9,6 +9,7 @@ import com.closet.display.domain.entity.Banner
 import com.closet.display.domain.enums.BannerPosition
 import com.closet.display.domain.repository.BannerRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 import java.time.ZonedDateTime
@@ -80,8 +81,8 @@ class BannerService(
     }
 
     private fun findBannerById(id: Long): Banner {
-        return bannerRepository.findById(id)
-            .filter { !it.isDeleted() }
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배너를 찾을 수 없습니다: $id") }
+        return bannerRepository.findByIdOrNull(id)
+            ?.takeUnless { it.isDeleted() }
+            ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "배너를 찾을 수 없습니다: $id")
     }
 }

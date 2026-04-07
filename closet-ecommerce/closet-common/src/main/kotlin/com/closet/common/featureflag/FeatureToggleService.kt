@@ -24,7 +24,7 @@ class FeatureToggleService(
      */
     @Transactional(readOnly = true)
     fun isEnabled(featureKey: FeatureKey): Boolean {
-        val toggle = featureToggleRepository.findByConfigKey(featureKey.key).orElse(null)
+        val toggle = featureToggleRepository.findByConfigKey(featureKey.key)
 
         if (toggle == null) {
             logger.debug { "Feature Toggle 미등록 - 기본값 사용: key=${featureKey.key}, default=${featureKey.defaultValue}" }
@@ -45,7 +45,7 @@ class FeatureToggleService(
         featureKey: FeatureKey,
         enabled: Boolean,
     ) {
-        val toggle = featureToggleRepository.findByConfigKey(featureKey.key).orElse(null)
+        val toggle = featureToggleRepository.findByConfigKey(featureKey.key)
 
         if (toggle != null) {
             toggle.updateValue(if (enabled) "true" else "false")

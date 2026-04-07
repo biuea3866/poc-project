@@ -7,6 +7,7 @@ import com.closet.payment.domain.Payment
 import com.closet.payment.domain.PaymentMethod
 import com.closet.payment.domain.PaymentRepository
 import mu.KotlinLogging
+import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -20,7 +21,7 @@ class PaymentService(
     fun getByOrderId(orderId: Long): PaymentResponse {
         val payment =
             paymentRepository.findByOrderId(orderId)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: orderId=$orderId") }
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: orderId=$orderId")
         return PaymentResponse.from(payment)
     }
 
@@ -28,12 +29,10 @@ class PaymentService(
     fun confirm(request: ConfirmPaymentRequest): PaymentResponse {
         val payment =
             paymentRepository.findByOrderId(request.orderId)
-                .orElseGet {
-                    Payment.create(
-                        orderId = request.orderId,
-                        finalAmount = Money(request.amount.toBigDecimal()),
-                    )
-                }
+                ?: Payment.create(
+                    orderId = request.orderId,
+                    finalAmount = Money(request.amount.toBigDecimal()),
+                )
         payment.confirm(
             paymentKey = request.paymentKey,
             method = PaymentMethod.CARD,
@@ -49,8 +48,8 @@ class PaymentService(
         request: CancelPaymentRequest,
     ): PaymentResponse {
         val payment =
-            paymentRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
+            paymentRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id")
         payment.cancel()
         logger.info { "결제 취소 완료: id=$id, reason=${request.reason}" }
         return PaymentResponse.from(payment)
@@ -66,10 +65,26 @@ class PaymentService(
         request: RefundPaymentRequest,
     ): PaymentResponse {
         val payment =
-            paymentRepository.findById(id)
-                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id") }
+            paymentRepository.findByIdOrNull(id)
+                ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "결제 정보를 찾을 수 없습니다: id=$id")
         payment.refund(Money(request.amount.toBigDecimal()))
         logger.info { "부분 환불 완료: id=$id, refundAmount=${request.amount}, reason=${request.reason}" }
+        return PaymentResponse.from(payment)
+    }
+
+    @Transactional
+    fun refundByOrderId(
+        orderId: Long,
+        request: RefundPaymentRequest,
+    ): PaymentResponse? {
+        val payment = paymentRepository.findByOrderId(orderId)
+        if (payment == null) {
+            logger.warn { "결제 정보를 찾을 수 없습니다: orderId=$orderId" }
+            return null
+        }
+
+        payment.refund(Money(request.amount.toBigDecimal()))
+        logger.info { "주문 기준 부분 환불 완료: orderId=$orderId, refundAmount=${request.amount}, reason=${request.reason}" }
         return PaymentResponse.from(payment)
     }
 }

@@ -87,8 +87,6 @@ class PointService(
 
     private fun getOrCreateBalance(memberId: Long): PointBalance {
         return pointBalanceRepository.findByMemberId(memberId)
-            .orElseGet {
-                pointBalanceRepository.save(PointBalance.create(memberId))
-            }
+            ?: pointBalanceRepository.save(PointBalance.create(memberId))
     }
 }
