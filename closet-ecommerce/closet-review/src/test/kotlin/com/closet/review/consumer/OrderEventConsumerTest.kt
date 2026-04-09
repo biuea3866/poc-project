@@ -25,13 +25,14 @@ class OrderEventConsumerTest : BehaviorSpec({
     Given("주문 아이템 구매확정 이벤트 수신") {
 
         When("OrderItemConfirmed eventType을 수신하면") {
-            val event = OrderEvent(
-                eventType = "OrderItemConfirmed",
-                orderId = 1L,
-                orderItemId = 10L,
-                memberId = 100L,
-                productId = 200L,
-            )
+            val event =
+                OrderEvent(
+                    eventType = "OrderItemConfirmed",
+                    orderId = 1L,
+                    orderItemId = 10L,
+                    memberId = 100L,
+                    productId = 200L,
+                )
 
             Then("ReviewService에 구매확정 정보를 전달한다") {
                 consumer.handle(event)
@@ -46,13 +47,14 @@ class OrderEventConsumerTest : BehaviorSpec({
         }
 
         When("처리하지 않는 eventType을 수신하면") {
-            val event = OrderEvent(
-                eventType = "OrderCreated",
-                orderId = 1L,
-                orderItemId = 10L,
-                memberId = 100L,
-                productId = 200L,
-            )
+            val event =
+                OrderEvent(
+                    eventType = "OrderCreated",
+                    orderId = 1L,
+                    orderItemId = 10L,
+                    memberId = 100L,
+                    productId = 200L,
+                )
 
             Then("무시한다 (Service 호출 없음)") {
                 consumer.handle(event)

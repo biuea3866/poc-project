@@ -11,7 +11,8 @@ enum class OrderStatus {
     RETURN_REQUESTED,
     EXCHANGE_REQUESTED,
     CANCELLED,
-    FAILED;
+    FAILED,
+    ;
 
     fun canTransitionTo(target: OrderStatus): Boolean {
         return when (this) {

@@ -27,16 +27,25 @@ class ReviewFacade(
     private val reviewSummaryService: ReviewSummaryService,
     private val reviewImageService: ReviewImageService,
 ) {
-
-    fun createReview(memberId: Long, request: CreateReviewRequest): ReviewResponse {
+    fun createReview(
+        memberId: Long,
+        request: CreateReviewRequest,
+    ): ReviewResponse {
         return reviewService.createReview(memberId, request)
     }
 
-    fun updateReview(memberId: Long, reviewId: Long, request: UpdateReviewRequest): ReviewResponse {
+    fun updateReview(
+        memberId: Long,
+        reviewId: Long,
+        request: UpdateReviewRequest,
+    ): ReviewResponse {
         return reviewService.updateReview(memberId, reviewId, request)
     }
 
-    fun deleteReview(memberId: Long, reviewId: Long) {
+    fun deleteReview(
+        memberId: Long,
+        reviewId: Long,
+    ) {
         reviewService.deleteReview(memberId, reviewId)
     }
 
@@ -48,7 +57,10 @@ class ReviewFacade(
         return reviewService.findByProductId(query)
     }
 
-    fun getMyReviews(memberId: Long, pageable: Pageable): Page<ReviewResponse> {
+    fun getMyReviews(
+        memberId: Long,
+        pageable: Pageable,
+    ): Page<ReviewResponse> {
         return reviewService.findByMemberId(memberId, pageable)
     }
 
@@ -60,11 +72,17 @@ class ReviewFacade(
         return reviewSummaryService.getSummary(productId)
     }
 
-    fun markHelpful(memberId: Long, reviewId: Long) {
+    fun markHelpful(
+        memberId: Long,
+        reviewId: Long,
+    ) {
         reviewService.markHelpful(memberId, reviewId)
     }
 
-    fun getPresignedUploadUrl(memberId: Long, request: PresignedUploadUrlRequest): PresignedUploadUrlResponse {
+    fun getPresignedUploadUrl(
+        memberId: Long,
+        request: PresignedUploadUrlRequest,
+    ): PresignedUploadUrlResponse {
         return reviewImageService.generatePresignedUploadUrl(memberId, request)
     }
 

@@ -1,0 +1,40 @@
+spring:
+  threads:
+    virtual:
+      enabled: false
+  application:
+    name: closet-member-test
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: false
+  kafka:
+    bootstrap-servers: localhost:19092
+
+jwt:
+  secret: closet-member-jwt-secret-key-must-be-at-least-256-bits-long-for-hs256-test
+  access-token-expiry-ms: 1800000
+  refresh-token-expiry-ms: 604800000
+
+feature-flag:
+  role-authorization-enabled: false
+
+internal:
+  api:
+    enabled: false
+    key: test-internal-api-key
+    paths: /internal/**
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+  tracing:
+    sampling:
+      probability: 0.0

@@ -1,0 +1,44 @@
+spring:
+  threads:
+    virtual:
+      enabled: false
+  application:
+    name: closet-inventory-test
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQLDialect
+        format_sql: true
+    open-in-view: false
+  flyway:
+    enabled: false
+  kafka:
+    bootstrap-servers: localhost:9092
+    consumer:
+      group-id: inventory-service-test
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "com.closet.*"
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+
+feature:
+  inventory-kafka-enabled: false
+
+outbox:
+  polling:
+    enabled: false
+
+management:
+  otlp:
+    tracing:
+      endpoint: http://localhost:4318/v1/traces
+  tracing:
+    sampling:
+      probability: 0.0

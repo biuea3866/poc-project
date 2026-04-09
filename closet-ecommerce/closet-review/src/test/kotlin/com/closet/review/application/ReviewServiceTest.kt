@@ -2,7 +2,6 @@ package com.closet.review.application
 
 import com.closet.common.exception.BusinessException
 import com.closet.common.outbox.OutboxEventPublisher
-import com.closet.review.domain.FitType
 import com.closet.review.domain.Review
 import com.closet.review.domain.ReviewEditHistoryRepository
 import com.closet.review.domain.ReviewHelpful
@@ -10,6 +9,7 @@ import com.closet.review.domain.ReviewHelpfulRepository
 import com.closet.review.domain.ReviewRepository
 import com.closet.review.domain.ReviewStatus
 import com.closet.review.domain.ReviewableOrderItemRepository
+import com.closet.review.domain.SizeFit
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
@@ -17,7 +17,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.slot
 import io.mockk.verify
 import org.springframework.data.domain.PageImpl
 import org.springframework.data.domain.PageRequest
@@ -32,19 +31,21 @@ class ReviewServiceTest : BehaviorSpec({
     val reviewableOrderItemRepository = mockk<ReviewableOrderItemRepository>(relaxed = true)
     val reviewSummaryService = mockk<ReviewSummaryService>(relaxed = true)
     val outboxEventPublisher = mockk<OutboxEventPublisher>(relaxed = true)
-    val objectMapper = ObjectMapper().apply {
-        findAndRegisterModules()
-    }
+    val objectMapper =
+        ObjectMapper().apply {
+            findAndRegisterModules()
+        }
 
-    val reviewService = ReviewService(
-        reviewRepository,
-        reviewEditHistoryRepository,
-        reviewHelpfulRepository,
-        reviewableOrderItemRepository,
-        reviewSummaryService,
-        outboxEventPublisher,
-        objectMapper,
-    )
+    val reviewService =
+        ReviewService(
+            reviewRepository,
+            reviewEditHistoryRepository,
+            reviewHelpfulRepository,
+            reviewableOrderItemRepository,
+            reviewSummaryService,
+            outboxEventPublisher,
+            objectMapper,
+        )
 
     Given("리뷰 작성 (US-801)") {
 
@@ -54,13 +55,14 @@ class ReviewServiceTest : BehaviorSpec({
 
             Then("리뷰가 생성되고 outbox 이벤트가 발행된다") {
                 every { reviewRepository.save(any<Review>()) } answers { firstArg() }
-                val review = Review.create(
-                    productId = 10L,
-                    orderItemId = 1L,
-                    memberId = 100L,
-                    rating = 5,
-                    content = "이 옷 정말 좋아요! 사이즈도 딱 맞고 소재감도 너무 마음에 듭니다.",
-                )
+                val review =
+                    Review.create(
+                        productId = 10L,
+                        orderItemId = 1L,
+                        memberId = 100L,
+                        rating = 5,
+                        content = "이 옷 정말 좋아요! 사이즈도 딱 맞고 소재감도 너무 마음에 듭니다.",
+                    )
                 review.rating shouldBe 5
                 review.content.length shouldNotBe 0
             }
@@ -70,12 +72,13 @@ class ReviewServiceTest : BehaviorSpec({
             every { reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(2L, 100L) } returns true
             every { reviewRepository.existsByOrderItemIdAndMemberIdAndStatusNot(2L, 100L, ReviewStatus.DELETED) } returns true
 
-            val request = CreateReviewRequest(
-                productId = 10L,
-                orderItemId = 2L,
-                rating = 4,
-                content = "두 번째 리뷰 작성 시도입니다. 테스트를 위한 충분한 길이의 내용을 작성합니다.",
-            )
+            val request =
+                CreateReviewRequest(
+                    productId = 10L,
+                    orderItemId = 2L,
+                    rating = 4,
+                    content = "두 번째 리뷰 작성 시도입니다. 테스트를 위한 충분한 길이의 내용을 작성합니다.",
+                )
 
             Then("DUPLICATE_ENTITY 예외 발생") {
                 shouldThrow<BusinessException> {
@@ -116,13 +119,14 @@ class ReviewServiceTest : BehaviorSpec({
             every { reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(5L, 100L) } returns true
             every { reviewRepository.existsByOrderItemIdAndMemberIdAndStatusNot(5L, 100L, ReviewStatus.DELETED) } returns false
 
-            val request = CreateReviewRequest(
-                productId = 10L,
-                orderItemId = 5L,
-                rating = 5,
-                content = "이미지 6장을 첨부한 리뷰입니다. 최대 이미지 개수를 초과합니다.",
-                imageUrls = (1..6).map { "https://example.com/image$it.jpg" },
-            )
+            val request =
+                CreateReviewRequest(
+                    productId = 10L,
+                    orderItemId = 5L,
+                    rating = 5,
+                    content = "이미지 6장을 첨부한 리뷰입니다. 최대 이미지 개수를 초과합니다.",
+                    imageUrls = (1..6).map { "https://example.com/image$it.jpg" },
+                )
 
             Then("INVALID_INPUT 예외 발생") {
                 shouldThrow<BusinessException> {
@@ -134,12 +138,13 @@ class ReviewServiceTest : BehaviorSpec({
         When("구매확정되지 않은 주문 아이템으로 리뷰를 작성하면") {
             every { reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(99L, 100L) } returns false
 
-            val request = CreateReviewRequest(
-                productId = 10L,
-                orderItemId = 99L,
-                rating = 5,
-                content = "구매확정되지 않은 주문 아이템 리뷰 작성 시도입니다. 실패해야 합니다.",
-            )
+            val request =
+                CreateReviewRequest(
+                    productId = 10L,
+                    orderItemId = 99L,
+                    rating = 5,
+                    content = "구매확정되지 않은 주문 아이템 리뷰 작성 시도입니다. 실패해야 합니다.",
+                )
 
             Then("INVALID_INPUT 예외 발생") {
                 shouldThrow<BusinessException> {
@@ -177,37 +182,39 @@ class ReviewServiceTest : BehaviorSpec({
     Given("사이즈 후기 (US-802)") {
 
         When("키, 몸무게, 평소 사이즈, 구매 사이즈, 핏 타입을 함께 작성하면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 10L,
-                memberId = 100L,
-                rating = 4,
-                content = "사이즈 후기를 포함한 리뷰 내용입니다. 키와 몸무게, 사이즈 정보를 입력합니다.",
-                height = 175,
-                weight = 70,
-                normalSize = "M",
-                purchasedSize = "L",
-                fitType = FitType.PERFECT,
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 10L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "사이즈 후기를 포함한 리뷰 내용입니다. 키와 몸무게, 사이즈 정보를 입력합니다.",
+                    height = 175,
+                    weight = 70,
+                    normalSize = "M",
+                    purchasedSize = "L",
+                    fitType = SizeFit.PERFECT,
+                )
 
             Then("사이즈 정보가 저장된다") {
                 review.height shouldBe 175
                 review.weight shouldBe 70
                 review.normalSize shouldBe "M"
                 review.purchasedSize shouldBe "L"
-                review.fitType shouldBe FitType.PERFECT
+                review.fitType shouldBe SizeFit.PERFECT
                 review.hasSizeInfo() shouldBe true
             }
         }
 
         When("사이즈 정보 없이 작성하면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 11L,
-                memberId = 100L,
-                rating = 3,
-                content = "사이즈 정보 없이 작성한 일반 텍스트 리뷰 내용입니다. 충분한 길이로 작성합니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 11L,
+                    memberId = 100L,
+                    rating = 3,
+                    content = "사이즈 정보 없이 작성한 일반 텍스트 리뷰 내용입니다. 충분한 길이로 작성합니다.",
+                )
 
             Then("hasSizeInfo()는 false이다") {
                 review.hasSizeInfo() shouldBe false
@@ -218,13 +225,14 @@ class ReviewServiceTest : BehaviorSpec({
     Given("리뷰 포인트 계산 (US-803)") {
 
         When("텍스트 리뷰 (사이즈 정보 없음)") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 20L,
-                memberId = 100L,
-                rating = 4,
-                content = "텍스트 리뷰입니다. 포인트 100P가 적립되어야 합니다. 충분한 길이의 리뷰 내용입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 20L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "텍스트 리뷰입니다. 포인트 100P가 적립되어야 합니다. 충분한 길이의 리뷰 내용입니다.",
+                )
 
             Then("100P 적립") {
                 review.calculatePointAmount() shouldBe 100
@@ -232,16 +240,17 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("텍스트 리뷰 + 사이즈 정보") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 21L,
-                memberId = 100L,
-                rating = 4,
-                content = "텍스트 리뷰 + 사이즈 정보. 포인트 150P가 적립되어야 합니다. 충분한 길이입니다.",
-                height = 170,
-                weight = 65,
-                fitType = FitType.SMALL,
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 21L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "텍스트 리뷰 + 사이즈 정보. 포인트 150P가 적립되어야 합니다. 충분한 길이입니다.",
+                    height = 170,
+                    weight = 65,
+                    fitType = SizeFit.SMALL,
+                )
 
             Then("150P 적립 (100 + 50)") {
                 review.calculatePointAmount() shouldBe 150
@@ -249,13 +258,14 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("포토 리뷰 (사이즈 정보 없음)") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 22L,
-                memberId = 100L,
-                rating = 5,
-                content = "포토 리뷰입니다. 이미지를 포함해서 300P가 적립되어야 합니다. 충분한 길이의 리뷰입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 22L,
+                    memberId = 100L,
+                    rating = 5,
+                    content = "포토 리뷰입니다. 이미지를 포함해서 300P가 적립되어야 합니다. 충분한 길이의 리뷰입니다.",
+                )
             review.addImage("https://example.com/img1.jpg", "https://example.com/img1_thumb.jpg", 0)
 
             Then("300P 적립") {
@@ -265,16 +275,17 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("포토 리뷰 + 사이즈 정보 (최대 조합)") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 23L,
-                memberId = 100L,
-                rating = 5,
-                content = "포토 리뷰 + 사이즈 정보. 최대 350P가 적립되어야 합니다. 충분한 길이의 리뷰 내용입니다.",
-                height = 180,
-                weight = 75,
-                fitType = FitType.LARGE,
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 23L,
+                    memberId = 100L,
+                    rating = 5,
+                    content = "포토 리뷰 + 사이즈 정보. 최대 350P가 적립되어야 합니다. 충분한 길이의 리뷰 내용입니다.",
+                    height = 180,
+                    weight = 75,
+                    fitType = SizeFit.LARGE,
+                )
             review.addImage("https://example.com/img1.jpg", "https://example.com/img1_thumb.jpg", 0)
 
             Then("350P 적립 (300 + 50)") {
@@ -288,13 +299,14 @@ class ReviewServiceTest : BehaviorSpec({
     Given("리뷰 수정 (US-801)") {
 
         When("7일 이내에 수정하면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 30L,
-                memberId = 100L,
-                rating = 4,
-                content = "원래 리뷰 내용입니다. 이 리뷰를 수정하려고 합니다. 충분한 길이입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 30L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "원래 리뷰 내용입니다. 이 리뷰를 수정하려고 합니다. 충분한 길이입니다.",
+                )
             // createdAt을 수동 설정
             val createdAtField = Review::class.java.getDeclaredField("createdAt")
             createdAtField.isAccessible = true
@@ -309,13 +321,14 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("7일 이후에 수정하면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 31L,
-                memberId = 100L,
-                rating = 4,
-                content = "7일이 지난 리뷰입니다. 수정하려고 하면 실패해야 합니다. 충분한 길이입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 31L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "7일이 지난 리뷰입니다. 수정하려고 하면 실패해야 합니다. 충분한 길이입니다.",
+                )
             val createdAtField = Review::class.java.getDeclaredField("createdAt")
             createdAtField.isAccessible = true
             createdAtField.set(review, ZonedDateTime.now().minusDays(8))
@@ -328,13 +341,14 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("3회 이상 수정하면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 32L,
-                memberId = 100L,
-                rating = 4,
-                content = "여러 번 수정할 리뷰 내용입니다. 최대 3회까지 수정 가능합니다. 충분한 길이입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 32L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "여러 번 수정할 리뷰 내용입니다. 최대 3회까지 수정 가능합니다. 충분한 길이입니다.",
+                )
             val createdAtField = Review::class.java.getDeclaredField("createdAt")
             createdAtField.isAccessible = true
             createdAtField.set(review, ZonedDateTime.now())
@@ -351,20 +365,21 @@ class ReviewServiceTest : BehaviorSpec({
     Given("리뷰 삭제 (US-801)") {
 
         When("본인 리뷰를 삭제하면") {
-            every { reviewRepository.findByIdAndMemberId(1L, 100L) } returns Review.create(
-                productId = 10L,
-                orderItemId = 40L,
-                memberId = 100L,
-                rating = 4,
-                content = "삭제할 리뷰 내용입니다. 본인만 삭제 가능합니다. 충분한 길이의 리뷰 내용입니다.",
-            ).also {
-                val createdAtField = Review::class.java.getDeclaredField("createdAt")
-                createdAtField.isAccessible = true
-                createdAtField.set(it, ZonedDateTime.now())
-                val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
-                updatedAtField.isAccessible = true
-                updatedAtField.set(it, ZonedDateTime.now())
-            }
+            every { reviewRepository.findByIdAndMemberId(1L, 100L) } returns
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 40L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "삭제할 리뷰 내용입니다. 본인만 삭제 가능합니다. 충분한 길이의 리뷰 내용입니다.",
+                ).also {
+                    val createdAtField = Review::class.java.getDeclaredField("createdAt")
+                    createdAtField.isAccessible = true
+                    createdAtField.set(it, ZonedDateTime.now())
+                    val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
+                    updatedAtField.isAccessible = true
+                    updatedAtField.set(it, ZonedDateTime.now())
+                }
 
             reviewService.deleteReview(100L, 1L)
 
@@ -388,20 +403,21 @@ class ReviewServiceTest : BehaviorSpec({
     Given("도움이 됐어요") {
 
         When("처음 '도움이 됐어요'를 누르면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 50L,
-                memberId = 100L,
-                rating = 5,
-                content = "도움이 됐어요 테스트 리뷰입니다. 충분한 길이를 위한 리뷰 내용을 작성합니다.",
-            ).also {
-                val createdAtField = Review::class.java.getDeclaredField("createdAt")
-                createdAtField.isAccessible = true
-                createdAtField.set(it, ZonedDateTime.now())
-                val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
-                updatedAtField.isAccessible = true
-                updatedAtField.set(it, ZonedDateTime.now())
-            }
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 50L,
+                    memberId = 100L,
+                    rating = 5,
+                    content = "도움이 됐어요 테스트 리뷰입니다. 충분한 길이를 위한 리뷰 내용을 작성합니다.",
+                ).also {
+                    val createdAtField = Review::class.java.getDeclaredField("createdAt")
+                    createdAtField.isAccessible = true
+                    createdAtField.set(it, ZonedDateTime.now())
+                    val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
+                    updatedAtField.isAccessible = true
+                    updatedAtField.set(it, ZonedDateTime.now())
+                }
             every { reviewRepository.findById(1L) } returns Optional.of(review)
             every { reviewHelpfulRepository.existsByReviewIdAndMemberId(1L, 200L) } returns false
             every { reviewHelpfulRepository.save(any<ReviewHelpful>()) } answers { firstArg() }
@@ -414,20 +430,21 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("이미 '도움이 됐어요'를 누른 리뷰에 다시 누르면") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 51L,
-                memberId = 100L,
-                rating = 5,
-                content = "이미 도움이 됐어요를 누른 리뷰입니다. 다시 누르면 예외가 발생해야 합니다.",
-            ).also {
-                val createdAtField = Review::class.java.getDeclaredField("createdAt")
-                createdAtField.isAccessible = true
-                createdAtField.set(it, ZonedDateTime.now())
-                val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
-                updatedAtField.isAccessible = true
-                updatedAtField.set(it, ZonedDateTime.now())
-            }
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 51L,
+                    memberId = 100L,
+                    rating = 5,
+                    content = "이미 도움이 됐어요를 누른 리뷰입니다. 다시 누르면 예외가 발생해야 합니다.",
+                ).also {
+                    val createdAtField = Review::class.java.getDeclaredField("createdAt")
+                    createdAtField.isAccessible = true
+                    createdAtField.set(it, ZonedDateTime.now())
+                    val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
+                    updatedAtField.isAccessible = true
+                    updatedAtField.set(it, ZonedDateTime.now())
+                }
             every { reviewRepository.findById(2L) } returns Optional.of(review)
             every { reviewHelpfulRepository.existsByReviewIdAndMemberId(2L, 200L) } returns true
 
@@ -442,20 +459,21 @@ class ReviewServiceTest : BehaviorSpec({
     Given("리뷰 목록 조회") {
 
         When("상품별 최신순 조회") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 60L,
-                memberId = 100L,
-                rating = 4,
-                content = "목록 조회 테스트 리뷰입니다. 최신순으로 조회될 예정입니다. 충분한 길이의 내용입니다.",
-            ).also {
-                val createdAtField = Review::class.java.getDeclaredField("createdAt")
-                createdAtField.isAccessible = true
-                createdAtField.set(it, ZonedDateTime.now())
-                val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
-                updatedAtField.isAccessible = true
-                updatedAtField.set(it, ZonedDateTime.now())
-            }
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 60L,
+                    memberId = 100L,
+                    rating = 4,
+                    content = "목록 조회 테스트 리뷰입니다. 최신순으로 조회될 예정입니다. 충분한 길이의 내용입니다.",
+                ).also {
+                    val createdAtField = Review::class.java.getDeclaredField("createdAt")
+                    createdAtField.isAccessible = true
+                    createdAtField.set(it, ZonedDateTime.now())
+                    val updatedAtField = Review::class.java.getDeclaredField("updatedAt")
+                    updatedAtField.isAccessible = true
+                    updatedAtField.set(it, ZonedDateTime.now())
+                }
             every {
                 reviewRepository.findByProductIdLatest(10L, ReviewStatus.VISIBLE, any())
             } returns PageImpl(listOf(review), PageRequest.of(0, 10), 1)
@@ -472,13 +490,14 @@ class ReviewServiceTest : BehaviorSpec({
     Given("리뷰 상태 전이") {
 
         When("VISIBLE -> DELETED 전이") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 70L,
-                memberId = 100L,
-                rating = 3,
-                content = "상태 전이 테스트용 리뷰입니다. VISIBLE에서 DELETED로 전이합니다. 충분한 내용입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 70L,
+                    memberId = 100L,
+                    rating = 3,
+                    content = "상태 전이 테스트용 리뷰입니다. VISIBLE에서 DELETED로 전이합니다. 충분한 내용입니다.",
+                )
             review.delete()
 
             Then("DELETED 상태가 된다") {
@@ -488,13 +507,14 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("DELETED 상태에서 수정 시도") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 71L,
-                memberId = 100L,
-                rating = 3,
-                content = "삭제된 리뷰를 수정하려고 합니다. 이 작업은 실패해야 합니다. 충분한 길이입니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 71L,
+                    memberId = 100L,
+                    rating = 3,
+                    content = "삭제된 리뷰를 수정하려고 합니다. 이 작업은 실패해야 합니다. 충분한 길이입니다.",
+                )
             val createdAtField = Review::class.java.getDeclaredField("createdAt")
             createdAtField.isAccessible = true
             createdAtField.set(review, ZonedDateTime.now())
@@ -508,13 +528,14 @@ class ReviewServiceTest : BehaviorSpec({
         }
 
         When("DELETED 상태에서 재삭제 시도") {
-            val review = Review.create(
-                productId = 10L,
-                orderItemId = 72L,
-                memberId = 100L,
-                rating = 3,
-                content = "이미 삭제된 리뷰를 다시 삭제하려 합니다. 상태 전이가 불가능합니다.",
-            )
+            val review =
+                Review.create(
+                    productId = 10L,
+                    orderItemId = 72L,
+                    memberId = 100L,
+                    rating = 3,
+                    content = "이미 삭제된 리뷰를 다시 삭제하려 합니다. 상태 전이가 불가능합니다.",
+                )
             review.delete()
 
             Then("IllegalArgumentException 발생 (상태 전이 불가)") {

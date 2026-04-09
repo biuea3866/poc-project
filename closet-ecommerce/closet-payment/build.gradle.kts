@@ -10,4 +10,7 @@ dependencies {
     // Kafka (return.approved consumer for refund)
     implementation("org.springframework.kafka:spring-kafka")
     testImplementation("org.springframework.kafka:spring-kafka-test")
+
+    // Integration Test (testFixtures from closet-common)
+    testImplementation(testFixtures(project(":closet-common")))
 }

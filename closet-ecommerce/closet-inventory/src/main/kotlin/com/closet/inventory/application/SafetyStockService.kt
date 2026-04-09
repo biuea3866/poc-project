@@ -52,8 +52,7 @@ class SafetyStockService(
      * 안전재고 이하 목록 조회.
      */
     fun findBelowSafetyThreshold(): List<InventoryResponse> {
-        val all = inventoryRepository.findAll()
-        return all.filter { it.deletedAt == null && it.isBelowSafetyThreshold() }
+        return inventoryRepository.findBelowSafetyThreshold()
             .map { InventoryResponse.from(it) }
     }
 

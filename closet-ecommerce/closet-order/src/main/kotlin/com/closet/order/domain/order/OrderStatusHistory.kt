@@ -19,18 +19,14 @@ import java.time.ZonedDateTime
 class OrderStatusHistory(
     @Column(name = "order_id", nullable = false)
     val orderId: Long,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "from_status", length = 30, columnDefinition = "VARCHAR(30)")
     val fromStatus: OrderStatus?,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "to_status", nullable = false, length = 30, columnDefinition = "VARCHAR(30)")
     val toStatus: OrderStatus,
-
     @Column(name = "reason", length = 500)
     val reason: String? = null,
-
     @Column(name = "changed_by", length = 100)
     val changedBy: String? = null,
 ) {

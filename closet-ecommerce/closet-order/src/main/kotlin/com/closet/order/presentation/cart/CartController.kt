@@ -24,10 +24,11 @@ import org.springframework.web.bind.annotation.RestController
 class CartController(
     private val cartService: CartService,
 ) {
-
     @PostMapping("/items")
     @ResponseStatus(HttpStatus.CREATED)
-    fun addItem(@RequestBody @Valid request: AddCartItemRequest): ApiResponse<CartResponse> {
+    fun addItem(
+        @RequestBody @Valid request: AddCartItemRequest,
+    ): ApiResponse<CartResponse> {
         val response = cartService.addItem(request)
         return ApiResponse.created(response)
     }
@@ -37,8 +38,9 @@ class CartController(
         @RequestHeader("X-Member-Id", required = false) headerMemberId: Long?,
         @RequestParam(required = false) memberId: Long?,
     ): ApiResponse<CartResponse> {
-        val resolvedMemberId = headerMemberId ?: memberId
-            ?: throw IllegalArgumentException("memberId는 헤더(X-Member-Id) 또는 쿼리 파라미터로 전달해야 합니다")
+        val resolvedMemberId =
+            headerMemberId ?: memberId
+                ?: throw IllegalArgumentException("memberId는 헤더(X-Member-Id) 또는 쿼리 파라미터로 전달해야 합니다")
         val response = cartService.getCart(resolvedMemberId)
         return ApiResponse.ok(response)
     }
@@ -54,7 +56,9 @@ class CartController(
 
     @DeleteMapping("/items/{itemId}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    fun removeItem(@PathVariable itemId: Long) {
+    fun removeItem(
+        @PathVariable itemId: Long,
+    ) {
         cartService.removeItem(itemId)
     }
 }

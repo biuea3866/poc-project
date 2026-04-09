@@ -36,46 +36,33 @@ import java.time.ZonedDateTime
 class Review(
     @Column(name = "product_id", nullable = false)
     val productId: Long,
-
     @Column(name = "order_item_id", nullable = false)
     val orderItemId: Long,
-
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
-
     @Column(name = "rating", nullable = false)
     val rating: Int,
-
     @Column(name = "content", nullable = false, length = 2000)
     var content: String,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "status", nullable = false, length = 20, columnDefinition = "VARCHAR(20)")
     var status: ReviewStatus = ReviewStatus.VISIBLE,
-
     @Column(name = "edit_count", nullable = false)
     var editCount: Int = 0,
-
     @Column(name = "has_image", nullable = false, columnDefinition = "TINYINT(1)")
     var hasImage: Boolean = false,
-
     // 사이즈 후기 (US-802)
     @Column(name = "height")
     var height: Int? = null,
-
     @Column(name = "weight")
     var weight: Int? = null,
-
     @Column(name = "normal_size", length = 20)
     var normalSize: String? = null,
-
     @Column(name = "purchased_size", length = 20)
     var purchasedSize: String? = null,
-
     @Enumerated(EnumType.STRING)
     @Column(name = "fit_type", length = 20, columnDefinition = "VARCHAR(20)")
-    var fitType: FitType? = null,
-
+    var fitType: SizeFit? = null,
     @Column(name = "helpful_count", nullable = false)
     var helpfulCount: Int = 0,
 ) {
@@ -111,7 +98,10 @@ class Review(
      * - 최대 3회 수정
      * - 작성 후 7일 이내
      */
-    fun update(newContent: String, now: ZonedDateTime = ZonedDateTime.now()) {
+    fun update(
+        newContent: String,
+        now: ZonedDateTime = ZonedDateTime.now(),
+    ) {
         if (status == ReviewStatus.DELETED) {
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "삭제된 리뷰는 수정할 수 없습니다")
         }
@@ -132,16 +122,21 @@ class Review(
     /**
      * 이미지 추가.
      */
-    fun addImage(imageUrl: String, thumbnailUrl: String, displayOrder: Int) {
+    fun addImage(
+        imageUrl: String,
+        thumbnailUrl: String,
+        displayOrder: Int,
+    ) {
         if (images.size >= MAX_IMAGE_COUNT) {
             throw BusinessException(ErrorCode.INVALID_INPUT, "이미지는 최대 ${MAX_IMAGE_COUNT}장까지 등록할 수 있습니다")
         }
-        val image = ReviewImage(
-            review = this,
-            imageUrl = imageUrl,
-            thumbnailUrl = thumbnailUrl,
-            displayOrder = displayOrder,
-        )
+        val image =
+            ReviewImage(
+                review = this,
+                imageUrl = imageUrl,
+                thumbnailUrl = thumbnailUrl,
+                displayOrder = displayOrder,
+            )
         images.add(image)
         hasImage = true
     }
@@ -237,7 +232,7 @@ class Review(
             weight: Int? = null,
             normalSize: String? = null,
             purchasedSize: String? = null,
-            fitType: FitType? = null,
+            fitType: SizeFit? = null,
         ): Review {
             return Review(
                 productId = productId,

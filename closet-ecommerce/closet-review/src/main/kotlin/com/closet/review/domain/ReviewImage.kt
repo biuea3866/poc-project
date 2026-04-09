@@ -25,13 +25,10 @@ class ReviewImage(
     @ManyToOne
     @JoinColumn(name = "review_id", nullable = false)
     val review: Review,
-
     @Column(name = "image_url", nullable = false, length = 500)
     val imageUrl: String,
-
     @Column(name = "thumbnail_url", nullable = false, length = 500)
     val thumbnailUrl: String,
-
     @Column(name = "display_order", nullable = false)
     val displayOrder: Int,
 ) {

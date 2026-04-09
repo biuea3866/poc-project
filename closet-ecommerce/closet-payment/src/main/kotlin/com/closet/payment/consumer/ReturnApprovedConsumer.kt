@@ -6,6 +6,7 @@ import com.closet.payment.application.PaymentService
 import com.closet.payment.application.RefundPaymentRequest
 import com.closet.payment.consumer.event.ShippingEvent
 import com.closet.payment.domain.PaymentRepository
+import com.closet.payment.infrastructure.PaymentType
 import mu.KotlinLogging
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
@@ -54,6 +55,7 @@ class ReturnApprovedConsumer(
                             amount = returnApproved.refundAmount,
                             reason = "반품 승인 환불 (returnRequestId=${returnApproved.returnRequestId})",
                         ),
+                        PaymentType.TOSS,
                     )
                 }
             }

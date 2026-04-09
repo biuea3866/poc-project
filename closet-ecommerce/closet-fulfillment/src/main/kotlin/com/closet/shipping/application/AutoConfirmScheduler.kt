@@ -13,7 +13,7 @@ private val logger = KotlinLogging.logger {}
  * 매일 00:00 실행.
  * 배송 완료(DELIVERED) 후 7일(168시간) 경과한 건을 자동 구매확정 처리한다.
  * 반품/교환 진행 중인 건은 제외한다.
- * order.confirmed Kafka 이벤트를 ClosetTopics.ORDER 토픽으로 발행한다.
+ * DeliveryConfirmed Kafka 이벤트를 ClosetTopics.SHIPPING 토픽으로 발행한다.
  */
 @Component
 @ConditionalOnProperty(name = ["feature.auto-confirm-scheduler-enabled"], havingValue = "true", matchIfMissing = false)

@@ -50,7 +50,9 @@ class RankingServiceTest : BehaviorSpec({
         val zSetOps = mockk<ZSetOperations<String, String>>()
         every { redisTemplate.opsForZSet() } returns zSetOps
         every { zSetOps.reverseRangeWithScores("ranking:1:DAILY", 0, 9) } returns emptySet()
-        every { rankingSnapshotRepository.findByCategoryIdAndPeriodType(1L, PeriodType.DAILY) } returns snapshots
+        every {
+            rankingSnapshotRepository.findByCategoryIdAndPeriodTypeOrderBySnapshotDateDescRankPositionAsc(1L, PeriodType.DAILY)
+        } returns snapshots
 
         When("getRanking을 호출하면") {
             val result = rankingService.getRanking(1L, PeriodType.DAILY, 10)

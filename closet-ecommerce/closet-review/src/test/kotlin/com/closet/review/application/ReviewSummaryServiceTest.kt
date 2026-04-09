@@ -1,10 +1,10 @@
 package com.closet.review.application
 
 import com.closet.common.outbox.OutboxEventPublisher
-import com.closet.review.domain.FitType
 import com.closet.review.domain.Review
 import com.closet.review.domain.ReviewSummary
 import com.closet.review.domain.ReviewSummaryRepository
+import com.closet.review.domain.SizeFit
 import com.fasterxml.jackson.databind.ObjectMapper
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.doubles.shouldBeGreaterThan
@@ -21,40 +21,43 @@ class ReviewSummaryServiceTest : BehaviorSpec({
 
     val reviewSummaryRepository = mockk<ReviewSummaryRepository>(relaxed = true)
     val outboxEventPublisher = mockk<OutboxEventPublisher>(relaxed = true)
-    val objectMapper = ObjectMapper().apply {
-        findAndRegisterModules()
-    }
+    val objectMapper =
+        ObjectMapper().apply {
+            findAndRegisterModules()
+        }
     val redisTemplate = mockk<StringRedisTemplate>(relaxed = true)
     val valueOps = mockk<ValueOperations<String, String>>(relaxed = true)
 
     every { redisTemplate.opsForValue() } returns valueOps
 
-    val reviewSummaryService = ReviewSummaryService(
-        reviewSummaryRepository,
-        outboxEventPublisher,
-        objectMapper,
-        redisTemplate,
-    )
+    val reviewSummaryService =
+        ReviewSummaryService(
+            reviewSummaryRepository,
+            outboxEventPublisher,
+            objectMapper,
+            redisTemplate,
+        )
 
     fun createTestReview(
         productId: Long,
         orderItemId: Long,
         rating: Int,
         hasPhoto: Boolean = false,
-        fitType: FitType? = null,
+        fitType: SizeFit? = null,
         height: Int? = null,
         weight: Int? = null,
     ): Review {
-        val review = Review.create(
-            productId = productId,
-            orderItemId = orderItemId,
-            memberId = 100L,
-            rating = rating,
-            content = "테스트 리뷰입니다. 테스트를 위한 충분한 길이의 내용을 작성합니다. 길이 제한을 충족합니다.",
-            height = height,
-            weight = weight,
-            fitType = fitType,
-        )
+        val review =
+            Review.create(
+                productId = productId,
+                orderItemId = orderItemId,
+                memberId = 100L,
+                rating = rating,
+                content = "테스트 리뷰입니다. 테스트를 위한 충분한 길이의 내용을 작성합니다. 길이 제한을 충족합니다.",
+                height = height,
+                weight = weight,
+                fitType = fitType,
+            )
         if (hasPhoto) {
             review.addImage("https://example.com/img.jpg", "https://example.com/thumb.jpg", 0)
         }
@@ -86,12 +89,13 @@ class ReviewSummaryServiceTest : BehaviorSpec({
         }
 
         When("포토 리뷰가 생성되면") {
-            val summary = ReviewSummary.create(10L).apply {
-                totalCount = 1
-                totalRatingSum = 5
-                avgRating = 5.0
-                rating5Count = 1
-            }
+            val summary =
+                ReviewSummary.create(10L).apply {
+                    totalCount = 1
+                    totalRatingSum = 5
+                    avgRating = 5.0
+                    rating5Count = 1
+                }
             every { reviewSummaryRepository.findByProductId(10L) } returns summary
             every { reviewSummaryRepository.save(any<ReviewSummary>()) } answers { firstArg() }
 
@@ -111,14 +115,15 @@ class ReviewSummaryServiceTest : BehaviorSpec({
             every { reviewSummaryRepository.findByProductId(20L) } returns summary
             every { reviewSummaryRepository.save(any<ReviewSummary>()) } answers { firstArg() }
 
-            val review = createTestReview(
-                productId = 20L,
-                orderItemId = 3L,
-                rating = 4,
-                fitType = FitType.PERFECT,
-                height = 175,
-                weight = 70,
-            )
+            val review =
+                createTestReview(
+                    productId = 20L,
+                    orderItemId = 3L,
+                    rating = 4,
+                    fitType = SizeFit.PERFECT,
+                    height = 175,
+                    weight = 70,
+                )
             reviewSummaryService.onReviewCreated(review)
 
             Then("사이즈핏 분포가 갱신된다") {
@@ -132,27 +137,29 @@ class ReviewSummaryServiceTest : BehaviorSpec({
     Given("리뷰 삭제 시 집계 갱신") {
 
         When("리뷰가 삭제되면") {
-            val summary = ReviewSummary.create(30L).apply {
-                totalCount = 3
-                totalRatingSum = 12
-                avgRating = 4.0
-                rating4Count = 2
-                rating5Count = 1
-                photoReviewCount = 1
-                fitPerfectCount = 1
-            }
+            val summary =
+                ReviewSummary.create(30L).apply {
+                    totalCount = 3
+                    totalRatingSum = 12
+                    avgRating = 4.0
+                    rating4Count = 2
+                    rating5Count = 1
+                    photoReviewCount = 1
+                    fitPerfectCount = 1
+                }
             every { reviewSummaryRepository.findByProductId(30L) } returns summary
             every { reviewSummaryRepository.save(any<ReviewSummary>()) } answers { firstArg() }
 
-            val review = createTestReview(
-                productId = 30L,
-                orderItemId = 4L,
-                rating = 4,
-                hasPhoto = true,
-                fitType = FitType.PERFECT,
-                height = 175,
-                weight = 70,
-            )
+            val review =
+                createTestReview(
+                    productId = 30L,
+                    orderItemId = 4L,
+                    rating = 4,
+                    hasPhoto = true,
+                    fitType = SizeFit.PERFECT,
+                    height = 175,
+                    weight = 70,
+                )
             reviewSummaryService.onReviewDeleted(review)
 
             Then("집계가 감소한다") {
@@ -183,39 +190,43 @@ class ReviewSummaryServiceTest : BehaviorSpec({
     Given("Redis 캐시 조회 (US-804)") {
 
         When("캐시 히트") {
-            val cachedJson = """{"productId":50,"totalCount":10,"avgRating":4.5,"ratingDistribution":{"1":0,"2":1,"3":2,"4":3,"5":4},"fitDistribution":{"SMALL":1,"PERFECT":5,"LARGE":2},"photoReviewCount":3}"""
+            val cachedJson =
+                """{"productId":50,"totalCount":10,"avgRating":4.5,"ratingDistribution":{"1":0,"2":1,"3":2,"4":3,"5":4},""" +
+                    """"fitDistribution":{"SMALL":1,"PERFECT":5,"LARGE":2},"photoReviewCount":3}"""
             every { valueOps.get("review_summary:50") } returns cachedJson
 
             val result = reviewSummaryService.getSummary(50L)
 
             Then("Redis 캐시에서 반환한다") {
-                result shouldBe ReviewSummaryResponse(
-                    productId = 50L,
-                    totalCount = 10,
-                    avgRating = 4.5,
-                    ratingDistribution = mapOf(1 to 0, 2 to 1, 3 to 2, 4 to 3, 5 to 4),
-                    fitDistribution = mapOf("SMALL" to 1, "PERFECT" to 5, "LARGE" to 2),
-                    photoReviewCount = 3,
-                )
+                result shouldBe
+                    ReviewSummaryResponse(
+                        productId = 50L,
+                        totalCount = 10,
+                        avgRating = 4.5,
+                        ratingDistribution = mapOf(1 to 0, 2 to 1, 3 to 2, 4 to 3, 5 to 4),
+                        fitDistribution = mapOf("SMALL" to 1, "PERFECT" to 5, "LARGE" to 2),
+                        photoReviewCount = 3,
+                    )
             }
         }
 
         When("캐시 미스") {
             every { valueOps.get("review_summary:60") } returns null
 
-            val summary = ReviewSummary.create(60L).apply {
-                totalCount = 5
-                totalRatingSum = 20
-                avgRating = 4.0
-                rating4Count = 3
-                rating5Count = 2
-                val createdAtField = ReviewSummary::class.java.getDeclaredField("createdAt")
-                createdAtField.isAccessible = true
-                createdAtField.set(this, ZonedDateTime.now())
-                val updatedAtField = ReviewSummary::class.java.getDeclaredField("updatedAt")
-                updatedAtField.isAccessible = true
-                updatedAtField.set(this, ZonedDateTime.now())
-            }
+            val summary =
+                ReviewSummary.create(60L).apply {
+                    totalCount = 5
+                    totalRatingSum = 20
+                    avgRating = 4.0
+                    rating4Count = 3
+                    rating5Count = 2
+                    val createdAtField = ReviewSummary::class.java.getDeclaredField("createdAt")
+                    createdAtField.isAccessible = true
+                    createdAtField.set(this, ZonedDateTime.now())
+                    val updatedAtField = ReviewSummary::class.java.getDeclaredField("updatedAt")
+                    updatedAtField.isAccessible = true
+                    updatedAtField.set(this, ZonedDateTime.now())
+                }
             every { reviewSummaryRepository.findByProductId(60L) } returns summary
 
             val result = reviewSummaryService.getSummary(60L)
@@ -271,7 +282,7 @@ class ReviewSummaryServiceTest : BehaviorSpec({
             val summary = ReviewSummary.create(100L)
             summary.addReview(5, null, false)
             summary.addReview(4, null, false)
-            summary.addReview(3, FitType.SMALL, true)
+            summary.addReview(3, SizeFit.SMALL, true)
 
             Then("별점 분포가 올바르게 계산된다") {
                 summary.totalCount shouldBe 3
@@ -287,8 +298,8 @@ class ReviewSummaryServiceTest : BehaviorSpec({
 
         When("모든 리뷰를 삭제하면") {
             val summary = ReviewSummary.create(101L)
-            summary.addReview(5, FitType.PERFECT, true)
-            summary.removeReview(5, FitType.PERFECT, true)
+            summary.addReview(5, SizeFit.PERFECT, true)
+            summary.removeReview(5, SizeFit.PERFECT, true)
 
             Then("모든 카운트가 0이 된다") {
                 summary.totalCount shouldBe 0
@@ -302,12 +313,12 @@ class ReviewSummaryServiceTest : BehaviorSpec({
 
         When("3가지 핏 타입이 모두 기록되면") {
             val summary = ReviewSummary.create(102L)
-            summary.addReview(4, FitType.SMALL, false)
-            summary.addReview(4, FitType.SMALL, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(3, FitType.LARGE, false)
+            summary.addReview(4, SizeFit.SMALL, false)
+            summary.addReview(4, SizeFit.SMALL, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(3, SizeFit.LARGE, false)
 
             Then("사이즈핏 분포가 올바르다") {
                 summary.fitSmallCount shouldBe 2

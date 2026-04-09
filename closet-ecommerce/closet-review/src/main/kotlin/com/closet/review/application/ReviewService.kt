@@ -43,14 +43,17 @@ class ReviewService(
     private val outboxEventPublisher: OutboxEventPublisher,
     private val objectMapper: ObjectMapper,
 ) {
-
     /**
      * 주문 아이템 구매확정 이벤트 처리.
      * order-service에서 OrderItemConfirmed 이벤트를 수신하면 호출된다.
      * 구매확정된 주문 아이템을 기록하여 리뷰 작성 자격을 부여한다.
      */
     @Transactional
-    fun onOrderItemConfirmed(orderItemId: Long, memberId: Long, productId: Long) {
+    fun onOrderItemConfirmed(
+        orderItemId: Long,
+        memberId: Long,
+        productId: Long,
+    ) {
         if (reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(orderItemId, memberId)) {
             logger.info { "이미 구매확정 기록이 존재합니다: orderItemId=$orderItemId, memberId=$memberId" }
             return
@@ -61,7 +64,7 @@ class ReviewService(
                 orderItemId = orderItemId,
                 memberId = memberId,
                 productId = productId,
-            )
+            ),
         )
         logger.info { "구매확정 기록 저장: orderItemId=$orderItemId, memberId=$memberId, productId=$productId" }
     }
@@ -74,22 +77,27 @@ class ReviewService(
      * - review.created Kafka 이벤트 발행
      */
     @Transactional
-    fun createReview(memberId: Long, request: CreateReviewRequest): ReviewResponse {
+    fun createReview(
+        memberId: Long,
+        request: CreateReviewRequest,
+    ): ReviewResponse {
         // 구매확정 여부 검증
-        val isConfirmed = reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(
-            orderItemId = request.orderItemId,
-            memberId = memberId,
-        )
+        val isConfirmed =
+            reviewableOrderItemRepository.existsByOrderItemIdAndMemberId(
+                orderItemId = request.orderItemId,
+                memberId = memberId,
+            )
         if (!isConfirmed) {
             throw BusinessException(ErrorCode.INVALID_INPUT, "구매확정된 주문 아이템만 리뷰를 작성할 수 있습니다: orderItemId=${request.orderItemId}")
         }
 
         // 중복 리뷰 체크
-        val exists = reviewRepository.existsByOrderItemIdAndMemberIdAndStatusNot(
-            orderItemId = request.orderItemId,
-            memberId = memberId,
-            status = ReviewStatus.DELETED,
-        )
+        val exists =
+            reviewRepository.existsByOrderItemIdAndMemberIdAndStatusNot(
+                orderItemId = request.orderItemId,
+                memberId = memberId,
+                status = ReviewStatus.DELETED,
+            )
         if (exists) {
             throw BusinessException(ErrorCode.DUPLICATE_ENTITY, "이미 리뷰를 작성했습니다: orderItemId=${request.orderItemId}")
         }
@@ -99,24 +107,26 @@ class ReviewService(
             throw BusinessException(ErrorCode.INVALID_INPUT, "이미지는 최대 ${Review.MAX_IMAGE_COUNT}장까지 등록할 수 있습니다")
         }
 
-        val review = Review.create(
-            productId = request.productId,
-            orderItemId = request.orderItemId,
-            memberId = memberId,
-            rating = request.rating,
-            content = request.content,
-            height = request.height,
-            weight = request.weight,
-            normalSize = request.normalSize,
-            purchasedSize = request.purchasedSize,
-            fitType = request.fitType,
-        )
+        val review =
+            Review.create(
+                productId = request.productId,
+                orderItemId = request.orderItemId,
+                memberId = memberId,
+                rating = request.rating,
+                content = request.content,
+                height = request.height,
+                weight = request.weight,
+                normalSize = request.normalSize,
+                purchasedSize = request.purchasedSize,
+                fitType = request.fitType,
+            )
 
         // 이미지 URL -> ReviewImage 엔티티 변환
         request.imageUrls.forEachIndexed { index, url ->
             review.addImage(
                 imageUrl = url,
-                thumbnailUrl = url, // 썸네일은 클라이언트/CDN에서 리사이즈 또는 별도 key 관리
+                // 썸네일은 클라이언트/CDN에서 리사이즈 또는 별도 key 관리
+                thumbnailUrl = url,
                 displayOrder = index,
             )
         }
@@ -129,7 +139,7 @@ class ReviewService(
         // review.created 이벤트 발행 (US-803: 포인트 적립용)
         publishReviewCreatedEvent(saved)
 
-        logger.info { "리뷰 작성 완료: id=${saved.id}, productId=${request.productId}, memberId=$memberId, rating=${request.rating}, point=${saved.calculatePointAmount()}" }
+        logger.info { "리뷰 작성 완료: id=${saved.id}, productId=${request.productId}, memberId=$memberId" }
         return ReviewResponse.from(saved)
     }
 
@@ -140,7 +150,11 @@ class ReviewService(
      * - 이미지 교체 가능
      */
     @Transactional
-    fun updateReview(memberId: Long, reviewId: Long, request: UpdateReviewRequest): ReviewResponse {
+    fun updateReview(
+        memberId: Long,
+        reviewId: Long,
+        request: UpdateReviewRequest,
+    ): ReviewResponse {
         val review = getReviewByMember(reviewId, memberId)
 
         val previousContent = review.content
@@ -151,14 +165,15 @@ class ReviewService(
             if (request.imageUrls.size > Review.MAX_IMAGE_COUNT) {
                 throw BusinessException(ErrorCode.INVALID_INPUT, "이미지는 최대 ${Review.MAX_IMAGE_COUNT}장까지 등록할 수 있습니다")
             }
-            val newImages = request.imageUrls.mapIndexed { index, url ->
-                ReviewImage(
-                    review = review,
-                    imageUrl = url,
-                    thumbnailUrl = url,
-                    displayOrder = index,
-                )
-            }
+            val newImages =
+                request.imageUrls.mapIndexed { index, url ->
+                    ReviewImage(
+                        review = review,
+                        imageUrl = url,
+                        thumbnailUrl = url,
+                        displayOrder = index,
+                    )
+                }
             review.replaceImages(newImages)
         }
 
@@ -169,7 +184,7 @@ class ReviewService(
                 previousContent = previousContent,
                 newContent = request.content,
                 editCount = review.editCount,
-            )
+            ),
         )
 
         // 집계 갱신 (포토 여부 변경 가능)
@@ -184,7 +199,10 @@ class ReviewService(
      * 삭제 시 포인트 회수 이벤트 발행 (US-803).
      */
     @Transactional
-    fun deleteReview(memberId: Long, reviewId: Long) {
+    fun deleteReview(
+        memberId: Long,
+        reviewId: Long,
+    ) {
         val review = getReviewByMember(reviewId, memberId)
         review.delete()
 
@@ -202,8 +220,9 @@ class ReviewService(
      */
     @Transactional
     fun hideReview(reviewId: Long) {
-        val review = reviewRepository.findById(reviewId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
+        val review =
+            reviewRepository.findById(reviewId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
         review.hide()
 
         // 블라인드 시 집계에서 제거
@@ -217,8 +236,9 @@ class ReviewService(
      */
     @Transactional
     fun unhideReview(reviewId: Long) {
-        val review = reviewRepository.findById(reviewId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
+        val review =
+            reviewRepository.findById(reviewId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
         review.unhide()
 
         // 블라인드 해제 시 집계에 다시 추가
@@ -231,8 +251,9 @@ class ReviewService(
      * 리뷰 상세 조회.
      */
     fun findById(reviewId: Long): ReviewResponse {
-        val review = reviewRepository.findById(reviewId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
+        val review =
+            reviewRepository.findById(reviewId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
         return ReviewResponse.from(review)
     }
 
@@ -257,19 +278,20 @@ class ReviewService(
         }
 
         // 포토리뷰 필터
-        val page: Page<Review> = if (query.photoOnly) {
-            when (query.sort) {
-                ReviewSortType.LATEST -> reviewRepository.findByProductIdPhotoOnlyLatest(query.productId, status, pageable)
-                ReviewSortType.RATING -> reviewRepository.findByProductIdPhotoOnlyRating(query.productId, status, pageable)
-                ReviewSortType.HELPFUL -> reviewRepository.findByProductIdPhotoOnlyHelpful(query.productId, status, pageable)
+        val page: Page<Review> =
+            if (query.photoOnly) {
+                when (query.sort) {
+                    ReviewSortType.LATEST -> reviewRepository.findByProductIdPhotoOnlyLatest(query.productId, status, pageable)
+                    ReviewSortType.RATING -> reviewRepository.findByProductIdPhotoOnlyRating(query.productId, status, pageable)
+                    ReviewSortType.HELPFUL -> reviewRepository.findByProductIdPhotoOnlyHelpful(query.productId, status, pageable)
+                }
+            } else {
+                when (query.sort) {
+                    ReviewSortType.LATEST -> reviewRepository.findByProductIdLatest(query.productId, status, pageable)
+                    ReviewSortType.RATING -> reviewRepository.findByProductIdRating(query.productId, status, pageable)
+                    ReviewSortType.HELPFUL -> reviewRepository.findByProductIdHelpful(query.productId, status, pageable)
+                }
             }
-        } else {
-            when (query.sort) {
-                ReviewSortType.LATEST -> reviewRepository.findByProductIdLatest(query.productId, status, pageable)
-                ReviewSortType.RATING -> reviewRepository.findByProductIdRating(query.productId, status, pageable)
-                ReviewSortType.HELPFUL -> reviewRepository.findByProductIdHelpful(query.productId, status, pageable)
-            }
-        }
 
         return page.map { ReviewResponse.from(it) }
     }
@@ -277,7 +299,10 @@ class ReviewService(
     /**
      * 회원별 리뷰 목록 조회.
      */
-    fun findByMemberId(memberId: Long, pageable: Pageable): Page<ReviewResponse> {
+    fun findByMemberId(
+        memberId: Long,
+        pageable: Pageable,
+    ): Page<ReviewResponse> {
         return reviewRepository.findByMemberIdAndStatusNotOrderByCreatedAtDesc(
             memberId = memberId,
             status = ReviewStatus.DELETED,
@@ -298,9 +323,13 @@ class ReviewService(
      * 회원당 리뷰 1건당 1회만 가능.
      */
     @Transactional
-    fun markHelpful(memberId: Long, reviewId: Long) {
-        val review = reviewRepository.findById(reviewId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
+    fun markHelpful(
+        memberId: Long,
+        reviewId: Long,
+    ) {
+        val review =
+            reviewRepository.findById(reviewId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId") }
 
         if (review.status != ReviewStatus.VISIBLE) {
             throw BusinessException(ErrorCode.INVALID_INPUT, "노출 중인 리뷰에만 '도움이 됐어요'를 할 수 있습니다")
@@ -317,7 +346,10 @@ class ReviewService(
         logger.info { "리뷰 도움이 됐어요: reviewId=$reviewId, memberId=$memberId, helpfulCount=${review.helpfulCount}" }
     }
 
-    private fun getReviewByMember(reviewId: Long, memberId: Long): Review {
+    private fun getReviewByMember(
+        reviewId: Long,
+        memberId: Long,
+    ): Review {
         return reviewRepository.findByIdAndMemberId(reviewId, memberId)
             ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "리뷰를 찾을 수 없습니다: id=$reviewId, memberId=$memberId")
     }
@@ -328,20 +360,21 @@ class ReviewService(
      */
     private fun publishReviewCreatedEvent(review: Review) {
         val pointAmount = review.calculatePointAmount()
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventId" to "review-created-${review.id}-${System.currentTimeMillis()}",
-                "eventType" to "ReviewCreated",
-                "reviewId" to review.id,
-                "productId" to review.productId,
-                "memberId" to review.memberId,
-                "rating" to review.rating,
-                "isPhotoReview" to review.isPhotoReview(),
-                "hasSizeInfo" to review.hasSizeInfo(),
-                "pointAmount" to pointAmount,
-                "timestamp" to ZonedDateTime.now().toString(),
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "eventId" to "review-created-${review.id}-${System.currentTimeMillis()}",
+                    "eventType" to "ReviewCreated",
+                    "reviewId" to review.id,
+                    "productId" to review.productId,
+                    "memberId" to review.memberId,
+                    "rating" to review.rating,
+                    "isPhotoReview" to review.isPhotoReview(),
+                    "hasSizeInfo" to review.hasSizeInfo(),
+                    "pointAmount" to pointAmount,
+                    "timestamp" to ZonedDateTime.now().toString(),
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Review",
@@ -360,17 +393,18 @@ class ReviewService(
      */
     private fun publishReviewDeletedEvent(review: Review) {
         val pointAmount = review.calculatePointAmount()
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventId" to "review-deleted-${review.id}-${System.currentTimeMillis()}",
-                "eventType" to "ReviewDeleted",
-                "reviewId" to review.id,
-                "productId" to review.productId,
-                "memberId" to review.memberId,
-                "pointAmount" to pointAmount,
-                "timestamp" to ZonedDateTime.now().toString(),
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "eventId" to "review-deleted-${review.id}-${System.currentTimeMillis()}",
+                    "eventType" to "ReviewDeleted",
+                    "reviewId" to review.id,
+                    "productId" to review.productId,
+                    "memberId" to review.memberId,
+                    "pointAmount" to pointAmount,
+                    "timestamp" to ZonedDateTime.now().toString(),
+                ),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "Review",

@@ -1,7 +1,7 @@
 package com.closet.member.consumer
 
 import com.closet.common.event.ClosetTopics
-import com.closet.member.application.PointService
+import com.closet.member.application.point.PointService
 import com.closet.member.consumer.event.ReviewEvent
 import mu.KotlinLogging
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty

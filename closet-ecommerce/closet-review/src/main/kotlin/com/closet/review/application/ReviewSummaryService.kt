@@ -30,7 +30,6 @@ class ReviewSummaryService(
     private val objectMapper: ObjectMapper,
     private val redisTemplate: StringRedisTemplate,
 ) {
-
     companion object {
         private const val CACHE_KEY_PREFIX = "review_summary:"
         private val CACHE_TTL = Duration.ofHours(24)
@@ -144,28 +143,31 @@ class ReviewSummaryService(
      * ES 동기화용. 별점 분포, 사이즈핏 분포 포함.
      */
     private fun publishSummaryUpdatedEvent(summary: ReviewSummary) {
-        val payload = objectMapper.writeValueAsString(
-            mapOf(
-                "eventType" to "ReviewSummaryUpdated",
-                "productId" to summary.productId,
-                "reviewCount" to summary.totalCount,
-                "avgRating" to summary.avgRating,
-                "ratingDistribution" to mapOf(
-                    1 to summary.rating1Count,
-                    2 to summary.rating2Count,
-                    3 to summary.rating3Count,
-                    4 to summary.rating4Count,
-                    5 to summary.rating5Count,
+        val payload =
+            objectMapper.writeValueAsString(
+                mapOf(
+                    "eventType" to "ReviewSummaryUpdated",
+                    "productId" to summary.productId,
+                    "reviewCount" to summary.totalCount,
+                    "avgRating" to summary.avgRating,
+                    "ratingDistribution" to
+                        mapOf(
+                            1 to summary.rating1Count,
+                            2 to summary.rating2Count,
+                            3 to summary.rating3Count,
+                            4 to summary.rating4Count,
+                            5 to summary.rating5Count,
+                        ),
+                    "fitDistribution" to
+                        mapOf(
+                            "SMALL" to summary.fitSmallCount,
+                            "PERFECT" to summary.fitPerfectCount,
+                            "LARGE" to summary.fitLargeCount,
+                        ),
+                    "photoReviewCount" to summary.photoReviewCount,
+                    "timestamp" to ZonedDateTime.now().toString(),
                 ),
-                "fitDistribution" to mapOf(
-                    "SMALL" to summary.fitSmallCount,
-                    "PERFECT" to summary.fitPerfectCount,
-                    "LARGE" to summary.fitLargeCount,
-                ),
-                "photoReviewCount" to summary.photoReviewCount,
-                "timestamp" to ZonedDateTime.now().toString(),
             )
-        )
 
         outboxEventPublisher.publish(
             aggregateType = "ReviewSummary",

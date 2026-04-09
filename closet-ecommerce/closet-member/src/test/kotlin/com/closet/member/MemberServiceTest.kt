@@ -19,7 +19,7 @@ import io.mockk.mockk
 import io.mockk.slot
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
-import java.time.LocalDateTime
+import java.time.ZonedDateTime
 
 class MemberServiceTest : BehaviorSpec({
     val memberRepository = mockk<MemberRepository>()
@@ -43,8 +43,8 @@ class MemberServiceTest : BehaviorSpec({
             val memberSlot = slot<Member>()
             every { memberRepository.save(capture(memberSlot)) } answers {
                 memberSlot.captured.apply {
-                    createdAt = LocalDateTime.now()
-                    updatedAt = LocalDateTime.now()
+                    createdAt = ZonedDateTime.now()
+                    updatedAt = ZonedDateTime.now()
                 }
             }
 

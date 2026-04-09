@@ -26,7 +26,6 @@ class InventoryInsufficientConsumer(
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val idempotencyChecker: IdempotencyChecker,
 ) {
-
     companion object {
         private const val CONSUMER_GROUP = "order-service"
     }
@@ -70,7 +69,7 @@ class InventoryInsufficientConsumer(
                             toStatus = order.status,
                             reason = event.reason,
                             changedBy = "inventory-service",
-                        )
+                        ),
                     )
 
                     logger.info { "주문 FAILED 처리 완료: orderId=$orderId, reason=${event.reason}" }

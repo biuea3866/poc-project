@@ -21,19 +21,20 @@ class CartService(
     private val cartRepository: CartRepository,
     private val cartItemRepository: CartItemRepository,
 ) {
-
     @Transactional
     fun addItem(request: AddCartItemRequest): CartResponse {
-        val cart = cartRepository.findByMemberId(request.memberId)
-            ?: cartRepository.save(Cart.create(request.memberId))
+        val cart =
+            cartRepository.findByMemberId(request.memberId)
+                ?: cartRepository.save(Cart.create(request.memberId))
 
-        val cartItem = CartItem.create(
-            cartId = cart.id,
-            productId = request.productId,
-            productOptionId = request.productOptionId,
-            quantity = request.quantity,
-            unitPrice = Money(request.unitPrice),
-        )
+        val cartItem =
+            CartItem.create(
+                cartId = cart.id,
+                productId = request.productId,
+                productOptionId = request.productOptionId,
+                quantity = request.quantity,
+                unitPrice = Money(request.unitPrice),
+            )
         cartItemRepository.save(cartItem)
 
         val items = cartItemRepository.findByCartId(cart.id)
@@ -42,14 +43,19 @@ class CartService(
     }
 
     @Transactional
-    fun updateQuantity(itemId: Long, quantity: Int): CartResponse {
-        val cartItem = cartItemRepository.findById(itemId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "장바구니 항목을 찾을 수 없습니다. id=$itemId") }
+    fun updateQuantity(
+        itemId: Long,
+        quantity: Int,
+    ): CartResponse {
+        val cartItem =
+            cartItemRepository.findById(itemId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "장바구니 항목을 찾을 수 없습니다. id=$itemId") }
 
         cartItem.updateQuantity(quantity)
 
-        val cart = cartRepository.findById(cartItem.cartId)
-            .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "장바구니를 찾을 수 없습니다") }
+        val cart =
+            cartRepository.findById(cartItem.cartId)
+                .orElseThrow { BusinessException(ErrorCode.ENTITY_NOT_FOUND, "장바구니를 찾을 수 없습니다") }
         val items = cartItemRepository.findByCartId(cart.id)
         return CartResponse.from(cart, items)
     }
@@ -64,8 +70,9 @@ class CartService(
     }
 
     fun getCart(memberId: Long): CartResponse {
-        val cart = cartRepository.findByMemberId(memberId)
-            ?: return CartResponse(id = 0, memberId = memberId, items = emptyList())
+        val cart =
+            cartRepository.findByMemberId(memberId)
+                ?: return CartResponse(id = 0, memberId = memberId, items = emptyList())
 
         val items = cartItemRepository.findByCartId(cart.id)
         return CartResponse.from(cart, items)
