@@ -2,6 +2,7 @@ package com.closet.notification.application
 
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
+import com.closet.notification.domain.Notification
 import com.closet.notification.domain.NotificationChannel
 import com.closet.notification.domain.NotificationType
 import com.closet.notification.domain.RestockSubscription
@@ -42,8 +43,7 @@ class RestockSubscriptionService(
         productOptionId: Long,
     ) {
         val subscription =
-            restockSubscriptionRepository
-                .findByMemberIdAndProductOptionIdAndDeletedAtIsNull(memberId, productOptionId)
+            restockSubscriptionRepository.findByMemberIdAndProductOptionIdAndDeletedAtIsNull(memberId, productOptionId)
                 ?: throw BusinessException(ErrorCode.ENTITY_NOT_FOUND, "재입고 구독을 찾을 수 없습니다")
 
         subscription.softDelete()
@@ -52,15 +52,13 @@ class RestockSubscriptionService(
     /** 재입고 알림 발송 (상품 옵션 재입고 시 호출) */
     @Transactional
     fun notifyRestock(productOptionId: Long): Int {
-        val subscriptions =
-            restockSubscriptionRepository
-                .findByProductOptionIdAndIsNotifiedFalseAndDeletedAtIsNull(productOptionId)
+        val subscriptions = restockSubscriptionRepository.findByProductOptionIdAndIsNotifiedFalseAndDeletedAtIsNull(productOptionId)
 
         subscriptions.forEach { subscription ->
             subscription.markNotified()
 
             val notification =
-                com.closet.notification.domain.Notification.create(
+                Notification.create(
                     memberId = subscription.memberId,
                     channel = NotificationChannel.PUSH,
                     type = NotificationType.RESTOCK,
@@ -77,8 +75,6 @@ class RestockSubscriptionService(
 
     /** 내 재입고 구독 목록 조회 */
     fun findByMember(memberId: Long): List<RestockSubscriptionResponse> {
-        return restockSubscriptionRepository
-            .findByMemberIdAndDeletedAtIsNull(memberId)
-            .map { RestockSubscriptionResponse.from(it) }
+        return restockSubscriptionRepository.findByMemberIdAndDeletedAtIsNull(memberId).map { RestockSubscriptionResponse.from(it) }
     }
 }

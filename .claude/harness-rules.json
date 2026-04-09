@@ -168,5 +168,41 @@
       "no-db-boolean-type",
       "no-db-datetime-no-precision"
     ]
+  },
+
+  "be_workflow": {
+    "description": "BE 작업 워크플로우 원칙",
+    "steps": [
+      "1. TDD 설계 문서 작성 (docs/tdd/TDD-XXX-*.md — BE 기술 설계)",
+      "2. ADR 작성 (docs/adr/ADR-XXX-*.md — 아키텍처 결정 기록)",
+      "3. 설계 확정 (사용자 리뷰/승인)",
+      "4. 문서 업데이트 완료 = docs/ .md 작성 + 노션 페이지 동기화 + 노션 티켓 보드 업데이트 (3가지 모두 완료해야 문서 완료)",
+      "5. 구현 (TDD Red-Green-Refactor)"
+    ],
+    "message": "BE 작업: TDD+ADR 설계 → 문서 완료(md+노션페이지+노션티켓) → 구현. 문서=md+노션 모두 완료까지.",
+    "exceptions": "단순 버그 수정은 ADR 생략 가능, 문서 업데이트는 항상 필수"
+  },
+
+  "tdd_document_format": {
+    "description": "TDD 문서 포맷 (docs/tdd/TDD-XXX-*.md)",
+    "sections": [
+      "Background — 왜 이 작업이 필요한가",
+      "Terminology — 도메인 용어 정리",
+      "Define Problem — 현재 문제 정의",
+      "Possible Solutions — 대안 비교 (장단점)",
+      "Detail Design — AS-IS/TO-BE, Component Diagram (Mermaid), Sequence Diagram (Mermaid)",
+      "ERD — 데이터 모델 (Mermaid ER Diagram)",
+      "Security Information — 보안 관련 사항 (Optional)",
+      "Milestone — 진행 계획",
+      "Testing Plan — BE 기술 검증 범위 (인프라, 마이그레이션 검증)",
+      "Release Scenario — 배포 순서, 의존성, 롤백 플랜",
+      "Project Information — 모듈, ADR, PR, 티켓",
+      "Document History — 변경 이력"
+    ],
+    "role_separation": {
+      "BE (TDD)": "기술 설계, 대안 비교, 다이어그램, ERD, 기술 검증, 릴리즈 시나리오",
+      "PM/PO (PRD)": "테스트 케이스(AC), 유저 플로우, 비즈니스 요구사항, KPI"
+    },
+    "message": "TDD 문서는 BE 기술 설계만 담당. 테스트 케이스/유저 플로우는 PRD에서 PM/PO가 작성."
   }
 }

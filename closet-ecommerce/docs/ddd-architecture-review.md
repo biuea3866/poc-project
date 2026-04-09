@@ -203,3 +203,19 @@ shipping ──event.closet.shipping──> payment (ReturnApproved → 환불)
 ```
 
 `shipping → event.closet.order` 침범 완전 제거.
+
+### Notification BC 구현 (2026-04-09)
+
+| 컴포넌트 | 패턴 | 설명 |
+|---------|------|------|
+| NotificationSender | Strategy | EMAIL/SMS/PUSH 채널별 발송 전략 인터페이스 |
+| NotificationDispatcher | Factory | CarrierAdapterFactory 동일 패턴, 채널별 Sender 라우팅 |
+| NotificationPreference | Entity | 회원별 채널 수신동의, 마케팅 동의, 야간 알림(DND) 설정 |
+| NotificationTopicSubscription | Entity | 상품/카테고리/브랜드/이벤트별 토픽 구독 |
+| RestockEventConsumer | Kafka | event.closet.inventory → 재입고 알림 발송 |
+| NotificationFacade | Facade | Consumer → Facade → Service 아키텍처 준수 |
+
+이벤트 흐름 추가:
+```
+inventory ──event.closet.inventory──> notification (재입고 알림)
+```
