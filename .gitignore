@@ -44,3 +44,9 @@ docker/pinpoint/pinpoint-agent-*/
 
 # OS
 .DS_Store
+
+# Harness runtime state
+.claude/orchestrator-queue.json
+.claude/workflow-state.json
+.claude/pipeline-*.json
+.claude/gc-*.json
