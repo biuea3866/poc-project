@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { getReviews, getReviewSummary, markReviewHelpful } from '@/lib/api/review';
 import { formatDate } from '@/lib/utils/format';
-import type { Review, ReviewSummary, ReviewListParams, FitType } from '@/types/review';
+import type { Review, ReviewSummary, ReviewListParams, SizeFit } from '@/types/review';
 import type { PageResponse } from '@/types/common';
 
 interface ReviewListProps {
@@ -18,7 +18,7 @@ const SORT_OPTIONS = [
   { label: '도움순', value: 'helpfulCount,desc' },
 ];
 
-const FIT_LABELS: Record<FitType, string> = {
+const FIT_LABELS: Record<SizeFit, string> = {
   SMALL: '작아요',
   TRUE_TO_SIZE: '딱 맞아요',
   LARGE: '커요',
@@ -36,7 +36,11 @@ function RatingBar({ rating, count, total }: { rating: number; count: number; to
   return (
     <div className="flex items-center gap-2 text-sm">
       <span className="w-6 text-right text-gray-500">{rating}</span>
-      <svg className="h-3.5 w-3.5 text-yellow-400 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+      <svg
+        className="h-3.5 w-3.5 text-yellow-400 flex-shrink-0"
+        fill="currentColor"
+        viewBox="0 0 20 20"
+      >
         <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
       </svg>
       <div className="flex-1 h-2 bg-gray-200 rounded-full overflow-hidden">
@@ -78,21 +82,24 @@ export default function ReviewList({ productId }: ReviewListProps) {
     photoOnly: false,
   });
 
-  const fetchReviews = useCallback(async (params: ReviewListParams) => {
-    setLoading(true);
-    try {
-      const [reviewRes, summaryRes] = await Promise.all([
-        getReviews(params),
-        getReviewSummary(productId),
-      ]);
-      setReviews(reviewRes.data.data || EMPTY_PAGE);
-      setSummary(summaryRes.data.data || null);
-    } catch {
-      setReviews(EMPTY_PAGE);
-    } finally {
-      setLoading(false);
-    }
-  }, [productId]);
+  const fetchReviews = useCallback(
+    async (params: ReviewListParams) => {
+      setLoading(true);
+      try {
+        const [reviewRes, summaryRes] = await Promise.all([
+          getReviews(params),
+          getReviewSummary(productId),
+        ]);
+        setReviews(reviewRes.data.data || EMPTY_PAGE);
+        setSummary(summaryRes.data.data || null);
+      } catch {
+        setReviews(EMPTY_PAGE);
+      } finally {
+        setLoading(false);
+      }
+    },
+    [productId],
+  );
 
   useEffect(() => {
     fetchReviews(filters);
@@ -104,9 +111,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
       setReviews((prev) => ({
         ...prev,
         content: prev.content.map((r) =>
-          r.id === reviewId
-            ? { ...r, helpfulCount: r.helpfulCount + 1, isHelpful: true }
-            : r,
+          r.id === reviewId ? { ...r, helpfulCount: r.helpfulCount + 1, isHelpful: true } : r,
         ),
       }));
     } catch {
@@ -151,9 +156,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
                   </svg>
                 ))}
               </div>
-              <div className="text-xs text-gray-400 mt-1">
-                {summary.totalCount}개 리뷰
-              </div>
+              <div className="text-xs text-gray-400 mt-1">{summary.totalCount}개 리뷰</div>
             </div>
 
             {/* Rating Distribution */}
@@ -171,12 +174,14 @@ export default function ReviewList({ productId }: ReviewListProps) {
             {/* Fit Distribution */}
             {fitTotal > 0 && (
               <div className="sm:border-l sm:border-gray-200 sm:pl-6">
-                <p className="text-xs text-gray-500 mb-3 text-center">
-                  사이즈 핏
-                </p>
+                <p className="text-xs text-gray-500 mb-3 text-center">사이즈 핏</p>
                 <div className="flex">
                   <FitBar label="작아요" count={summary.fitDistribution.SMALL} total={fitTotal} />
-                  <FitBar label="딱맞아요" count={summary.fitDistribution.TRUE_TO_SIZE} total={fitTotal} />
+                  <FitBar
+                    label="딱맞아요"
+                    count={summary.fitDistribution.TRUE_TO_SIZE}
+                    total={fitTotal}
+                  />
                   <FitBar label="커요" count={summary.fitDistribution.LARGE} total={fitTotal} />
                 </div>
               </div>
@@ -190,9 +195,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
         <select
           className="px-3 py-1.5 border border-gray-300 rounded-lg text-sm bg-white"
           value={filters.sort || 'createdAt,desc'}
-          onChange={(e) =>
-            setFilters((prev) => ({ ...prev, sort: e.target.value, page: 0 }))
-          }
+          onChange={(e) => setFilters((prev) => ({ ...prev, sort: e.target.value, page: 0 }))}
         >
           {SORT_OPTIONS.map((opt) => (
             <option key={opt.value} value={opt.value}>
@@ -215,9 +218,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
           }`}
         >
           포토리뷰
-          {summary?.photoReviewCount
-            ? ` (${summary.photoReviewCount})`
-            : ''}
+          {summary?.photoReviewCount ? ` (${summary.photoReviewCount})` : ''}
         </button>
         <button
           onClick={() =>
@@ -266,9 +267,7 @@ export default function ReviewList({ productId }: ReviewListProps) {
                     <svg
                       key={star}
                       className={`h-3.5 w-3.5 ${
-                        star <= review.rating
-                          ? 'text-yellow-400'
-                          : 'text-gray-300'
+                        star <= review.rating ? 'text-yellow-400' : 'text-gray-300'
                       }`}
                       fill="currentColor"
                       viewBox="0 0 20 20"
@@ -277,12 +276,8 @@ export default function ReviewList({ productId }: ReviewListProps) {
                     </svg>
                   ))}
                 </div>
-                <span className="text-sm font-medium text-gray-900">
-                  {review.memberName}
-                </span>
-                <span className="text-xs text-gray-400">
-                  {formatDate(review.createdAt)}
-                </span>
+                <span className="text-sm font-medium text-gray-900">{review.memberName}</span>
+                <span className="text-xs text-gray-400">{formatDate(review.createdAt)}</span>
               </div>
 
               {/* Body Info */}
@@ -378,21 +373,19 @@ export default function ReviewList({ productId }: ReviewListProps) {
           >
             이전
           </button>
-          {Array.from({ length: Math.min(reviews.totalPages, 5) }).map(
-            (_, i) => (
-              <button
-                key={i}
-                onClick={() => handlePageChange(i)}
-                className={`w-9 h-9 text-sm rounded-lg ${
-                  (filters.page || 0) === i
-                    ? 'bg-black text-white'
-                    : 'border border-gray-300 hover:bg-gray-50'
-                }`}
-              >
-                {i + 1}
-              </button>
-            ),
-          )}
+          {Array.from({ length: Math.min(reviews.totalPages, 5) }).map((_, i) => (
+            <button
+              key={i}
+              onClick={() => handlePageChange(i)}
+              className={`w-9 h-9 text-sm rounded-lg ${
+                (filters.page || 0) === i
+                  ? 'bg-black text-white'
+                  : 'border border-gray-300 hover:bg-gray-50'
+              }`}
+            >
+              {i + 1}
+            </button>
+          ))}
           <button
             disabled={(filters.page || 0) >= reviews.totalPages - 1}
             onClick={() => handlePageChange((filters.page || 0) + 1)}

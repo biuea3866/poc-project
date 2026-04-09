@@ -5,7 +5,7 @@ import { useSearchParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { createReview, getPresignedUrl } from '@/lib/api/review';
 import { useAuthStore } from '@/stores/authStore';
-import type { FitType } from '@/types/review';
+import type { SizeFit } from '@/types/review';
 
 const MAX_IMAGES = 5;
 const MIN_CONTENT_LENGTH = 20;
@@ -17,7 +17,7 @@ const POINT_INFO = {
   sizeInfo: 50,
 };
 
-const FIT_OPTIONS: { value: FitType; label: string }[] = [
+const FIT_OPTIONS: { value: SizeFit; label: string }[] = [
   { value: 'SMALL', label: '작아요' },
   { value: 'TRUE_TO_SIZE', label: '딱 맞아요' },
   { value: 'LARGE', label: '커요' },
@@ -36,12 +36,10 @@ function ReviewWriteContent() {
   const [rating, setRating] = useState(0);
   const [hoverRating, setHoverRating] = useState(0);
   const [content, setContent] = useState('');
-  const [images, setImages] = useState<
-    { file: File; preview: string }[]
-  >([]);
+  const [images, setImages] = useState<{ file: File; preview: string }[]>([]);
   const [height, setHeight] = useState('');
   const [weight, setWeight] = useState('');
-  const [fitType, setFitType] = useState<FitType | ''>('');
+  const [fitType, setFitType] = useState<SizeFit | ''>('');
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -56,13 +54,8 @@ function ReviewWriteContent() {
   const handleFileSelect = useCallback(
     (files: FileList | null) => {
       if (!files) return;
-      const newFiles = Array.from(files).slice(
-        0,
-        MAX_IMAGES - images.length,
-      );
-      const validFiles = newFiles.filter((f) =>
-        f.type.startsWith('image/'),
-      );
+      const newFiles = Array.from(files).slice(0, MAX_IMAGES - images.length);
+      const validFiles = newFiles.filter((f) => f.type.startsWith('image/'));
       const previews = validFiles.map((file) => ({
         file,
         preview: URL.createObjectURL(file),
@@ -136,9 +129,7 @@ function ReviewWriteContent() {
         fitType: fitType || undefined,
       });
 
-      alert(
-        `리뷰가 등록되었습니다! ${estimatedPoints}P가 적립됩니다.`,
-      );
+      alert(`리뷰가 등록되었습니다! ${estimatedPoints}P가 적립됩니다.`);
       router.push(`/products/${productId}`);
     } catch {
       setError('리뷰 등록에 실패했습니다. 다시 시도해주세요.');
@@ -150,22 +141,14 @@ function ReviewWriteContent() {
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       <h1 className="text-2xl font-bold text-gray-900 mb-2">리뷰 작성</h1>
-      {productName && (
-        <p className="text-sm text-gray-500 mb-8">{productName}</p>
-      )}
+      {productName && <p className="text-sm text-gray-500 mb-8">{productName}</p>}
 
-      {error && (
-        <div className="bg-red-50 text-red-600 text-sm p-4 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
+      {error && <div className="bg-red-50 text-red-600 text-sm p-4 rounded-lg mb-6">{error}</div>}
 
       <form onSubmit={handleSubmit} className="space-y-8">
         {/* Star Rating */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            별점
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">별점</h2>
           <div className="flex gap-1">
             {[1, 2, 3, 4, 5].map((star) => (
               <button
@@ -178,9 +161,7 @@ function ReviewWriteContent() {
               >
                 <svg
                   className={`h-8 w-8 transition-colors ${
-                    star <= (hoverRating || rating)
-                      ? 'text-yellow-400'
-                      : 'text-gray-300'
+                    star <= (hoverRating || rating) ? 'text-yellow-400' : 'text-gray-300'
                   }`}
                   fill="currentColor"
                   viewBox="0 0 20 20"
@@ -190,9 +171,7 @@ function ReviewWriteContent() {
               </button>
             ))}
             {rating > 0 && (
-              <span className="ml-2 text-sm text-gray-500 self-center">
-                {rating}점
-              </span>
+              <span className="ml-2 text-sm text-gray-500 self-center">{rating}점</span>
             )}
           </div>
         </section>
@@ -200,9 +179,7 @@ function ReviewWriteContent() {
         {/* Content */}
         <section>
           <div className="flex justify-between items-center mb-3">
-            <h2 className="text-sm font-semibold text-gray-700">
-              리뷰 내용
-            </h2>
+            <h2 className="text-sm font-semibold text-gray-700">리뷰 내용</h2>
             <span
               className={`text-xs ${
                 content.length < MIN_CONTENT_LENGTH
@@ -217,9 +194,7 @@ function ReviewWriteContent() {
           </div>
           <textarea
             value={content}
-            onChange={(e) =>
-              setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))
-            }
+            onChange={(e) => setContent(e.target.value.slice(0, MAX_CONTENT_LENGTH))}
             rows={6}
             className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-black resize-none text-sm"
             placeholder={`상품에 대한 솔직한 리뷰를 남겨주세요. (최소 ${MIN_CONTENT_LENGTH}자)`}
@@ -246,9 +221,7 @@ function ReviewWriteContent() {
             onDragLeave={() => setDragOver(false)}
             onDrop={handleDrop}
             className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors ${
-              dragOver
-                ? 'border-black bg-gray-50'
-                : 'border-gray-300 hover:border-gray-400'
+              dragOver ? 'border-black bg-gray-50' : 'border-gray-300 hover:border-gray-400'
             } ${images.length >= MAX_IMAGES ? 'opacity-50 pointer-events-none' : 'cursor-pointer'}`}
             onClick={() => fileInputRef.current?.click()}
           >
@@ -265,12 +238,8 @@ function ReviewWriteContent() {
                 d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
               />
             </svg>
-            <p className="text-sm text-gray-500">
-              사진을 드래그하거나 클릭하여 업로드
-            </p>
-            <p className="text-xs text-gray-400 mt-1">
-              최대 {MAX_IMAGES}장, JPG/PNG
-            </p>
+            <p className="text-sm text-gray-500">사진을 드래그하거나 클릭하여 업로드</p>
+            <p className="text-xs text-gray-400 mt-1">최대 {MAX_IMAGES}장, JPG/PNG</p>
             <input
               ref={fileInputRef}
               type="file"
@@ -306,11 +275,7 @@ function ReviewWriteContent() {
                       stroke="currentColor"
                       strokeWidth={2}
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        d="M6 18L18 6M6 6l12 12"
-                      />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 </div>
@@ -321,14 +286,10 @@ function ReviewWriteContent() {
 
         {/* Size Info */}
         <section>
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            사이즈 정보 (선택)
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">사이즈 정보 (선택)</h2>
           <div className="grid grid-cols-2 gap-4 mb-4">
             <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                키 (cm)
-              </label>
+              <label className="block text-xs text-gray-500 mb-1">키 (cm)</label>
               <input
                 type="number"
                 value={height}
@@ -338,9 +299,7 @@ function ReviewWriteContent() {
               />
             </div>
             <div>
-              <label className="block text-xs text-gray-500 mb-1">
-                몸무게 (kg)
-              </label>
+              <label className="block text-xs text-gray-500 mb-1">몸무게 (kg)</label>
               <input
                 type="number"
                 value={weight}
@@ -351,17 +310,13 @@ function ReviewWriteContent() {
             </div>
           </div>
           <div>
-            <label className="block text-xs text-gray-500 mb-2">
-              핏 평가
-            </label>
+            <label className="block text-xs text-gray-500 mb-2">핏 평가</label>
             <div className="flex gap-2">
               {FIT_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   type="button"
-                  onClick={() =>
-                    setFitType(fitType === opt.value ? '' : opt.value)
-                  }
+                  onClick={() => setFitType(fitType === opt.value ? '' : opt.value)}
                   className={`flex-1 py-2 text-sm rounded-lg border transition-colors ${
                     fitType === opt.value
                       ? 'bg-black text-white border-black'
@@ -377,9 +332,7 @@ function ReviewWriteContent() {
 
         {/* Points Info */}
         <section className="bg-gray-50 rounded-lg p-4">
-          <h2 className="text-sm font-semibold text-gray-700 mb-3">
-            적립 포인트 안내
-          </h2>
+          <h2 className="text-sm font-semibold text-gray-700 mb-3">적립 포인트 안내</h2>
           <div className="space-y-1.5 text-sm">
             <div className="flex justify-between">
               <span className="text-gray-600">텍스트 리뷰</span>
@@ -387,17 +340,13 @@ function ReviewWriteContent() {
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">포토 리뷰</span>
-              <span
-                className={`font-medium ${images.length > 0 ? '' : 'text-gray-400'}`}
-              >
+              <span className={`font-medium ${images.length > 0 ? '' : 'text-gray-400'}`}>
                 +{POINT_INFO.photo}P
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-gray-600">사이즈 정보 입력</span>
-              <span
-                className={`font-medium ${height || weight || fitType ? '' : 'text-gray-400'}`}
-              >
+              <span className={`font-medium ${height || weight || fitType ? '' : 'text-gray-400'}`}>
                 +{POINT_INFO.sizeInfo}P
               </span>
             </div>
@@ -411,11 +360,7 @@ function ReviewWriteContent() {
         {/* Submit */}
         <button
           type="submit"
-          disabled={
-            submitting ||
-            rating === 0 ||
-            content.length < MIN_CONTENT_LENGTH
-          }
+          disabled={submitting || rating === 0 || content.length < MIN_CONTENT_LENGTH}
           className="w-full py-4 bg-black text-white rounded-lg text-base font-medium hover:bg-gray-800 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
         >
           {submitting ? '등록 중...' : '리뷰 등록'}
@@ -433,10 +378,7 @@ export default function ReviewWritePage() {
           <div className="h-8 bg-gray-200 rounded w-1/4 mb-8 animate-pulse" />
           <div className="space-y-6">
             {[1, 2, 3, 4].map((i) => (
-              <div
-                key={i}
-                className="h-24 bg-gray-200 rounded-lg animate-pulse"
-              />
+              <div key={i} className="h-24 bg-gray-200 rounded-lg animate-pulse" />
             ))}
           </div>
         </div>

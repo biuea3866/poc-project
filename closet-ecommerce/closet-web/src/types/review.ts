@@ -1,4 +1,4 @@
-export type FitType = 'SMALL' | 'TRUE_TO_SIZE' | 'LARGE';
+export type SizeFit = 'SMALL' | 'TRUE_TO_SIZE' | 'LARGE';
 
 export interface Review {
   id: number;
@@ -10,7 +10,7 @@ export interface Review {
   images: ReviewImage[];
   height: number | null;
   weight: number | null;
-  fitType: FitType | null;
+  fitType: SizeFit | null;
   purchasedOption: string | null;
   helpfulCount: number;
   isHelpful: boolean;
@@ -44,7 +44,7 @@ export interface CreateReviewRequest {
   imageUrls: string[];
   height?: number;
   weight?: number;
-  fitType?: FitType;
+  fitType?: SizeFit;
 }
 
 export interface PresignedUrlRequest {
