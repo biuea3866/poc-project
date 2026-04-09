@@ -46,10 +46,8 @@ class IdempotencyChecker(
                 )
             processedEventRepository.save(processedEvent)
 
-            val result = block()
-
             logger.debug { "이벤트 처리 완료. eventId=$eventId, topic=$topic, consumerGroup=$consumerGroup" }
-            result
+            block()
         } catch (e: DataIntegrityViolationException) {
             logger.info { "이벤트 동시 처리 감지 (UNIQUE KEY 위반). eventId=$eventId, topic=$topic, consumerGroup=$consumerGroup" }
             null

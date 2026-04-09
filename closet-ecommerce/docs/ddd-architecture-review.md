@@ -169,3 +169,37 @@ event.closet.seller       (입점 승인/상품 등록)
 | 이벤트 기반 통합 | 4.0 | Outbox+Idempotency 우수, 패턴 불일치 감점 |
 | 유비쿼터스 언어 | 3.5 | FitType 충돌, OrderConfirmed 침범 |
 | 확장 준비도 | 4.0 | Phase 3 자연스럽게 추가 가능 |
+
+---
+
+## 8. BC 재설계 실행 결과 (2026-04-09)
+
+### 해결된 문제
+
+| 문제 | 해결 | PR |
+|------|------|-----|
+| **H-1. FitType 충돌** | Review의 `FitType` → `SizeFit`으로 rename (14개 파일) | feature/ddd-bc-restructuring |
+| **H-2. Shipping 도메인 침범** | `OrderShippingStarted`/`OrderConfirmed` → `ShippingStarted`/`DeliveryConfirmed`로 변경, topic ORDER → SHIPPING | feature/ddd-bc-restructuring |
+| **Point BC 오배치** | Point 도메인을 closet-promotion → closet-member로 이동 (19파일 이동, GradeType 삭제) | feature/ddd-bc-restructuring |
+| **Filter 안티패턴** | SafetyStockService `findAll().filter{}` OOM 위험 제거, PointPolicyService/DiscountPolicyService QueryDSL 전환 | feature/ddd-bc-restructuring |
+| **PaymentGateway dead code** | Port-Adapter 패턴 구현 (TossPaymentGateway + Factory), Service에서 Gateway 호출 후 DB 업데이트 | feature/ddd-bc-restructuring |
+
+### 변경된 BC 매핑
+
+| 모듈 | BC 대응 | 변경사항 |
+|------|---------|---------|
+| closet-member | Identity & Access + Loyalty + **Point(적립금)** | Point 도메인 편입, GradeType→MemberGrade 통합 |
+| closet-promotion | **Coupon + TimeSale + Discount** (순수 프로모션만) | Point 제거, 프로모션 전용으로 응집도 향상 |
+| closet-review | Review & Rating | FitType → SizeFit rename |
+| closet-fulfillment | Fulfillment (배송+CS) | ShippingStarted/DeliveryConfirmed 이벤트로 교정 |
+| closet-payment | Payment | PaymentGateway + Factory 패턴 추가 |
+
+### 수정된 이벤트 흐름
+
+```
+shipping ──event.closet.shipping──> order (ShippingStarted → PREPARING)
+shipping ──event.closet.shipping──> order (DeliveryConfirmed → CONFIRMED)
+shipping ──event.closet.shipping──> payment (ReturnApproved → 환불)
+```
+
+`shipping → event.closet.order` 침범 완전 제거.

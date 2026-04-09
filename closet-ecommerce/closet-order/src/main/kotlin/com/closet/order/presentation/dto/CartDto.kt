@@ -24,7 +24,10 @@ data class CartResponse(
     val items: List<CartItemResponse>,
 ) {
     companion object {
-        fun from(cart: Cart, items: List<CartItem>): CartResponse {
+        fun from(
+            cart: Cart,
+            items: List<CartItem>,
+        ): CartResponse {
             return CartResponse(
                 id = cart.id,
                 memberId = cart.memberId,

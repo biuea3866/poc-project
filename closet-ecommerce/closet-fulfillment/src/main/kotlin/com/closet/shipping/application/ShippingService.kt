@@ -113,7 +113,7 @@ class ShippingService(
         // shipping.status.changed 이벤트 발행
         publishStatusChangedEvent(shipment, null, ShippingStatus.READY)
 
-        // 주문 상태 PAID->SHIPPING 변경 이벤트 (ORDER 토픽)
+        // ShippingStarted 이벤트 발행 (SHIPPING 토픽)
         publishOrderShippingEvent(shipment)
 
         logger.info { "송장 등록 완료: orderId=${shipment.orderId}, carrier=${shipment.carrier}, trackingNumber=${shipment.trackingNumber}" }
@@ -305,7 +305,7 @@ class ShippingService(
             throw BusinessException(ErrorCode.INVALID_STATE_TRANSITION, "배송 완료 상태에서만 구매확정할 수 있습니다: status=${shipment.status}")
         }
 
-        // order.confirmed Kafka 이벤트 발행
+        // DeliveryConfirmed Kafka 이벤트 발행 (SHIPPING 토픽)
         publishOrderConfirmedEvent(shipment)
 
         logger.info { "수동 구매확정 완료: orderId=$orderId" }
@@ -339,7 +339,7 @@ class ShippingService(
                     continue
                 }
 
-                // order.confirmed Kafka 이벤트 발행
+                // DeliveryConfirmed Kafka 이벤트 발행 (SHIPPING 토픽)
                 publishOrderConfirmedEvent(shipment)
 
                 confirmedCount++
@@ -353,12 +353,12 @@ class ShippingService(
     }
 
     private fun publishOrderShippingEvent(shipment: Shipment) {
-        val eventId = "order-shipping-${shipment.orderId}-${System.currentTimeMillis()}"
+        val eventId = "shipping-started-${shipment.orderId}-${System.currentTimeMillis()}"
         val payload =
             objectMapper.writeValueAsString(
                 mapOf(
                     "eventId" to eventId,
-                    "eventType" to "OrderShippingStarted",
+                    "eventType" to "ShippingStarted",
                     "orderId" to shipment.orderId,
                     "shippingId" to shipment.id,
                     "carrier" to shipment.carrier,
@@ -370,20 +370,20 @@ class ShippingService(
         outboxEventPublisher.publish(
             aggregateType = "Shipment",
             aggregateId = shipment.id.toString(),
-            eventType = "OrderShippingStarted",
-            topic = ClosetTopics.ORDER,
+            eventType = "ShippingStarted",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = shipment.orderId.toString(),
             payload = payload,
         )
     }
 
     private fun publishOrderConfirmedEvent(shipment: Shipment) {
-        val eventId = "order-confirmed-${shipment.orderId}-${System.currentTimeMillis()}"
+        val eventId = "delivery-confirmed-${shipment.orderId}-${System.currentTimeMillis()}"
         val payload =
             objectMapper.writeValueAsString(
                 mapOf(
                     "eventId" to eventId,
-                    "eventType" to "OrderConfirmed",
+                    "eventType" to "DeliveryConfirmed",
                     "orderId" to shipment.orderId,
                     "memberId" to shipment.memberId,
                     "shippingId" to shipment.id,
@@ -394,8 +394,8 @@ class ShippingService(
         outboxEventPublisher.publish(
             aggregateType = "Shipment",
             aggregateId = shipment.id.toString(),
-            eventType = "OrderConfirmed",
-            topic = ClosetTopics.ORDER,
+            eventType = "DeliveryConfirmed",
+            topic = ClosetTopics.SHIPPING,
             partitionKey = shipment.orderId.toString(),
             payload = payload,
         )

@@ -22,14 +22,15 @@ import org.springframework.web.bind.annotation.RestController
 class AdminReviewController(
     private val reviewFacade: ReviewFacade,
 ) {
-
     /**
      * 리뷰 블라인드 (PD-35).
      * HIDDEN 상태로 변경하여 구매자에게 노출되지 않도록 한다.
      */
     @PatchMapping("/{id}/hide")
     @RoleRequired(MemberRole.ADMIN)
-    fun hideReview(@PathVariable id: Long): ApiResponse<Unit> {
+    fun hideReview(
+        @PathVariable id: Long,
+    ): ApiResponse<Unit> {
         reviewFacade.hideReview(id)
         return ApiResponse.ok(Unit)
     }
@@ -39,7 +40,9 @@ class AdminReviewController(
      */
     @PatchMapping("/{id}/unhide")
     @RoleRequired(MemberRole.ADMIN)
-    fun unhideReview(@PathVariable id: Long): ApiResponse<Unit> {
+    fun unhideReview(
+        @PathVariable id: Long,
+    ): ApiResponse<Unit> {
         reviewFacade.unhideReview(id)
         return ApiResponse.ok(Unit)
     }

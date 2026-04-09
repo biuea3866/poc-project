@@ -13,4 +13,5 @@ enum class ErrorCode(
     FORBIDDEN("C005", "접근 권한이 없습니다", 403),
     DUPLICATE_ENTITY("C006", "이미 존재하는 엔티티입니다", 409),
     INVALID_STATE_TRANSITION("C007", "잘못된 상태 전이입니다", 400),
+    EXTERNAL_API_ERROR("C008", "외부 API 호출에 실패했습니다", 502),
 }

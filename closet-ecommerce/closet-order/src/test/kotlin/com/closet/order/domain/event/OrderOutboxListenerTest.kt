@@ -17,19 +17,22 @@ class OrderOutboxListenerTest : BehaviorSpec({
     val outboxEventPublisher = mockk<OutboxEventPublisher>()
     val objectMapper: ObjectMapper = jacksonObjectMapper()
 
-    val listener = OrderOutboxListener(
-        outboxEventPublisher = outboxEventPublisher,
-        objectMapper = objectMapper,
-    )
+    val listener =
+        OrderOutboxListener(
+            outboxEventPublisher = outboxEventPublisher,
+            objectMapper = objectMapper,
+        )
 
     Given("OrderCreatedEvent 발생") {
-        val event = OrderCreatedEvent(
-            orderId = 1L,
-            memberId = 100L,
-            items = listOf(
-                OrderCreatedEvent.OrderItemInfo(productOptionId = 1000L, quantity = 2),
-            ),
-        )
+        val event =
+            OrderCreatedEvent(
+                orderId = 1L,
+                memberId = 100L,
+                items =
+                    listOf(
+                        OrderCreatedEvent.OrderItemInfo(productOptionId = 1000L, quantity = 2),
+                    ),
+            )
 
         val topicSlot = slot<String>()
         val eventTypeSlot = slot<String>()
@@ -71,13 +74,15 @@ class OrderOutboxListenerTest : BehaviorSpec({
     }
 
     Given("OrderCancelledEvent 발생") {
-        val event = OrderCancelledEvent(
-            orderId = 2L,
-            reason = "단순 변심",
-            items = listOf(
-                OrderCancelledEvent.OrderItemInfo(productOptionId = 2000L, quantity = 1),
-            ),
-        )
+        val event =
+            OrderCancelledEvent(
+                orderId = 2L,
+                reason = "단순 변심",
+                items =
+                    listOf(
+                        OrderCancelledEvent.OrderItemInfo(productOptionId = 2000L, quantity = 1),
+                    ),
+            )
 
         every {
             outboxEventPublisher.publish(
@@ -109,10 +114,11 @@ class OrderOutboxListenerTest : BehaviorSpec({
     }
 
     Given("OrderPaidEvent 발생") {
-        val event = OrderPaidEvent(
-            orderId = 3L,
-            paymentAmount = Money.of(50000),
-        )
+        val event =
+            OrderPaidEvent(
+                orderId = 3L,
+                paymentAmount = Money.of(50000),
+            )
 
         every {
             outboxEventPublisher.publish(
@@ -144,10 +150,11 @@ class OrderOutboxListenerTest : BehaviorSpec({
     }
 
     Given("OrderConfirmedEvent 발생") {
-        val event = OrderConfirmedEvent(
-            orderId = 4L,
-            memberId = 400L,
-        )
+        val event =
+            OrderConfirmedEvent(
+                orderId = 4L,
+                memberId = 400L,
+            )
 
         every {
             outboxEventPublisher.publish(

@@ -1,6 +1,6 @@
 package com.closet.member.consumer
 
-import com.closet.member.application.PointService
+import com.closet.member.application.point.PointService
 import com.closet.member.consumer.event.ReviewEvent
 import io.kotest.core.spec.style.BehaviorSpec
 import io.mockk.clearMocks

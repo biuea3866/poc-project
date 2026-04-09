@@ -14,16 +14,16 @@ class KafkaConsumerConfig(
     @Value("\${spring.kafka.bootstrap-servers:localhost:9092}")
     private val bootstrapServers: String,
 ) {
-
     @Bean
     fun consumerFactory(): ConsumerFactory<String, String> {
-        val props = mapOf(
-            ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
-            ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
-            ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
-            ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
-        )
+        val props =
+            mapOf(
+                ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG to bootstrapServers,
+                ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG to StringDeserializer::class.java,
+                ConsumerConfig.AUTO_OFFSET_RESET_CONFIG to "earliest",
+                ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG to false,
+            )
         return DefaultKafkaConsumerFactory(props)
     }
 

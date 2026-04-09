@@ -15,7 +15,7 @@ class ReviewSummaryTest : BehaviorSpec({
 
         When("첫 리뷰(5점, 포토, PERFECT)를 추가하면") {
             val summary = ReviewSummary.create(1L)
-            summary.addReview(5, FitType.PERFECT, true)
+            summary.addReview(5, SizeFit.PERFECT, true)
 
             Then("totalCount=1, avgRating=5.0, rating5Count=1, fitPerfectCount=1, photoReviewCount=1") {
                 summary.totalCount shouldBe 1
@@ -31,8 +31,8 @@ class ReviewSummaryTest : BehaviorSpec({
             val summary = ReviewSummary.create(2L)
             summary.addReview(5, null, false)
             summary.addReview(4, null, false)
-            summary.addReview(3, FitType.SMALL, true)
-            summary.addReview(2, FitType.LARGE, false)
+            summary.addReview(3, SizeFit.SMALL, true)
+            summary.addReview(2, SizeFit.LARGE, false)
             summary.addReview(1, null, false)
 
             Then("별점 분포가 올바르게 계산된다") {
@@ -65,12 +65,13 @@ class ReviewSummaryTest : BehaviorSpec({
     Given("리뷰 삭제 시 집계 갱신") {
 
         When("리뷰를 삭제하면") {
-            val summary = ReviewSummary.create(10L).apply {
-                addReview(5, FitType.PERFECT, true)
-                addReview(4, FitType.SMALL, false)
-                addReview(3, null, true)
-            }
-            summary.removeReview(5, FitType.PERFECT, true)
+            val summary =
+                ReviewSummary.create(10L).apply {
+                    addReview(5, SizeFit.PERFECT, true)
+                    addReview(4, SizeFit.SMALL, false)
+                    addReview(3, null, true)
+                }
+            summary.removeReview(5, SizeFit.PERFECT, true)
 
             Then("해당 리뷰의 정보가 차감된다") {
                 summary.totalCount shouldBe 2
@@ -84,8 +85,8 @@ class ReviewSummaryTest : BehaviorSpec({
 
         When("모든 리뷰를 삭제하면") {
             val summary = ReviewSummary.create(11L)
-            summary.addReview(5, FitType.PERFECT, true)
-            summary.removeReview(5, FitType.PERFECT, true)
+            summary.addReview(5, SizeFit.PERFECT, true)
+            summary.removeReview(5, SizeFit.PERFECT, true)
 
             Then("모든 카운트가 0이 된다") {
                 summary.totalCount shouldBe 0
@@ -113,12 +114,12 @@ class ReviewSummaryTest : BehaviorSpec({
 
         When("세 가지 핏 타입이 모두 기록되면") {
             val summary = ReviewSummary.create(20L)
-            summary.addReview(4, FitType.SMALL, false)
-            summary.addReview(4, FitType.SMALL, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(5, FitType.PERFECT, false)
-            summary.addReview(3, FitType.LARGE, false)
+            summary.addReview(4, SizeFit.SMALL, false)
+            summary.addReview(4, SizeFit.SMALL, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(5, SizeFit.PERFECT, false)
+            summary.addReview(3, SizeFit.LARGE, false)
 
             Then("각 핏 분포가 올바르다") {
                 summary.fitSmallCount shouldBe 2
@@ -131,7 +132,7 @@ class ReviewSummaryTest : BehaviorSpec({
 
         When("핏 타입 삭제 시 coerceAtLeast(0)") {
             val summary = ReviewSummary.create(21L)
-            summary.removeReview(4, FitType.SMALL, false)
+            summary.removeReview(4, SizeFit.SMALL, false)
 
             Then("fitSmallCount가 0 미만으로 내려가지 않는다") {
                 summary.fitSmallCount shouldBe 0

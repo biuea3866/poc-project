@@ -1,10 +1,10 @@
 package com.closet.review.application
 
-import com.closet.review.domain.FitType
 import com.closet.review.domain.Review
 import com.closet.review.domain.ReviewEditHistory
 import com.closet.review.domain.ReviewSortType
 import com.closet.review.domain.ReviewSummary
+import com.closet.review.domain.SizeFit
 import jakarta.validation.constraints.Max
 import jakarta.validation.constraints.Min
 import jakarta.validation.constraints.NotBlank
@@ -29,7 +29,7 @@ data class CreateReviewRequest(
     val weight: Int? = null,
     val normalSize: String? = null,
     val purchasedSize: String? = null,
-    val fitType: FitType? = null,
+    val fitType: SizeFit? = null,
 )
 
 /**
@@ -124,18 +124,20 @@ data class ReviewSummaryResponse(
                 productId = summary.productId,
                 totalCount = summary.totalCount,
                 avgRating = summary.avgRating,
-                ratingDistribution = mapOf(
-                    1 to summary.rating1Count,
-                    2 to summary.rating2Count,
-                    3 to summary.rating3Count,
-                    4 to summary.rating4Count,
-                    5 to summary.rating5Count,
-                ),
-                fitDistribution = mapOf(
-                    "SMALL" to summary.fitSmallCount,
-                    "PERFECT" to summary.fitPerfectCount,
-                    "LARGE" to summary.fitLargeCount,
-                ),
+                ratingDistribution =
+                    mapOf(
+                        1 to summary.rating1Count,
+                        2 to summary.rating2Count,
+                        3 to summary.rating3Count,
+                        4 to summary.rating4Count,
+                        5 to summary.rating5Count,
+                    ),
+                fitDistribution =
+                    mapOf(
+                        "SMALL" to summary.fitSmallCount,
+                        "PERFECT" to summary.fitPerfectCount,
+                        "LARGE" to summary.fitLargeCount,
+                    ),
                 photoReviewCount = summary.photoReviewCount,
             )
         }

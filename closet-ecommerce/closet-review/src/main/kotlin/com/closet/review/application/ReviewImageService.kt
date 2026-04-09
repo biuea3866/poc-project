@@ -19,7 +19,6 @@ class ReviewImageService(
     private val storageService: StorageService,
     private val storageProperties: StorageProperties,
 ) {
-
     /**
      * 리뷰 이미지 Presigned Upload URL 생성.
      *
@@ -33,11 +32,12 @@ class ReviewImageService(
         val key = "reviews/$memberId/${UUID.randomUUID()}.$ext"
         val bucket = storageProperties.reviewBucket
 
-        val uploadUrl = storageService.generatePresignedUploadUrl(
-            bucket = bucket,
-            key = key,
-            contentType = request.contentType,
-        )
+        val uploadUrl =
+            storageService.generatePresignedUploadUrl(
+                bucket = bucket,
+                key = key,
+                contentType = request.contentType,
+            )
 
         val imageUrl = storageService.getPublicUrl(bucket, key)
 

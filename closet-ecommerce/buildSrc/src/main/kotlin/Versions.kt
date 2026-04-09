@@ -17,6 +17,7 @@ object Versions {
     const val KOTEST = "5.8.0"
     const val KOTEST_SPRING = "1.1.3"
     const val MOCKK = "1.13.9"
+    const val SPRING_MOCKK = "4.0.2"
     const val TESTCONTAINERS = "1.19.3"
 
     // Logging

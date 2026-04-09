@@ -55,6 +55,7 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
                             amount = 39900L,
                             reason = "반품 승인 환불 (returnRequestId=50)",
                         ),
+                        any(),
                     )
                 }
             }
@@ -82,7 +83,7 @@ class ReturnApprovedConsumerTest : BehaviorSpec({
             consumer.handle(event)
 
             Then("PaymentService.refund가 호출되지 않는다") {
-                verify(exactly = 0) { paymentService.refund(any(), any()) }
+                verify(exactly = 0) { paymentService.refund(any(), any(), any()) }
             }
         }
     }

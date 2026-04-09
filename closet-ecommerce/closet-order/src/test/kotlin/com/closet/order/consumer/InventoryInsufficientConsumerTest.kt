@@ -6,7 +6,6 @@ import com.closet.order.consumer.event.InventoryEvent
 import com.closet.order.domain.order.Order
 import com.closet.order.domain.order.OrderItem
 import com.closet.order.domain.order.OrderStatus
-import com.closet.order.domain.order.OrderStatusHistory
 import com.closet.order.repository.OrderRepository
 import com.closet.order.repository.OrderStatusHistoryRepository
 import io.kotest.core.spec.style.BehaviorSpec
@@ -22,27 +21,29 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
     val orderStatusHistoryRepository = mockk<OrderStatusHistoryRepository>(relaxed = true)
     val idempotencyChecker = mockk<IdempotencyChecker>()
 
-    val consumer = InventoryInsufficientConsumer(
-        orderRepository = orderRepository,
-        orderStatusHistoryRepository = orderStatusHistoryRepository,
-        idempotencyChecker = idempotencyChecker,
-    )
+    val consumer =
+        InventoryInsufficientConsumer(
+            orderRepository = orderRepository,
+            orderStatusHistoryRepository = orderStatusHistoryRepository,
+            idempotencyChecker = idempotencyChecker,
+        )
 
     fun createOrder(): Order {
         return Order.create(
             memberId = 1L,
             sellerId = 10L,
-            items = listOf(
-                OrderItem.create(
-                    productId = 100L,
-                    productOptionId = 1000L,
-                    productName = "슬림핏 청바지",
-                    optionName = "M / 블루",
-                    categoryId = 5L,
-                    quantity = 1,
-                    unitPrice = Money.of(39900),
-                )
-            ),
+            items =
+                listOf(
+                    OrderItem.create(
+                        productId = 100L,
+                        productOptionId = 1000L,
+                        productName = "슬림핏 청바지",
+                        optionName = "M / 블루",
+                        categoryId = 5L,
+                        quantity = 1,
+                        unitPrice = Money.of(39900),
+                    ),
+                ),
             receiverName = "홍길동",
             receiverPhone = "010-1234-5678",
             zipCode = "06234",
@@ -51,7 +52,11 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
         )
     }
 
-    fun makeEvent(eventId: String, orderId: Long, reason: String = "재고 부족"): InventoryEvent {
+    fun makeEvent(
+        eventId: String,
+        orderId: Long,
+        reason: String = "재고 부족",
+    ): InventoryEvent {
         return InventoryEvent(
             eventType = "InventoryInsufficient",
             eventId = eventId,
@@ -139,10 +144,11 @@ class InventoryInsufficientConsumerTest : BehaviorSpec({
     }
 
     Given("처리하지 않는 eventType 수신") {
-        val event = InventoryEvent(
-            eventType = "LowStock",
-            orderId = 1L,
-        )
+        val event =
+            InventoryEvent(
+                eventType = "LowStock",
+                orderId = 1L,
+            )
 
         When("LowStock 이벤트 수신") {
             consumer.handle(event)

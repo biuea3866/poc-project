@@ -24,10 +24,8 @@ import java.time.ZonedDateTime
 class ReviewableOrderItem(
     @Column(name = "order_item_id", nullable = false, unique = true)
     val orderItemId: Long,
-
     @Column(name = "member_id", nullable = false)
     val memberId: Long,
-
     @Column(name = "product_id", nullable = false)
     val productId: Long,
 ) {
@@ -40,7 +38,11 @@ class ReviewableOrderItem(
     lateinit var createdAt: ZonedDateTime
 
     companion object {
-        fun create(orderItemId: Long, memberId: Long, productId: Long): ReviewableOrderItem {
+        fun create(
+            orderItemId: Long,
+            memberId: Long,
+            productId: Long,
+        ): ReviewableOrderItem {
             return ReviewableOrderItem(
                 orderItemId = orderItemId,
                 memberId = memberId,

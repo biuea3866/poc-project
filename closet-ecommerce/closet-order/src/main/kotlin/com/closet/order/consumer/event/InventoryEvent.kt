@@ -12,7 +12,6 @@ data class InventoryEvent(
     val orderId: Long? = null,
     val reason: String = "재고 부족",
 ) {
-
     fun toInsufficientEvent(): InventoryInsufficientEvent {
         return InventoryInsufficientEvent(
             eventId = eventId ?: "",

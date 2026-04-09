@@ -31,7 +31,6 @@ class AutoConfirmBatchJob(
     private val orderStatusHistoryRepository: OrderStatusHistoryRepository,
     private val eventPublisher: ApplicationEventPublisher,
 ) {
-
     companion object {
         private const val CONFIRM_HOURS = 168L // 7일
     }
@@ -72,7 +71,7 @@ class AutoConfirmBatchJob(
                         fromStatus = previousStatus,
                         toStatus = OrderStatus.CONFIRMED,
                         changedBy = "auto-confirm-batch",
-                    )
+                    ),
                 )
 
                 // OrderConfirmedEvent 발행
@@ -80,7 +79,7 @@ class AutoConfirmBatchJob(
                     com.closet.order.domain.event.OrderConfirmedEvent(
                         orderId = order.id,
                         memberId = order.memberId,
-                    )
+                    ),
                 )
 
                 confirmedCount++

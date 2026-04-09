@@ -1,6 +1,6 @@
 # Closet 의류 이커머스 — 전체 제품 로드맵
 
-> 최종 업데이트: 2026-04-04 (Phase 2 BE 전체 구현 완료)
+> 최종 업데이트: 2026-04-09 (Phase 3 DDD BC 재설계 완료)
 > 벤치마킹: 무신사, 올리브영 물류시스템 (SpringCamp 2025)
 
 ## 전체 타임라인
@@ -92,14 +92,25 @@ gantt
 
 ## Phase 3: 확장 🚧 In Progress
 
-> DDD BC 기반 모듈 재편: shipping→fulfillment(+CS), display+content 병합 (14개 모듈)
+> DDD BC 재설계 완료: Point→member 이동, FitType→SizeFit, Shipping 이벤트 교정, PaymentGateway 추상화
 
 | 모듈 | 핵심 기능 | 벤치마킹 | 상태 |
 |------|----------|---------|------|
-| closet-promotion | 쿠폰(Redis 선착순), 할인 엔진, 타임세일, 적립금 | 무신사 쿠폰 | 🚧 |
-| closet-display | 배너, 기획전, 랭킹, 스타일 매거진, OOTD 스냅 | 무신사 스냅 | 🚧 |
+| closet-promotion | 쿠폰(Redis 선착순), 할인 엔진, 타임세일 | 무신사 쿠폰 | ✅ |
+| closet-display | 배너, 기획전, 랭킹, 스타일 매거진, OOTD 스냅 | 무신사 스냅 | ✅ |
 | closet-notification | SMS/푸시/이메일(Strategy), 재입고 구독 | - | 🚧 |
-| closet-fulfillment (+CS) | 1:1 문의, FAQ, 반품/교환 접수 통합 | - | 🚧 |
+| closet-fulfillment (+CS) | 1:1 문의, FAQ, 반품/교환 접수 통합 | - | ✅ |
+
+### DDD BC 재설계 (2026-04-09)
+
+| 변경 | 내용 | 상태 |
+|------|------|------|
+| Filter 안티패턴 제거 | SafetyStock OOM 위험 제거, QueryDSL 전환 | ✅ |
+| FitType → SizeFit | Review 모듈 유비쿼터스 언어 충돌 해소 | ✅ |
+| Shipping 이벤트 교정 | ShippingStarted/DeliveryConfirmed로 BC 경계 준수 | ✅ |
+| Point BC 이동 | closet-promotion → closet-member (적립금은 회원 자산) | ✅ |
+| PaymentGateway 추상화 | Port-Adapter 패턴 (TossPaymentGateway + Factory) | ✅ |
+| 통합 테스트 | Testcontainers 기반 인프라 통합 테스트 도입 | 🚧 |
 
 ---
 

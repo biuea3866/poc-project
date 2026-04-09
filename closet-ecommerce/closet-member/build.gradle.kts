@@ -18,4 +18,7 @@ dependencies {
 
     // Spring Security Crypto (BCrypt)
     implementation("org.springframework.security:spring-security-crypto")
+
+    // Integration Test (testFixtures from closet-common)
+    testImplementation(testFixtures(project(":closet-common")))
 }

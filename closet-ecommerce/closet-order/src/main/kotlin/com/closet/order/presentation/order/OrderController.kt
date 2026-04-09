@@ -24,16 +24,19 @@ import org.springframework.web.bind.annotation.RestController
 class OrderController(
     private val orderService: OrderService,
 ) {
-
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    fun createOrder(@RequestBody @Valid request: CreateOrderRequest): ApiResponse<OrderResponse> {
+    fun createOrder(
+        @RequestBody @Valid request: CreateOrderRequest,
+    ): ApiResponse<OrderResponse> {
         val response = orderService.createOrder(request)
         return ApiResponse.created(response)
     }
 
     @GetMapping("/{id}")
-    fun getOrder(@PathVariable id: Long): ApiResponse<OrderResponse> {
+    fun getOrder(
+        @PathVariable id: Long,
+    ): ApiResponse<OrderResponse> {
         val response = orderService.findById(id)
         return ApiResponse.ok(response)
     }

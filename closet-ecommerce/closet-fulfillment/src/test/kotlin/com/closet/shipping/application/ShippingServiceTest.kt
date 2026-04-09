@@ -183,13 +183,13 @@ class ShippingServiceTest : BehaviorSpec({
                 }
             }
 
-            Then("OrderShippingStarted 이벤트 발행됨 (ORDER 토픽)") {
+            Then("ShippingStarted 이벤트 발행됨 (SHIPPING 토픽)") {
                 verify(atLeast = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Shipment",
                         aggregateId = any(),
-                        eventType = "OrderShippingStarted",
-                        topic = "event.closet.order",
+                        eventType = "ShippingStarted",
+                        topic = "event.closet.shipping",
                         partitionKey = any(),
                         payload = any(),
                     )
@@ -249,13 +249,13 @@ class ShippingServiceTest : BehaviorSpec({
                 response.orderId shouldBe 40L
             }
 
-            Then("OrderConfirmed 이벤트 발행됨") {
+            Then("DeliveryConfirmed 이벤트 발행됨 (SHIPPING 토픽)") {
                 verify(atLeast = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Shipment",
                         aggregateId = any(),
-                        eventType = "OrderConfirmed",
-                        topic = "event.closet.order",
+                        eventType = "DeliveryConfirmed",
+                        topic = "event.closet.shipping",
                         partitionKey = "40",
                         payload = any(),
                     )
@@ -311,13 +311,13 @@ class ShippingServiceTest : BehaviorSpec({
 
             shippingService.autoConfirmOrders(returnService, exchangeService)
 
-            Then("OrderConfirmed 이벤트 발행됨") {
+            Then("DeliveryConfirmed 이벤트 발행됨 (SHIPPING 토픽)") {
                 verify(atLeast = 1) {
                     outboxEventPublisher.publish(
                         aggregateType = "Shipment",
                         aggregateId = any(),
-                        eventType = "OrderConfirmed",
-                        topic = "event.closet.order",
+                        eventType = "DeliveryConfirmed",
+                        topic = "event.closet.shipping",
                         partitionKey = "50",
                         payload = any(),
                     )
@@ -346,13 +346,13 @@ class ShippingServiceTest : BehaviorSpec({
 
             shippingService.autoConfirmOrders(returnService, exchangeService)
 
-            Then("OrderConfirmed 이벤트 발행되지 않음") {
+            Then("DeliveryConfirmed 이벤트 발행되지 않음") {
                 verify(exactly = 0) {
                     outboxEventPublisher.publish(
                         aggregateType = "Shipment",
                         aggregateId = any(),
-                        eventType = "OrderConfirmed",
-                        topic = "event.closet.order",
+                        eventType = "DeliveryConfirmed",
+                        topic = "event.closet.shipping",
                         partitionKey = "51",
                         payload = any(),
                     )

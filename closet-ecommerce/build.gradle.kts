@@ -109,6 +109,7 @@ configure(jpaModules) {
         testImplementation("io.kotest:kotest-property:${Versions.KOTEST}")
         testImplementation("io.kotest.extensions:kotest-extensions-spring:${Versions.KOTEST_SPRING}")
         testImplementation("io.mockk:mockk:${Versions.MOCKK}")
+        testImplementation("com.ninja-squad:springmockk:${Versions.SPRING_MOCKK}")
         testImplementation("org.testcontainers:testcontainers:${Versions.TESTCONTAINERS}")
         testImplementation("org.testcontainers:junit-jupiter:${Versions.TESTCONTAINERS}")
         testImplementation("org.testcontainers:mysql:${Versions.TESTCONTAINERS}")
