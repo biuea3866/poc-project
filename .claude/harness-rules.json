@@ -179,7 +179,7 @@
       "4. 문서 업데이트 완료 = docs/ .md 작성 + 노션 페이지 동기화 + 노션 티켓 보드 업데이트 (3가지 모두 완료해야 문서 완료)",
       "5. 구현 (TDD Red-Green-Refactor)"
     ],
-    "message": "BE 작업: TDD+ADR 설계 → 문서 완료(md+노션페이지+노션티켓) → 구현. 문서=md+노션 모두 완료까지.",
+    "message": "BE 작업: TDD+ADR 설계 → 문서 완료(md+노션페이지+노션티켓 내용 채움) → 구현. 빈껍데기 금지.",
     "exceptions": "단순 버그 수정은 ADR 생략 가능, 문서 업데이트는 항상 필수"
   },
 
@@ -204,5 +204,78 @@
       "PM/PO (PRD)": "테스트 케이스(AC), 유저 플로우, 비즈니스 요구사항, KPI"
     },
     "message": "TDD 문서는 BE 기술 설계만 담당. 테스트 케이스/유저 플로우는 PRD에서 PM/PO가 작성."
+  },
+
+  "document_quality": {
+    "description": "문서 품질 원칙",
+    "rules": [
+      "빈껍데기 금지 — 제목/구조만 만들고 내용 없는 문서는 미완성. 세부 내용까지 채워야 완료.",
+      "노션 페이지 — 링크만이 아닌 실제 콘텐츠가 있어야 함.",
+      "노션 티켓 — 개요, DDL, API 스펙, AC 등 각 섹션에 구체적 내용 필수."
+    ]
+  },
+
+  "integration_test_style": {
+    "description": "쿼리 통합 테스트 작성 규칙",
+    "rules": [
+      "도메인별 SQL fixture 파일 생성 (src/test/resources/sql/), 다양한 데이터 조합 포함",
+      "affectedRow가 아닌 SELECT 쿼리로 실제 컬럼값이 정확히 반영되었는지 검증",
+      "AS-IS raw SQL 실행 → 결과 SELECT → 데이터 리셋 → TO-BE QueryDSL 실행 → 결과 SELECT → 두 결과 비교",
+      "다른 도메인의 데이터가 영향받지 않는지 검증"
+    ]
+  },
+
+  "variable_naming": {
+    "description": "변수명은 풀네임으로 작성",
+    "rules": [
+      "약어 금지: ws → workspaceId, comp → component, eval → evaluation",
+      "의미가 명확한 풀네임 사용"
+    ]
+  },
+
+  "constructor_parameter_style": {
+    "description": "생성자/함수 호출 시 파라미터 포맷 규칙",
+    "rules": [
+      {
+        "condition": "파라미터 5개 이하 + 타입이 전부 다름",
+        "style": "namedArgument 없이 한 줄에 몰아 넣기",
+        "example": "Payment(100L, Money(50000))"
+      },
+      {
+        "condition": "파라미터 5개 이하 + 타입이 하나라도 중복",
+        "style": "namedArgument 사용 + 한 줄씩 개행",
+        "example": "NotificationPreference(\n    memberId = 1L,\n    emailEnabled = true,\n    smsEnabled = false,\n    pushEnabled = true,\n)"
+      },
+      {
+        "condition": "파라미터 5개 초과",
+        "style": "namedArgument 사용 + 한 줄씩 개행"
+      }
+    ]
+  },
+
+  "service_plan_branching": {
+    "description": "플랜 분기가 있는 Service의 메서드 구조",
+    "rule": "when(type)으로 분기하여 handleTypeA(), handleTypeB() 등 private 메서드로 위임"
+  },
+
+  "json_column_serialization": {
+    "description": "JPA Entity의 JSON 컬럼 처리",
+    "rule": "@Type(JsonStringType::class) + data class 사용. ObjectMapper 직접 사용 금지"
+  },
+
+  "mongo_repository_style": {
+    "description": "MongoDB Repository 구조",
+    "rule": "컬렉션별 Repository 분리 (MongoTemplate 기반). 하나의 Repository에 여러 컬렉션 메서드를 넣지 않는다"
+  },
+
+  "ticket_granularity": {
+    "description": "티켓 단위 원칙",
+    "rules": [
+      "한 티켓 = 한 번에 처리 가능하고 이해할 수 있는 양",
+      "큰 기능은 세분화: 예) 'Notification 전체' (X) → 'Strategy 디스패치' + '알림 설정' + 'Kafka Consumer' (O)",
+      "하나의 티켓에 모든 내용을 몰아넣지 않는다",
+      "리뷰어가 티켓 하나를 보고 바로 맥락을 파악할 수 있어야 한다"
+    ],
+    "message": "티켓은 한 번에 이해 가능한 단위로 쪼개세요. 하나에 모든 것을 넣지 마세요."
   }
 }
