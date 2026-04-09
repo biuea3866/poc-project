@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
 
 class NotificationServiceDispatchTest : BehaviorSpec({
     val notificationRepository = mockk<NotificationRepository>()
-    val notificationDispatcher = mockk<NotificationDispatcher>()
+    val notificationDispatcher = mockk<NotificationDispatcher>(relaxed = true)
     val notificationService = NotificationService(notificationRepository, notificationDispatcher)
 
     Given("알림 발송 요청이 주어졌을 때") {

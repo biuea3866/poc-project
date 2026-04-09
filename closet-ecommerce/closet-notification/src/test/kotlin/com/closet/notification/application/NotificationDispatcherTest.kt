@@ -18,6 +18,7 @@ class NotificationDispatcherTest : BehaviorSpec({
         val emailSender = mockk<NotificationSender>()
         val smsSender = mockk<NotificationSender>()
         val pushSender = mockk<NotificationSender>()
+        val preferenceService = mockk<NotificationPreferenceService>()
 
         every { emailSender.supports(NotificationChannel.EMAIL) } returns true
         every { emailSender.supports(NotificationChannel.SMS) } returns false
@@ -31,7 +32,11 @@ class NotificationDispatcherTest : BehaviorSpec({
         every { pushSender.supports(NotificationChannel.SMS) } returns false
         every { pushSender.supports(NotificationChannel.PUSH) } returns true
 
-        val dispatcher = NotificationDispatcher(listOf(emailSender, smsSender, pushSender))
+        // 기본 설정: 모든 채널 활성, DND 아님
+        every { preferenceService.isChannelEnabled(any(), any()) } returns true
+        every { preferenceService.isDndTime(any(), any()) } returns false
+
+        val dispatcher = NotificationDispatcher(listOf(emailSender, smsSender, pushSender), preferenceService)
 
         When("EMAIL 채널 알림을 디스패치하면") {
             val notification = createNotification(NotificationChannel.EMAIL)
@@ -85,9 +90,12 @@ class NotificationDispatcherTest : BehaviorSpec({
 
     Given("지원하지 않는 채널 Sender가 없을 때") {
         val emailSender = mockk<NotificationSender>()
+        val preferenceService = mockk<NotificationPreferenceService>()
         every { emailSender.supports(any()) } returns false
+        every { preferenceService.isChannelEnabled(any(), any()) } returns true
+        every { preferenceService.isDndTime(any(), any()) } returns false
 
-        val dispatcher = NotificationDispatcher(listOf(emailSender))
+        val dispatcher = NotificationDispatcher(listOf(emailSender), preferenceService)
 
         When("PUSH 채널 알림을 디스패치하면") {
             val notification = createNotification(NotificationChannel.PUSH)

@@ -98,7 +98,7 @@ gantt
 |------|----------|---------|------|
 | closet-promotion | 쿠폰(Redis 선착순), 할인 엔진, 타임세일 | 무신사 쿠폰 | ✅ |
 | closet-display | 배너, 기획전, 랭킹, 스타일 매거진, OOTD 스냅 | 무신사 스냅 | ✅ |
-| closet-notification | SMS/푸시/이메일(Strategy), 재입고 구독 | - | 🚧 |
+| closet-notification | SMS/푸시/이메일(Strategy), 재입고 구독, 알림 설정(채널/토픽/DND) | - | 🚧 |
 | closet-fulfillment (+CS) | 1:1 문의, FAQ, 반품/교환 접수 통합 | - | ✅ |
 
 ### DDD BC 재설계 (2026-04-09)
@@ -111,6 +111,23 @@ gantt
 | Point BC 이동 | closet-promotion → closet-member (적립금은 회원 자산) | ✅ |
 | PaymentGateway 추상화 | Port-Adapter 패턴 (TossPaymentGateway + Factory) | ✅ |
 | 통합 테스트 | Testcontainers 기반 인프라 통합 테스트 도입 | 🚧 |
+| Notification Strategy | EMAIL/SMS/PUSH 채널 디스패치 + 재입고 Consumer | ✅ |
+| 알림 설정 시스템 | 회원 Preference(채널/마케팅/야간), 토픽 구독(상품/카테고리/브랜드), DND | 🚧 |
+
+### closet-notification 상세 로드맵
+
+> ADR: [ADR-009 Notification Strategy 패턴](../adr/ADR-009-notification-strategy-pattern.md)
+
+| 단계 | 기능 | 설계 패턴 | 상태 |
+|------|------|----------|------|
+| 1 | 채널 디스패치 (EMAIL/SMS/PUSH) | Strategy + Factory (NotificationSender + Dispatcher) | ✅ |
+| 2 | 재입고 알림 Kafka Consumer | event.closet.inventory → Facade → Service | ✅ |
+| 3 | 템플릿 변수 치환 | NotificationTemplate + {{variable}} 치환 | ✅ |
+| 4 | 회원 알림 설정 (Preference) | NotificationPreference 엔티티 (채널/마케팅/야간) | 🚧 |
+| 5 | 토픽 구독 (상품/카테고리/브랜드) | NotificationTopicSubscription 엔티티 | 🚧 |
+| 6 | DND 야간 차단 (21:00~08:00) | Dispatcher에서 발송 전 시간대 확인 | 🚧 |
+| 7 | 발송 이력/통계 | 발송 성공/실패/차단 추적 | 향후 |
+| 8 | 외부 서비스 연동 | SendGrid(EMAIL), NHN Cloud(SMS), FCM(PUSH) | 향후 |
 
 ---
 
