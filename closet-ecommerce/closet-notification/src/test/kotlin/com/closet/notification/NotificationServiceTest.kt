@@ -2,6 +2,7 @@ package com.closet.notification
 
 import com.closet.common.exception.BusinessException
 import com.closet.common.exception.ErrorCode
+import com.closet.notification.application.NotificationDispatcher
 import com.closet.notification.application.NotificationService
 import com.closet.notification.domain.Notification
 import com.closet.notification.domain.NotificationChannel
@@ -17,7 +18,8 @@ import java.time.ZonedDateTime
 
 class NotificationServiceTest : BehaviorSpec({
     val notificationRepository = mockk<NotificationRepository>()
-    val notificationService = NotificationService(notificationRepository)
+    val notificationDispatcher = mockk<NotificationDispatcher>(relaxed = true)
+    val notificationService = NotificationService(notificationRepository, notificationDispatcher)
 
     Given("알림 발송 요청이 주어졌을 때") {
         val memberId = 1L

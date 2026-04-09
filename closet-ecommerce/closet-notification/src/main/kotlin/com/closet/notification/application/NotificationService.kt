@@ -8,17 +8,21 @@ import com.closet.notification.domain.NotificationType
 import com.closet.notification.domain.repository.NotificationRepository
 import com.closet.notification.presentation.dto.NotificationResponse
 import com.closet.notification.presentation.dto.UnreadCountResponse
+import mu.KotlinLogging
 import org.springframework.data.domain.Page
 import org.springframework.data.domain.Pageable
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
+private val logger = KotlinLogging.logger {}
+
 @Service
 @Transactional(readOnly = true)
 class NotificationService(
     private val notificationRepository: NotificationRepository,
+    private val notificationDispatcher: NotificationDispatcher,
 ) {
-    /** 알림 발송 */
+    /** 알림 발송: DB 저장 후 채널별 Sender로 디스패치 */
     @Transactional
     fun send(
         memberId: Long,
@@ -37,6 +41,14 @@ class NotificationService(
             )
 
         val saved = notificationRepository.save(notification)
+
+        // 채널별 Strategy 디스패치 (실패해도 알림 저장은 유지, 재시도는 별도 처리)
+        try {
+            notificationDispatcher.dispatch(saved)
+        } catch (e: Exception) {
+            logger.error(e) { "알림 디스패치 실패: notificationId=${saved.id}, channel=$channel" }
+        }
+
         return NotificationResponse.from(saved)
     }
 
@@ -45,9 +57,10 @@ class NotificationService(
         memberId: Long,
         pageable: Pageable,
     ): Page<NotificationResponse> {
-        return notificationRepository
-            .findByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(memberId, pageable)
-            .map { NotificationResponse.from(it) }
+        return notificationRepository.findByMemberIdAndDeletedAtIsNullOrderByCreatedAtDesc(
+            memberId,
+            pageable,
+        ).map { NotificationResponse.from(it) }
     }
 
     /** 읽음 처리 */

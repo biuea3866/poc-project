@@ -30,6 +30,14 @@ class NotificationTemplateService(
             .map { TemplateResponse.from(it) }
     }
 
+    /** 유형+채널로 활성화된 템플릿 조회 (없으면 null) */
+    fun findActiveTemplate(
+        type: NotificationType,
+        channel: NotificationChannel,
+    ): NotificationTemplate? {
+        return templateRepository.findByTypeAndChannelAndIsActiveTrueAndDeletedAtIsNull(type, channel)
+    }
+
     /** 템플릿 생성 */
     @Transactional
     fun create(request: CreateTemplateRequest): TemplateResponse {
