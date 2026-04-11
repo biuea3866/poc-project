@@ -33,7 +33,6 @@ PROJECT_ROOT = SCRIPT_DIR.parent
 
 # 파이프라인 정의 디렉토리 (closet-ecommerce 프로젝트)
 ANALYSIS_DIRS = [
-    PROJECT_ROOT / "closet-ecommerce" / ".analysis",
     PROJECT_ROOT / ".analysis",
 ]
 

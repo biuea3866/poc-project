@@ -153,15 +153,21 @@
   "gc_scanner": {
     "description": "기존 코드베이스 전체 스캔 — 규칙 위반 감지 및 리포트",
     "scan_dirs": [
-      "closet-ecommerce/closet-common/src",
-      "closet-ecommerce/closet-order/src",
-      "closet-ecommerce/closet-product/src",
-      "closet-ecommerce/closet-payment/src",
-      "closet-ecommerce/closet-shipping/src",
-      "closet-ecommerce/closet-inventory/src",
-      "closet-ecommerce/closet-review/src",
-      "closet-ecommerce/closet-search/src",
-      "closet-ecommerce/closet-member/src"
+      "closet-common/src",
+      "closet-order/src",
+      "closet-product/src",
+      "closet-payment/src",
+      "closet-fulfillment/src",
+      "closet-inventory/src",
+      "closet-review/src",
+      "closet-search/src",
+      "closet-member/src",
+      "closet-promotion/src",
+      "closet-display/src",
+      "closet-notification/src",
+      "closet-bff/src",
+      "closet-external-api/src",
+      "closet-gateway/src"
     ],
     "auto_fixable": [
       "no-local-datetime",

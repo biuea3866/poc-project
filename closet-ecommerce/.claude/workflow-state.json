@@ -1,0 +1,22 @@
+{
+  "phase": "ticket",
+  "ticket": {
+    "id": "CP-77",
+    "title": "[BE] Notification - Strategy 패턴 채널 디스패치 구현",
+    "url": null
+  },
+  "test_files": [],
+  "impl_files": [],
+  "review": {
+    "status": null,
+    "reviewer": null,
+    "attempts": 0,
+    "comments": []
+  },
+  "pr": {
+    "url": null,
+    "number": null
+  },
+  "started_at": "2026-04-09T15:21:45.286014+00:00",
+  "updated_at": "2026-04-09T15:21:45.287064+00:00"
+}
