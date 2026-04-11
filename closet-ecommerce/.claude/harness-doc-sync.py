@@ -20,6 +20,11 @@ import os
 import re
 import sys
 import urllib.request
+from pathlib import Path
+
+# closet-ecommerce 디렉토리에서만 실행
+if "closet-ecommerce" not in str(Path.cwd()):
+    sys.exit(0)
 
 TOKEN = os.environ.get("NOTION_CLOSET_TOKEN")
 PARENT_PAGE_ID = os.environ.get("NOTION_CLOSET_PAGE_ID")
