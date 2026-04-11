@@ -1,0 +1,9 @@
+server:
+  port: 0
+  tomcat:
+    threads:
+      max: 500
+
+spring:
+  main:
+    web-application-type: servlet
