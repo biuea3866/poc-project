@@ -28,6 +28,10 @@ import sys
 from datetime import datetime, timezone
 from pathlib import Path
 
+# closet-ecommerce 디렉토리에서만 실행
+if "closet-ecommerce" not in str(Path.cwd()):
+    sys.exit(0)
+
 SCRIPT_DIR = Path(__file__).parent
 STATE_FILE = SCRIPT_DIR / "workflow-state.json"
 

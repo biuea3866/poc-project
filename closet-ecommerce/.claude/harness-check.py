@@ -23,6 +23,11 @@ import sys
 from fnmatch import fnmatch
 from pathlib import Path
 
+# closet-ecommerce 디렉토리에서만 실행
+CLOSET_ROOT = Path(__file__).parent.parent
+if "closet-ecommerce" not in str(Path.cwd()) and str(Path.cwd()) != str(CLOSET_ROOT.parent):
+    sys.exit(0)
+
 
 def load_rules():
     """harness-rules.json을 로드한다."""
