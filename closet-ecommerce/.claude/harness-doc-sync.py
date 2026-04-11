@@ -37,8 +37,8 @@ DOC_MAP = {
     "docs/prd/phase5-subscription.md": "PRD Phase 5 의류 구독/대여",
 }
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-CLOSET_ROOT = os.path.join(PROJECT_ROOT, "closet-ecommerce")
+CLOSET_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = CLOSET_ROOT
 
 
 def api(method, url, data=None):

@@ -1,0 +1,48 @@
+{
+  "tickets": [
+    {
+      "id": "CP-75",
+      "title": "[BE] DDD 재설계 Phase5 — PaymentGateway 어댑터 구현",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-09T14:15:14.887628+00:00"
+    },
+    {
+      "id": "CP-74",
+      "title": "[BE] Point BC to closet-member",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "done",
+      "added_at": "2026-04-09T14:26:31.265330+00:00",
+      "completed_at": "2026-04-09T15:21:44.900200+00:00"
+    },
+    {
+      "id": "CP-77",
+      "title": "[BE] Notification - Strategy 패턴 채널 디스패치 구현",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "in_progress",
+      "added_at": "2026-04-09T15:21:45.053753+00:00"
+    },
+    {
+      "id": "CP-78",
+      "title": "[BE] Phase 3 FE 페이지 (프로모션/전시/알림/CS)",
+      "url": null,
+      "priority": 0,
+      "deps": [],
+      "status": "pending",
+      "added_at": "2026-04-09T15:21:45.113767+00:00"
+    }
+  ],
+  "current_index": 2,
+  "completed": [
+    "CP-74"
+  ],
+  "skipped": [],
+  "started_at": "2026-04-09T14:15:14.887790+00:00",
+  "updated_at": "2026-04-09T15:21:45.187352+00:00"
+}
