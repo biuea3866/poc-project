@@ -1,0 +1,41 @@
+{
+  "_doc": "claude_framework 템플릿 베이스 훅 설정. Claude Code는 cwd=claude_framework일 때 이 파일을 읽어 PreToolUse/PostToolUse/UserPromptSubmit 훅을 등록합니다. settings.local.json은 개인 오버라이드용(gitignore)으로 사용하세요. ${CLAUDE_PROJECT_DIR}는 Claude Code가 프로젝트 루트(claude_framework)로 치환합니다.",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py file-guard"
+          },
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py code-pattern"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py git-guard"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py build-check"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,122 @@
+{
+  "_doc": "doodlin-template 하네스 룰 — 규칙 추가/수정은 이 파일만 편집하세요. harness-check.py가 이 룰을 읽어 Write/Edit/Bash 훅에서 검증합니다.",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml", ".npmrc"],
+    "message": "BLOCKED: 민감 파일 수정 차단 — .env/credentials/secret/key/pem 파일은 직접 수정하지 마세요."
+  },
+
+  "forbidden_patterns": {
+    "description": "코드에 사용하면 안 되는 패턴들 (Write/Edit 시 차단)",
+    "rules": [
+      {
+        "id": "no-jpa-query",
+        "pattern": "@Query\\(",
+        "file_glob": "*.kt",
+        "message": "@Query 사용 금지 — QueryDSL CustomRepository + Impl 패턴으로 작성하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-local-datetime",
+        "pattern": "LocalDateTime",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/migration/**",
+        "message": "LocalDateTime 사용 금지 — ZonedDateTime을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-consumer-record",
+        "pattern": "ConsumerRecord<String,\\s*String>",
+        "file_glob": "*.kt",
+        "message": "ConsumerRecord<String, String> 사용 금지 — DTO 직접 매핑 (JsonDeserializer).",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-consumer",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-fk",
+        "pattern": "FOREIGN KEY|REFERENCES\\s+\\w+\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "FK 사용 금지 — 애플리케이션 레벨에서 관계를 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-enum",
+        "pattern": "\\bENUM\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "DB ENUM 사용 금지 — VARCHAR + 애플리케이션 enum으로 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-json",
+        "pattern": "\\bJSON\\b",
+        "file_glob": "*.sql",
+        "message": "DB JSON 컬럼 사용 금지 — 정규화된 테이블로 설계하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-boolean-type",
+        "pattern": "\\bBOOLEAN\\b",
+        "file_glob": "*.sql",
+        "message": "BOOLEAN 타입 사용 금지 — TINYINT(1) 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-datetime-no-precision",
+        "pattern": "\\bDATETIME\\b(?!\\s*\\(6\\))",
+        "file_glob": "*.sql",
+        "message": "DATETIME 사용 시 반드시 DATETIME(6) 마이크로초 정밀도 사용.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "description": "위험한 git 명령 차단 (Bash 훅)",
+    "blocked_commands": [
+      {
+        "pattern": "git\\s+push\\s+.*--force",
+        "message": "git push --force 차단 — --force-with-lease를 쓰거나 사람과 협의하세요."
+      },
+      {
+        "pattern": "git\\s+push\\s+.*\\smain(\\s|$)",
+        "message": "main 직접 push 차단 — feature 브랜치 + PR로 반영하세요."
+      },
+      {
+        "pattern": "git\\s+reset\\s+--hard\\s+origin/main",
+        "message": "origin/main hard reset 차단 — 작업 브랜치에서 rebase하세요."
+      },
+      {
+        "pattern": "git\\s+commit\\s+.*--no-verify",
+        "message": "--no-verify 차단 — pre-commit 훅 실패는 근본 해결 후 재커밋하세요."
+      },
+      {
+        "pattern": "git\\s+branch\\s+-D\\s+main",
+        "message": "main 브랜치 강제 삭제 차단."
+      }
+    ]
+  },
+
+  "workflow": {
+    "description": "작업 순서 가이드 (check-workflow 훅에서 참조)",
+    "pipeline_order": [
+      "jira-issue",
+      "branch",
+      "implementation",
+      "commit",
+      "push",
+      "pull-request",
+      "jira-update",
+      "confluence-update"
+    ],
+    "require_feature_branch": true,
+    "protected_branches": ["main", "master", "dev"]
+  }
+}
