@@ -10,6 +10,10 @@ model: sonnet
 ## 사용 스킬
 - **`tdd-loop`** (`.claude/skills/tdd-loop/SKILL.md`) — Red→Green→Refactor 사이클 표준 절차, Node/TypeScript용 테스트 스택 가이드.
 
+## 사용 공통 가이드
+- [output-style](.claude/common/output-style.md)
+- [ticket-guide](.claude/common/ticket-guide.md)
+
 ## 절대 규칙
 1. **테스트 먼저** — Vitest/Jest/Playwright, 컴포넌트 렌더/이벤트/접근성 테스트 → 실패 확인 → 구현.
 2. **BFF 계층 규칙** — Controller가 외부 Client를 직접 호출하지 않는다. 반드시 Facade/Service 경유.
