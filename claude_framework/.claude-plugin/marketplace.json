@@ -1,15 +1,38 @@
 {
-  "name": "claude-framework-marketplace",
-  "description": "biuea3866가 제공하는 Claude Code 플러그인 카탈로그. 현재 claude-framework 하나.",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "claude-framework-local",
+  "description": "biuea3866의 로컬 개발 마켓플레이스. 4계층(Command/Pipeline/Agent/Skill) 멀티 레포 워크스페이스 템플릿.",
   "owner": {
     "name": "biuea3866",
-    "url": "https://github.com/biuea3866"
+    "email": "biuea3866@users.noreply.github.com"
+  },
+  "metadata": {
+    "description": "claude_framework 플러그인 로컬 배포용"
   },
   "plugins": [
     {
       "name": "claude-framework",
-      "source": ".",
-      "description": "4계층(Command/Pipeline/Agent/Skill) 멀티 레포 워크스페이스 템플릿. /init으로 기존 프로젝트에 이식 가능."
+      "source": "./",
+      "description": "4계층(Command/Pipeline/Agent/Skill) 멀티 레포 워크스페이스 템플릿. Claude 훅 기반 하네스 룰 + 페르소나 에이전트 + 파이프라인 자동화. /init 커맨드로 기존 프로젝트에 이식 시 코드베이스 스캔 기반 자동 룰 추출 지원.",
+      "version": "1.2.0",
+      "author": {
+        "name": "biuea3866",
+        "email": "biuea3866@users.noreply.github.com"
+      },
+      "homepage": "https://github.com/biuea3866/poc-project",
+      "repository": "https://github.com/biuea3866/poc-project",
+      "license": "MIT",
+      "keywords": [
+        "claude-code",
+        "plugin",
+        "harness",
+        "pipeline",
+        "hexagonal-architecture",
+        "tdd",
+        "multi-repo",
+        "kotlin",
+        "spring"
+      ]
     }
   ]
 }
