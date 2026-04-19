@@ -13,6 +13,7 @@
 | `/review-pr <num>` | PR 리뷰 | pr-reviewer + pr-review-checklist |
 | `/audit-harness [path]` | 하네스 룰 전수 감사 | harness-auditor + harness-audit |
 | **`/parallel-tickets <tickets.md> [max=4]`** | **티켓 병렬 구현 (worktree + agent team)** | **팀장=opus, 팀원=sonnet** |
+| **`/init [--scan] [--classify-repos] [--stack=..]`** | **플러그인 설치 후 현재 프로젝트에 이식** | **convention-detective + repo-classifier** |
 
 ## 참조 방향 (재확인)
 

@@ -1,0 +1,62 @@
+{
+  "_doc": "claude_framework Go 프리셋. /init --stack=go 시 사용.",
+
+  "file_guard": {
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml"],
+    "message": "BLOCKED: 민감 파일 수정 차단."
+  },
+
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-panic-in-library",
+        "pattern": "\\bpanic\\(",
+        "file_glob": "*.go",
+        "exclude_glob": "**/*_test.go,**/main.go",
+        "message": "라이브러리 코드에서 panic 금지 — error 반환.",
+        "severity": "error"
+      },
+      {
+        "id": "no-empty-interface",
+        "pattern": "\\binterface\\{\\}",
+        "file_glob": "*.go",
+        "message": "interface{} 금지 — 구체 타입 또는 any (Go 1.18+).",
+        "severity": "warning"
+      },
+      {
+        "id": "no-fmt-println-in-src",
+        "pattern": "fmt\\.Println",
+        "file_glob": "*.go",
+        "exclude_glob": "**/*_test.go,**/cmd/**",
+        "message": "라이브러리에서 fmt.Println 금지 — log 패키지 또는 structured logger.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-context-background-in-handler",
+        "pattern": "context\\.Background\\(\\)",
+        "file_glob": "**/handler/**/*.go,**/controller/**/*.go",
+        "message": "핸들러에서 Background 금지 — request context 전달.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "blocked_commands": [
+      {
+        "pattern": "git\\s+push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "main/master 직접 push 금지."
+      },
+      {
+        "pattern": "git\\s+push.*--force(?!-with-lease)",
+        "message": "--force push 차단."
+      }
+    ]
+  },
+
+  "workflow": {
+    "require_feature_branch": true,
+    "protected_branches": ["main", "master", "dev"]
+  }
+}
