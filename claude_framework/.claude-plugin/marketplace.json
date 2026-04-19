@@ -1,0 +1,15 @@
+{
+  "name": "claude-framework-marketplace",
+  "description": "biuea3866가 제공하는 Claude Code 플러그인 카탈로그. 현재 claude-framework 하나.",
+  "owner": {
+    "name": "biuea3866",
+    "url": "https://github.com/biuea3866"
+  },
+  "plugins": [
+    {
+      "name": "claude-framework",
+      "source": ".",
+      "description": "4계층(Command/Pipeline/Agent/Skill) 멀티 레포 워크스페이스 템플릿. /init으로 기존 프로젝트에 이식 가능."
+    }
+  ]
+}

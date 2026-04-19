@@ -1,4 +1,4 @@
-# .claude/commands — Slash Commands
+# commands — Slash Commands
 
 사용자가 `/<name> <args>`로 호출하는 얇은 UX 레이어. 본문은 파이프라인/에이전트/스킬을 호출하는 프롬프트이며, 절차/로직을 여기에 중복 작성하지 않는다.
 

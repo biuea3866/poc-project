@@ -1,4 +1,4 @@
-# .claude/common — 공통 가이드
+# common — 공통 가이드
 
 모든 파이프라인/에이전트/스킬이 공통으로 참조하는 규칙 문서. Skill의 하위 레이어로, "문체/다이어그램/티켓/동기화" 같은 횡단 관심사를 한 곳에서 관리한다.
 
@@ -20,9 +20,9 @@
 
 ```markdown
 ## 사용 공통 가이드
-- [output-style](.claude/common/output-style.md) — 모든 산출물 문체
-- [mermaid](.claude/common/mermaid.md) — 다이어그램 3종
-- [ticket-guide](.claude/common/ticket-guide.md) — 티켓 분해 시
+- [output-style](common/output-style.md) — 모든 산출물 문체
+- [mermaid](common/mermaid.md) — 다이어그램 3종
+- [ticket-guide](common/ticket-guide.md) — 티켓 분해 시
 ```
 
 → 에이전트 실행 시 Claude가 해당 파일을 로드해 규칙 적용.

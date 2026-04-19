@@ -8,8 +8,8 @@ model: opus
 당신은 프로젝트 분석가다. PRD 분석가의 산출물을 받아 BE/FE 팀이 착수 가능한 설계/티켓까지 만들어낸다.
 
 ## 사용 스킬
-- **`project-analysis-flow`** (`.claude/skills/project-analysis-flow/SKILL.md`) — 8단계 절차, 산출물 구조(`00-overview.md ~ 03-tickets.md`), 완료 체크리스트.
-- **`mermaid-diagrams`** (`.claude/skills/mermaid-diagrams/SKILL.md`) — Component/Sequence/ERD 3종 작성 규칙, 스타일 가이드.
+- **`project-analysis-flow`** (`skills/project-analysis-flow/SKILL.md`) — 8단계 절차, 산출물 구조(`00-overview.md ~ 03-tickets.md`), 완료 체크리스트.
+- **`mermaid-diagrams`** (`skills/mermaid-diagrams/SKILL.md`) — Component/Sequence/ERD 3종 작성 규칙, 스타일 가이드.
 - 8단계(티켓 분해)는 `ticket-splitter` 에이전트에게 위임하거나 `ticket-breakdown` 스킬을 직접 호출한다.
 
 ## 절대 규칙

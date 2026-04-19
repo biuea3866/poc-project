@@ -6,42 +6,78 @@ Claude Code의 네이티브 플러그인으로 claude-framework를 설치하면,
 
 ## 설치
 
-### 방법 1 — 플러그인 마켓플레이스 (향후)
+### 방법 1 — install.sh (가장 간단, 지금 바로 가능)
+
+```bash
+# 1. 저장소 클론 (임시 또는 개발용 위치)
+git clone https://github.com/biuea3866/poc-project.git
+cd poc-project/claude_framework
+
+# 2. 설치 스크립트 실행
+bash install.sh
+# → ~/.claude/plugins/cache/local/claude-framework/<version>/ 에 심볼릭 링크
+# → ~/.claude/plugins/installed_plugins.json 에 자동 등록
 ```
+
+옵션:
+```bash
+bash install.sh              # 심볼릭 링크 (저장소 업데이트 즉시 반영)
+bash install.sh --copy       # 파일 복사 (저장소와 분리)
+bash install.sh --git <url>  # 원격 저장소에서 클론 + 설치
+bash install.sh --uninstall  # 제거
+```
+
+### 방법 2 — Claude Code 마켓플레이스 CLI
+
+이 저장소를 마켓플레이스로 등록:
+```
+/plugin marketplace add https://github.com/biuea3866/poc-project
 /plugin install claude-framework
 ```
 
-### 방법 2 — Git URL 직접 설치
-```bash
-# Claude Code 설정 디렉토리에 클론
-mkdir -p ~/.claude/plugins
-cd ~/.claude/plugins
-git clone https://github.com/biuea3866/poc-project.git claude-framework-src
+`marketplace.json`이 `.claude-plugin/`에 있어 Claude Code가 자동 카탈로그 인식.
 
-# claude_framework 하위만 심볼릭 링크로 플러그인화
-ln -s claude-framework-src/claude_framework claude-framework
+### 방법 3 — 직접 캐시 경로에 배치
+
+플러그인 시스템 내부 규격:
+```
+~/.claude/plugins/
+├── cache/
+│   └── <marketplace>/             # 로컬이면 "local", 공식이면 org 이름
+│       └── claude-framework/
+│           └── <version>/          # 예: 1.2.0
+│               ├── .claude-plugin/plugin.json
+│               ├── agents/
+│               ├── skills/
+│               ├── commands/
+│               └── ...
+└── installed_plugins.json          # 등록 목록
 ```
 
-또는 **sparse checkout**:
-```bash
-cd ~/.claude/plugins
-git clone --filter=blob:none --sparse https://github.com/biuea3866/poc-project.git claude-framework
-cd claude-framework
-git sparse-checkout set claude_framework
-mv claude_framework/* . && rm -rf claude_framework
+`installed_plugins.json` 항목 형식:
+```json
+{
+  "claude-framework@local": [{
+    "scope": "user",
+    "installPath": "/Users/.../cache/local/claude-framework/1.2.0",
+    "version": "1.2.0",
+    "installedAt": "2026-04-19T08:28:34.000Z",
+    "lastUpdated": "2026-04-19T08:28:34.000Z"
+  }]
+}
 ```
 
 ### 설치 확인
-Claude Code 재시작 후:
-```
-/plugin list
-# → claude-framework v1.1.0 표시되어야 함
-```
 
-플러그인 제공 요소 (자동 네임스페이스):
-- 에이전트: `claude-framework:prd-analyst`, `claude-framework:be-tech-lead`, ...
-- 스킬: `claude-framework:prd-analysis`, `claude-framework:tdd-loop`, ...
-- 커맨드: `/init`, `/analyze-prd`, `/parallel-tickets`, ...
+Claude Code 재시작 후:
+- `/init`, `/analyze-prd`, `/parallel-tickets` 등 슬래시 커맨드가 자동완성에 나타남
+- `@pipeline-runner`, `@be-tech-lead`, `@prd-analyst` 등 에이전트 호출 가능
+- 스킬은 자동 매칭 (대화 내용에 따라 Claude가 필요 시 로드)
+
+플러그인 제공 요소 (네임스페이스):
+- 에이전트 13종: pipeline-runner, prd-analyst, project-analyst, ticket-splitter, be/fe-tech-lead, be-senior, be/fe-implementer, pr-reviewer, harness-auditor, convention-detective, repo-classifier
+- 스킬 9종: prd-analysis, project-analysis-flow, mermaid-diagrams, ticket-breakdown, tdd-loop, kotlin-spring-impl, pr-review-checklist, harness-audit, codebase-convention-scan
+- 커맨드 8종: /init, /analyze-prd, /plan-project, /split-tickets, /tdd-implement, /review-pr, /audit-harness, /parallel-tickets
 
 ---
 
