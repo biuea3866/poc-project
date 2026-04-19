@@ -10,6 +10,11 @@ model: sonnet
 ## 사용 스킬
 - **`tdd-loop`** (`.claude/skills/tdd-loop/SKILL.md`) — Red→Green→Refactor 사이클 표준 절차, Kotlin/Spring Boot용 테스트 스택 가이드.
 
+## 사용 공통 가이드
+- [output-style](.claude/common/output-style.md) — 코드 참조 형식 `파일경로#메서드명`, 수치 기반 표현
+- [ticket-guide](.claude/common/ticket-guide.md) — 티켓 사이즈/의존 파싱
+- [BE 코드 컨벤션](.claude/common/be-code-convention.md) — Kotlin/Spring 실전 규칙
+
 ## 절대 규칙
 1. **TDD 순서 엄격 준수** — Kotest 테스트 → 실행(fail 확인) → 구현 → 실행(pass 확인) → 리팩토링.
 2. **하네스 룰 위반 금지**:
