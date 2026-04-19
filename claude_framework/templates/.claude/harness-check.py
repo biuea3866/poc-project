@@ -31,20 +31,142 @@ FRAMEWORK_ROOT = Path(__file__).parent.parent.resolve()
 
 
 def in_scope() -> bool:
-    """현재 cwd가 claude_framework 내부에 있을 때만 훅을 적용."""
+    """
+    훅 적용 스코프 판정:
+      - 개발 모드: cwd가 FRAMEWORK_ROOT 내부 (플러그인 자체 개발)
+      - 플러그인 모드: cwd에 .claude/harness-rules.json 또는 harness-rules.local.json 존재
+    """
     try:
         cwd = Path.cwd().resolve()
-        return str(cwd).startswith(str(FRAMEWORK_ROOT))
+        if str(cwd).startswith(str(FRAMEWORK_ROOT)):
+            return True
+        claude_dir = cwd / ".claude"
+        return (
+            (claude_dir / "harness-rules.json").exists()
+            or (claude_dir / "harness-rules.local.json").exists()
+        )
     except Exception:
         return False
 
 
+def _read_json(path: Path) -> dict:
+    if not path.exists():
+        return {}
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            return json.load(f)
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def _deep_merge(base: dict, overlay: dict) -> dict:
+    """
+    3-file 병합 규칙:
+      - dict: deep merge (overlay가 이김)
+      - list: base + overlay (dedupe by 'id' if rules)
+      - primitive: overlay가 이김
+      - 특수 키 _rule_overrides: base의 rules 중 동일 id 룰의 필드 재정의
+      - 특수 키 _rule_disabled: 해당 id 룰 제거
+    """
+    result = dict(base)
+    for key, value in overlay.items():
+        if key.startswith("_rule_"):
+            continue  # 특수 키는 별도 처리
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _deep_merge(result[key], value)
+        elif key in result and isinstance(result[key], list) and isinstance(value, list):
+            result[key] = _merge_rule_list(result[key], value)
+        else:
+            result[key] = value
+    return result
+
+
+def _merge_rule_list(base_list: list, overlay_list: list) -> list:
+    """룰 배열 병합 — id 기준 dedupe, overlay가 기존 id 덮어쓰기."""
+    by_id: dict = {}
+    order: list = []
+    for item in base_list + overlay_list:
+        if isinstance(item, dict) and "id" in item:
+            if item["id"] not in by_id:
+                order.append(item["id"])
+            by_id[item["id"]] = item
+        else:
+            order.append(id(item))
+            by_id[id(item)] = item
+    return [by_id[key] for key in order]
+
+
+def _apply_overrides_and_disables(merged: dict, overlays: list) -> dict:
+    """_rule_overrides / _rule_disabled 특수 키 처리."""
+    disabled_ids: set = set()
+    field_overrides: dict = {}
+    for overlay in overlays:
+        disabled_ids.update(overlay.get("_rule_disabled", []) or [])
+        for rule_id, fields in (overlay.get("_rule_overrides", {}) or {}).items():
+            field_overrides.setdefault(rule_id, {}).update(fields)
+
+    for section_key in ("forbidden_patterns", "layer_dependency"):
+        section = merged.get(section_key)
+        if not isinstance(section, dict):
+            continue
+        rules = section.get("rules")
+        if not isinstance(rules, list):
+            continue
+        new_rules = []
+        for rule in rules:
+            if not isinstance(rule, dict):
+                new_rules.append(rule)
+                continue
+            rule_id = rule.get("id")
+            if rule_id in disabled_ids:
+                continue
+            if rule_id in field_overrides:
+                overridden = dict(rule)
+                overridden.update(field_overrides[rule_id])
+                if overridden.get("disabled") is True:
+                    continue
+                new_rules.append(overridden)
+            else:
+                new_rules.append(rule)
+        section["rules"] = new_rules
+    return merged
+
+
 def load_rules():
-    rules_path = FRAMEWORK_ROOT / ".claude" / "harness-rules.json"
-    if not rules_path.exists():
+    """
+    3-레이어 병합:
+      1. plugin base   — ~/.claude/plugins/claude-framework/.claude/harness-rules.json
+                          또는 FRAMEWORK_ROOT/.claude/harness-rules.json (개발 모드)
+      2. project       — $CWD/.claude/harness-rules.json  (팀 공유, git tracked)
+      3. local         — $CWD/.claude/harness-rules.local.json (개인, gitignore)
+    """
+    plugin_paths = [
+        Path(os.path.expanduser("~/.claude/plugins/claude-framework/.claude/harness-rules.json")),
+        FRAMEWORK_ROOT / ".claude" / "harness-rules.json",
+    ]
+    plugin_base: dict = {}
+    for candidate in plugin_paths:
+        if candidate.exists():
+            plugin_base = _read_json(candidate)
+            break
+
+    cwd = Path.cwd().resolve()
+    project_rules = _read_json(cwd / ".claude" / "harness-rules.json")
+    local_rules = _read_json(cwd / ".claude" / "harness-rules.local.json")
+
+    # 플러그인 base와 프로젝트가 같은 파일이면 중복 병합 방지
+    if plugin_base is project_rules or (
+        plugin_paths and plugin_paths[-1] == cwd / ".claude" / "harness-rules.json"
+    ):
+        project_rules = {} if plugin_paths[-1] == cwd / ".claude" / "harness-rules.json" else project_rules
+
+    if not plugin_base and not project_rules and not local_rules:
         return None
-    with open(rules_path, "r", encoding="utf-8") as f:
-        return json.load(f)
+
+    merged = _deep_merge(plugin_base, project_rules)
+    merged = _deep_merge(merged, local_rules)
+    merged = _apply_overrides_and_disables(merged, [project_rules, local_rules])
+    return merged
 
 
 def get_tool_input() -> dict:

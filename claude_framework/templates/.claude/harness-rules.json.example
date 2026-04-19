@@ -1,0 +1,30 @@
+{
+  "_doc": "프로젝트 차원 harness 룰 — 팀 공유, git tracked. 플러그인 base를 확장하거나 특정 룰 재정의.",
+  "_merge_order": "plugin base → .claude/harness-rules.json (this) → .claude/harness-rules.local.json (overrides)",
+
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-hardcoded-workspace-id",
+        "pattern": "workspaceId\\s*=\\s*\\d+",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/test/**",
+        "message": "workspaceId 하드코딩 금지 — 테스트 fixture 사용",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "_rule_overrides": {
+  },
+
+  "_rule_disabled": [
+  ],
+
+  "architecture_convention": {
+    "naming_convention": {
+      "controller": "~ApiController",
+      "usecase": "~UseCase"
+    }
+  }
+}

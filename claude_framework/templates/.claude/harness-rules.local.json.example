@@ -1,0 +1,24 @@
+{
+  "_doc": "개인 차원의 harness 룰 오버라이드 — gitignore 대상. 팀 공유는 .claude/harness-rules.json 사용.",
+  "_merge_order": "plugin base → .claude/harness-rules.json (project) → .claude/harness-rules.local.json (this, 우선)",
+
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-my-personal-no-no",
+        "pattern": "TODO\\(me\\)",
+        "file_glob": "*.kt",
+        "message": "개인용 TODO 마커 — 커밋 전 정리",
+        "severity": "warning"
+      }
+    ]
+  },
+
+  "_rule_overrides": {
+    "no-double-bang": { "severity": "warning" },
+    "no-local-datetime": { "severity": "warning" }
+  },
+
+  "_rule_disabled": [
+  ]
+}
