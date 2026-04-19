@@ -1,4 +1,4 @@
-# .claude/skills — 재사용 절차/노하우
+# skills — 재사용 절차/노하우
 
 Skill은 에이전트가 참조하는 "재사용 가능한 절차 모듈"이다. 파이프라인(무엇/순서), 에이전트(누가), 스킬(어떻게)의 삼각 관계에서 **how**에 해당한다.
 
@@ -21,8 +21,8 @@ Skill은 에이전트가 참조하는 "재사용 가능한 절차 모듈"이다.
 | 구분 | 역할 | 형식 | 호출 |
 |---|---|---|---|
 | **Pipeline** | 무엇을/어떤 순서로 | `.analysis/*/PIPELINE.md` | 사용자 또는 pipeline-runner |
-| **Agent** | 누가 실행 (페르소나/도구) | `.claude/agents/*.md` | Agent 툴 (`subagent_type`) |
-| **Skill** | 어떻게 (절차/노하우/템플릿) | `.claude/skills/*/SKILL.md` | Skill 툴 또는 에이전트가 본문 참조 |
+| **Agent** | 누가 실행 (페르소나/도구) | `agents/*.md` | Agent 툴 (`subagent_type`) |
+| **Skill** | 어떻게 (절차/노하우/템플릿) | `skills/*/SKILL.md` | Skill 툴 또는 에이전트가 본문 참조 |
 
 ## 호출 방식
 

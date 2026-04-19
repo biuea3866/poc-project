@@ -1,4 +1,4 @@
-# .claude/agents — 역할별 에이전트
+# agents — 역할별 에이전트
 
 Claude Code의 Agent 툴에서 `subagent_type: <name>`으로 호출 가능한 서브에이전트 카탈로그.
 
@@ -61,7 +61,7 @@ Agent(subagent_type="fe-lead", ...)            # FE 영향 관점
 
 ## 공통 가이드 참조
 
-모든 에이전트는 프롬프트 상단에 사용할 `.claude/common/*.md` 문서를 명시:
+모든 에이전트는 프롬프트 상단에 사용할 `common/*.md` 문서를 명시:
 
 - [output-style](../common/output-style.md) — 문체/코드 참조
 - [mermaid](../common/mermaid.md) — 다이어그램 규칙

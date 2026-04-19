@@ -30,7 +30,7 @@ argument-hint: [--scan] [--classify-repos] [--stack=auto|kotlin|node|python|go] 
   .claude/settings.json            → ./.claude/settings.json
   .claude/mcp.json                 → ./.claude/mcp.json (환경변수 치환 후)
   .claude/git-hooks/               → ./.claude/git-hooks/
-  .claude/common/                  → ./.claude/common/
+  common/                  → ./common/
   .analysis/                       → ./.analysis/ (PIPELINE.md들만)
   CLAUDE.md.template               → ./CLAUDE.md (없을 때만)
 
@@ -60,7 +60,7 @@ Agent(
   prompt=<<<
     루트: {현재 디렉토리}
     스택: {감지된 스택}
-    임무: .claude/skills/codebase-convention-scan/SKILL.md의 6단계 절차 수행.
+    임무: skills/codebase-convention-scan/SKILL.md의 6단계 절차 수행.
     출력: 룰 델타 JSON + 승인 요청 표.
   >>>
 )

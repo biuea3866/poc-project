@@ -1,16 +1,14 @@
 {
   "name": "claude-framework",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "description": "4계층(Command/Pipeline/Agent/Skill) 멀티 레포 워크스페이스 템플릿. Claude 훅 기반 하네스 룰 + 페르소나 에이전트 + 파이프라인 자동화. /init 커맨드로 기존 프로젝트에 이식 시 코드베이스 스캔 기반 자동 룰 추출 지원.",
   "author": {
     "name": "biuea3866",
     "email": "biuea3866@users.noreply.github.com"
   },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/biuea3866/poc-project",
-    "directory": "claude_framework"
-  },
+  "homepage": "https://github.com/biuea3866/poc-project",
+  "repository": "https://github.com/biuea3866/poc-project",
+  "license": "MIT",
   "keywords": [
     "claude-code",
     "plugin",
@@ -18,16 +16,25 @@
     "pipeline",
     "hexagonal-architecture",
     "tdd",
-    "multi-repo"
+    "multi-repo",
+    "kotlin",
+    "spring"
   ],
-  "paths": {
-    "agents": ".claude/agents",
-    "skills": ".claude/skills",
-    "commands": ".claude/commands",
-    "common": ".claude/common",
-    "templates": "templates"
-  },
-  "init_command": "init",
-  "hooks_settings": ".claude/settings.json",
-  "min_claude_code_version": "1.0.0"
+  "agents": [
+    "./agents/pipeline-runner.md",
+    "./agents/prd-analyst.md",
+    "./agents/project-analyst.md",
+    "./agents/ticket-splitter.md",
+    "./agents/be-tech-lead.md",
+    "./agents/be-senior.md",
+    "./agents/fe-lead.md",
+    "./agents/be-implementer.md",
+    "./agents/fe-implementer.md",
+    "./agents/pr-reviewer.md",
+    "./agents/harness-auditor.md",
+    "./agents/convention-detective.md",
+    "./agents/repo-classifier.md"
+  ],
+  "skills": ["./skills/"],
+  "commands": ["./commands/"]
 }
