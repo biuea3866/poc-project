@@ -1,0 +1,70 @@
+{
+  "_doc": "claude_framework Node/TypeScript 프리셋. /init --stack=node 시 이 파일을 base로 사용.",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml", ".npmrc"],
+    "message": "BLOCKED: 민감 파일 수정 차단."
+  },
+
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-any-type",
+        "pattern": ":\\s*any[\\s,)>]",
+        "file_glob": "*.ts,*.tsx",
+        "exclude_glob": "**/*.d.ts",
+        "message": "any 타입 금지 — unknown + 타입 가드 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-console-log",
+        "pattern": "console\\.(log|info|debug)",
+        "file_glob": "src/**/*.{ts,tsx,js,jsx}",
+        "exclude_glob": "**/*.test.*,**/*.spec.*",
+        "message": "console.log 금지 — logger 사용.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-ts-ignore",
+        "pattern": "@ts-ignore",
+        "file_glob": "*.ts,*.tsx",
+        "message": "@ts-ignore 금지 — @ts-expect-error + 주석으로 이유 명시.",
+        "severity": "error"
+      },
+      {
+        "id": "no-eval",
+        "pattern": "\\beval\\s*\\(",
+        "file_glob": "*.{ts,tsx,js,jsx}",
+        "message": "eval() 금지 — 보안 위험.",
+        "severity": "error"
+      },
+      {
+        "id": "no-inner-html",
+        "pattern": "dangerouslySetInnerHTML",
+        "file_glob": "*.{tsx,jsx}",
+        "message": "dangerouslySetInnerHTML 사용 시 sanitize 필수 — DOMPurify 경유.",
+        "severity": "warning"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "blocked_commands": [
+      {
+        "pattern": "git\\s+push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "main/master 직접 push 금지."
+      },
+      {
+        "pattern": "git\\s+push.*--force(?!-with-lease)",
+        "message": "git push --force 차단 — --force-with-lease 사용."
+      }
+    ]
+  },
+
+  "workflow": {
+    "require_feature_branch": true,
+    "protected_branches": ["main", "master", "dev"]
+  }
+}

@@ -1,0 +1,61 @@
+{
+  "_doc": "claude_framework Python 프리셋. /init --stack=python 시 사용.",
+
+  "file_guard": {
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml"],
+    "message": "BLOCKED: 민감 파일 수정 차단."
+  },
+
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-bare-except",
+        "pattern": "except\\s*:",
+        "file_glob": "*.py",
+        "message": "bare except 금지 — 구체적인 Exception 클래스 명시.",
+        "severity": "error"
+      },
+      {
+        "id": "no-print-in-src",
+        "pattern": "^\\s*print\\(",
+        "file_glob": "src/**/*.py",
+        "exclude_glob": "**/test_*.py,**/*_test.py",
+        "message": "src/에서 print() 금지 — logging 사용.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-wildcard-import",
+        "pattern": "from\\s+\\S+\\s+import\\s+\\*",
+        "file_glob": "*.py",
+        "message": "wildcard import 금지 — 명시적 import.",
+        "severity": "error"
+      },
+      {
+        "id": "no-mutable-default-arg",
+        "pattern": "def\\s+\\w+\\([^)]*=\\s*(\\[\\]|\\{\\})",
+        "file_glob": "*.py",
+        "message": "mutable 기본 인자 금지 — None + 본문에서 초기화.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "blocked_commands": [
+      {
+        "pattern": "git\\s+push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "main/master 직접 push 금지."
+      },
+      {
+        "pattern": "git\\s+push.*--force(?!-with-lease)",
+        "message": "--force push 차단."
+      }
+    ]
+  },
+
+  "workflow": {
+    "require_feature_branch": true,
+    "protected_branches": ["main", "master", "dev"]
+  }
+}

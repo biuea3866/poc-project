@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+#
+# claude_framework pre-commit hook
+# 설치: git config core.hooksPath claude_framework/.claude/git-hooks
+#
+set -e
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+FRAMEWORK_ROOT="$(cd "$SCRIPT_DIR/../.." && pwd)"
+HARNESS_CHECK="$FRAMEWORK_ROOT/.claude/harness-check.py"
+
+# 스테이징된 파일 중 텍스트 파일만 대상
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM)
+
+if [ -z "$STAGED_FILES" ]; then
+  exit 0
+fi
+
+EXIT_CODE=0
+for FILE in $STAGED_FILES; do
+  if [ ! -f "$FILE" ]; then continue; fi
+  CONTENT=$(cat "$FILE")
+  INPUT=$(python3 -c "import json,sys; print(json.dumps({'file_path': sys.argv[1], 'content': sys.argv[2]}))" "$FILE" "$CONTENT")
+  if ! CLAUDE_TOOL_INPUT="$INPUT" python3 "$HARNESS_CHECK" code-pattern; then
+    EXIT_CODE=1
+  fi
+  if ! CLAUDE_TOOL_INPUT="$INPUT" python3 "$HARNESS_CHECK" file-guard; then
+    EXIT_CODE=1
+  fi
+done
+
+exit $EXIT_CODE

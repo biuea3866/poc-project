@@ -426,10 +426,18 @@ claude_framework/
 
 ---
 
+## 다른 프로젝트로 이식
+
+두 가지 방법:
+- **[PLUGIN.md](./PLUGIN.md)** — Claude Code 플러그인으로 설치 후 `/init` 한 줄로 이식. 코드베이스 스캔(`--scan`)과 하위 저장소 자동 분류(`--classify-repos`) 지원. ★ **권장**
+- **[ADOPTION.md](./ADOPTION.md)** — 수동 복사 방식. 플러그인 인프라가 없을 때 또는 커스터마이징이 필요할 때.
+
 ## 참고 문서
 
+- [ADOPTION.md](./ADOPTION.md) — 다른 프로젝트 이식 가이드
 - [CLAUDE.md](./CLAUDE.md) — Claude가 세션 시작 시 로드하는 프로젝트 가이드
 - [.analysis/README.md](./.analysis/README.md) — 파이프라인 카탈로그
 - [.claude/agents/README.md](./.claude/agents/README.md) — 에이전트 카탈로그
 - [.claude/skills/README.md](./.claude/skills/README.md) — 스킬 카탈로그
 - [.claude/commands/README.md](./.claude/commands/README.md) — 커맨드 카탈로그
+- [.claude/common/README.md](./.claude/common/README.md) — 공통 가이드 카탈로그

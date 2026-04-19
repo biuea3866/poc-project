@@ -1,0 +1,335 @@
+{
+  "_doc": "claude_framework 하네스 룰 — 규칙 추가/수정은 이 파일만 편집. harness-check.py가 이 룰을 읽어 Write/Edit/Bash 훅에서 검증.",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml", ".npmrc"],
+    "message": "BLOCKED: 민감 파일 수정 차단 — .env/credentials/secret/key/pem 파일은 직접 수정하지 마세요."
+  },
+
+  "forbidden_patterns": {
+    "description": "코드에 사용하면 안 되는 패턴들 (Write/Edit 시 차단)",
+    "rules": [
+      {
+        "id": "no-jpa-query",
+        "pattern": "@Query\\(",
+        "file_glob": "*.kt",
+        "message": "@Query 사용 금지 — QueryDSL CustomRepository + Impl 패턴을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-local-datetime",
+        "pattern": "LocalDateTime",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/migration/**",
+        "message": "LocalDateTime 사용 금지 — ZonedDateTime을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-consumer-record",
+        "pattern": "ConsumerRecord<String,\\s*String>",
+        "file_glob": "*.kt",
+        "message": "ConsumerRecord<String, String> 사용 금지 — DTO 직접 매핑 (JsonDeserializer + trusted.packages).",
+        "severity": "error"
+      },
+      {
+        "id": "no-objectmapper-consumer",
+        "pattern": "objectMapper\\.(readValue|readTree)|ObjectMapper\\(\\)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 ObjectMapper 수동 파싱 금지 — JsonDeserializer + DTO 직접 매핑.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-consumer",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-double-bang",
+        "pattern": "\\w+!!",
+        "file_glob": "*.kt",
+        "message": "!! (단정 기호) 사용 금지 — requireNotNull, ?:, ?.let 등 안전 처리 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-any-type-dto",
+        "pattern": ":\\s*Any[\\s,)>?]",
+        "file_glob": "*Dto*.kt,*Response*.kt,*Request*.kt",
+        "message": "DTO에서 Any 타입 사용 금지 — 구체적인 타입을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repo-in-usecase",
+        "pattern": "Repository",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "*Test*",
+        "message": "UseCase에서 Repository 직접 참조 금지 — DomainService를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-gateway-in-usecase",
+        "pattern": "Gateway",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "*Test*",
+        "message": "UseCase에서 Gateway 직접 참조 금지 — DomainService를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-publisher-in-usecase",
+        "pattern": "EventPublisher|Publisher",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "*Test*",
+        "message": "UseCase에서 EventPublisher 직접 참조 금지 — DomainService가 이벤트 발행 담당.",
+        "severity": "error"
+      },
+      {
+        "id": "no-if-throw-in-usecase",
+        "pattern": "if\\s*\\(!?\\w+\\.\\w+\\(.*\\)\\)\\s*\\{?\\s*throw",
+        "file_glob": "*UseCase*.kt",
+        "message": "UseCase에서 if+throw 패턴 금지 — Entity에 validate*/require* 메서드로 캡슐화.",
+        "severity": "error"
+      },
+      {
+        "id": "no-business-logic-in-usecase",
+        "pattern": "private fun validate",
+        "file_glob": "*UseCase*.kt",
+        "message": "UseCase에 private 검증 로직 금지 — Domain Service 또는 Entity 메서드로 위임.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-fk",
+        "pattern": "FOREIGN KEY|REFERENCES\\s+\\w+\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "FK 사용 금지 — 애플리케이션 레벨에서 관계를 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-enum",
+        "pattern": "\\bENUM\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "DB ENUM 사용 금지 — VARCHAR + 애플리케이션 enum으로 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-json",
+        "pattern": "\\bJSON\\b",
+        "file_glob": "*.sql",
+        "message": "DB JSON 컬럼 사용 금지 — 정규화된 테이블로 설계하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-boolean-type",
+        "pattern": "\\bBOOLEAN\\b",
+        "file_glob": "*.sql",
+        "message": "BOOLEAN 타입 사용 금지 — TINYINT(1) 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-datetime-no-precision",
+        "pattern": "\\bDATETIME\\b(?!\\s*\\(6\\))",
+        "file_glob": "*.sql",
+        "message": "DATETIME 사용 시 반드시 DATETIME(6) 마이크로초 정밀도 사용.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "layer_dependency": {
+    "description": "레이어 간 의존 방향 규칙 (Hexagonal Architecture)",
+    "rules": [
+      {
+        "id": "no-infra-in-domain",
+        "pattern": "import\\s+\\S+\\.infrastructure\\.",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Infrastructure 직접 참조 금지 — Port interface 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-domain",
+        "pattern": "import\\s+\\S+\\.presentation\\.",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-application",
+        "pattern": "import\\s+\\S+\\.presentation\\.",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-infra-in-application",
+        "pattern": "import\\s+\\S+\\.infrastructure\\.",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Infrastructure 직접 참조 금지 — Domain interface 사용.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "description": "위험한 git 명령 차단 (Bash 훅)",
+    "blocked_commands": [
+      {
+        "pattern": "git\\s+push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "BLOCKED: main/master 직접 push 금지 — PR로만 반영하세요."
+      },
+      {
+        "pattern": "git\\s+push.*\\b(origin|upstream)\\s+dev\\b",
+        "message": "BLOCKED: dev 직접 push 금지 — feature 브랜치 + PR로 반영하세요."
+      },
+      {
+        "pattern": "git\\s+push.*--force(?!-with-lease)",
+        "message": "git push --force 차단 — --force-with-lease를 사용하세요."
+      },
+      {
+        "pattern": "git\\s+reset\\s+--hard\\s+origin/(main|master|dev)",
+        "message": "보호 브랜치 hard reset 차단."
+      },
+      {
+        "pattern": "git\\s+commit\\s+.*--no-verify",
+        "message": "--no-verify 차단 — pre-commit 훅 실패는 근본 해결 후 재커밋."
+      },
+      {
+        "pattern": "git\\s+branch\\s+-D\\s+(main|master|dev)",
+        "message": "보호 브랜치 강제 삭제 차단."
+      }
+    ]
+  },
+
+  "clean_code": {
+    "description": "클린 코드 원칙 — PR 리뷰어가 강제 검증",
+    "rules": [
+      "UseCase execute() 10줄 이내 — 초과 시 DomainService 위임 부족",
+      "DomainService 메서드 15줄 이내 — 초과 시 private 분리",
+      "한 메서드는 하나의 추상화 수준만",
+      "Guard clause(early return) 적극 사용",
+      "if-else 중첩 depth 2 이상 금지",
+      "매직 넘버/문자열 금지 — 상수/enum으로 정의",
+      "주석 대신 메서드명으로 의도 표현",
+      "한 메서드는 한 가지 일만"
+    ]
+  },
+
+  "design_patterns": {
+    "description": "디자인 패턴 적용 가이드 (리뷰 체크)",
+    "patterns": {
+      "strategy": "동일 인터페이스의 여러 구현체가 런타임 교체 (PaymentGateway, NotificationSender 등). when 분기 금지",
+      "state": "객체 상태별 행위 변화 — 상태 enum이 자기 행위 캡슐화",
+      "factory": "객체 생성 로직이 복잡/조건별 다른 타입 반환",
+      "template_method": "여러 클래스가 동일 골격 반복 → Abstract 추출",
+      "observer": "한 이벤트에 여러 후속 처리 → @TransactionalEventListener(AFTER_COMMIT) + @Async"
+    },
+    "review_criteria": [
+      "if-else/when 분기 3개 이상 → Strategy 검토",
+      "상태별 행위 분기 → State 검토",
+      "동일 구조 메서드 3개 이상 반복 → Template Method",
+      "한 이벤트 후속 처리 2개 이상 → Observer",
+      "객체 생성 조건 복잡 → Factory"
+    ]
+  },
+
+  "architecture_convention": {
+    "description": "레이어 아키텍처 (Hexagonal) — 모든 BE 코드 준수 필수",
+    "layer_responsibility": {
+      "presentation": {
+        "description": "외부 진입점 — 라우팅/인증/Request→Command 변환/UseCase 호출만",
+        "allowed_dependency": ["application"]
+      },
+      "application": {
+        "description": "UseCase 단위 오케스트레이션 — DomainService만 호출",
+        "allowed_dependency": ["domain"],
+        "rules": [
+          "Repository/Gateway/EventPublisher 직접 참조 금지",
+          "비즈니스 로직(검증/상태전이/계산) 작성 금지",
+          "UseCase 1개 = 행위 1개 = 클래스 1개",
+          "@Transactional은 UseCase에 선언",
+          "execute() 10줄 이내"
+        ]
+      },
+      "domain": {
+        "description": "순수 비즈니스 로직 — Rich Domain Model",
+        "allowed_dependency": [],
+        "rules": [
+          "Entity는 Rich Domain Model",
+          "Entity 내부에 Gateway/Repository 주입 금지",
+          "도메인 패키지 간 참조 금지 (domain.common만 허용)",
+          "다른 도메인 데이터는 ID(Long)만 보유",
+          "Anemic Domain Model 금지",
+          "상태 전이는 Enum 내부 canTransitTo()로 캡슐화"
+        ]
+      },
+      "infrastructure": {
+        "description": "기술 구현체 — DB/Kafka/Redis/외부 API",
+        "allowed_dependency": ["domain"]
+      }
+    },
+    "naming_convention": {
+      "controller": "~ApiController.kt",
+      "usecase": "~UseCase.kt",
+      "entity": "도메인명 (Rental.kt, Product.kt)",
+      "repository_domain": "~Repository.kt (interface)",
+      "repository_jpa": "~JpaRepository.kt",
+      "repository_impl": "~RepositoryImpl.kt",
+      "gateway_domain": "~Gateway.kt (interface)",
+      "gateway_impl": "~GatewayImpl.kt",
+      "command": "~Command.kt",
+      "response": "~Response.kt",
+      "request": "~Request.kt"
+    },
+    "dto_flow": "Request → Command → Entity → Response"
+  },
+
+  "be_test_requirements": {
+    "description": "BE 필수 테스트 레이어 — 모두 존재해야 PR 승인",
+    "layers": [
+      { "layer": "domain", "type": "단위", "tools": "Kotest BehaviorSpec + MockK" },
+      { "layer": "application", "type": "단위", "tools": "Kotest + MockK (Domain Service 모킹)" },
+      { "layer": "infrastructure", "type": "통합", "tools": "Kotest + TestContainers" },
+      { "layer": "presentation", "type": "통합", "tools": "Kotest + MockMvc + TestContainers" },
+      { "layer": "scenario", "type": "시나리오 통합", "tools": "E2E 비즈니스 플로우" }
+    ]
+  },
+
+  "variable_naming": {
+    "description": "변수명 풀네임 원칙",
+    "rules": [
+      "약어 금지: ws → workspaceId, comp → component, eval → evaluation",
+      "의미가 명확한 풀네임 사용"
+    ]
+  },
+
+  "pk_naming": {
+    "description": "PK 컬럼 네이밍",
+    "rule": "모든 엔티티 PK는 id로 통일. user_id (X) → id (O). 참조 FK 컬럼은 user_id, product_id 사용."
+  },
+
+  "ticket_granularity": {
+    "description": "티켓 단위 원칙",
+    "rules": [
+      "한 티켓 = 한 번에 처리/이해 가능한 양",
+      "리뷰어가 티켓 하나로 맥락 파악 가능",
+      "S(~200줄) / M(~400줄) / L(~800줄, 초과 시 분할)"
+    ]
+  },
+
+  "workflow": {
+    "description": "작업 순서 가이드",
+    "pipeline_order": [
+      "jira-issue",
+      "branch",
+      "implementation",
+      "commit",
+      "push",
+      "pull-request",
+      "jira-update",
+      "confluence-update"
+    ],
+    "require_feature_branch": true,
+    "protected_branches": ["main", "master", "dev"]
+  }
+}
