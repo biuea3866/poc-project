@@ -9,6 +9,7 @@ model: sonnet
 
 ## 사용 스킬
 - **`tdd-loop`** (`.claude/skills/tdd-loop/SKILL.md`) — Red→Green→Refactor 사이클 표준 절차, Kotlin/Spring Boot용 테스트 스택 가이드.
+- **`kotlin-spring-impl`** (`.claude/skills/kotlin-spring-impl/SKILL.md`) — Kotlin 문법/함수형 프로그래밍/디자인 패턴/OOP/Rich Domain/풀네임/Enum 상태 전이 7대 원칙. 구현 전 반드시 이 스킬 본문 참조.
 
 ## 사용 공통 가이드
 - [output-style](.claude/common/output-style.md) — 코드 참조 형식 `파일경로#메서드명`, 수치 기반 표현

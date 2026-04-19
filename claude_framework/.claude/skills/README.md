@@ -11,8 +11,10 @@ Skill은 에이전트가 참조하는 "재사용 가능한 절차 모듈"이다.
 | `mermaid-diagrams` | Component/Sequence/ERD 작성 규칙 | project-analyst | `project-analysis/` |
 | `ticket-breakdown` | "1명/1일/1PR" 티켓 분해 | ticket-splitter | `project-analysis/` |
 | `tdd-loop` | Red→Green→Refactor 사이클 | be-implementer, fe-implementer | 구현 단계 |
+| `kotlin-spring-impl` | Kotlin/Spring BE 구현 7대 원칙 (문법/함수형/패턴/OOP/Rich Domain/풀네임/Enum 전이) | be-implementer | 구현 단계 |
 | `pr-review-checklist` | PR 리뷰 체크리스트 + Verdict | pr-reviewer | 리뷰 단계 |
 | `harness-audit` | 하네스 룰 전수 감사 절차 | harness-auditor | 주기 감사 |
+| `codebase-convention-scan` | 기존 코드베이스에서 컨벤션 추출 → 룰 델타 | convention-detective | `/init --scan` |
 
 ## Agent vs Skill vs Pipeline
 

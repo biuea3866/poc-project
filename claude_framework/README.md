@@ -1,28 +1,45 @@
 # claude_framework
 
-Claude Code 기반 멀티 레포 워크스페이스 템플릿. 하네스 룰(훅), 분석 파이프라인, 역할별 에이전트/스킬/커맨드를 4계층으로 구조화하여 "PRD → 설계 → 구현 → 리뷰" 전체 플로우를 자동화한다.
+Claude Code 기반 멀티 레포 워크스페이스 템플릿이자 **플러그인**. 하네스 룰(훅), 분석 파이프라인, 역할별 에이전트/스킬/커맨드를 4계층으로 구조화하여 "PRD → 설계 → 구현 → 리뷰" 전체 플로우를 자동화한다.
+
+- 🔌 **플러그인 설치 후 `/init`** — 기존 프로젝트에도 한 줄 이식, `--scan`으로 컨벤션 자동 추출, `--classify-repos`로 하위 레포 분류
+- 🎛 **3-레이어 커스터마이징** — 플러그인 base + 프로젝트 공유 + 개인 오버라이드 자동 병합, 플러그인 업데이트받으면서 커스텀 유지
+- 🧬 **Agent/Skill `extends` 패턴** — 플러그인 원본 프롬프트 상속 후 프로젝트 확장만 덧붙이기
 
 ---
 
 ## TL;DR
 
+### 플러그인 방식 (권장)
+
 ```bash
-# 1. 템플릿 복제
-cp -r claude_framework my-project
-cd my-project
+# 1. 플러그인 설치 (최초 1회)
+mkdir -p ~/.claude/plugins && cd ~/.claude/plugins
+git clone https://github.com/biuea3866/poc-project claude-framework-src
+ln -s claude-framework-src/claude_framework claude-framework
 
-# 2. Git 훅 활성화
-git config core.hooksPath .claude/git-hooks
+# 2. 어느 프로젝트에서든 init
+cd /path/to/your-project
+/init --scan --classify-repos
+#   --scan           : 기존 코드에서 컨벤션 자동 추출 → harness-rules 주입
+#   --classify-repos : 하위 서브디렉토리 BE/FE/DevOps 자동 분류
 
-# 3. Claude Code 실행 (이 디렉토리를 프로젝트 루트로)
-#    .claude/settings.json의 훅이 자동 로드됨
-
-# 4. 전체 플로우 실행 예시
-/analyze-prd <PRD URL>                           # PRD 분석
-/plan-project .analysis/prd/<산출물>.md          # 설계+TDD+티켓
+# 3. 전체 플로우
+/analyze-prd <PRD URL>
+/plan-project .analysis/prd/<산출물>.md
 /parallel-tickets .analysis/project-analysis/<feature>/03-tickets.md 4
-#                                                ↑ 병렬 티켓 구현 (팀장 opus + 팀원 sonnet)
+#   팀장 Opus 4.7 + 팀원 Sonnet 4.6, worktree 격리 병렬 구현
 ```
+
+### 수동 복사 방식
+
+```bash
+cp -r claude_framework my-project && cd my-project
+git config core.hooksPath .claude/git-hooks
+# Claude Code 실행 후 위와 동일하게 커맨드 사용
+```
+
+상세: [PLUGIN.md](./PLUGIN.md) (플러그인) / [ADOPTION.md](./ADOPTION.md) (수동 복사)
 
 ---
 
@@ -42,16 +59,20 @@ git config core.hooksPath .claude/git-hooks
                                ↓ 참조
 ┌──────────────────────────────────────────────────────────────┐
 │ Agent  (누가 실행 — 페르소나 + 도구)                            │
+│   pipeline-runner,                                            │
 │   prd-analyst, project-analyst, ticket-splitter,              │
-│   be-implementer, fe-implementer,                             │
-│   pr-reviewer, harness-auditor, pipeline-runner               │
+│   be-tech-lead, be-senior, fe-lead (페르소나, opus),            │
+│   be-implementer, fe-implementer (구현 IC, sonnet),             │
+│   pr-reviewer, harness-auditor,                               │
+│   convention-detective, repo-classifier (/init 전용)            │
 └──────────────────────────────┬───────────────────────────────┘
                                ↓ 참조
 ┌──────────────────────────────────────────────────────────────┐
 │ Skill  (어떻게 — 절차/체크리스트/템플릿)                        │
 │   prd-analysis, project-analysis-flow, mermaid-diagrams,      │
-│   ticket-breakdown, tdd-loop, pr-review-checklist,            │
-│   harness-audit                                               │
+│   ticket-breakdown, tdd-loop, kotlin-spring-impl,             │
+│   pr-review-checklist, harness-audit,                         │
+│   codebase-convention-scan                                    │
 └──────────────────────────────────────────────────────────────┘
 
 [가로 레이어] Harness Rule (Claude 훅 기반 — 모든 레이어에 자동 적용)
@@ -66,30 +87,43 @@ git config core.hooksPath .claude/git-hooks
 
 ```
 claude_framework/
+├── .claude-plugin/
+│   └── plugin.json               # 플러그인 매니페스트 (v1.1.0)
 ├── .claude/
-│   ├── harness-rules.json        # 금지 룰 단일 진실 원천
-│   ├── harness-check.py          # 훅에서 호출되는 파이썬 체커
+│   ├── harness-rules.json        # 금지 룰 단일 진실 원천 (플러그인 base)
+│   ├── harness-rules.local.json  # 개인 오버라이드 (gitignore)
+│   ├── harness-check.py          # 훅에서 호출 — 3-파일 병합 로직 포함
+│   ├── resource-resolver.py      # Agent/Skill extends 병합 리졸버
+│   ├── lockfile-writer.py        # claude-framework.lock.json 생성
 │   ├── settings.json             # 템플릿 베이스 훅 설정 (체크인)
 │   ├── settings.local.json       # 개인 퍼미션 오버라이드 (gitignore)
 │   ├── mcp.json                  # MCP 서버 (atlassian/notion/github)
-│   ├── agents/                   # 역할별 에이전트 (8종)
+│   ├── agents/                   # 역할별 에이전트 (11종)
 │   │   ├── pipeline-runner.md    # 파이프라인 오케스트레이터 (opus)
 │   │   ├── prd-analyst.md        # PRD 분석 (opus)
 │   │   ├── project-analyst.md    # 설계/TDD (opus)
 │   │   ├── ticket-splitter.md    # 티켓 분해 (sonnet)
+│   │   ├── be-tech-lead.md       # 아키텍처/서비스 영향 (opus)
+│   │   ├── be-senior.md          # 프로덕션 안전성 (opus)
+│   │   ├── fe-lead.md            # FE 아키텍처 (opus)
 │   │   ├── be-implementer.md     # BE TDD 구현 (sonnet)
 │   │   ├── fe-implementer.md     # FE TDD 구현 (sonnet)
 │   │   ├── pr-reviewer.md        # PR 리뷰 (sonnet)
-│   │   └── harness-auditor.md    # 룰 감사 (sonnet)
-│   ├── skills/                   # 재사용 절차 (7종)
+│   │   ├── harness-auditor.md    # 룰 감사 (sonnet)
+│   │   ├── convention-detective.md  # /init --scan 컨벤션 추출 (opus)
+│   │   └── repo-classifier.md    # /init --classify-repos 분류 (opus)
+│   ├── skills/                   # 재사용 절차 (9종)
 │   │   ├── prd-analysis/
 │   │   ├── project-analysis-flow/
 │   │   ├── mermaid-diagrams/
 │   │   ├── ticket-breakdown/
 │   │   ├── tdd-loop/
+│   │   ├── kotlin-spring-impl/   # ★ Kotlin/Spring 7대 원칙 (문법/함수형/패턴/OOP/Rich Domain/풀네임/Enum)
 │   │   ├── pr-review-checklist/
-│   │   └── harness-audit/
-│   ├── commands/                 # 슬래시 커맨드 (7종)
+│   │   ├── harness-audit/
+│   │   └── codebase-convention-scan/  # /init --scan용
+│   ├── commands/                 # 슬래시 커맨드 (8종)
+│   │   ├── init.md               # ★ 플러그인 이식 + 스캔 + 저장소 분류
 │   │   ├── analyze-prd.md
 │   │   ├── plan-project.md
 │   │   ├── split-tickets.md
@@ -97,8 +131,30 @@ claude_framework/
 │   │   ├── review-pr.md
 │   │   ├── audit-harness.md
 │   │   └── parallel-tickets.md   # ★ git worktree + agent team 병렬
+│   ├── common/                   # 공통 가이드 (7종)
+│   │   ├── output-style.md
+│   │   ├── mermaid.md
+│   │   ├── ticket-guide.md
+│   │   ├── jira-sync.md
+│   │   ├── tdd-template.md
+│   │   ├── document-sync.md
+│   │   └── be-code-convention.md
 │   └── git-hooks/
 │       └── pre-commit            # 커밋 전 harness-check 실행
+│
+├── templates/                   # /init 이 복사할 파일들 (플러그인 전용)
+│   ├── .claude/
+│   │   ├── harness-check.py
+│   │   ├── resource-resolver.py
+│   │   ├── lockfile-writer.py
+│   │   ├── settings.json
+│   │   ├── mcp.json
+│   │   ├── git-hooks/pre-commit
+│   │   ├── presets/{kotlin,node,python,go}.json  # 스택별 룰 프리셋
+│   │   └── harness-rules{,.local}.json.example
+│   ├── .analysis/
+│   ├── .gitignore
+│   └── CLAUDE.md.template
 │
 ├── .analysis/                    # 분석 파이프라인 산출물
 │   ├── README.md
@@ -119,7 +175,21 @@ claude_framework/
 
 ## 하네스 룰 (Claude 훅)
 
-모든 Write/Edit/Bash가 `harness-check.py`를 통과한다. `harness-rules.json`을 수정하면 훅과 pre-commit 양쪽에 즉시 반영.
+모든 Write/Edit/Bash가 `harness-check.py`를 통과한다. 룰은 **3-파일 병합**으로 구성되며, 플러그인 업데이트와 프로젝트 커스텀이 공존한다.
+
+### 3-파일 병합
+
+```
+plugin base (~/.claude/plugins/claude-framework/.claude/harness-rules.json)
+  + project (.claude/harness-rules.json)           ← 팀 공유, git tracked
+    + local (.claude/harness-rules.local.json)     ← 개인, gitignore
+```
+
+- 룰 배열: `id` 기준 dedupe, 뒤 레이어가 이김
+- `_rule_overrides`: 특정 룰의 severity 등 필드만 재정의
+- `_rule_disabled`: 특정 룰 비활성화
+- 객체: deep merge
+
 
 ### 체크 타입
 
@@ -168,6 +238,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 | `/review-pr <num>` | PR 리뷰 + Verdict | pr-reviewer + `pr-review-checklist` |
 | `/audit-harness [path]` | 룰 전수 감사 | harness-auditor + `harness-audit` |
 | **`/parallel-tickets <tickets.md> [N=4]`** | **병렬 티켓 구현** | **팀장=opus + 팀원=sonnet** |
+| **`/init [--scan] [--classify-repos] [--stack=..]`** | **플러그인 설치 후 프로젝트 이식** | **convention-detective + repo-classifier** |
 
 ---
 
