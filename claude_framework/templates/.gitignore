@@ -1,0 +1,6 @@
+# claude_framework 개인 파일
+.claude/harness-rules.local.json
+.claude/settings.local.json
+.claude/claude-framework.lock.json
+.claude/tmp/
+.claude/*.bak-*

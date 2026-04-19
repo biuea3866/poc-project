@@ -232,6 +232,149 @@ workspace/
 
 ---
 
+## 커스터마이징 (Override & Extend)
+
+플러그인 업데이트를 받으면서도 프로젝트/개인 커스터마이징을 유지하는 3-레이어 시스템.
+
+### 우선순위
+
+```
+project (.claude/) > plugin (~/.claude/plugins/claude-framework/.claude/)
+```
+
+동일 이름 리소스 존재 시 프로젝트가 이김.
+
+### harness-rules 3-파일 병합
+
+| 파일 | 범위 | git | 용도 |
+|---|---|---|---|
+| `plugin/harness-rules.json` | 플러그인 base | 플러그인 repo | 기본 룰 |
+| `.claude/harness-rules.json` | 프로젝트 공유 | tracked | 팀 공통 추가/재정의 |
+| `.claude/harness-rules.local.json` | 개인 | gitignore | 개인 취향/실험 |
+
+**병합 규칙** (`harness-check.py`의 `load_rules()`)
+- `forbidden_patterns.rules` 배열: id로 dedupe, 뒤에 오는 레이어가 이김
+- `_rule_overrides`: 특정 룰의 field(severity 등)만 재정의
+- `_rule_disabled`: 특정 룰 id 비활성화
+- 객체(설정): deep merge
+
+### 사용 예시
+
+```json
+// .claude/harness-rules.json (프로젝트 팀 공유)
+{
+  "forbidden_patterns": {
+    "rules": [
+      {
+        "id": "no-hardcoded-workspace-id",
+        "pattern": "workspaceId\\s*=\\s*\\d+",
+        "file_glob": "*.kt",
+        "severity": "error"
+      }
+    ]
+  },
+  "_rule_overrides": {
+    "no-local-datetime": { "severity": "warning" }
+  }
+}
+```
+
+```json
+// .claude/harness-rules.local.json (개인)
+{
+  "_rule_disabled": ["no-double-bang"]
+}
+```
+
+결과: 플러그인 룰 + `no-hardcoded-workspace-id` 추가 + `no-local-datetime` warning으로 + `no-double-bang` 비활성화.
+
+### Agent/Skill 오버라이드 (extends)
+
+#### 완전 대체
+`.claude/agents/<name>.md` 만들면 플러그인 것 덮어씀.
+
+#### 부분 확장 (권장)
+frontmatter에 `extends: claude-framework:<name>` 명시:
+
+```markdown
+---
+name: be-implementer
+extends: claude-framework:be-implementer
+description: "프로젝트 전용 확장"
+---
+
+## 프로젝트 추가 규칙
+- 모든 Entity는 `@DomainEntity` 어노테이션 필수
+- PR 제목에 Jira 티켓 ID 포함
+```
+
+런타임에 `.claude/resource-resolver.py`가:
+1. 플러그인 원본 + frontmatter 로드
+2. 프로젝트 본문 뒤에 `"## 프로젝트 확장"` 섹션으로 합침
+3. frontmatter는 프로젝트 값이 덮어씀 (description 등)
+
+### 리졸버 유틸리티
+
+```bash
+# 리소스 최종 본문 확인 (플러그인 + 프로젝트 병합 결과)
+python3 .claude/resource-resolver.py agent be-implementer
+python3 .claude/resource-resolver.py skill tdd-loop
+
+# 플러그인 원본 대비 프로젝트 오버라이드 diff
+python3 .claude/resource-resolver.py diff agent be-implementer
+
+# 모든 리소스 나열 (project/plugin 표시)
+python3 .claude/resource-resolver.py list
+```
+
+### 락파일 (claude-framework.lock.json)
+
+프로젝트의 커스터마이징 스냅샷. `/init`, `/plugin update` 후 자동 갱신:
+
+```json
+{
+  "plugin_version": "1.1.0",
+  "written_at": "2026-04-19T07:48:45Z",
+  "overridden_agents": ["be-implementer"],
+  "overridden_skills": ["tdd-loop"],
+  "overridden_commands": [],
+  "custom_rules_count": { "project": 3, "local": 1 },
+  "disabled_plugin_rules": ["no-double-bang"]
+}
+```
+
+```bash
+python3 .claude/lockfile-writer.py update   # 현재 상태 → lock 갱신
+python3 .claude/lockfile-writer.py show     # lock 내용 출력
+```
+
+### 플러그인 업데이트 워크플로 (향후 Phase B)
+
+```bash
+# 1. 플러그인 pull
+cd ~/.claude/plugins/claude-framework && git pull
+
+# 2. 프로젝트에서 diff 리포트 확인 (Phase B 구현 예정)
+/plugin update claude-framework   # 변경된 리소스 중 오버라이드된 것 경고
+                                   # extends 기반은 자동 병합, 완전 대체는 수동 처리
+
+# 3. 락파일 갱신
+python3 .claude/lockfile-writer.py update
+```
+
+### 트러블슈팅
+
+**Q. 프로젝트 룰이 플러그인 룰을 덮어쓰지 않습니다.**
+A. `harness-check.py` 로그를 확인. cwd가 프로젝트 루트여야 함. `in_scope()` 함수가 `.claude/harness-rules.json` 존재로 판정.
+
+**Q. extends가 작동 안 합니다.**
+A. `extends: claude-framework:<name>` 형식 정확히 맞아야 함. 플러그인이 `~/.claude/plugins/claude-framework/`에 설치되어 있는지 확인 (또는 개발 모드 FRAMEWORK_ROOT).
+
+**Q. 락파일과 실제 상태가 다릅니다.**
+A. `python3 .claude/lockfile-writer.py update` 수동 실행. 매 /init 후에도 자동 생성됨.
+
+---
+
 ## 재실행 (업데이트)
 
 `/init`은 **멱등성 보장**. 재실행 시:
