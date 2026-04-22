@@ -24,6 +24,55 @@
             "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py git-guard"
           },
           {
+            "type": "command",
+            "if": "Bash(git checkout -b*origin/dev:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치를 origin/dev tracking으로 생성 금지. git checkout -b <branch> 후 git push -u origin <branch>로 자체 remote를 설정하세요.\"}}'",
+            "timeout": 5,
+            "statusMessage": "브랜치 tracking 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git checkout -b*origin/main:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치를 origin/main tracking으로 생성 금지. git checkout -b <branch> 후 git push -u origin <branch>로 자체 remote를 설정하세요.\"}}'",
+            "timeout": 5,
+            "statusMessage": "브랜치 tracking 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git checkout -b*origin/master:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치를 origin/master tracking으로 생성 금지. git checkout -b <branch> 후 git push -u origin <branch>로 자체 remote를 설정하세요.\"}}'",
+            "timeout": 5,
+            "statusMessage": "브랜치 tracking 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git branch --set-upstream*dev:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치의 upstream을 dev로 설정 금지.\"}}'",
+            "timeout": 5,
+            "statusMessage": "upstream 설정 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git branch --set-upstream*main:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치의 upstream을 main으로 설정 금지.\"}}'",
+            "timeout": 5,
+            "statusMessage": "upstream 설정 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git branch --set-upstream*master:*)",
+            "command": "echo '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"feature 브랜치의 upstream을 master로 설정 금지.\"}}'",
+            "timeout": 5,
+            "statusMessage": "upstream 설정 확인..."
+          },
+          {
+            "type": "command",
+            "if": "Bash(git push:*)",
+            "command": "BRANCH=$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo unknown); TRACKING=$(git rev-parse --abbrev-ref --symbolic-full-name @{u} 2>/dev/null || echo none); if [ \"$BRANCH\" != \"dev\" ] && [ \"$BRANCH\" != \"main\" ] && [ \"$BRANCH\" != \"master\" ] && echo \"$TRACKING\" | grep -qE \"^origin/(dev|main|master)$\"; then echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"deny\\\",\\\"permissionDecisionReason\\\":\\\"현재 브랜치(${BRANCH})가 base 브랜치(dev/main/master)를 tracking 중입니다. push하면 해당 base로 커밋이 올라갑니다. git push -u origin ${BRANCH}로 자체 remote를 먼저 설정하세요.\\\"}}\"; exit 0; fi; echo \"{\\\"hookSpecificOutput\\\":{\\\"hookEventName\\\":\\\"PreToolUse\\\",\\\"permissionDecision\\\":\\\"allow\\\"}}\"",
+            "timeout": 5,
+            "statusMessage": "push tracking 확인..."
+          },
+          {
             "type": "agent",
             "if": "Bash(gh pr create:*)",
             "prompt": "PR 생성 전 셀프 코드 리뷰. skills/pr-review-checklist/SKILL.md의 A~G 체크리스트와 Verdict 기준을 따른다.\n\n## 1. 변경 내역 수집\n- `git branch --show-current`, `git fetch origin --quiet`, base 확인 (`git symbolic-ref refs/remotes/origin/HEAD` — 보통 origin/main 또는 origin/dev)\n- `git diff origin/<base>...HEAD --stat`, `git diff origin/<base>...HEAD`, `git log origin/<base>..HEAD --oneline`\n\n## 2. 컨벤션/룰/맥락 로드\n- `${CLAUDE_PROJECT_DIR}/CLAUDE.md` (프레임워크 루트 컨벤션)\n- `${CLAUDE_PROJECT_DIR}/.claude/harness-rules.json` (강제 룰 — Critical 분류)\n- `${CLAUDE_PROJECT_DIR}/skills/pr-review-checklist/SKILL.md` (체크리스트 A~G)\n- `${CLAUDE_PROJECT_DIR}/common/be-code-convention.md` 존재 시 Read\n- 변경된 레포별 `CLAUDE.md`가 있으면 Read\n- 브랜치/커밋에서 Jira 티켓 번호 추출 → Acceptance Criteria 대응 확인\n\n## 3. 리뷰 관점\n**🔴 Must Fix (차단)** — checklist Critical\n- harness-rules.json 위반 (@Query/LocalDateTime/ConsumerRecord/FK·JSON·ENUM·BOOLEAN/토픽 하드코딩 등)\n- 레이어 경계 위반 (Controller→Facade→Service→Repository, UseCase→DomainService)\n- `@Transactional` 위치 오류 (Repository 부착 금지, UseCase/DomainService만)\n- 보안 (입력 검증 부재, 인증/인가 우회, 민감정보 로깅, SQL injection)\n- 런타임 에러/데이터 손상 (NPE, 무한루프, 트랜잭션 경계 오류, Kafka 스키마 breaking)\n- **DDD 심각 위반**: Anemic Domain, Aggregate 경계 침범, 상태 전이를 Service에서\n- **OOP 심각 위반**: 불변 Entity setter 노출, Law of Demeter 위반, 잘못된 상속\n- **Kotlin 문법 오용**: `!!` 남용, 플랫폼 타입 무검증, `lateinit var` 오용\n- AC와 변경 범위 불일치 / 테스트 완전 부재\n\n**🟡 Should Fix (비차단, 사유 요약)** — checklist Major/Minor\n- 테스트 커버리지 부족, N+1/성능, 에러 핸들링\n- **Kotlin 함수형 미적용**: 명령형 for-loop → map/filter/fold/groupBy, when/스코프함수(let/also/apply/run/with)/?:/?./takeIf, Sequence, data/sealed/value class\n- **Kotlin 문법**: var→val, 확장 함수, 구조분해, 명명 인자\n- **DDD 여지**: 도메인 용어 반영, Value Object(Primitive Obsession), 도메인 이벤트\n- **Clean Code**: SRP, 함수 >30줄, 인자 >3개, 매직 넘버, DRY, 깊은 중첩, 플래그 인자\n- **디자인 패턴**: Strategy/Factory/Builder/Template Method/Specification/Facade 적용 기회\n\n**🟢 무시**: 네이밍 취향, 공백/포매팅\n\n## 4. 출력 (stdout에 JSON 한 줄만)\n차단: {\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"🔴 <파일:라인 - 이슈> / <파일:라인 - 이슈>\"}}\n통과: {\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"allow\",\"permissionDecisionReason\":\"리뷰 통과 (N개 파일). Should Fix: <...>\"}}\ndiff 없음/git 실패 시 → allow (사유 명시)\n\n$ARGUMENTS",
