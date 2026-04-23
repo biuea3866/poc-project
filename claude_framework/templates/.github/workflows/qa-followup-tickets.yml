@@ -1,0 +1,91 @@
+name: QA Follow-up Tickets
+
+# Layer 4 (보조) — QA 보고서(docs/qa/*.md) push 시
+# "## 후속 티켓 제안" 섹션 표를 파싱해 GitHub Issue 자동 발행.
+# 기존에 사람이 수동으로 티켓 만들던 과정을 자동화.
+
+on:
+  push:
+    branches:
+      - main
+      - master
+      - dev
+    paths:
+      - 'docs/qa/**/*.md'
+  workflow_dispatch:
+    inputs:
+      files:
+        description: '쉼표 구분 대상 파일 (비우면 변경 파일 자동 감지)'
+        required: false
+        default: ''
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  emit-tickets:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Determine changed QA files
+        id: changed
+        run: |
+          if [ -n "${{ github.event.inputs.files }}" ]; then
+            FILES="${{ github.event.inputs.files }}"
+          else
+            FILES=$(git diff --name-only HEAD^ HEAD -- 'docs/qa/**/*.md' || true)
+          fi
+          {
+            echo "files<<EOF"
+            echo "$FILES"
+            echo "EOF"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Extract follow-up payload
+        id: extract
+        run: |
+          mkdir -p .analysis/qa-followup
+          python3 .claude/scripts/qa-followup-extract.py \
+            --changed-files "${{ steps.changed.outputs.files }}" \
+            --format github \
+            --out .analysis/qa-followup/payload.json
+          COUNT=$(python3 -c 'import json; print(len(json.load(open(".analysis/qa-followup/payload.json"))))')
+          echo "count=$COUNT" >> "$GITHUB_OUTPUT"
+
+      - name: Create issues
+        if: steps.extract.outputs.count != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const items = JSON.parse(fs.readFileSync('.analysis/qa-followup/payload.json', 'utf8'));
+            const results = [];
+            for (const item of items) {
+              // 같은 제목이 열려있으면 스킵
+              const q = `repo:${context.repo.owner}/${context.repo.repo} is:issue is:open in:title "${item.title.replace(/"/g, '')}"`;
+              const existing = await github.rest.search.issuesAndPullRequests({ q });
+              if (existing.data.total_count > 0) {
+                core.notice(`skip (exists): ${item.title}`);
+                continue;
+              }
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: item.title,
+                body: item.body,
+                labels: item.labels,
+              });
+              results.push(created.data.number);
+            }
+            core.summary.addHeading('QA Follow-up Tickets');
+            core.summary.addRaw(`Created ${results.length} issue(s): ${results.map(n => '#'+n).join(', ')}`);
+            await core.summary.write();

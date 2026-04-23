@@ -79,6 +79,55 @@ git config core.hooksPath .claude/git-hooks
   .claude/harness-rules.json  →  .claude/harness-check.py (PreToolUse/PostToolUse)
 ```
 
+---
+
+## 3-layer Feedback Loop
+
+`.claude/harness-check.py` 훅 하나에 모든 걸 맡기면 **훅 자체가 silent pass** 될 때 통째로 뚫린다 (실제 사례: rental-commerce Sprint 4 에서 `harness-rules.json` 콤마 1개 누락 → 훅 silent exit 0 → `@RoleRequired` 누락한 관리자 엔드포인트가 잠입). 그래서 시점과 실행 환경이 다른 4개 레이어로 중첩 방어한다.
+
+```
+┌────────────────────────────────────────────────────────────────┐
+│ Layer 1 — Local hook (real-time, per-save)                      │
+│   .claude/harness-check.py (PreToolUse)                         │
+│   막는 것: LocalDateTime/@Query/!! 등 regex 로 잡히는 위반       │
+│   실패 모드: JSON 파싱 오류 → silent pass                        │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────────────────────────────────────────┐
+│ Layer 2 — PR Senior Review Gate (per-PR, CI)                    │
+│   .github/workflows/pr-senior-review.yml                        │
+│     → scripts/senior-gate.py (구조적 Critical 휴리스틱)          │
+│     → scripts/harness-audit.py --diff-files                     │
+│   막는 것: @RoleRequired 누락, Controller HttpServletRequest,    │
+│           Listener Repository 주입, UseCase @Transactional 누락  │
+│   실패 모드: 휴리스틱에 없는 새 Critical 유형                     │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────────────────────────────────────────┐
+│ Layer 3 — Nightly Harness Audit (daily 03:00 KST)               │
+│   .github/workflows/harness-audit.yml                           │
+│     → scripts/harness-audit.py (전수)                            │
+│   막는 것: 훅 silent pass 사이 잠입한 위반, 새 룰 도입 후         │
+│            legacy 위반, 글롭 오작동(scanned_files=0)             │
+└────────────────────────────┬───────────────────────────────────┘
+                             │
+┌────────────────────────────────────────────────────────────────┐
+│ Layer 4 — QA Follow-up Tickets (docs/qa/*.md push)              │
+│   .github/workflows/qa-followup-tickets.yml                     │
+│     → scripts/qa-followup-extract.py                            │
+│   역할: QA 보고서 "후속 티켓 제안" 표 → GitHub Issue 자동 발행    │
+└────────────────────────────────────────────────────────────────┘
+```
+
+| Layer | 막는 실패 유형 | 주기 |
+|---|---|---|
+| 1 | regex 로 잡히는 패턴 위반 (`LocalDateTime`, `!!`, `@Query`, FK/JSON/ENUM) | 저장 순간 |
+| 2 | pr-reviewer 가 반복 지적하던 보안/구조 Critical 이 PR 단계에서 새어 나감 | PR open/sync |
+| 3 | Layer 1 silent pass, 글롭 오작동, 룰 신설 후 legacy 잔존 | 매일 03:00 KST |
+| 4 | QA 발견 이슈가 슬랙에만 남고 티켓으로 전환 안 됨 | docs/qa/*.md push |
+
+주기 점검은 `feedback-loop-guardian` 에이전트가 수행. 상세 절차는 [`.analysis/feedback-loop/PIPELINE.md`](./.analysis/feedback-loop/PIPELINE.md).
+
 **참조 방향은 단방향**. Command → Pipeline → Agent → Skill. 역방향 참조 금지.
 
 ---

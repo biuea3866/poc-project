@@ -1,0 +1,267 @@
+{
+  "_doc": "프로젝트 하네스 룰 (팀 공유, git-tracked). install.sh가 이 파일을 .claude/harness-rules.json으로 복사합니다. TODO 주석이 붙은 패턴은 프로젝트에 맞게 치환하세요.",
+  "_template_version": "1.0.0",
+  "_merge_order": "plugin base → .claude/harness-rules.json (this) → .claude/harness-rules.local.json (overrides)",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml"],
+    "message": "BLOCKED: 민감 파일 수정 차단 — .env, credentials, secret, key, pem 파일은 직접 수정하지 마세요."
+  },
+
+  "forbidden_patterns": {
+    "description": "코드에 사용하면 안 되는 패턴들. file_glob이 매칭되는 파일에만 적용.",
+    "rules": [
+      {
+        "id": "no-jpa-query",
+        "pattern": "@Query\\(",
+        "file_glob": "*.kt",
+        "message": "@Query 사용 금지 — QueryDSL CustomRepository + Impl 패턴으로 작성하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-consumer-record",
+        "pattern": "ConsumerRecord<String,\\s*String>",
+        "file_glob": "*.kt",
+        "message": "ConsumerRecord<String, String> 사용 금지 — DTO로 직접 매핑하세요 (JsonDeserializer + trusted.packages).",
+        "severity": "error"
+      },
+      {
+        "id": "no-local-datetime",
+        "pattern": "LocalDateTime",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/migration/**,**/test/**",
+        "message": "LocalDateTime 사용 금지 — ZonedDateTime을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-fqcn",
+        "_TODO": "base_package 를 프로젝트 패키지로 치환 (예: com.rental. → com.yourproject.)",
+        "pattern": "com\\.{{BASE_PACKAGE}}\\.[a-z]+\\.[a-z]+\\.[A-Z]\\w+\\(",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/build.gradle.kts",
+        "message": "FQCN 사용 금지 — import 문을 사용하세요.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-objectmapper-consumer",
+        "pattern": "objectMapper\\.(readValue|readTree)|ObjectMapper\\(\\)",
+        "file_glob": "*Consumer*.kt,*Listener*.kt",
+        "message": "Consumer/Listener에서 ObjectMapper 수동 파싱 금지 — JsonDeserializer + DTO 직접 매핑 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-consumer",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Consumer*.kt,*Listener*.kt",
+        "message": "Consumer/Listener에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-controller",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Controller*.kt",
+        "message": "Controller에서 Repository 직접 호출 금지 — UseCase/Facade를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-httpservletrequest-in-controller",
+        "_TODO": "Senior Gate가 동일 항목을 Critical로 차단합니다. 여기서는 기록만.",
+        "pattern": "HttpServletRequest",
+        "file_glob": "*Controller*.kt",
+        "message": "Controller에서 HttpServletRequest 직접 주입 금지 — 필요한 헤더/쿠키는 @RequestHeader/@CookieValue로 추출, 인증 컨텍스트는 Spring Security Principal 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-fk",
+        "pattern": "FOREIGN KEY|REFERENCES\\s+\\w+\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "FK 사용 금지 — 애플리케이션 레벨에서 관계를 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-enum",
+        "pattern": "\\bENUM\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "DB ENUM 사용 금지 — VARCHAR + 애플리케이션 enum으로 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-json",
+        "pattern": "\\bJSON\\b",
+        "file_glob": "*.sql",
+        "message": "DB JSON 컬럼 사용 금지 — 정규화된 테이블로 설계하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-boolean-type",
+        "pattern": "\\bBOOLEAN\\b",
+        "file_glob": "*.sql",
+        "message": "BOOLEAN 타입 사용 금지 — TINYINT(1) 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-datetime-no-precision",
+        "pattern": "\\bDATETIME\\b(?!\\s*\\(6\\))",
+        "file_glob": "*.sql",
+        "message": "DATETIME 사용 시 반드시 DATETIME(6) 마이크로초 정밀도 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-kafka-topic-hardcode",
+        "_TODO": "pattern과 exclude_glob의 {{TOPIC_PREFIX}}/{{TOPIC_CONSTANTS_FILE}}를 프로젝트 토픽 네임스페이스/상수 파일로 치환. 예: event.yourproject. / YourProjectTopics.kt",
+        "pattern": "\"event\\.{{TOPIC_PREFIX}}\\.",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/{{TOPIC_CONSTANTS_FILE}}.kt",
+        "message": "Kafka 토픽 문자열 하드코딩 금지 — Topics 상수 파일을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-any-type-dto",
+        "pattern": ":\\s*Any[\\s,)>?]",
+        "file_glob": "*Dto*.kt,*Response*.kt,*Request*.kt",
+        "message": "DTO에서 Any 타입 사용 금지 — 구체적인 타입(ZonedDateTime 등)을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-double-bang",
+        "pattern": "\\w+!!",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/test/**",
+        "message": "!! (단정 기호) 사용 금지 — requireNotNull, ?:, ?.let 등 안전한 처리를 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repo-in-usecase",
+        "pattern": "Repository",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "**/test/**,*Test*",
+        "message": "UseCase에서 Repository 직접 참조 절대 금지 — DomainService를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-gateway-in-usecase",
+        "pattern": "Gateway",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "**/test/**,*Test*",
+        "message": "UseCase에서 Gateway 직접 참조 금지 — DomainService를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-publisher-in-usecase",
+        "pattern": "EventPublisher|Publisher",
+        "file_glob": "*UseCase*.kt",
+        "exclude_glob": "**/test/**,*Test*",
+        "message": "UseCase에서 EventPublisher 직접 참조 금지 — DomainService가 이벤트 발행을 담당합니다.",
+        "severity": "error"
+      },
+      {
+        "id": "no-if-throw-in-usecase",
+        "pattern": "if\\s*\\(!?\\w+\\.\\w+\\(.*\\)\\)\\s*\\{?\\s*throw",
+        "file_glob": "*UseCase*.kt",
+        "message": "UseCase에서 if+throw 패턴 금지 — Entity에 validate*/require* 메서드로 캡슐화하세요.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "layer_dependency": {
+    "description": "레이어 간 의존 방향 규칙. {{BASE_PACKAGE}}를 프로젝트 패키지로 치환.",
+    "rules": [
+      {
+        "id": "no-infra-in-domain",
+        "pattern": "import com\\.{{BASE_PACKAGE}}\\.infrastructure",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Infrastructure 직접 참조 금지 — interface를 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-domain",
+        "pattern": "import com\\.{{BASE_PACKAGE}}\\.presentation",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-application",
+        "pattern": "import com\\.{{BASE_PACKAGE}}\\.presentation",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-infra-in-application",
+        "pattern": "import com\\.{{BASE_PACKAGE}}\\.infrastructure",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Infrastructure 직접 참조 금지 — Domain interface를 사용하세요.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "description": "Git 안전 규칙. {{PROTECTED_BRANCHES}}를 프로젝트 기본 브랜치로 치환 (예: main|master|dev).",
+    "blocked_commands": [
+      {
+        "id": "no-push-main",
+        "pattern": "git push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "BLOCKED: main/master 직접 푸시 금지 — PR로만 반영하세요."
+      },
+      {
+        "id": "no-push-dev",
+        "pattern": "git push.*\\b(origin|upstream)\\s+dev\\b",
+        "message": "BLOCKED: dev 직접 푸시 금지 — feature 브랜치에서 PR로만 반영하세요."
+      },
+      {
+        "id": "no-force-push",
+        "pattern": "git push.*--force(?!-with-lease)",
+        "message": "BLOCKED: --force 푸시 금지 — --force-with-lease를 사용하세요."
+      }
+    ]
+  },
+
+  "senior_gate_heuristics": {
+    "description": "PR Senior Review Gate (.claude/scripts/senior-gate.py) 가 차단하는 Critical 유형. 이 섹션은 선언적 힌트일 뿐이며, 실제 검증 로직은 스크립트 안에 있음.",
+    "_purpose": "harness-rules의 regex로는 탐지하기 힘든 '구조적 보안/결합' 이슈를 휴리스틱으로 차단.",
+    "rules": {
+      "admin_endpoint_without_role": "Controller.kt 중 path/annotation에 admin|Admin 이 등장하면 @RoleRequired(ROLE_ADMIN) 또는 @PreAuthorize 가 같은 메서드에 필수.",
+      "controller_http_servlet_request": "Controller에서 HttpServletRequest 파라미터 주입 금지.",
+      "listener_direct_repository": "Listener/Consumer에서 Repository 필드 주입 금지.",
+      "service_usecase_without_transactional": "이름이 *UseCase 또는 @Service 클래스 중 public suspend/fun 이 Repository를 호출하는데 @Transactional 가 없으면 차단."
+    }
+  },
+
+  "build_check": {
+    "description": "빌드 성공 여부 확인 (PostToolUse 훅)",
+    "gradle_commands": ["compileKotlin", "compileTestKotlin", "test "],
+    "success_marker": "BUILD SUCCESSFUL",
+    "failure_message": "BUILD FAILED — 에러 로그를 확인하세요."
+  },
+
+  "architecture_convention": {
+    "description": "레이어 아키텍처 컨벤션 — Controller → UseCase → DomainService → Repository. 상세는 docs/adr/ 참조.",
+    "naming_convention": {
+      "controller": "~ApiController.kt",
+      "usecase": "~UseCase.kt",
+      "entity": "도메인명 그대로",
+      "repository_domain": "~Repository.kt (interface)",
+      "repository_jpa": "~JpaRepository.kt",
+      "repository_impl": "~RepositoryImpl.kt",
+      "gateway_domain": "~Gateway.kt (interface)",
+      "gateway_impl": "~GatewayImpl.kt",
+      "command": "~Command.kt",
+      "response": "~Response.kt",
+      "request": "~Request.kt"
+    },
+    "dto_flow": "Request (presentation) → Command (application) → Entity (domain) → Response (application)"
+  },
+
+  "qa_followup": {
+    "description": "QA 보고서 연동 설정 (.github/workflows/qa-followup-tickets.yml 참조).",
+    "report_glob": "docs/qa/**/*.md",
+    "section_marker": "## 후속 티켓 제안",
+    "table_header": ["우선순위", "제목", "사유", "예상공수", "연관 TC"],
+    "issue_labels": ["qa-followup", "sprint-backlog"]
+  }
+}
