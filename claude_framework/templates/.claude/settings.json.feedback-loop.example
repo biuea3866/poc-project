@@ -1,0 +1,35 @@
+{
+  "_doc": "Feedback loop 훅 예시. 기존 settings.json 의 hooks 섹션에 합쳐 사용. Layer 1(로컬 훅)은 harness-check.py 1개로 충분하며, Layer 2/3/4 는 GitHub Actions 가 담당. 이 파일은 참고용 스니펫이지 독립 실행 대상이 아님.",
+
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py file-guard" },
+          { "type": "command", "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py code-pattern" }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py git-guard" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/harness-check.py build-check" },
+          {
+            "_doc": "선택: 세션 종료 시 로컬에서 전수 감사 한 번 돌려 stash 에 남기기. CI 와 중복이지만 오프라인 작업 시 유용.",
+            "type": "command",
+            "if": "Bash(git commit:*)",
+            "command": "python3 ${CLAUDE_PROJECT_DIR}/.claude/scripts/harness-audit.py --diff-files \"$(git diff --name-only HEAD^ HEAD 2>/dev/null)\" --fail-on none --out ${CLAUDE_PROJECT_DIR}/.analysis/harness-audit/local-latest.md"
+          }
+        ]
+      }
+    ]
+  }
+}

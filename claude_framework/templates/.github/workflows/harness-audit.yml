@@ -1,0 +1,121 @@
+name: Nightly Harness Audit
+
+# Layer 3 — 매일 새벽 전수 감사.
+# harness-check.py 가 silent pass 되어 잠입한 위반, 또는 새 룰 추가 후 legacy 위반을
+# 주기적으로 탐지해 Issue 로 발행/갱신한다.
+
+on:
+  schedule:
+    # 03:00 KST = 18:00 UTC (전일)
+    - cron: '0 18 * * *'
+  workflow_dispatch:
+    inputs:
+      fail_on:
+        description: 'error | warning | none'
+        required: false
+        default: 'error'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Validate harness-rules.json
+        run: |
+          python3 -c 'import json,sys; json.load(open(".claude/harness-rules.json"))' \
+            || (echo "::error::.claude/harness-rules.json is not valid JSON — 훅이 silent pass 하고 있을 수 있습니다." && exit 2)
+
+      - name: Run full audit
+        id: audit
+        continue-on-error: true
+        run: |
+          mkdir -p .analysis/harness-audit
+          OUT=".analysis/harness-audit/$(date -u +%F).md"
+          JSON=".analysis/harness-audit/$(date -u +%F).json"
+          python3 .claude/scripts/harness-audit.py \
+            --format md \
+            --fail-on "${{ github.event.inputs.fail_on || 'error' }}" \
+            --out "$OUT"
+          python3 .claude/scripts/harness-audit.py --format json --fail-on none --out "$JSON"
+          {
+            echo "report_md=$OUT"
+            echo "report_json=$JSON"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Summarize
+        id: summary
+        run: |
+          python3 - <<'PY'
+          import json, os
+          data = json.load(open("${{ steps.audit.outputs.report_json }}"))
+          total = len(data["violations"])
+          by_sev = data["by_severity"]
+          scanned = data["scanned_files"]
+          applied = data["applied_rules"]
+          short = f"violations={total} (by_severity={by_sev}) scanned_files={scanned} applied_rules={applied}"
+          with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+              f.write(f"short={short}\n")
+              f.write(f"total={total}\n")
+              f.write(f"scanned={scanned}\n")
+              f.write(f"applied={applied}\n")
+          PY
+
+      - name: Detect silent-pass (scanned=0 or applied=0)
+        if: steps.summary.outputs.scanned == '0' || steps.summary.outputs.applied == '0'
+        run: |
+          echo "::error::Harness audit scanned 0 files or applied 0 rules — 룰 파일/글롭이 고장났을 수 있습니다."
+          exit 1
+
+      - name: Upload report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-audit-${{ github.run_id }}
+          path: .analysis/harness-audit/
+
+      - name: Open or update tracking issue
+        if: steps.summary.outputs.total != '0'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const body = fs.readFileSync('${{ steps.audit.outputs.report_md }}', 'utf8');
+            const title = `[harness-audit] 위반 추적 — ${new Date().toISOString().slice(0,10)}`;
+            const label = 'harness-audit';
+
+            const existing = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: label,
+              state: 'open',
+              per_page: 5,
+            });
+            if (existing.data.length > 0) {
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.data[0].number,
+                body,
+                title,
+              });
+              core.notice(`updated issue #${existing.data[0].number}`);
+            } else {
+              const created = await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: [label],
+              });
+              core.notice(`created issue #${created.data.number}`);
+            }
