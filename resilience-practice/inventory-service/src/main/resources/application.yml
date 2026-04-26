@@ -1,0 +1,24 @@
+server:
+  port: 8082
+  shutdown: graceful
+
+spring:
+  application:
+    name: inventory-service
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+
+fault:
+  delay-millis: 0
+  fail: false
+
+logging:
+  level:
+    com.example.inventory: INFO

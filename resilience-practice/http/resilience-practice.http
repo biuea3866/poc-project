@@ -1,0 +1,256 @@
+### 정상 흐름 - 주문 성공
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{
+  "sku": "BOOK-1",
+  "quantity": 1,
+  "amount": 15000
+}
+
+### 글로벌(Redis) RateLimiter 적용된 진입점
+POST {{orderHost}}/orders/global
+Content-Type: application/json
+
+{
+  "sku": "BOOK-1",
+  "quantity": 1,
+  "amount": 15000
+}
+
+### payment - 지연 5초 주입 (TimeLimiter 검증용)
+POST {{paymentHost}}/admin/fault/delay?ms=5000
+
+### payment - 지연 0으로 복구
+POST {{paymentHost}}/admin/fault/delay?ms=0
+
+### payment - 실패 주입 (CircuitBreaker OPEN 검증용)
+POST {{paymentHost}}/admin/fault/fail?fail=true
+
+### payment - 실패 복구
+POST {{paymentHost}}/admin/fault/fail?fail=false
+
+### inventory - 지연 6초 주입 (Bulkhead 검증용)
+POST {{inventoryHost}}/admin/fault/delay?ms=6000
+
+### inventory - 지연 0으로 복구
+POST {{inventoryHost}}/admin/fault/delay?ms=0
+
+### inventory - 실패 주입
+POST {{inventoryHost}}/admin/fault/fail?fail=true
+
+### inventory - 실패 복구
+POST {{inventoryHost}}/admin/fault/fail?fail=false
+
+### [TL-1] payment 지연 5초 주입
+POST {{paymentHost}}/admin/fault/delay?ms=5000
+
+### [TL-2] 주문 호출 → 2초 후 PENDING/FALLBACK 응답
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [TL-3] 복구
+POST {{paymentHost}}/admin/fault/delay?ms=0
+
+### [CB-1] payment 실패 주입
+POST {{paymentHost}}/admin/fault/fail?fail=true
+
+### [CB-2] 호출 1
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 2
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 3
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 4
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 5
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 6
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 7
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 8
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 9
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-2] 호출 10
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-3] 서킷 상태 확인 - paymentCb.state == OPEN 이어야 함
+GET {{orderHost}}/actuator/circuitbreakers
+
+### [CB-4] OPEN 상태에서 호출 - 다운스트림에 닿지 않고 즉시 fallback PENDING
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [CB-5] 복구 - 실패 해제
+POST {{paymentHost}}/admin/fault/fail?fail=false
+
+### [CB-6] 5초 후 재호출 → HALF_OPEN → 성공이면 CLOSED 전이
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 1~10 (200 OK 기대)
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 2
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 3
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 4
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 5
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 6
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 7
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 8
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 9
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-1] 호출 10
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-2] 호출 11 - 여기서부터 429 Too Many Requests
+POST {{orderHost}}/orders
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [RL-3] RateLimiter 잔여 토큰 상태
+GET {{orderHost}}/actuator/ratelimiters
+
+### [REDIS-1] 호출 1
+POST {{orderHost}}/orders/global
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [REDIS-1] 호출 2
+POST {{orderHost}}/orders/global
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [REDIS-1] 호출 3 (위 요청을 IDE에서 빠르게 20번 이상 반복 실행)
+POST {{orderHost}}/orders/global
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### [REDIS-2] 21번째 호출 - 429 글로벌 rate limit exceeded
+POST {{orderHost}}/orders/global
+Content-Type: application/json
+
+{ "sku": "BOOK-1", "quantity": 1, "amount": 15000 }
+
+### 헬스 체크 (CB OPEN 시 DOWN으로 표시될 수 있음)
+GET {{orderHost}}/actuator/health
+
+### CircuitBreaker 상태 - paymentCb / inventoryCb 의 state, failureRate, calls
+GET {{orderHost}}/actuator/circuitbreakers
+
+### RateLimiter 상태 - 잔여 토큰, 대기 중 스레드
+GET {{orderHost}}/actuator/ratelimiters
+
+### Bulkhead 상태 - 가용 동시 호출 슬롯
+GET {{orderHost}}/actuator/bulkheads
+
+### TimeLimiter 메타정보
+GET {{orderHost}}/actuator/timelimiters
+
+### Prometheus 메트릭 전체
+GET {{orderHost}}/actuator/prometheus
+
+### payment-service 헬스
+GET {{paymentHost}}/actuator/health
+
+### inventory-service 헬스
+GET {{inventoryHost}}/actuator/health
+
+### Prometheus 쿼리 - 서킷 상태 추세
+GET {{prometheusHost}}/api/v1/query?query=resilience4j_circuitbreaker_state
