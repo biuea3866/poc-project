@@ -1,0 +1,110 @@
+services:
+  payment-service:
+    build:
+      context: .
+      dockerfile: payment-service/Dockerfile
+    image: resilience-practice/payment-service:latest
+    container_name: payment-service
+    ports:
+      - "8081:8081"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8081/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - resilience-net
+
+  inventory-service:
+    build:
+      context: .
+      dockerfile: inventory-service/Dockerfile
+    image: resilience-practice/inventory-service:latest
+    container_name: inventory-service
+    ports:
+      - "8082:8082"
+    environment:
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8082/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - resilience-net
+
+  redis:
+    image: redis:7.4-alpine
+    container_name: redis
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+    networks:
+      - resilience-net
+
+  order-service:
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
+    image: resilience-practice/order-service:latest
+    container_name: order-service
+    ports:
+      - "8080:8080"
+    environment:
+      PAYMENT_BASE_URL: "http://payment-service:8081"
+      INVENTORY_BASE_URL: "http://inventory-service:8082"
+      REDIS_HOST: "redis"
+      REDIS_PORT: "6379"
+      JAVA_TOOL_OPTIONS: "-XX:MaxRAMPercentage=75"
+    depends_on:
+      payment-service:
+        condition: service_healthy
+      inventory-service:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    networks:
+      - resilience-net
+
+  prometheus:
+    image: prom/prometheus:v2.54.1
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./ops/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - resilience-net
+
+  grafana:
+    image: grafana/grafana:11.2.2
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      GF_SECURITY_ADMIN_USER: admin
+      GF_SECURITY_ADMIN_PASSWORD: admin
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    volumes:
+      - ./ops/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./ops/grafana/dashboards:/etc/grafana/dashboards:ro
+    depends_on:
+      - prometheus
+    networks:
+      - resilience-net
+
+networks:
+  resilience-net:
+    driver: bridge

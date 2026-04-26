@@ -1,0 +1,89 @@
+server:
+  port: 8080
+  shutdown: graceful                              # 종료 시 진행 중 요청을 다 처리한 뒤 죽도록 graceful shutdown 활성화
+
+spring:
+  application:
+    name: order-service
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}                 # Redis 호스트 (글로벌 RateLimiter용 카운터 저장소)
+      port: ${REDIS_PORT:6379}
+      timeout: 1s                                    # Redis 명령 응답 대기 시간
+
+ratelimit:
+  redis:
+    limit-per-second: 20                             # 클러스터 전체에서 1초당 허용되는 호출 수
+    window-seconds: 1                                # 카운터 윈도우 길이(초)
+
+downstream:
+  payment:
+    base-url: ${PAYMENT_BASE_URL:http://localhost:8081}     # 결제 서비스 URL. 환경 변수 우선, 없으면 로컬 기본값
+  inventory:
+    base-url: ${INVENTORY_BASE_URL:http://localhost:8082}   # 재고 서비스 URL
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus,circuitbreakers,ratelimiters,bulkheads,timelimiters  # Resilience4j 엔드포인트 노출
+  endpoint:
+    health:
+      show-details: always                        # /actuator/health 호출 시 상세 컴포넌트 상태 노출
+  health:
+    circuitbreakers:
+      enabled: true                               # CB 상태(OPEN 등)를 health에 반영
+    ratelimiters:
+      enabled: true                               # RateLimiter 상태도 health에 반영
+
+resilience4j:
+  circuitbreaker:
+    configs:
+      default:
+        registerHealthIndicator: true             # /actuator/health에 CB 별도 indicator 등록
+        slidingWindowType: COUNT_BASED            # 윈도우 방식: COUNT_BASED(횟수) or TIME_BASED(시간)
+        slidingWindowSize: 10                     # 실패율 계산 기준이 되는 최근 호출 윈도우 크기 (10건)
+        minimumNumberOfCalls: 5                   # 윈도우에 최소 N건이 쌓여야 실패율 평가 시작 (그 전엔 무조건 CLOSED)
+        failureRateThreshold: 50                  # 실패율(%) 임계치. 50% 이상 실패하면 OPEN으로 전이
+        waitDurationInOpenState: 5s               # OPEN 상태로 머무는 시간. 5초 후 HALF_OPEN으로 전이 시도
+        permittedNumberOfCallsInHalfOpenState: 3  # HALF_OPEN에서 허용할 시험 호출 수. 결과로 CLOSED/OPEN 결정
+        automaticTransitionFromOpenToHalfOpenEnabled: true  # 시간 만료 시 자동으로 HALF_OPEN 전이
+    instances:
+      paymentCb:
+        baseConfig: default                       # 결제 호출용 CB. default 설정 상속
+      inventoryCb:
+        baseConfig: default                       # 재고 호출용 CB. default 설정 상속
+
+  timelimiter:
+    configs:
+      default:
+        timeoutDuration: 2s                       # 호출 응답을 최대 2초까지 대기, 초과 시 TimeoutException
+        cancelRunningFuture: true                 # 타임아웃 시 진행 중 Future를 cancel()(WebClient 요청도 끊김)
+    instances:
+      paymentTl:
+        baseConfig: default                       # 결제 호출 전용 TimeLimiter
+
+  bulkhead:
+    configs:
+      default:
+        maxConcurrentCalls: 10                    # 동시에 진입 가능한 호출 수(세마포어 카운트)
+        maxWaitDuration: 50ms                     # 슬롯이 가득 찼을 때 호출자가 대기할 최대 시간. 초과 시 BulkheadFullException
+    instances:
+      inventoryBh:
+        baseConfig: default                       # 재고 호출용 Bulkhead
+
+  ratelimiter:
+    configs:
+      default:
+        limitForPeriod: 10                        # 한 주기 동안 허용되는 호출 수 (토큰 버킷 최대 토큰 수)
+        limitRefreshPeriod: 1s                    # 토큰 리필 주기. 1초마다 limitForPeriod만큼 채워짐
+        timeoutDuration: 0                        # 토큰 없을 때 대기 시간. 0이면 즉시 RequestNotPermitted
+        registerHealthIndicator: true             # /actuator/health에 RateLimiter 등록
+    instances:
+      orderRl:
+        baseConfig: default                       # 주문 진입점에 적용
+
+logging:
+  level:
+    com.example.order: INFO
+    io.github.resilience4j: INFO                  # Resilience4j 동작 로그 INFO 레벨로 노출
