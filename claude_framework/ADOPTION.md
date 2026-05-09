@@ -43,7 +43,7 @@ git init && git add . && git commit -m "chore: bootstrap with claude_framework"
 - `CLAUDE.md`, `REFACTOR.md`, `README.md`, `ADOPTION.md`, `PLUGIN.md`
 
 ### 제외할 것
-- `be-repos/`, `fe-repos/`, `devops-repos/` — 빈 디렉토리. 실제 레포를 마운트할 때 생성.
+- `be-repos/`, `fe-repos/`, `devops-repos/` — 사용자가 필요할 때 직접 `mkdir`. `/init --classify-repos` 가 자동 생성. 빈 디렉토리는 git 으로 관리하지 않음.
 - `.claude/settings.local.json` — 개인 퍼미션. gitignore 대상.
 
 ### 메타-피드백 루프 활성화 (선택)

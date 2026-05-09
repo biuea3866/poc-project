@@ -51,7 +51,7 @@ claude_framework/
 │   ├── harness-audit.yml                           # nightly 03:00 KST + push 시
 │   └── qa-followup-tickets.yml                     # docs/qa/*.md push → Issue
 ├── templates/                                      # 새 프로젝트 install.sh 가 복사
-├── be-repos/  fe-repos/  devops-repos/             # 멀티 레포 워크트리
+├── be-repos/  fe-repos/  devops-repos/             # 멀티 레포 워크트리 (사용자가 mkdir 또는 /init --classify-repos)
 └── REFACTOR.md  README.md  ADOPTION.md  PLUGIN.md
 ```
 
