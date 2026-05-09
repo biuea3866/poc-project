@@ -30,13 +30,32 @@ git init && git add . && git commit -m "chore: bootstrap with claude_framework"
 
 ### 무엇을 복사하는가
 - `.claude/` — 하네스/에이전트/스킬/커맨드/공통가이드 (필수)
-- `.analysis/` — 파이프라인 정의 (필수)
-- `CLAUDE.md` — 프로젝트 가이드 (수정 필요)
-- `README.md`, `ADOPTION.md` — 문서 (선택)
+  - `harness-rules.json` (단일 룰 진실 원천 — `git_upstream_guard` 포함)
+  - `harness-check.py` + `scripts/` (정적 + 동적 검사)
+  - `scripts/senior-gate.py`, `scripts/harness-audit.py`, `scripts/qa-followup-extract.py`
+  - `settings.json` 기본 + `settings.json.feedback-loop.example` (메타-피드백 활성화 옵션)
+- `.analysis/` — 10개 파이프라인 정의 (필수)
+  - prd / project-analysis / be-implementation / pr-review / feedback-loop / refactoring / release / api-change / incident / inquiry
+- `agents/` — 14개 에이전트 (구현 + 리뷰 5종 + 메타-피드백 2종)
+- `skills/`, `commands/`, `common/`
+- `.github/workflows/` — pr-senior-review / harness-audit / qa-followup-tickets
+- `docs/feedback-loop/proposals/` — 제안 파일 보관소 (빈 README + archived/closed)
+- `CLAUDE.md`, `REFACTOR.md`, `README.md`, `ADOPTION.md`, `PLUGIN.md`
 
 ### 제외할 것
-- `be-repos/`, `fe-repos/`, `devops-repos/` — 빈 디렉토리. 실제 레포를 마운트할 때 생성.
+- `be-repos/`, `fe-repos/`, `devops-repos/` — 사용자가 필요할 때 직접 `mkdir`. `/init --classify-repos` 가 자동 생성. 빈 디렉토리는 git 으로 관리하지 않음.
 - `.claude/settings.local.json` — 개인 퍼미션. gitignore 대상.
+
+### 메타-피드백 루프 활성화 (선택)
+기본 비활성. 활성화하려면:
+```bash
+# settings.json 의 hooks 객체에 .feedback-loop.example 의 hooks 를 병합
+# (Stop / SubagentStop 두 키 추가)
+```
+활성화 후:
+- `Stop` 훅이 트리거 조건(PR Senior Gate fail / 재시도 실패 / 룰 차단 / QA 후속 티켓) 충족 시 `process-reviewer` 발화
+- 제안 파일은 `docs/feedback-loop/proposals/` 에 자동 생성 (자동 .md 수정 금지 — 사람 승인 후 PR)
+- 일일 발화 상한 5회, `stop_hook_active` 가드로 재귀 차단
 
 ---
 

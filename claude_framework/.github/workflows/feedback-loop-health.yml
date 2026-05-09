@@ -1,0 +1,122 @@
+name: Feedback Loop Health (Nightly Guardian)
+
+on:
+  schedule:
+    - cron: '30 18 * * *'   # 03:30 KST = 18:30 UTC (harness-audit 03:00 직후)
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health-check:
+    name: Guardian Stats
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 100
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: harness-rules.json JSON 유효성
+        run: python3 -c "import json; json.load(open('.claude/harness-rules.json'))"
+
+      - name: 일일 발화 상한 검증
+        id: daily
+        continue-on-error: true
+        run: |
+          python3 .claude/scripts/feedback-loop-stats.py daily-count | tee daily.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: Stale 제안 감지 (7일+)
+        id: stale
+        continue-on-error: true
+        run: |
+          python3 .claude/scripts/feedback-loop-stats.py stale-proposals --days 7 | tee stale.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 자동 .md 수정 시도 감지 (안전 게이트)
+        id: auto_edit
+        continue-on-error: true
+        run: |
+          python3 .claude/scripts/feedback-loop-stats.py auto-edit-detect --since 24.hours.ago | tee auto.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 비용 상한 점검
+        id: budget
+        continue-on-error: true
+        run: |
+          python3 .claude/scripts/feedback-loop-stats.py budget-check --max-runs 10 | tee budget.txt
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 종합 보고서 작성
+        run: |
+          today=$(date -u +%Y-%m-%d)
+          mkdir -p .analysis/feedback-loop
+          {
+            echo "# 피드백 루프 건강 보고서"
+            echo
+            echo "- **Date**: $today"
+            echo "- **호출 컨텍스트**: nightly"
+            echo
+            echo "## 1. 일일 발화 상한"
+            echo
+            cat daily.txt 2>/dev/null || echo "(no data)"
+            echo
+            echo "## 2. Stale 제안"
+            echo
+            cat stale.txt 2>/dev/null || echo "(no data)"
+            echo
+            echo "## 4. 안전 게이트 — 자동 .md 수정 감지"
+            echo
+            cat auto.txt 2>/dev/null || echo "(no data)"
+            echo
+            echo "## 5. 비용 상한"
+            echo
+            cat budget.txt 2>/dev/null || echo "(no data)"
+          } > "report.md"
+          cat report.md
+
+      - name: critical 감지 시 Issue 발행 (자동 .md 수정 / 일일 상한 초과)
+        if: steps.auto_edit.outcome == 'failure' || steps.daily.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `[feedback-loop] ${today} critical 감지`;
+            const report = fs.readFileSync('report.md', 'utf8');
+            const body = '## 피드백 루프 가디언 critical\n\n' + report +
+              '\n\n대응:\n1. 자동 .md 수정 시도가 있으면 commit 즉시 revert\n' +
+              '2. 일일 상한 초과는 process-reviewer 폭주 의심 — 트리거 조건 점검\n' +
+              '3. `process-review` 자동 발화 일시 중단 권고';
+
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'feedback-loop',
+              state: 'open',
+            });
+            const existing = issues.find(i => i.title === title);
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['feedback-loop', 'critical'],
+              });
+            }

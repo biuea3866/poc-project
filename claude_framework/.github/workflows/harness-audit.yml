@@ -1,0 +1,77 @@
+name: Harness Audit (Nightly)
+
+on:
+  schedule:
+    - cron: '0 18 * * *'   # 03:00 KST = 18:00 UTC
+  workflow_dispatch:
+  push:
+    branches: [main, master, dev]
+    paths:
+      - '.claude/harness-rules.json'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  audit:
+    name: Full Codebase Audit
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: harness-rules.json JSON 유효성 검증 (silent-pass 방지)
+        run: |
+          python3 -c "import json, sys; json.load(open('.claude/harness-rules.json'))"
+
+      - name: 전수 감사 실행
+        id: audit
+        continue-on-error: true
+        run: |
+          python3 .claude/scripts/harness-audit.py --fail-on error | tee audit.log
+          echo "exit_code=$?" >> "$GITHUB_OUTPUT"
+
+      - name: 위반 검출 시 Issue 자동 발행
+        if: steps.audit.outcome == 'failure'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const log = fs.readFileSync('audit.log', 'utf8');
+            const today = new Date().toISOString().slice(0, 10);
+            const title = `[harness-audit] ${today} 룰 위반 검출`;
+
+            // 같은 날 동일 제목 Issue 가 이미 있으면 코멘트만 추가 (멱등)
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              labels: 'harness-audit',
+              state: 'open',
+            });
+            const existing = issues.find(i => i.title === title);
+            const body = '## 야간 전수 감사 결과\n\n```\n' + log + '\n```\n\n' +
+              '어제까지 통과했는데 오늘 위반 검출 → silent-pass 의심.\n' +
+              '대응:\n1. harness-rules.json JSON 유효성 확인\n2. 위반 파일 수정 PR\n3. process-reviewer 트리거 (룰 누락 가능)';
+
+            if (existing) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existing.number,
+                body,
+              });
+            } else {
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title,
+                body,
+                labels: ['harness-audit', 'silent-pass-suspect'],
+              });
+            }

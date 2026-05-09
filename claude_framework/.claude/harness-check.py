@@ -22,6 +22,7 @@ check_type:
 import json
 import os
 import re
+import subprocess
 import sys
 from fnmatch import fnmatch
 from pathlib import Path
@@ -272,6 +273,94 @@ def check_git_guard(rules: dict, tool_input: dict) -> None:
                 block(blocked.get("message", f"blocked git command: {pattern}"))
         except re.error:
             continue
+
+    # 동적 upstream 검사 — `git push` 명령에 한해 실시간 git 조회
+    check_git_upstream_guard(rules, command)
+
+
+def _is_git_push_invocation(command: str) -> bool:
+    """
+    `git push` 호출인지 판정. 안전하게 보수적으로:
+      - 첫 토큰이 git, 두 번째가 push 인 경우만 True
+      - 파이프/논리연산자 뒤의 push 도 검사 (e.g. `cd foo && git push`)
+    """
+    # 단순화: command 안에 `git push` 토큰이 등장하면 분석 대상
+    return bool(re.search(r"(^|[\s;&|])git\s+push(\s|$)", command))
+
+
+def _git(args: list, cwd: Path) -> str | None:
+    """git 명령 실행, 실패 시 None (fail-safe)."""
+    try:
+        result = subprocess.run(
+            ["git"] + args,
+            cwd=str(cwd),
+            capture_output=True,
+            text=True,
+            timeout=2,
+            check=False,
+        )
+        if result.returncode != 0:
+            return None
+        return result.stdout.strip()
+    except (subprocess.SubprocessError, FileNotFoundError, OSError):
+        return None
+
+
+def check_git_upstream_guard(rules: dict, command: str) -> None:
+    """
+    동적 검사: `git push` 인자 분석으로 막을 수 없는 케이스를 잡는다.
+      예) feature 브랜치인데 upstream 이 origin/main 으로 설정돼 있어
+          `git push` (no-arg) 시 main 으로 직행하는 사고.
+    fail-safe: git 호출 실패 시 통과 (false positive 방지).
+    """
+    upstream_guard = rules.get("git_upstream_guard") or {}
+    if not upstream_guard.get("enabled", True):
+        return
+    if not _is_git_push_invocation(command):
+        return
+
+    cwd = Path.cwd().resolve()
+    if not (cwd / ".git").exists() and _git(["rev-parse", "--is-inside-work-tree"], cwd) != "true":
+        return  # git 저장소 아님
+
+    current_branch = _git(["branch", "--show-current"], cwd)
+    if not current_branch:
+        return  # detached HEAD or fail-safe
+
+    protected = set(upstream_guard.get("protected_branches", []) or [])
+    # 사용자가 보호 브랜치 자체에 있는 경우는 다른 룰(blocked_commands)이 처리
+    if current_branch in protected:
+        return
+
+    # 명령에 명시 refspec 가 있으면 정적 룰이 처리하므로 동적 검사 생략
+    if re.search(r"git\s+push\s+\S+\s+\S+", command):
+        # `git push origin <branch>` 또는 refspec 형태 — 정적 룰이 이미 검증
+        # 단 `git push origin` (인자 1개) 는 default upstream 사용하므로 계속 진행 필요
+        # 토큰 카운트로 분기
+        tokens_after_push = command.split("git push", 1)[1].strip().split()
+        # 옵션 플래그(-u, --tags 등) 제외하고 positional 만 카운트
+        positional = [t for t in tokens_after_push if not t.startswith("-")]
+        if len(positional) >= 2:
+            return  # 명시 인자 → 정적 룰 영역
+
+    upstream = _git(
+        ["rev-parse", "--abbrev-ref", "--symbolic-full-name", "@{upstream}"],
+        cwd,
+    )
+    if not upstream:
+        return  # upstream 미설정 → push 시 git이 자체 에러 출력하므로 통과
+
+    # upstream 형식: "origin/main", "upstream/dev" 등
+    if "/" not in upstream:
+        return
+    _, upstream_branch = upstream.split("/", 1)
+    if upstream_branch in protected:
+        msg_template = upstream_guard.get(
+            "message_template",
+            "BLOCKED: 브랜치 '{branch}' 의 upstream 이 보호 브랜치 '{upstream}' 입니다.",
+        )
+        message = msg_template.format(branch=current_branch, upstream=upstream)
+        block(message)
 
 
 def check_build(rules: dict) -> None:

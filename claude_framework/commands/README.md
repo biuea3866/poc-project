@@ -10,8 +10,11 @@
 | `/plan-project <prd-path>` | 설계+TDD+티켓 파이프라인 | pipeline-runner + `project-analysis/` PIPELINE |
 | `/split-tickets <feature-dir>` | 티켓 분해 단독 실행 | ticket-splitter + ticket-breakdown |
 | `/tdd-implement <ticket> [be\|fe]` | 단일 티켓 TDD 구현 | be-implementer 또는 fe-implementer + tdd-loop |
-| `/review-pr <num>` | PR 리뷰 | pr-reviewer + pr-review-checklist |
-| `/audit-harness [path]` | 하네스 룰 전수 감사 | harness-auditor + harness-audit |
+| `/review-pr <num>` | PR 리뷰 — Senior Gate → 분야별 5인 병렬 | senior-gate.py + pr-reviewer + be-senior + be-tech-lead + security-reviewer + fe-lead |
+| `/security-review <num>` | **보안 전용 PR 리뷰** | security-reviewer 단독 |
+| `/audit-harness [path]` | 하네스 룰 전수 감사 | JSON 유효성 + harness-audit + senior-gate + harness-auditor |
+| `/audit-feedback-loop [date]` | **메타-피드백 루프 건강 점검** | feedback-loop-guardian + feedback-loop-stats.py |
+| `/process-review [trigger]` | **메타-피드백 수동 트리거** | process-reviewer 수동 스폰 |
 | **`/parallel-tickets <tickets.md> [max=4]`** | **티켓 병렬 구현 (worktree + agent team)** | **팀장=opus, 팀원=sonnet** |
 | **`/init [--scan] [--classify-repos] [--stack=..]`** | **플러그인 설치 후 현재 프로젝트에 이식** | **convention-detective + repo-classifier** |
 

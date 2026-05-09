@@ -172,7 +172,7 @@
   },
 
   "git_guard": {
-    "description": "위험한 git 명령 차단 (Bash 훅)",
+    "description": "위험한 git 명령 차단 (Bash 훅) — 정적 패턴 + 동적 upstream 검사",
     "blocked_commands": [
       {
         "pattern": "git\\s+push.*\\b(origin|upstream)\\s+(main|master)\\b",
@@ -197,8 +197,44 @@
       {
         "pattern": "git\\s+branch\\s+-D\\s+(main|master|dev)",
         "message": "보호 브랜치 강제 삭제 차단."
+      },
+      {
+        "pattern": "git\\s+branch\\s+(--set-upstream-to|-u)[=\\s]+\\S*origin/(main|master|dev)\\b",
+        "message": "BLOCKED: feature 브랜치의 upstream을 보호 브랜치(main/master/dev)로 설정 금지 — `git push`가 보호 브랜치로 직행할 위험. upstream은 `origin/<feature 브랜치명>`으로 설정하세요."
+      },
+      {
+        "pattern": "git\\s+push\\s+(-u|--set-upstream)\\s+\\S+\\s+(main|master|dev)\\b",
+        "message": "BLOCKED: -u/--set-upstream으로 보호 브랜치(main/master/dev) 추적 설정 금지."
+      },
+      {
+        "pattern": "git\\s+push\\s+\\S+\\s+\\S+:(main|master|dev)\\b",
+        "message": "BLOCKED: refspec(`<local>:<remote>`)으로 보호 브랜치에 push 금지 — feature 브랜치 + PR로만 반영."
+      },
+      {
+        "pattern": "git\\s+push\\s+\\S+\\s+HEAD:(main|master|dev)\\b",
+        "message": "BLOCKED: HEAD:보호브랜치 형태 push 금지."
+      },
+      {
+        "pattern": "git\\s+push\\s+--mirror\\b",
+        "message": "BLOCKED: --mirror push 금지 — 모든 ref를 강제 동기화하므로 보호 브랜치까지 덮어씁니다."
+      },
+      {
+        "pattern": "git\\s+push\\s+--all\\b",
+        "message": "BLOCKED: --all push 금지 — 모든 로컬 브랜치를 push해 잘못된 upstream의 브랜치도 함께 올라갈 위험."
+      },
+      {
+        "pattern": "git\\s+config\\s+(--global\\s+)?push\\.default\\s+matching\\b",
+        "message": "BLOCKED: push.default=matching 설정 금지 — 인자 없는 push가 같은 이름의 모든 원격 브랜치를 동시 갱신해 보호 브랜치까지 침범."
       }
     ]
+  },
+
+  "git_upstream_guard": {
+    "description": "동적 검사 — `git push` 인자 없는 호출 시 현재 브랜치의 upstream이 보호 브랜치인지 실시간 검증. 보호 브랜치이면 즉시 차단.",
+    "enabled": true,
+    "protected_branches": ["main", "master", "dev", "develop", "release"],
+    "fail_safe": "git 명령 실행 실패 시 통과 (false positive 방지)",
+    "message_template": "BLOCKED: 현재 브랜치 '{branch}'의 upstream이 보호 브랜치 '{upstream}'으로 설정되어 있습니다. `git push` 시 보호 브랜치로 직행합니다. 다음 중 하나로 해결하세요:\n  1) `git branch --unset-upstream` 후 `git push -u origin {branch}`\n  2) `git push origin {branch}:{branch}` (refspec 명시)\n  3) 잘못된 브랜치라면 새 feature 브랜치로 분기"
   },
 
   "clean_code": {
