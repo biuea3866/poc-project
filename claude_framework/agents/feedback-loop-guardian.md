@@ -74,14 +74,49 @@ stdout 에 마크다운 보고서. nightly 호출 시 `.analysis/feedback-loop/<
 2. ...
 ```
 
+## 자동 재시도·비용 상한 정책
+
+가디언이 머지된 제안의 효과를 측정한 결과 `ineffective` 가 나오면, 다음 정책으로 자동 재시도 여부 결정:
+
+| 케이스 | 자동 행동 |
+|--------|-----------|
+| `ineffective` 1회 | 다음 nightly 재측정. 별도 행동 없음 |
+| `ineffective` 2회 연속 | high 위험도로 Issue 자동 발행 (`label: feedback-loop-ineffective`) — process-reviewer 가 다른 가설로 재제안 후보 |
+| `ineffective` 3회 연속 | critical — 사람 개입 강제, 자동 제안 일시 중단 (24시간) |
+
+자동 재시도는 **제안 PR 머지 후** 만 적용. 제안 파일 자체를 가디언이 다시 만들지 않는다 (process-reviewer 영역).
+
+### 비용 상한
+| 자원 | 상한 | 도달 시 |
+|------|------|---------|
+| 일일 process-reviewer 발화 | 5회 | 즉시 종료 |
+| 일일 가디언 측정 | 1회 (nightly) | 추가 호출 무시 |
+| Stale 제안 (status:proposed 7일+) | 누적 10건 | high 경고 + Issue |
+| 자동 .md 수정 시도 (자동화 봇) | 0건 | 1건이라도 감지 시 critical |
+
+## 보조 스크립트
+
+다음 스크립트로 통계·상한·안전 게이트를 실시간 확인:
+
+```bash
+python3 .claude/scripts/feedback-loop-stats.py daily-count
+python3 .claude/scripts/feedback-loop-stats.py stale-proposals --days 7
+python3 .claude/scripts/feedback-loop-stats.py auto-edit-detect --since 24.hours.ago
+python3 .claude/scripts/feedback-loop-stats.py budget-check --max-runs 10
+```
+
+가디언이 nightly 보고서 작성 시 위 4개 명령을 모두 실행해 결과를 §1·§2·§4 에 반영.
+
 ## 절대 금지
 
 - 제안 파일 자체 생성 금지 (process-reviewer 의 책임)
 - `.md` 직접 수정 금지
 - 정확한 카운트 없이 "효과 있어 보임" 같은 정성 판정 금지
+- `ineffective` 판정 후 즉시 process-reviewer 를 재호출 금지 (다음 nightly 까지 대기)
 
 ## 참고
 
 - 워크플로우: `.analysis/feedback-loop/PIPELINE.md`
 - 제안 파일 위치: `docs/feedback-loop/proposals/`
+- 보조 스크립트: `.claude/scripts/feedback-loop-stats.py`
 - 메인 설계: `REFACTOR.md` §4 11단계, §5.2
