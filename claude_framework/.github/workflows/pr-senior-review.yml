@@ -1,0 +1,81 @@
+name: PR Senior Review Gate
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main, master, dev, develop]
+
+permissions:
+  contents: read
+  pull-requests: write
+
+jobs:
+  senior-gate:
+    name: LLM-free Critical Detection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: harness-rules.json JSON 유효성 검증 (silent-pass 방지)
+        run: |
+          python3 -c "import json, sys; json.load(open('.claude/harness-rules.json'))"
+          echo "✅ harness-rules.json 유효"
+
+      - name: 변경 파일 추출
+        id: changed
+        run: |
+          BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          HEAD_SHA="${{ github.event.pull_request.head.sha }}"
+          git diff --name-only --diff-filter=AMR "$BASE_SHA" "$HEAD_SHA" > changed.txt
+          echo "count=$(wc -l < changed.txt)" >> "$GITHUB_OUTPUT"
+          cat changed.txt
+
+      - name: senior-gate.py 실행 (Critical 4유형 검출)
+        id: senior
+        run: |
+          mapfile -t FILES < changed.txt
+          if [ "${#FILES[@]}" -eq 0 ]; then
+            echo "변경 파일 없음"
+            exit 0
+          fi
+          python3 .claude/scripts/senior-gate.py --diff-files "${FILES[@]}" | tee senior-output.md
+          # exit 코드는 tee 가 가려서 직접 한번 더 실행
+          python3 .claude/scripts/senior-gate.py --diff-files "${FILES[@]}"
+
+      - name: harness-audit.py --diff-files (룰 위반 검출)
+        if: always()
+        run: |
+          mapfile -t FILES < changed.txt
+          if [ "${#FILES[@]}" -gt 0 ]; then
+            python3 .claude/scripts/harness-audit.py --diff-files "${FILES[@]}" --fail-on error | tee audit-output.md
+            python3 .claude/scripts/harness-audit.py --diff-files "${FILES[@]}" --fail-on error
+          fi
+
+      - name: PR 코멘트 작성 (실패 시)
+        if: failure()
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            let body = '## 🛡️ PR Senior Review Gate — REQUEST_CHANGES\n\n';
+            for (const f of ['senior-output.md', 'audit-output.md']) {
+              if (fs.existsSync(f)) {
+                body += '\n### ' + f + '\n```\n' + fs.readFileSync(f, 'utf8') + '\n```\n';
+              }
+            }
+            body += '\nCritical 항목을 수정한 후 push 하면 자동 재검사됩니다.';
+            await github.rest.pulls.createReview({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: context.issue.number,
+              event: 'REQUEST_CHANGES',
+              body
+            });

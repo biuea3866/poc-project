@@ -1,0 +1,64 @@
+name: QA Follow-up Tickets
+
+on:
+  push:
+    branches: [main, master, dev]
+    paths:
+      - 'docs/qa/**.md'
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  extract:
+    name: Extract & Create Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: 변경된 QA 보고서 추출
+        id: qa
+        run: |
+          git diff --name-only --diff-filter=AM HEAD~1 HEAD -- 'docs/qa/*.md' > qa-files.txt
+          echo "count=$(wc -l < qa-files.txt)" >> "$GITHUB_OUTPUT"
+          cat qa-files.txt
+
+      - name: 후속 티켓 추출 → Issue 발행 (멱등)
+        if: steps.qa.outputs.count != '0'
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -e
+          while IFS= read -r qa_file; do
+            [ -z "$qa_file" ] && continue
+            echo "=== $qa_file 처리 ==="
+            python3 .claude/scripts/qa-followup-extract.py "$qa_file" --format json > followups.json
+            tickets=$(jq -r '. | length' followups.json)
+            echo "추출된 티켓: $tickets 개"
+            jq -c '.[]' followups.json | while read -r row; do
+              key=$(echo "$row" | jq -r '.key')
+              title=$(echo "$row" | jq -r '.title')
+              priority=$(echo "$row" | jq -r '.priority')
+              reason=$(echo "$row" | jq -r '.reason')
+              issue_title="[${key}] ${title}"
+              # 멱등: 같은 제목 + qa-followup label Issue 가 있으면 skip
+              existing=$(gh issue list --label "qa-followup" --state all --search "\"$issue_title\" in:title" --json number,title --jq '.[] | select(.title == "'"$issue_title"'") | .number' || true)
+              if [ -n "$existing" ]; then
+                echo "skip: 이미 존재 (#$existing)"
+                continue
+              fi
+              gh issue create \
+                --title "$issue_title" \
+                --body "**우선순위**: $priority\n\n**근거**: $reason\n\n_QA 후속 티켓 자동 발행 — $qa_file_" \
+                --label "qa-followup,$priority"
+            done
+          done < qa-files.txt

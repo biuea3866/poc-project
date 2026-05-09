@@ -1,0 +1,33 @@
+{
+  "_doc": "메타-피드백 루프 활성화 스니펫. 기본 settings.json 에 'hooks.Stop' 과 'hooks.SubagentStop' 키를 병합해 사용. 비용·재귀 위험이 있으므로 의식적으로 활성화하세요. stop_hook_active 환경변수가 설정돼 있으면 즉시 종료(재귀 차단).",
+  "_activate": "이 파일 내용을 settings.json 의 hooks 객체에 병합하세요. 활성화 후에는 docs/feedback-loop/proposals/ 가 자동으로 채워집니다.",
+
+  "hooks": {
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_STOP_HOOK_ACTIVE\" = \"1\" ]; then exit 0; fi; today=$(date +%Y%m%d); count=$(ls ${CLAUDE_PROJECT_DIR}/docs/feedback-loop/proposals/${today}-*.md 2>/dev/null | wc -l); if [ \"$count\" -ge 5 ]; then echo '[feedback-loop] 일일 발화 상한(5) 도달 — process-reviewer 스폰 생략'; exit 0; fi; echo '{\"continue\":true,\"hookSpecificOutput\":{\"hookEventName\":\"Stop\",\"agent\":\"process-reviewer\",\"trigger_check\":true}}'",
+            "timeout": 5,
+            "statusMessage": "메타-피드백 트리거 검증..."
+          }
+        ]
+      }
+    ],
+    "SubagentStop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "if [ \"$CLAUDE_STOP_HOOK_ACTIVE\" = \"1\" ]; then exit 0; fi; today=$(date +%Y%m%d); count=$(ls ${CLAUDE_PROJECT_DIR}/docs/feedback-loop/proposals/${today}-*.md 2>/dev/null | wc -l); if [ \"$count\" -ge 5 ]; then exit 0; fi; echo '{\"continue\":true,\"hookSpecificOutput\":{\"hookEventName\":\"SubagentStop\",\"agent\":\"process-reviewer\",\"trigger_check\":true}}'",
+            "timeout": 5,
+            "statusMessage": "서브에이전트 종료 — 메타-피드백 검증..."
+          }
+        ]
+      }
+    ]
+  }
+}
