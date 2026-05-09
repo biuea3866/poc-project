@@ -25,7 +25,35 @@ verify_manifests() {
   [ -d "$SOURCE_DIR/agents" ] || err "agents/ 없음"
   [ -d "$SOURCE_DIR/skills" ] || err "skills/ 없음"
   [ -d "$SOURCE_DIR/commands" ] || err "commands/ 없음"
-  log "매니페스트/리소스 검증 통과"
+
+  # REFACTOR.md §8 신규 자산 검증
+  [ -f "$SOURCE_DIR/.claude/harness-rules.json" ] || err "harness-rules.json 없음"
+  python3 -c "import json; json.load(open('$SOURCE_DIR/.claude/harness-rules.json'))" \
+    || err "harness-rules.json JSON 유효성 실패 (silent-pass 위험)"
+
+  for script in harness-check.py senior-gate.py harness-audit.py qa-followup-extract.py feedback-loop-stats.py; do
+    [ -f "$SOURCE_DIR/.claude/scripts/$script" ] || err ".claude/scripts/$script 없음"
+    python3 -m py_compile "$SOURCE_DIR/.claude/scripts/$script" 2>/dev/null \
+      || err ".claude/scripts/$script 컴파일 실패"
+  done
+
+  for wf in pr-senior-review.yml harness-audit.yml qa-followup-tickets.yml feedback-loop-health.yml; do
+    [ -f "$SOURCE_DIR/.github/workflows/$wf" ] || err ".github/workflows/$wf 없음"
+  done
+
+  for agent in process-reviewer.md feedback-loop-guardian.md security-reviewer.md; do
+    [ -f "$SOURCE_DIR/agents/$agent" ] || err "agents/$agent 없음"
+  done
+
+  for pipeline in feedback-loop pr-review be-implementation refactoring release api-change incident inquiry; do
+    [ -f "$SOURCE_DIR/.analysis/$pipeline/PIPELINE.md" ] || err ".analysis/$pipeline/PIPELINE.md 없음"
+  done
+
+  [ -d "$SOURCE_DIR/docs/feedback-loop/proposals" ] || err "docs/feedback-loop/proposals/ 없음"
+  [ -f "$SOURCE_DIR/.claude/settings.json.feedback-loop.example" ] || err "settings.json.feedback-loop.example 없음"
+  [ -f "$SOURCE_DIR/REFACTOR.md" ] || err "REFACTOR.md 없음"
+
+  log "매니페스트/리소스 검증 통과 (4계층 + 다층 방어 + 메타-피드백 자산 포함)"
 }
 
 cleanup_stale_entries() {

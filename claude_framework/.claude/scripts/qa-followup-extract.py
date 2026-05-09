@@ -29,10 +29,10 @@ from pathlib import Path
 
 
 SECTION_HEADERS = [
-    r"^##+\s*후속\s*티켓",
-    r"^##+\s*후속\s*작업",
-    r"^##+\s*후속\s*조치",
-    r"^##+\s*Follow[-\s]?up",
+    r"^##+\s*[^\n]*후속\s*티켓",
+    r"^##+\s*[^\n]*후속\s*작업",
+    r"^##+\s*[^\n]*후속\s*조치",
+    r"^##+\s*[^\n]*Follow[-\s]?up",
 ]
 
 
