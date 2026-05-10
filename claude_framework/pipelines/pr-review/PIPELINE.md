@@ -1,6 +1,6 @@
 # PR Review Pipeline
 
-PR 의 **출력물(코드 + 문서) 리뷰** 절차. 메타-피드백(`.analysis/feedback-loop/`) 과 분리.
+PR 의 **출력물(코드 + 문서) 리뷰** 절차. 메타-피드백(`pipelines/feedback-loop/`) 과 분리.
 
 ## 진입점
 
@@ -61,7 +61,7 @@ Critical 1건 이상이면 즉시 fail → 다음 단계 생략, REQUEST_CHANGES
 ```
 
 ### 4. 피드백 루프 트리거 결정
-- `request-changes` verdict → `.analysis/feedback-loop/` 의 트리거 조건 1번 충족
+- `request-changes` verdict → `pipelines/feedback-loop/` 의 트리거 조건 1번 충족
 - Stop 훅이 process-reviewer 발화 (조건 충족 시)
 
 ### 5. 재시도 (선택)
@@ -71,7 +71,7 @@ Critical 1건 이상이면 즉시 fail → 다음 단계 생략, REQUEST_CHANGES
 ## 산출물
 
 - GitHub PR 코멘트 (gh CLI)
-- 각 에이전트의 raw output (디버깅용, `.analysis/pr-review/<date>-<pr>/<agent>.md`)
+- 각 에이전트의 raw output (디버깅용, `pipelines/pr-review/<date>-<pr>/<agent>.md`)
 
 ## 룰
 
@@ -85,3 +85,7 @@ Critical 1건 이상이면 즉시 fail → 다음 단계 생략, REQUEST_CHANGES
 - 워크플로우: `.github/workflows/pr-senior-review.yml`
 - LLM-free 게이트: `.claude/scripts/senior-gate.py`
 - 상위 설계: `REFACTOR.md` §4 6단계, §5.1
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

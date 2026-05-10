@@ -29,7 +29,7 @@ claude_framework/
 │   └── process-reviewer.md                         # sonnet, 메타-피드백 (Stop/SubagentStop 훅)
 ├── skills/                                         # "어떻게" 재사용 절차
 ├── commands/                                       # 사용자 트리거 슬래시 커맨드
-├── .analysis/                                      # 파이프라인 — 무엇을, 어떤 순서로
+├── pipelines/                                      # 파이프라인 — 무엇을, 어떤 순서로
 │   ├── prd/PIPELINE.md
 │   ├── project-analysis/PIPELINE.md
 │   ├── be-implementation/PIPELINE.md
@@ -60,7 +60,7 @@ claude_framework/
 | 계층 | 책임 | 위치 | 참조 가능 대상 |
 |------|------|------|----------------|
 | Command | 사용자 트리거 (UX) | `.claude/commands/<name>.md` | Pipeline, Agent |
-| Pipeline | 무엇을·어떤 순서로 | `.analysis/<name>/PIPELINE.md` | Agent, Skill |
+| Pipeline | 무엇을·어떤 순서로 | `pipelines/<name>/PIPELINE.md` | Agent, Skill |
 | Agent | 누가 (페르소나 + 모델 + 도구) | `.claude/agents/<name>.md` 또는 `agents/<name>.md` | Skill, Rule |
 | Skill | 어떻게 (절차) | `.claude/skills/<name>/SKILL.md` 또는 `skills/<name>/SKILL.md` | Rule |
 | Rule | 하지 말 것 | `.claude/harness-rules.json` | (참조됨) |
@@ -116,22 +116,22 @@ claude_framework/
 
 활성화: `.claude/settings.json.feedback-loop.example` 의 hooks 객체를 `settings.json` 에 병합.
 
-상세 절차: [`.analysis/feedback-loop/PIPELINE.md`](./.analysis/feedback-loop/PIPELINE.md)
+상세 절차: [`pipelines/feedback-loop/PIPELINE.md`](./pipelines/feedback-loop/PIPELINE.md)
 
 ## 분석 파이프라인
 
 | 파이프라인 | 진입 문서 | 비고 |
 |---|---|---|
-| PRD 분석 | `.analysis/prd/PIPELINE.md` | |
-| 프로젝트 분석 (TDD/티켓) | `.analysis/project-analysis/PIPELINE.md` | |
-| BE 구현 | `.analysis/be-implementation/PIPELINE.md` | PRD → ADR → TDD → 티켓 → 구현 |
-| PR 리뷰 | `.analysis/pr-review/PIPELINE.md` | 분야별 5인 병렬 |
-| 메타-피드백 | `.analysis/feedback-loop/PIPELINE.md` | Stop 훅 + 제안 파일 |
-| 리팩토링 | `.analysis/refactoring/PIPELINE.md` | |
-| 배포 | `.analysis/release/PIPELINE.md` | |
-| API 변경 | `.analysis/api-change/PIPELINE.md` | |
-| 장애 대응 | `.analysis/incident/PIPELINE.md` | |
-| 문의/버그 트리아지 | `.analysis/inquiry/PIPELINE.md` | |
+| PRD 분석 | `pipelines/prd/PIPELINE.md` | |
+| 프로젝트 분석 (TDD/티켓) | `pipelines/project-analysis/PIPELINE.md` | |
+| BE 구현 | `pipelines/be-implementation/PIPELINE.md` | PRD → ADR → TDD → 티켓 → 구현 |
+| PR 리뷰 | `pipelines/pr-review/PIPELINE.md` | 분야별 5인 병렬 |
+| 메타-피드백 | `pipelines/feedback-loop/PIPELINE.md` | Stop 훅 + 제안 파일 |
+| 리팩토링 | `pipelines/refactoring/PIPELINE.md` | |
+| 배포 | `pipelines/release/PIPELINE.md` | |
+| API 변경 | `pipelines/api-change/PIPELINE.md` | |
+| 장애 대응 | `pipelines/incident/PIPELINE.md` | |
+| 문의/버그 트리아지 | `pipelines/inquiry/PIPELINE.md` | |
 
 ## 모델·비용 분리
 
@@ -153,7 +153,7 @@ claude_framework/
 ## 템플릿 확장 가이드
 
 - **새 룰 추가**: `harness-rules.json` `forbidden_patterns` 에 1개 추가
-- **새 파이프라인 추가**: `.analysis/<name>/PIPELINE.md` 작성
+- **새 파이프라인 추가**: `pipelines/<name>/PIPELINE.md` 작성
 - **에이전트 추가**: `agents/<name>.md` frontmatter + 사용 스킬 참조 명시
 - **스킬 추가**: `skills/<name>/SKILL.md` (언제/원칙/절차/완료체크)
 - **메타-피드백 제안 반영**: `docs/feedback-loop/proposals/` 의 제안 파일 → 사람 승인 → `refactor/feedback/<date>` 브랜치 PR

@@ -33,7 +33,7 @@ argument-hint: [날짜 YYYY-MM-DD, 기본=오늘]
 - 보호 브랜치(main/master/dev) 에 PR 없이 직접 push 된 commit 감지
 
 ### 5. 보고서 작성
-`.analysis/feedback-loop/<YYYY-MM-DD>-health.md` 에 저장.
+`pipelines/feedback-loop/<YYYY-MM-DD>-health.md` 에 저장.
 
 ```markdown
 # 피드백 루프 건강 보고서
@@ -57,5 +57,5 @@ argument-hint: [날짜 YYYY-MM-DD, 기본=오늘]
 
 ## 참고
 
-- 워크플로우: `.analysis/feedback-loop/PIPELINE.md`
+- 워크플로우: `pipelines/feedback-loop/PIPELINE.md`
 - 가디언 정의: `agents/feedback-loop-guardian.md`

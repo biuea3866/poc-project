@@ -1,9 +1,9 @@
 ---
 description: project-analysis 파이프라인 실행 — 정제된 PRD 경로를 받아 설계/TDD/티켓 8단계 수행
-argument-hint: <path to .analysis/prd/YYYY-MM-DD-feature.md>
+argument-hint: <path to pipelines/prd/YYYY-MM-DD-feature.md>
 ---
 
-`pipeline-runner` 에이전트로 `.analysis/project-analysis/PIPELINE.md`를 실행해줘.
+`pipeline-runner` 에이전트로 `pipelines/project-analysis/PIPELINE.md`를 실행해줘.
 
 **입력 PRD 산출물**: $ARGUMENTS
 

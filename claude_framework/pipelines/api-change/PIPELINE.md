@@ -45,7 +45,7 @@
 
 ## 산출물
 
-- `.analysis/api-change/<change-id>/`
+- `pipelines/api-change/<change-id>/`
   - `compat-analysis.md`
   - `migration-guide.md`
   - `monitoring-plan.md`
@@ -58,5 +58,9 @@
 
 ## 참고
 
-- 배포 절차: `.analysis/release/PIPELINE.md`
+- 배포 절차: `pipelines/release/PIPELINE.md`
 - BFF 룰: harness-rules `feedback/bff_facade`
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

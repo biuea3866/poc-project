@@ -68,3 +68,56 @@ description: Red→Green→Refactor 사이클을 강제하는 TDD 실행 절차.
 - [ ] 커버리지 목표 달성 (일반 80% / 핵심 95%)
 - [ ] 하네스 룰 위반 0
 - [ ] 불필요한 주석/죽은 코드 제거
+
+## "테스트 통과" 단언 시 — 아티팩트 강제 (★ 거짓 완전성 차단)
+
+운영 사고 사례: "완벽하게 테스트했다" 라고 답했는데 실은 update 라인 위치 오류 + as-is/to-be 조회 쿼리 불일치 등이 남아 있었음.
+
+이 사고 재발 방지를 위해 **"tests pass / 통과 / 완료" 같은 단언을 텍스트로 평탄히 쓰지 않는다.** 다음 중 최소 1개 아티팩트를 같은 메시지에 첨부.
+
+### 허용 형식 (택 1)
+
+1. **테스트 raw 출력 직첨**
+   ```
+   ./gradlew :module:test
+   > Task :module:test
+   ...
+   BUILD SUCCESSFUL in 23s
+   456 tests completed, 456 passed (0 failed, 0 skipped)
+   ```
+
+2. **CI run 링크 + 핵심 라인**
+   ```
+   gh run view 1234567 --log
+   ✓ Test step succeeded — 456 passed
+   https://github.com/<org>/<repo>/actions/runs/1234567
+   ```
+
+3. **JaCoCo / Kover / lcov 커버리지 리포트 경로**
+   ```
+   build/reports/jacoco/test/html/index.html
+   total: 87.3% lines, 92.1% branches
+   ```
+
+### 금지 패턴
+
+- "tests pass", "전부 통과", "완벽", "검증 완료" 같은 문구를 **raw 출력 / 링크 / 리포트 경로 없이** 단언
+- "모든 테스트가 통과했습니다" 같은 평탄한 한국어 단언
+- 사용자 질문 후 그제서야 테스트 실행 (선실행 후단언 원칙)
+
+### 사용자가 "다 됐어?" 라고 묻기 전에
+
+`/tdd-implement` 마무리 단계에서 직접 다음을 수행해 transcript 에 도구 호출이 보이도록 한다:
+
+```bash
+# Kotlin
+./gradlew :<module>:test --info | tail -50
+
+# Node/TS
+npm test -- --reporter=verbose 2>&1 | tail -50
+
+# Python
+pytest -v 2>&1 | tail -50
+```
+
+도구 호출이 **없이** "테스트 통과" 단언 시, 메타-피드백 트리거 (claim-without-action) 충족.

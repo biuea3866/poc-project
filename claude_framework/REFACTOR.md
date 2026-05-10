@@ -55,7 +55,7 @@ claude_framework/
 │       ├── review-pr.md
 │       ├── audit-harness.md
 │       └── parallel-tickets.md
-├── .analysis/                           # 파이프라인 (무엇을, 어떤 순서로)
+├── pipelines/                           # 파이프라인 (무엇을, 어떤 순서로)
 │   ├── prd/PIPELINE.md
 │   ├── project-analysis/PIPELINE.md
 │   ├── pr-review/PIPELINE.md
@@ -80,7 +80,7 @@ claude_framework/
 | 계층 | 책임 | 위치 | 참조 가능 대상 |
 |------|------|------|----------------|
 | Command | 사용자 트리거 진입점 | `.claude/commands/<name>.md` | Pipeline, Agent |
-| Pipeline | 무엇을·어떤 순서로 | `.analysis/<name>/PIPELINE.md` | Agent, Skill |
+| Pipeline | 무엇을·어떤 순서로 | `pipelines/<name>/PIPELINE.md` | Agent, Skill |
 | Agent | 누가 (페르소나 + 모델 + 도구) | `.claude/agents/<name>.md` | Skill, Rule |
 | Skill | 어떻게 (절차) | `.claude/skills/<name>/SKILL.md` | Rule |
 | Rule | 하지 말 것 | `.claude/harness-rules.json` | (참조만 됨) |
@@ -95,7 +95,7 @@ claude_framework/
 
 2. Command 본문 → 해당 Pipeline 진입
    - PIPELINE.md 의 단계별 지시를 순차 수행
-   - 산출물 경로 자동 관리 (.analysis/<name>/<date>/)
+   - 산출물 경로 자동 관리 (pipelines/<name>/<date>/)
 
 3. Pipeline → 단계별 Agent 스폰
    - 모델 명시 (opus/sonnet/haiku)
@@ -148,7 +148,7 @@ claude_framework/
    c. process-reviewer 에이전트 스폰 (sonnet, SubagentStop 비활성)
       · 입력: 작업 로그 + 참조한 command/skill/rule 경로 + 산출물(PR diff, QA 문서)
       · 비교 기준 (이외는 판정 근거 부족 — 단순 LLM 의견 추가 금지):
-        - PRD/ADR (.analysis/<name>/)
+        - PRD/ADR (pipelines/<name>/)
         - harness-rules.json
         - 이전 머지된 패턴
       · 출력: docs/feedback-loop/proposals/<YYYYMMDD>-<topic>.md
@@ -208,8 +208,8 @@ Stop/SubagentStop 훅에서 트리거 조건 충족 시에만 스폰:
 
 ## 7. 안티패턴 (피해야 할 설계)
 
-- **`/hooks` 디렉토리 분리**: 단일 진입점(`.claude/settings.json` + `harness-check.py`) 깨짐. silent-pass 위험.
-- **`/rules` 디렉토리화**: `harness-rules.json` 단일 원천 분산. 룰 누락 발견 어려움.
+- **`/hooks` 디렉토리에 훅 로직 분산**: 단일 진입점(`.claude/settings.json` + `harness-check.py`) 깨짐. silent-pass 위험.
+- **`harness-rules.json` 분산**: 금지 룰을 여러 JSON 파일로 쪼개면 단일 진실 원천이 깨지고 silent-pass 가 더 잘 일어남. (참고: 디렉토리 이름 자체는 무관 — 공유 가이드/컨벤션 마크다운 모음으로 `rules/` 디렉토리 사용은 허용. 핵심은 `harness-rules.json` 의 룰을 분산하지 않는 것.)
 - **로컬 훅에서 LLM 리뷰 동기 호출**: PreToolUse 가 `git push` 가로채 LLM 호출 시 30초~수분 블로킹. 무거운 리뷰는 GitHub Actions 로 비동기.
 - **Skill 안에 Rule 섞기**: Skill 은 "어떻게(절차)", Rule 은 "하지 말 것". 섞이면 우선순위 충돌.
 - **단일 만능 리뷰 에이전트**: 분야별 깊이 부족. 병렬 분리가 효과적.
@@ -225,7 +225,7 @@ Stop/SubagentStop 훅에서 트리거 조건 충족 시에만 스폰:
 ## 8. 마이그레이션 단계
 
 1. **현 구조 점검**: 기존 `agents/`, `commands/`, `skills/`, `templates/` 자산 인벤토리.
-2. **Pipeline 정리**: `.analysis/<name>/PIPELINE.md` 누락분 추가 (incident, refactoring, release 등).
+2. **Pipeline 정리**: `pipelines/<name>/PIPELINE.md` 누락분 추가 (incident, refactoring, release 등).
 3. **Agent 분리**: 단일 reviewer → pr-reviewer / be-senior / be-tech-lead / security-reviewer.
 4. **Command 진입점 정비**: 사용자가 자주 쓰는 흐름을 `/analyze-prd`, `/tdd-implement`, `/review-pr` 등으로 일원화.
 5. **Workflow 다층화**: nightly harness-audit + PR senior-gate + qa-followup 3개 워크플로우 추가.

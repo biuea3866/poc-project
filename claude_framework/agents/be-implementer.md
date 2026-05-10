@@ -12,9 +12,9 @@ model: sonnet
 - **`kotlin-spring-impl`** (`skills/kotlin-spring-impl/SKILL.md`) — Kotlin 문법/함수형 프로그래밍/디자인 패턴/OOP/Rich Domain/풀네임/Enum 상태 전이 7대 원칙. 구현 전 반드시 이 스킬 본문 참조.
 
 ## 사용 공통 가이드
-- [output-style](common/output-style.md) — 코드 참조 형식 `파일경로#메서드명`, 수치 기반 표현
-- [ticket-guide](common/ticket-guide.md) — 티켓 사이즈/의존 파싱
-- [BE 코드 컨벤션](common/be-code-convention.md) — Kotlin/Spring 실전 규칙
+- [output-style](rules/output-style.md) — 코드 참조 형식 `파일경로#메서드명`, 수치 기반 표현
+- [ticket-guide](rules/ticket-guide.md) — 티켓 사이즈/의존 파싱
+- [BE 코드 컨벤션](rules/be-code-convention.md) — Kotlin/Spring 실전 규칙
 
 ## 절대 규칙
 1. **TDD 순서 엄격 준수** — Kotest 테스트 → 실행(fail 확인) → 구현 → 실행(pass 확인) → 리팩토링.

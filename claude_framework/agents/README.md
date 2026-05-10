@@ -61,15 +61,15 @@ Agent(subagent_type="fe-lead", ...)            # FE 영향 관점
 
 ## 공통 가이드 참조
 
-모든 에이전트는 프롬프트 상단에 사용할 `common/*.md` 문서를 명시:
+모든 에이전트는 프롬프트 상단에 사용할 `rules/*.md` 문서를 명시:
 
-- [output-style](../common/output-style.md) — 문체/코드 참조
-- [mermaid](../common/mermaid.md) — 다이어그램 규칙
-- [ticket-guide](../common/ticket-guide.md) — 티켓 구조
-- [jira-sync](../common/jira-sync.md) — Jira 매핑
-- [tdd-template](../common/tdd-template.md) — TDD 섹션
-- [document-sync](../common/document-sync.md) — 동기화 순서
-- [be-code-convention](../common/be-code-convention.md) — BE 실전 컨벤션
+- [output-style](../rules/output-style.md) — 문체/코드 참조
+- [mermaid](../rules/mermaid.md) — 다이어그램 규칙
+- [ticket-guide](../rules/ticket-guide.md) — 티켓 구조
+- [jira-sync](../rules/jira-sync.md) — Jira 매핑
+- [tdd-template](../rules/tdd-template.md) — TDD 섹션
+- [document-sync](../rules/document-sync.md) — 동기화 순서
+- [be-code-convention](../rules/be-code-convention.md) — BE 실전 컨벤션
 
 ## 파일 구조
 

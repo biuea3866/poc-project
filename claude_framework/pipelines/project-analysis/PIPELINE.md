@@ -26,7 +26,7 @@ Agent(subagent_type="pipeline-runner", prompt="project-analysis 파이프라인 
 ```
 
 ## 입력 (필수)
-- **PRD 분석 산출물** — `.analysis/prd/YYYY-MM-DD-<slug>.md` (Exit Criteria 통과본)
+- **PRD 분석 산출물** — `pipelines/prd/YYYY-MM-DD-<slug>.md` (Exit Criteria 통과본)
 - **대상 레포 목록** — `be-repos/`, `fe-repos/`, `offercent-repos/` 아래 어느 것인지
 - **우선순위/데드라인**
 
@@ -113,7 +113,7 @@ Agent(subagent_type="pipeline-runner", prompt="project-analysis 파이프라인 
 
 ## 산출물 구조
 
-폴더 경로: `.analysis/project-analysis/YYYY-MM-DD-<feature>/`
+폴더 경로: `pipelines/project-analysis/YYYY-MM-DD-<feature>/`
 
 ```
 YYYY-MM-DD-<feature>/
@@ -139,3 +139,7 @@ Exit Criteria 미충족 시 pipeline-runner가 재작업 지시.
 - 구현: `be-implementer` / `fe-implementer`가 `03-tickets.md`의 티켓 단위로 작업
 - PR 리뷰: `pr-reviewer`가 `harness-rules.json` 기준 검수
 - 주기 감사: `harness-auditor`가 전체 레포 스캔
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

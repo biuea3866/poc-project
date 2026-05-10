@@ -34,8 +34,8 @@ cd /path/to/your-project
 
 # 3. 전체 플로우
 /analyze-prd <PRD URL>
-/plan-project .analysis/prd/<산출물>.md
-/parallel-tickets .analysis/project-analysis/<feature>/03-tickets.md 4
+/plan-project pipelines/prd/<산출물>.md
+/parallel-tickets pipelines/project-analysis/<feature>/03-tickets.md 4
 #   팀장 Opus 4.7 + 팀원 Sonnet 4.6, worktree 격리 병렬 구현
 ```
 
@@ -61,8 +61,8 @@ git config core.hooksPath .claude/git-hooks
                                ↓ 호출
 ┌──────────────────────────────────────────────────────────────┐
 │ Pipeline  (무엇을, 어떤 순서로 — 설계 문서)                     │
-│   .analysis/prd/PIPELINE.md                                   │
-│   .analysis/project-analysis/PIPELINE.md                      │
+│   pipelines/prd/PIPELINE.md                                   │
+│   pipelines/project-analysis/PIPELINE.md                      │
 └──────────────────────────────┬───────────────────────────────┘
                                ↓ 참조
 ┌──────────────────────────────────────────────────────────────┐
@@ -139,7 +139,7 @@ claude_framework/
 │   │   ├── review-pr.md
 │   │   ├── audit-harness.md
 │   │   └── parallel-tickets.md   # ★ git worktree + agent team 병렬
-│   ├── common/                   # 공통 가이드 (7종)
+│   ├── rules/                   # 공통 가이드 (7종)
 │   │   ├── output-style.md
 │   │   ├── mermaid.md
 │   │   ├── ticket-guide.md
@@ -160,11 +160,11 @@ claude_framework/
 │   │   ├── git-hooks/pre-commit
 │   │   ├── presets/{kotlin,node,python,go}.json  # 스택별 룰 프리셋
 │   │   └── harness-rules{,.local}.json.example
-│   ├── .analysis/
+│   ├── pipelines/
 │   ├── .gitignore
 │   └── CLAUDE.md.template
 │
-├── .analysis/                    # 분석 파이프라인 산출물
+├── pipelines/                    # 분석 파이프라인 산출물
 │   ├── README.md
 │   ├── prd/
 │   │   └── PIPELINE.md           # PRD 분석 파이프라인
@@ -261,10 +261,10 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 # 산출물 검토 후 Open Questions 해결
 
 # 2. 설계+TDD+티켓 분해
-/plan-project .analysis/prd/2026-04-18-posting-feature.md
+/plan-project pipelines/prd/2026-04-18-posting-feature.md
 
 # 3. 병렬 구현 (팀장 opus + 팀원 sonnet, 동시 4개)
-/parallel-tickets .analysis/project-analysis/2026-04-18-posting-feature/03-tickets.md 4
+/parallel-tickets pipelines/project-analysis/2026-04-18-posting-feature/03-tickets.md 4
 ```
 
 ### 시나리오 2: 단일 티켓 처리
@@ -387,7 +387,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 ┌─────────────────────────── 7. 결과 ─────────────────────────────┐
 │  에이전트 결과가 상위 세션에 반환                                │
 │  pipeline-runner가 Exit Criteria 체크 → 다음 단계 또는 완료      │
-│  최종 산출물: .analysis/<pipeline>/ 또는 코드 변경 + PR          │
+│  최종 산출물: pipelines/<pipeline>/ 또는 코드 변경 + PR          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -484,7 +484,7 @@ claude_framework/
 | 하고 싶은 것 | 어디를 수정 |
 |---|---|
 | 새 언어/프레임워크 금지 룰 추가 | `.claude/harness-rules.json` → `forbidden_patterns.rules` |
-| 새 파이프라인 추가 | `.analysis/<name>/PIPELINE.md` + 담당 에이전트/스킬 표 |
+| 새 파이프라인 추가 | `pipelines/<name>/PIPELINE.md` + 담당 에이전트/스킬 표 |
 | 새 에이전트 | `.claude/agents/<name>.md` (frontmatter + 사용 스킬 참조) |
 | 새 스킬 | `.claude/skills/<name>/SKILL.md` (when/원칙/절차/완료체크) |
 | 새 커맨드 | `.claude/commands/<name>.md` (frontmatter + 얇은 프롬프트) |
@@ -515,8 +515,8 @@ claude_framework/
 
 - [ADOPTION.md](./ADOPTION.md) — 다른 프로젝트 이식 가이드
 - [CLAUDE.md](./CLAUDE.md) — Claude가 세션 시작 시 로드하는 프로젝트 가이드
-- [.analysis/README.md](./.analysis/README.md) — 파이프라인 카탈로그
+- [pipelines/README.md](./pipelines/README.md) — 파이프라인 카탈로그
 - [.claude/agents/README.md](./.claude/agents/README.md) — 에이전트 카탈로그
 - [.claude/skills/README.md](./.claude/skills/README.md) — 스킬 카탈로그
 - [.claude/commands/README.md](./.claude/commands/README.md) — 커맨드 카탈로그
-- [.claude/common/README.md](./.claude/common/README.md) — 공통 가이드 카탈로그
+- [rules/README.md](./rules/README.md) — 공통 가이드 카탈로그
