@@ -12,7 +12,7 @@
 
 산출물 경로 형식:
 ```
-pipelines/<name>/<YYYYMMDD>-<topic>/<file>.md
+outputs/<name>/<YYYYMMDD>-<topic>/<file>.md
 ```
 
 빈 placeholder 금지. 각 산출물에는 측정값/근거/링크가 들어가야 한다.
@@ -26,10 +26,10 @@ pipelines/<name>/<YYYYMMDD>-<topic>/<file>.md
 | "테스트 통과" | `./gradlew test` raw 출력 / `gh run view <id>` 링크 / 커버리지 리포트 경로 |
 | "빌드 성공" | 빌드 raw 출력 / CI run 링크 |
 | "쿼리 동일" | EXPLAIN diff / Hibernate SQL 로그 diff / 데이터 spot check |
-| "전 레포 적용" | `pipelines/multi-repo/<...>/03-progress.md` 의 done/pending 표 |
-| "동작 동일" | `pipelines/refactoring/<...>/diff-verification.md` 의 ✅ 표 |
+| "전 레포 적용" | `outputs/multi-repo/<...>/03-progress.md` 의 done/pending 표 |
+| "동작 동일" | `outputs/refactor/<...>/diff-verification.md` 의 ✅ 표 |
 | "보안 검토 완료" | `gh pr review` 코멘트 / senior-gate.py raw 출력 |
-| "PRD 분석 완료" | `pipelines/prd/<...>/requirements.md` + `acceptance.md` |
+| "PRD 분석 완료" | `outputs/analyze-prd/<...>/requirements.md` + `acceptance.md` |
 
 ### 3. 도구 호출 선행 (Tool Call Precedence)
 
@@ -64,11 +64,11 @@ pipelines/<name>/<YYYYMMDD>-<topic>/<file>.md
 이 규칙은 모든 PIPELINE.md 의 마지막 단계 ("회고" 또는 그 직전) 에서 다음 1줄로 명시 참조:
 
 ```
-> 완료 단언은 `pipelines/COMPLETION-RULE.md` 의 §1~4 를 모두 충족해야 한다.
+> 완료 단언은 `rules/COMPLETION-RULE.md` 의 §1~4 를 모두 충족해야 한다.
 ```
 
 ## 참고
 
 - 운영 사고 사례: REFACTOR.md §7 안티패턴 "거짓 완전성 (False completeness)"
-- 메타-피드백 트리거: `pipelines/feedback-loop/PIPELINE.md`
+- 메타-피드백 트리거: `commands/audit-feedback-loop.md`
 - 가디언 효과 측정: `agents/feedback-loop-guardian.md`

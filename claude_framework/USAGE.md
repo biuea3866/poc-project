@@ -41,7 +41,7 @@ cp /path/to/claude_framework/{install.sh,REFACTOR.md,CLAUDE.md} <your-project>/
 # 2) 검증
 cd <your-project>
 bash install.sh
-# → "매니페스트/리소스 검증 통과 (4계층 + 다층 방어 + 메타-피드백 자산 포함)"
+# → "매니페스트/리소스 검증 통과 (3계층 + 다층 방어 + 메타-피드백 자산 포함)"
 ```
 
 `install.sh` 가 다음을 자동 검증한다 (실패하면 즉시 중단 — silent-pass 차단):
@@ -146,10 +146,10 @@ CLAUDE_TOOL_INPUT='{"command":"git push -u origin main"}' \
 
 | Command | 진입하는 Pipeline | 산출물 위치 |
 |---------|-------------------|-------------|
-| `/analyze-prd` | `pipelines/prd/` | `pipelines/prd/<date>-<feature>/` |
-| `/plan-project` | `pipelines/project-analysis/` + `pipelines/be-implementation/` | `pipelines/be-implementation/<feature>/` |
-| `/review-pr` | `pipelines/pr-review/` | GitHub PR 코멘트 |
-| `/audit-feedback-loop` | `pipelines/feedback-loop/` | `pipelines/feedback-loop/<date>-health.md` |
+| `/analyze-prd` | `outputs/analyze-prd/` | `outputs/analyze-prd/<date>-<feature>/` |
+| `/plan-project` | `outputs/plan-project/` + `outputs/plan-project/` | `outputs/plan-project/<feature>/` |
+| `/review-pr` | `outputs/review-pr/` | GitHub PR 코멘트 |
+| `/audit-feedback-loop` | `outputs/feedback-loop/` | `outputs/feedback-loop/<date>-health.md` |
 
 **커맨드 없는 파이프라인** (오케스트레이션으로만 진입): `incident`, `inquiry`, `multi-repo`, `refactoring`, `release`, `api-change`. main-orchestrator 가 상황 감지 시 자동 진입.
 
@@ -159,13 +159,13 @@ CLAUDE_TOOL_INPUT='{"command":"git push -u origin main"}' \
 
 ```
 1. /analyze-prd <PRD URL>
-   → pipelines/prd/<feature>/{requirements,acceptance}.md
+   → outputs/analyze-prd/<feature>/{requirements,acceptance}.md
 
-2. /plan-project pipelines/prd/<feature>/requirements.md
-   → pipelines/project-analysis/<feature>/{design,adr,tickets}.md
-   → pipelines/be-implementation/<feature>/ 도 함께
+2. /plan-project outputs/analyze-prd/<feature>/requirements.md
+   → outputs/plan-project/<feature>/{design,adr,tickets}.md
+   → outputs/plan-project/<feature>/ 도 함께
 
-3. /parallel-tickets pipelines/project-analysis/<feature>/03-tickets.md 4
+3. /parallel-tickets outputs/plan-project/<feature>/03-tickets.md 4
    → 4개 worktree 동시 구현, 각 PR 자동 생성
 
 4. /review-pr <num>  (각 PR)
@@ -271,7 +271,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push -u origin main"}' \
     └── feedback-loop-stats.py         가디언 보조 통계
 
 agents/                                14종 (구현 + 리뷰 5종 + 메타 2종 + 분석)
-pipelines/                             10개 PIPELINE.md
+commands/ + outputs/                             10개 PIPELINE.md
 commands/                              11종 슬래시 커맨드
 docs/feedback-loop/proposals/          제안 파일 보관소
 .github/workflows/                     4개 자동 워크플로우
@@ -281,7 +281,7 @@ docs/feedback-loop/proposals/          제안 파일 보관소
 
 ## 7. 더 읽기
 
-- [`REFACTOR.md`](./REFACTOR.md) — 4계층 + 다층 방어 + 메타-피드백 설계 원칙·안티패턴
+- [`REFACTOR.md`](./REFACTOR.md) — 3계층 + 다층 방어 + 메타-피드백 설계 원칙·안티패턴
 - [`PLUGIN.md`](./PLUGIN.md) — 플러그인 방식 상세
 - [`ADOPTION.md`](./ADOPTION.md) — 수동 복사 이식 상세
 - [`CLAUDE.md`](./CLAUDE.md) — 디렉토리·하네스 구조 요약

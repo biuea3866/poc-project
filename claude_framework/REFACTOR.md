@@ -1,6 +1,8 @@
 # 아키텍처 리팩토링
 
-`agents`, `skills`, `commands`, `pipelines`, `rules`, `hooks` 가 4계층(Command → Pipeline → Agent → Skill) 단방향 의존으로 동작하는 **다층 피드백 루프** 구조를 구축한다.
+`agents`, `skills`, `commands`, `rules`, `hooks` 가 3계층(Command → Agent → Skill) 단방향 의존으로 동작하는 **다층 피드백 루프** 구조를 구축한다.
+
+> **3계층으로 통합** (2026-05-10): 기존 4계층의 Pipeline 층(`.analysis/` 또는 `pipelines/`)은 별도 디렉토리로 분리돼 있었으나, command ↔ pipeline 매핑이 1:1 이거나 1:0 인 경우가 대부분이라 **Command 본문에 PIPELINE 절차를 인라인** 하는 방식으로 통합. 산출물은 `outputs/<command-name>/` 으로 분리해 절차서와 결과물을 깔끔히 분리.
 
 ## 1. 설계 원칙
 
@@ -55,7 +57,7 @@ claude_framework/
 │       ├── review-pr.md
 │       ├── audit-harness.md
 │       └── parallel-tickets.md
-├── pipelines/                           # 파이프라인 (무엇을, 어떤 순서로)
+├── commands/ + outputs/                           # 파이프라인 (무엇을, 어떤 순서로)
 │   ├── prd/PIPELINE.md
 │   ├── project-analysis/PIPELINE.md
 │   ├── pr-review/PIPELINE.md
@@ -75,17 +77,18 @@ claude_framework/
     └── qa-followup-tickets.yml          # docs/qa/*.md push → Issue
 ```
 
-## 3. 4계층 의존 (Command → Pipeline → Agent → Skill)
+## 3. 3계층 의존 (Command → Agent → Skill)
 
 | 계층 | 책임 | 위치 | 참조 가능 대상 |
 |------|------|------|----------------|
-| Command | 사용자 트리거 진입점 | `.claude/commands/<name>.md` | Pipeline, Agent |
-| Pipeline | 무엇을·어떤 순서로 | `pipelines/<name>/PIPELINE.md` | Agent, Skill |
-| Agent | 누가 (페르소나 + 모델 + 도구) | `.claude/agents/<name>.md` | Skill, Rule |
-| Skill | 어떻게 (절차) | `.claude/skills/<name>/SKILL.md` | Rule |
-| Rule | 하지 말 것 | `.claude/harness-rules.json` | (참조만 됨) |
+| Command | 사용자 트리거 + 절차서 (인라인 PIPELINE) | `commands/<name>.md` | Agent, Skill, Rule |
+| Agent | 누가 (페르소나 + 모델 + 도구) | `agents/<name>.md` | Skill, Rule |
+| Skill | 어떻게 (절차/체크리스트/템플릿) | `skills/<name>/SKILL.md` | Rule |
+| Rule | 하지 말 것 + 컨벤션 | `.claude/harness-rules.json` + `rules/*.md` | (참조만 됨) |
 
-역방향 의존(Skill → Agent, Agent → Pipeline 등) 금지.
+산출물 위치: `outputs/<command-name>/<date>-<topic>/` — 절차서(commands)와 결과물(outputs) 분리.
+
+역방향 의존(Skill → Agent, Agent → Command 등) 금지.
 
 ## 4. 워크플로우
 
@@ -95,7 +98,7 @@ claude_framework/
 
 2. Command 본문 → 해당 Pipeline 진입
    - PIPELINE.md 의 단계별 지시를 순차 수행
-   - 산출물 경로 자동 관리 (pipelines/<name>/<date>/)
+   - 산출물 경로 자동 관리 (outputs/<name>/<date>/)
 
 3. Pipeline → 단계별 Agent 스폰
    - 모델 명시 (opus/sonnet/haiku)
@@ -148,7 +151,7 @@ claude_framework/
    c. process-reviewer 에이전트 스폰 (sonnet, SubagentStop 비활성)
       · 입력: 작업 로그 + 참조한 command/skill/rule 경로 + 산출물(PR diff, QA 문서)
       · 비교 기준 (이외는 판정 근거 부족 — 단순 LLM 의견 추가 금지):
-        - PRD/ADR (pipelines/<name>/)
+        - PRD/ADR (outputs/<name>/)
         - harness-rules.json
         - 이전 머지된 패턴
       · 출력: docs/feedback-loop/proposals/<YYYYMMDD>-<topic>.md
@@ -225,7 +228,7 @@ Stop/SubagentStop 훅에서 트리거 조건 충족 시에만 스폰:
 ## 8. 마이그레이션 단계
 
 1. **현 구조 점검**: 기존 `agents/`, `commands/`, `skills/`, `templates/` 자산 인벤토리.
-2. **Pipeline 정리**: `pipelines/<name>/PIPELINE.md` 누락분 추가 (incident, refactoring, release 등).
+2. **Pipeline 정리**: `outputs/<name>/PIPELINE.md` 누락분 추가 (incident, refactoring, release 등).
 3. **Agent 분리**: 단일 reviewer → pr-reviewer / be-senior / be-tech-lead / security-reviewer.
 4. **Command 진입점 정비**: 사용자가 자주 쓰는 흐름을 `/analyze-prd`, `/tdd-implement`, `/review-pr` 등으로 일원화.
 5. **Workflow 다층화**: nightly harness-audit + PR senior-gate + qa-followup 3개 워크플로우 추가.

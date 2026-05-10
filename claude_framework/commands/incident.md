@@ -1,4 +1,12 @@
-# Incident Response Pipeline
+---
+description: 장애 대응 — RCA + 임시 조치 + 영구 fix + harness-rules 갱신
+argument-hint: <간단 설명 또는 대상>
+---
+
+# /incident — 절차
+
+**대상**: $ARGUMENTS
+
 
 장애 발생 시 대응 절차.
 
@@ -14,7 +22,7 @@
 - 알람/모니터링 링크 수집
 
 ### 2. 진단
-- 로그·메트릭·트레이스 수집 (`pipelines/incident/<YYYYMMDD>-<topic>/logs/`)
+- 로그·메트릭·트레이스 수집 (`outputs/incident/<YYYYMMDD>-<topic>/logs/`)
 - 가설 도출 → 검증 (배포/설정/외부 의존)
 - 재현 시도 (가능하면 staging)
 
@@ -40,7 +48,7 @@
 
 ## 산출물
 
-- `pipelines/incident/<YYYYMMDD>-<topic>/`
+- `outputs/incident/<YYYYMMDD>-<topic>/`
   - `report.md` (RCA + 타임라인 + 조치)
   - `logs/` (수집한 원본 로그)
   - `postmortem.md` (선택)
@@ -53,8 +61,8 @@
 
 ## 참고
 
-- harness-rules 갱신 흐름: `pipelines/feedback-loop/PIPELINE.md`
+- harness-rules 갱신 흐름: `commands/audit-feedback-loop.md`
 
 ## 완료 단언 규칙
 
-> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.
+> "완료/검증 끝" 같은 단언은 [`rules/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

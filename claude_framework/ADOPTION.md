@@ -34,7 +34,7 @@ git init && git add . && git commit -m "chore: bootstrap with claude_framework"
   - `harness-check.py` + `scripts/` (정적 + 동적 검사)
   - `scripts/senior-gate.py`, `scripts/harness-audit.py`, `scripts/qa-followup-extract.py`
   - `settings.json` 기본 + `settings.json.feedback-loop.example` (메타-피드백 활성화 옵션)
-- `pipelines/` — 10개 파이프라인 정의 (필수)
+- `commands/ + outputs/` — 10개 파이프라인 정의 (필수)
   - prd / project-analysis / be-implementation / pr-review / feedback-loop / refactoring / release / api-change / incident / inquiry
 - `agents/` — 14개 에이전트 (구현 + 리뷰 5종 + 메타-피드백 2종)
 - `skills/`, `commands/`, `rules/`
@@ -247,7 +247,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 ```bash
 # Claude Code 세션 시작 후
 /analyze-prd <샘플 PRD>
-# → pipelines/prd/YYYY-MM-DD-*.md 생성 확인
+# → outputs/analyze-prd/YYYY-MM-DD-*.md 생성 확인
 ```
 
 ### 5-3. 에이전트 스폰 확인
@@ -261,7 +261,7 @@ Agent(subagent_type="be-tech-lead", prompt="간단한 자문: Hello")
 ## 체크리스트 (신규 프로젝트 이식 시)
 
 ### 필수
-- [ ] `.claude/`, `pipelines/` 복사
+- [ ] `.claude/`, `commands/ + outputs/` 복사
 - [ ] `CLAUDE.md` 프로젝트 특화 정보로 재작성
 - [ ] `harness-rules.json` 스택 맞게 조정
 - [ ] `git_guard.protected_branches` 프로젝트 브랜치 전략 반영
@@ -276,7 +276,7 @@ Agent(subagent_type="be-tech-lead", prompt="간단한 자문: Hello")
 - [ ] 팀원 대상 ADOPTION.md 공유
 
 ### 선택
-- [ ] `pipelines/be-refactoring/`, `incident/` 등 추가 파이프라인 이식
+- [ ] `commands/ + outputs/be-refactoring/`, `incident/` 등 추가 파이프라인 이식
 - [ ] 스택별 리뷰어 확장 (`kotlin-reviewer`, `python-reviewer` 등)
 - [ ] `be-code-convention.md`를 프로젝트 도메인명으로 치환
 

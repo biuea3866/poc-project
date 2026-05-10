@@ -73,6 +73,6 @@ status: proposed
 
 ## 참고
 
-- 워크플로우: `pipelines/feedback-loop/PIPELINE.md`
+- 워크플로우: `commands/audit-feedback-loop.md`
 - 에이전트: `agents/process-reviewer.md`
 - 안전 장치: `REFACTOR.md` §7 안티패턴

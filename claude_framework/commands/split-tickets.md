@@ -1,6 +1,6 @@
 ---
 description: 설계 산출물을 "1명/1일/1PR" 티켓으로 분해
-argument-hint: <path to pipelines/project-analysis/YYYY-MM-DD-feature/>
+argument-hint: <path to outputs/plan-project/YYYY-MM-DD-feature/>
 ---
 
 `ticket-splitter` 에이전트로 `ticket-breakdown` 스킬을 사용해 티켓을 분해해줘.

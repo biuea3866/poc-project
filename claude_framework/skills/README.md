@@ -20,7 +20,7 @@ Skill은 에이전트가 참조하는 "재사용 가능한 절차 모듈"이다.
 
 | 구분 | 역할 | 형식 | 호출 |
 |---|---|---|---|
-| **Pipeline** | 무엇을/어떤 순서로 | `pipelines/*/PIPELINE.md` | 사용자 또는 pipeline-runner |
+| **Pipeline** | 무엇을/어떤 순서로 | `commands/*.md` | 사용자 또는 pipeline-runner |
 | **Agent** | 누가 실행 (페르소나/도구) | `agents/*.md` | Agent 툴 (`subagent_type`) |
 | **Skill** | 어떻게 (절차/노하우/템플릿) | `skills/*/SKILL.md` | Skill 툴 또는 에이전트가 본문 참조 |
 

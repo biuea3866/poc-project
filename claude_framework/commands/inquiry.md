@@ -1,4 +1,12 @@
-# Inquiry / Bug Triage Pipeline
+---
+description: 문의/버그 트리아지 — 분류 + 재현 + 가설 + 응답 + fix
+argument-hint: <간단 설명 또는 대상>
+---
+
+# /inquiry — 절차
+
+**대상**: $ARGUMENTS
+
 
 문의·버그 신고 대응 절차 (장애 직전 단계).
 
@@ -31,7 +39,7 @@
 - 데이터 보정 필요 시 SQL 작성 → 사람 승인 후 실행
 
 ### 5. 영구 fix
-- 단순 fix → PR + `pipelines/pr-review/PIPELINE.md`
+- 단순 fix → PR + `commands/review-pr.md`
 - 구조적 문제 → refactoring pipeline 으로 이관
 - 룰로 막을 수 있었나? → harness-rules 보강 후보
 
@@ -41,7 +49,7 @@
 
 ## 산출물
 
-- `pipelines/inquiry/<YYYYMMDD>-<topic>/`
+- `outputs/inquiry/<YYYYMMDD>-<topic>/`
   - `triage.md` (분류 + 재현 + 가설)
   - `response.md` (사용자 응답)
   - `fix-pr.md` (해결 PR 링크)
@@ -54,9 +62,9 @@
 
 ## 참고
 
-- 장애 대응: `pipelines/incident/PIPELINE.md`
-- 메타-피드백: `pipelines/feedback-loop/PIPELINE.md`
+- 장애 대응: `commands/incident.md`
+- 메타-피드백: `commands/audit-feedback-loop.md`
 
 ## 완료 단언 규칙
 
-> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.
+> "완료/검증 끝" 같은 단언은 [`rules/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.
