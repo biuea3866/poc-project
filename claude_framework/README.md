@@ -1,6 +1,6 @@
 # claude_framework
 
-Claude Code 기반 멀티 레포 워크스페이스 템플릿이자 **플러그인**. 하네스 룰(훅), 분석 파이프라인, 역할별 에이전트/스킬/커맨드를 4계층으로 구조화하여 "PRD → 설계 → 구현 → 리뷰" 전체 플로우를 자동화한다.
+Claude Code 기반 멀티 레포 워크스페이스 템플릿이자 **플러그인**. 하네스 룰(훅), 분석 파이프라인, 역할별 에이전트/스킬/커맨드를 3계층으로 구조화하여 "PRD → 설계 → 구현 → 리뷰" 전체 플로우를 자동화한다.
 
 - 🔌 **플러그인 설치 후 `/init`** — 기존 프로젝트에도 한 줄 이식, `--scan`으로 컨벤션 자동 추출, `--classify-repos`로 하위 레포 분류
 - 🎛 **3-레이어 커스터마이징** — 플러그인 base + 프로젝트 공유 + 개인 오버라이드 자동 병합, 플러그인 업데이트받으면서 커스텀 유지
@@ -34,8 +34,8 @@ cd /path/to/your-project
 
 # 3. 전체 플로우
 /analyze-prd <PRD URL>
-/plan-project pipelines/prd/<산출물>.md
-/parallel-tickets pipelines/project-analysis/<feature>/03-tickets.md 4
+/plan-project outputs/analyze-prd/<산출물>.md
+/parallel-tickets outputs/plan-project/<feature>/03-tickets.md 4
 #   팀장 Opus 4.7 + 팀원 Sonnet 4.6, worktree 격리 병렬 구현
 ```
 
@@ -51,7 +51,7 @@ git config core.hooksPath .claude/git-hooks
 
 ---
 
-## 4계층 아키텍처
+## 3계층 아키텍처
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
@@ -61,8 +61,8 @@ git config core.hooksPath .claude/git-hooks
                                ↓ 호출
 ┌──────────────────────────────────────────────────────────────┐
 │ Pipeline  (무엇을, 어떤 순서로 — 설계 문서)                     │
-│   pipelines/prd/PIPELINE.md                                   │
-│   pipelines/project-analysis/PIPELINE.md                      │
+│   commands/analyze-prd.md                                   │
+│   commands/plan-project.md                      │
 └──────────────────────────────┬───────────────────────────────┘
                                ↓ 참조
 ┌──────────────────────────────────────────────────────────────┐
@@ -87,7 +87,7 @@ git config core.hooksPath .claude/git-hooks
   .claude/harness-rules.json  →  .claude/harness-check.py (PreToolUse/PostToolUse)
 ```
 
-**참조 방향은 단방향**. Command → Pipeline → Agent → Skill. 역방향 참조 금지.
+**참조 방향은 단방향**. Command → Agent → Skill. 역방향 참조 금지.
 
 ---
 
@@ -160,11 +160,11 @@ claude_framework/
 │   │   ├── git-hooks/pre-commit
 │   │   ├── presets/{kotlin,node,python,go}.json  # 스택별 룰 프리셋
 │   │   └── harness-rules{,.local}.json.example
-│   ├── pipelines/
+│   ├── commands/ + outputs/
 │   ├── .gitignore
 │   └── CLAUDE.md.template
 │
-├── pipelines/                    # 분석 파이프라인 산출물
+├── commands/ + outputs/                    # 분석 파이프라인 산출물
 │   ├── README.md
 │   ├── prd/
 │   │   └── PIPELINE.md           # PRD 분석 파이프라인
@@ -261,10 +261,10 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 # 산출물 검토 후 Open Questions 해결
 
 # 2. 설계+TDD+티켓 분해
-/plan-project pipelines/prd/2026-04-18-posting-feature.md
+/plan-project outputs/analyze-prd/2026-04-18-posting-feature.md
 
 # 3. 병렬 구현 (팀장 opus + 팀원 sonnet, 동시 4개)
-/parallel-tickets pipelines/project-analysis/2026-04-18-posting-feature/03-tickets.md 4
+/parallel-tickets outputs/plan-project/2026-04-18-posting-feature/03-tickets.md 4
 ```
 
 ### 시나리오 2: 단일 티켓 처리
@@ -387,7 +387,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 ┌─────────────────────────── 7. 결과 ─────────────────────────────┐
 │  에이전트 결과가 상위 세션에 반환                                │
 │  pipeline-runner가 Exit Criteria 체크 → 다음 단계 또는 완료      │
-│  최종 산출물: pipelines/<pipeline>/ 또는 코드 변경 + PR          │
+│  최종 산출물: commands/ + outputs/<pipeline>/ 또는 코드 변경 + PR          │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -484,7 +484,7 @@ claude_framework/
 | 하고 싶은 것 | 어디를 수정 |
 |---|---|
 | 새 언어/프레임워크 금지 룰 추가 | `.claude/harness-rules.json` → `forbidden_patterns.rules` |
-| 새 파이프라인 추가 | `pipelines/<name>/PIPELINE.md` + 담당 에이전트/스킬 표 |
+| 새 파이프라인 추가 | `outputs/<name>/PIPELINE.md` + 담당 에이전트/스킬 표 |
 | 새 에이전트 | `.claude/agents/<name>.md` (frontmatter + 사용 스킬 참조) |
 | 새 스킬 | `.claude/skills/<name>/SKILL.md` (when/원칙/절차/완료체크) |
 | 새 커맨드 | `.claude/commands/<name>.md` (frontmatter + 얇은 프롬프트) |
@@ -496,7 +496,7 @@ claude_framework/
 ## 설계 원칙
 
 1. **단일 진실 원천(SSOT)** — 룰은 `harness-rules.json` 한 곳. 훅/pre-commit/감사 모두 여기만 본다.
-2. **계층 단방향** — Command → Pipeline → Agent → Skill. 역참조 금지.
+2. **계층 단방향** — Command → Agent → Skill. 역참조 금지.
 3. **빈 껍데기 금지** — 모든 산출물 섹션은 실제 내용으로 채워져야 완료.
 4. **TDD 강제** — 모든 구현은 Red→Green→Refactor. 테스트 없는 PR 금지.
 5. **병렬성 기본** — 독립 티켓은 worktree + background Agent로 병렬 실행.
@@ -515,7 +515,7 @@ claude_framework/
 
 - [ADOPTION.md](./ADOPTION.md) — 다른 프로젝트 이식 가이드
 - [CLAUDE.md](./CLAUDE.md) — Claude가 세션 시작 시 로드하는 프로젝트 가이드
-- [pipelines/README.md](./pipelines/README.md) — 파이프라인 카탈로그
+- [commands/ + outputs/README.md](./commands/ + outputs/README.md) — 파이프라인 카탈로그
 - [.claude/agents/README.md](./.claude/agents/README.md) — 에이전트 카탈로그
 - [.claude/skills/README.md](./.claude/skills/README.md) — 스킬 카탈로그
 - [.claude/commands/README.md](./.claude/commands/README.md) — 커맨드 카탈로그

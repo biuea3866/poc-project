@@ -1,4 +1,12 @@
-# Multi-Repo Change Pipeline
+---
+description: 다중 레포 변경 — 영향 인벤토리 + 단계별 적용 + 진행 상황 추적
+argument-hint: <간단 설명 또는 대상>
+---
+
+# /multi-repo — 절차
+
+**대상**: $ARGUMENTS
+
 
 여러 레포에 걸친 변경(설정 / 라이브러리 버전 / 인프라 자격증명 / 공통 컨벤션)을 다룰 때, **누락 없이** 진행하기 위한 절차. Sprint 4 직전 Kafka SCRAM 누락 사고처럼 "다 했다" 를 단언하기 전에 어느 레포가 어떻게 처리됐는지를 강제로 명시화한다.
 
@@ -14,7 +22,7 @@
 다음 산출물을 작성하기 전에는 다음 단계로 가지 못한다:
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/01-inventory.md
+outputs/multi-repo/<YYYYMMDD>-<topic>/01-inventory.md
 ```
 
 형식:
@@ -51,7 +59,7 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/01-inventory.md
 ### 2. 레포별 작업 계획
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/02-plan.md
+outputs/multi-repo/<YYYYMMDD>-<topic>/02-plan.md
 ```
 
 각 레포에 대해:
@@ -73,7 +81,7 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/02-plan.md
 ### 4. 진행 상황 추적 (강제)
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/03-progress.md
+outputs/multi-repo/<YYYYMMDD>-<topic>/03-progress.md
 ```
 
 ```markdown
@@ -99,7 +107,7 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/03-progress.md
 ### 5. 사후 검증 (배포 후)
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/04-postdeploy.md
+outputs/multi-repo/<YYYYMMDD>-<topic>/04-postdeploy.md
 ```
 
 배포 후 N분 내 핵심 메트릭으로 실제 적용 확인:
@@ -110,7 +118,7 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/04-postdeploy.md
 ### 6. 회고 (최종)
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/05-retrospective.md
+outputs/multi-repo/<YYYYMMDD>-<topic>/05-retrospective.md
 ```
 
 - 누락된 레포가 있었나? 왜 검색에 안 잡혔나?
@@ -120,7 +128,7 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/05-retrospective.md
 ## 산출물 위치 (강제)
 
 ```
-pipelines/multi-repo/<YYYYMMDD>-<topic>/
+outputs/multi-repo/<YYYYMMDD>-<topic>/
 ├── 01-inventory.md      (1단계 — 강제)
 ├── 02-plan.md           (2단계 — 강제)
 ├── 03-progress.md       (3·4단계 — 강제, 머지마다 갱신)
@@ -139,10 +147,10 @@ pipelines/multi-repo/<YYYYMMDD>-<topic>/
 
 ## 참고
 
-- 변경 영향 분석: `pipelines/api-change/PIPELINE.md`
-- 배포 절차: `pipelines/release/PIPELINE.md`
-- 메타-피드백: `pipelines/feedback-loop/PIPELINE.md`
+- 변경 영향 분석: `commands/api-change.md`
+- 배포 절차: `commands/release.md`
+- 메타-피드백: `commands/audit-feedback-loop.md`
 
 ## 완료 단언 규칙
 
-> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.
+> "완료/검증 끝" 같은 단언은 [`rules/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

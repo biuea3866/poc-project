@@ -1,6 +1,6 @@
 # claude_framework — 프로젝트 템플릿
 
-Claude Code 기반 멀티 레포 워크스페이스 템플릿. **4계층 구조(Command → Pipeline → Agent → Skill)** + **다층 방어(로컬 훅 → pre-commit → CI Senior Gate → nightly 감사)** + **메타-피드백 루프**(prompt 자체 개선) 를 내장한다.
+Claude Code 기반 멀티 레포 워크스페이스 템플릿. **3계층 구조(Command → Agent → Skill)** + **다층 방어(로컬 훅 → pre-commit → CI Senior Gate → nightly 감사)** + **메타-피드백 루프**(prompt 자체 개선) 를 내장한다.
 
 > 자세한 설계 결정과 마이그레이션 계획은 [`REFACTOR.md`](./REFACTOR.md) 참조.
 
@@ -29,7 +29,7 @@ claude_framework/
 │   └── process-reviewer.md                         # sonnet, 메타-피드백 (Stop/SubagentStop 훅)
 ├── skills/                                         # "어떻게" 재사용 절차
 ├── commands/                                       # 사용자 트리거 슬래시 커맨드
-├── pipelines/                                      # 파이프라인 — 무엇을, 어떤 순서로
+├── commands/ + outputs/                                      # 파이프라인 — 무엇을, 어떤 순서로
 │   ├── prd/PIPELINE.md
 │   ├── project-analysis/PIPELINE.md
 │   ├── be-implementation/PIPELINE.md
@@ -55,17 +55,17 @@ claude_framework/
 └── REFACTOR.md  README.md  ADOPTION.md  PLUGIN.md
 ```
 
-## 4계층 구조 (Command → Pipeline → Agent → Skill)
+## 3계층 구조 (Command → Agent → Skill)
 
 | 계층 | 책임 | 위치 | 참조 가능 대상 |
 |------|------|------|----------------|
 | Command | 사용자 트리거 (UX) | `.claude/commands/<name>.md` | Pipeline, Agent |
-| Pipeline | 무엇을·어떤 순서로 | `pipelines/<name>/PIPELINE.md` | Agent, Skill |
+| Pipeline | 무엇을·어떤 순서로 | `outputs/<name>/PIPELINE.md` | Agent, Skill |
 | Agent | 누가 (페르소나 + 모델 + 도구) | `.claude/agents/<name>.md` 또는 `agents/<name>.md` | Skill, Rule |
 | Skill | 어떻게 (절차) | `.claude/skills/<name>/SKILL.md` 또는 `skills/<name>/SKILL.md` | Rule |
 | Rule | 하지 말 것 | `.claude/harness-rules.json` | (참조됨) |
 
-**의존 방향**: Command → Pipeline → Agent → Skill → Rule. **역방향 금지**.
+**의존 방향**: Command → Agent → Skill → Rule. **역방향 금지**.
 
 **흐름**: 사용자 `/<cmd>` → Command 본문이 Pipeline 진입 → Pipeline 단계별 Agent 스폰 → Agent 가 Skill 본문 로드해 실행 → Rule 은 정적 검증으로 자동 반영.
 
@@ -116,22 +116,22 @@ claude_framework/
 
 활성화: `.claude/settings.json.feedback-loop.example` 의 hooks 객체를 `settings.json` 에 병합.
 
-상세 절차: [`pipelines/feedback-loop/PIPELINE.md`](./pipelines/feedback-loop/PIPELINE.md)
+상세 절차: [`commands/audit-feedback-loop.md`](./commands/audit-feedback-loop.md)
 
 ## 분석 파이프라인
 
 | 파이프라인 | 진입 문서 | 비고 |
 |---|---|---|
-| PRD 분석 | `pipelines/prd/PIPELINE.md` | |
-| 프로젝트 분석 (TDD/티켓) | `pipelines/project-analysis/PIPELINE.md` | |
-| BE 구현 | `pipelines/be-implementation/PIPELINE.md` | PRD → ADR → TDD → 티켓 → 구현 |
-| PR 리뷰 | `pipelines/pr-review/PIPELINE.md` | 분야별 5인 병렬 |
-| 메타-피드백 | `pipelines/feedback-loop/PIPELINE.md` | Stop 훅 + 제안 파일 |
-| 리팩토링 | `pipelines/refactoring/PIPELINE.md` | |
-| 배포 | `pipelines/release/PIPELINE.md` | |
-| API 변경 | `pipelines/api-change/PIPELINE.md` | |
-| 장애 대응 | `pipelines/incident/PIPELINE.md` | |
-| 문의/버그 트리아지 | `pipelines/inquiry/PIPELINE.md` | |
+| PRD 분석 | `commands/analyze-prd.md` | |
+| 프로젝트 분석 (TDD/티켓) | `commands/plan-project.md` | |
+| BE 구현 | `commands/plan-project.md` | PRD → ADR → TDD → 티켓 → 구현 |
+| PR 리뷰 | `commands/review-pr.md` | 분야별 5인 병렬 |
+| 메타-피드백 | `commands/audit-feedback-loop.md` | Stop 훅 + 제안 파일 |
+| 리팩토링 | `commands/refactor.md` | |
+| 배포 | `commands/release.md` | |
+| API 변경 | `commands/api-change.md` | |
+| 장애 대응 | `commands/incident.md` | |
+| 문의/버그 트리아지 | `commands/inquiry.md` | |
 
 ## 모델·비용 분리
 
@@ -153,7 +153,7 @@ claude_framework/
 ## 템플릿 확장 가이드
 
 - **새 룰 추가**: `harness-rules.json` `forbidden_patterns` 에 1개 추가
-- **새 파이프라인 추가**: `pipelines/<name>/PIPELINE.md` 작성
+- **새 파이프라인 추가**: `outputs/<name>/PIPELINE.md` 작성
 - **에이전트 추가**: `agents/<name>.md` frontmatter + 사용 스킬 참조 명시
 - **스킬 추가**: `skills/<name>/SKILL.md` (언제/원칙/절차/완료체크)
 - **메타-피드백 제안 반영**: `docs/feedback-loop/proposals/` 의 제안 파일 → 사람 승인 → `refactor/feedback/<date>` 브랜치 PR

@@ -1,4 +1,12 @@
-# Refactoring Pipeline
+---
+description: 리팩토링 — 동작 동일성 강제, as-is/to-be diff 검증
+argument-hint: <간단 설명 또는 대상>
+---
+
+# /refactor — 절차
+
+**대상**: $ARGUMENTS
+
 
 리팩토링 계획·실행·검증 절차. **as-is/to-be 동작 동일성 강제** — 운영 사고(잘못된 라인의 update / 다른 조회 쿼리) 재발 방지.
 
@@ -16,7 +24,7 @@
 ### 2. 현 상태 측정 (강제 산출물)
 
 ```
-pipelines/refactoring/<YYYYMMDD>-<scope>/before.md
+outputs/refactor/<YYYYMMDD>-<scope>/before.md
 ```
 
 다음 중 적용 가능한 항목 모두:
@@ -37,13 +45,13 @@ pipelines/refactoring/<YYYYMMDD>-<scope>/before.md
 
 ### 5. 실행
 - be-implementer / fe-implementer 가 PR 단위로 작업
-- 각 PR 은 `pipelines/pr-review/PIPELINE.md` 통과
+- 각 PR 은 `commands/review-pr.md` 통과
 - 마지막 단계까지 부분 머지 가능
 
 ### 6. 동작 동일성 검증 (★ 강제)
 
 ```
-pipelines/refactoring/<YYYYMMDD>-<scope>/diff-verification.md
+outputs/refactor/<YYYYMMDD>-<scope>/diff-verification.md
 ```
 
 다음 산출물이 **모두** 존재해야 "검증 완료" 단언 가능:
@@ -87,7 +95,7 @@ SELECT id, status, updated_at FROM orders WHERE user_id = ? AND status IN ('PAID
 ### 7. 측정값 재측정
 
 ```
-pipelines/refactoring/<YYYYMMDD>-<scope>/after.md
+outputs/refactor/<YYYYMMDD>-<scope>/after.md
 ```
 
 §2 의 항목을 동일 방법으로 재측정. before/after 비교 표.
@@ -95,7 +103,7 @@ pipelines/refactoring/<YYYYMMDD>-<scope>/after.md
 ### 8. 회고 (강제 산출물)
 
 ```
-pipelines/refactoring/<YYYYMMDD>-<scope>/retrospective.md
+outputs/refactor/<YYYYMMDD>-<scope>/retrospective.md
 ```
 
 - 동일성 검증에서 ❌ 가 나온 라인이 있었나? 어떻게 처리했나?
@@ -105,7 +113,7 @@ pipelines/refactoring/<YYYYMMDD>-<scope>/retrospective.md
 ## 강제 산출물 — 5개
 
 ```
-pipelines/refactoring/<YYYYMMDD>-<scope>/
+outputs/refactor/<YYYYMMDD>-<scope>/
 ├── plan.md                  (1·3·4단계)
 ├── before.md                (2단계 — 강제)
 ├── diff-verification.md     (6단계 — ★ 강제, 운영 사고 방지의 핵심)
@@ -126,9 +134,9 @@ pipelines/refactoring/<YYYYMMDD>-<scope>/
 ## 참고
 
 - 티켓 분해: `skills/ticket-breakdown/SKILL.md`
-- 리뷰: `pipelines/pr-review/PIPELINE.md`
-- 메타-피드백: `pipelines/feedback-loop/PIPELINE.md`
+- 리뷰: `commands/review-pr.md`
+- 메타-피드백: `commands/audit-feedback-loop.md`
 
 ## 완료 단언 규칙
 
-> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.
+> "완료/검증 끝" 같은 단언은 [`rules/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

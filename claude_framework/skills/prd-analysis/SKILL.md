@@ -66,7 +66,7 @@ Q-<번호> → @<담당자>: <질문>
 - 각 Risk에 완화 방안 필수
 
 ## 산출물 템플릿
-`pipelines/prd/YYYY-MM-DD-<feature-slug>.md`
+`outputs/analyze-prd/YYYY-MM-DD-<feature-slug>.md`
 
 ```markdown
 # <Feature Name> — PRD Analysis

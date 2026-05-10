@@ -45,19 +45,21 @@ verify_manifests() {
     [ -f "$SOURCE_DIR/agents/$agent" ] || err "agents/$agent 없음"
   done
 
-  for pipeline in feedback-loop pr-review be-implementation refactoring release api-change incident inquiry multi-repo; do
-    [ -f "$SOURCE_DIR/pipelines/$pipeline/PIPELINE.md" ] || err "pipelines/$pipeline/PIPELINE.md 없음"
+  # 11개 commands 가 4-layer pipelines 를 흡수해 절차서 역할 겸함
+  for cmd in analyze-prd plan-project review-pr audit-feedback-loop refactor release api-change incident inquiry multi-repo audit-harness security-review process-review init parallel-tickets split-tickets tdd-implement; do
+    [ -f "$SOURCE_DIR/commands/$cmd.md" ] || err "commands/$cmd.md 없음"
   done
 
-  [ -f "$SOURCE_DIR/pipelines/COMPLETION-RULE.md" ] || err "pipelines/COMPLETION-RULE.md 없음 (거짓 완전성 차단 규칙)"
+  [ -f "$SOURCE_DIR/rules/COMPLETION-RULE.md" ] || err "rules/COMPLETION-RULE.md 없음 (거짓 완전성 차단 규칙)"
   [ -d "$SOURCE_DIR/docs/feedback-loop/proposals" ] || err "docs/feedback-loop/proposals/ 없음"
+  [ -d "$SOURCE_DIR/outputs" ] || err "outputs/ (산출물 보관) 없음"
   [ -f "$SOURCE_DIR/.claude/settings.json.feedback-loop.example" ] || err "settings.json.feedback-loop.example 없음"
   [ -f "$SOURCE_DIR/REFACTOR.md" ] || err "REFACTOR.md 없음"
   [ -d "$SOURCE_DIR/rules" ] || err "rules/ (공유 가이드) 없음"
   [ -d "$SOURCE_DIR/.claude/presets" ] || err ".claude/presets/ 없음"
   [ -d "$SOURCE_DIR/.claude/examples" ] || err ".claude/examples/ 없음"
 
-  log "매니페스트/리소스 검증 통과 (4계층 + 다층 방어 + 메타-피드백 자산 포함)"
+  log "매니페스트/리소스 검증 통과 (3계층 + 다층 방어 + 메타-피드백 자산 포함)"
 }
 
 cleanup_stale_entries() {

@@ -38,4 +38,4 @@ model: sonnet
 
 ## 산출물
 - `gh pr review --body ...` 로 인라인/요약 코멘트
-- 필요 시 `pipelines/` 아래에는 저장하지 않음 (이 워크스페이스는 PRD/project-analysis만 사용)
+- 필요 시 `commands/ + outputs/` 아래에는 저장하지 않음 (이 워크스페이스는 PRD/project-analysis만 사용)

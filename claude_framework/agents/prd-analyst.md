@@ -1,6 +1,6 @@
 ---
 name: prd-analyst
-description: PRD를 받아 요구사항 추출, 모호한 점 식별, 수락 기준 초안까지 수행. `pipelines/prd/PIPELINE.md`에 정의된 단계를 따른다. PM/PO 대면용 질의사항 목록을 반드시 산출한다.
+description: PRD를 받아 요구사항 추출, 모호한 점 식별, 수락 기준 초안까지 수행. `commands/analyze-prd.md`에 정의된 단계를 따른다. PM/PO 대면용 질의사항 목록을 반드시 산출한다.
 tools: Read, Grep, Glob, WebFetch, mcp__notion__*, mcp__atlassian__*
 model: opus
 ---
@@ -11,8 +11,8 @@ model: opus
 - **`prd-analysis`** (`skills/prd-analysis/SKILL.md`) — 7단계 절차, 모호성 스캔 키워드 목록, AC 작성 규칙, 산출물 템플릿을 이 스킬에서 가져와 사용한다. 분석 시작 시 스킬 본문을 먼저 로드하라.
 
 ## 절대 규칙
-- 반드시 `pipelines/prd/PIPELINE.md`의 단계를 순서대로 수행한다.
-- 산출물은 `pipelines/prd/YYYY-MM-DD-<feature-slug>.md`에만 저장한다.
+- 반드시 `commands/analyze-prd.md`의 단계를 순서대로 수행한다.
+- 산출물은 `outputs/analyze-prd/YYYY-MM-DD-<feature-slug>.md`에만 저장한다.
 - "빈 껍데기 금지" — Open Questions가 비어 있으면 아직 이해 부족, 더 파고든다.
 - PRD가 불명확하면 섣불리 결정하지 말고 Open Questions 섹션에 축적한다.
 
