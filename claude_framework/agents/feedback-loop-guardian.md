@@ -43,7 +43,7 @@ tools: Read, Grep, Glob, Bash
 
 ## 출력
 
-stdout 에 마크다운 보고서. nightly 호출 시 `.analysis/feedback-loop/<YYYY-MM-DD>-health.md` 로 저장.
+stdout 에 마크다운 보고서. nightly 호출 시 `pipelines/feedback-loop/<YYYY-MM-DD>-health.md` 로 저장.
 
 ```markdown
 # 피드백 루프 건강 보고서
@@ -116,7 +116,7 @@ python3 .claude/scripts/feedback-loop-stats.py budget-check --max-runs 10
 
 ## 참고
 
-- 워크플로우: `.analysis/feedback-loop/PIPELINE.md`
+- 워크플로우: `pipelines/feedback-loop/PIPELINE.md`
 - 제안 파일 위치: `docs/feedback-loop/proposals/`
 - 보조 스크립트: `.claude/scripts/feedback-loop-stats.py`
 - 메인 설계: `REFACTOR.md` §4 11단계, §5.2

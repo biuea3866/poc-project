@@ -17,6 +17,7 @@ tools: Read, Grep, Glob, Write, Bash
 2. 자동 재시도 N회 중 1회 이상 실패
 3. 룰 위반이 PreToolUse 훅에서 차단됨
 4. QA 보고서에 "후속 티켓" 항목이 추가됨
+5. **claim-without-action** — 완료/통과/검증 단언 후 도구 호출 없음, 또는 사용자의 "했어?" 질문 직후 그제서야 실행, 또는 강제 산출물 없는 "완료" 단언 (`pipelines/COMPLETION-RULE.md`)
 
 트리거 정보는 호출자(Stop/SubagentStop 훅 또는 main-orchestrator)가 입력으로 전달한다.
 
@@ -30,7 +31,7 @@ tools: Read, Grep, Glob, Write, Bash
 
 다음 외에는 판정 근거로 사용하지 않는다. "다른 LLM 의견" 만으로 판정 금지.
 
-- PRD/ADR (`.analysis/<name>/`)
+- PRD/ADR (`pipelines/<name>/`)
 - `harness-rules.json`
 - 이전에 머지된 동일 도메인 패턴
 
@@ -70,7 +71,7 @@ status: proposed
 
 ## 참조 체인
 - Command: `.claude/commands/<x>.md`
-- Pipeline: `.analysis/<y>/PIPELINE.md`
+- Pipeline: `pipelines/<y>/PIPELINE.md`
 - Agent: `.claude/agents/<z>.md`
 - Skill: `.claude/skills/<w>/SKILL.md`
 - Rule: `harness-rules.json` <섹션>
@@ -95,7 +96,7 @@ status: proposed
 
 ## 절대 금지
 
-- `.claude/`, `.analysis/`, `agents/`, `skills/`, `commands/` 하위 `.md` 파일 직접 수정
+- `.claude/`, `pipelines/`, `agents/`, `skills/`, `commands/` 하위 `.md` 파일 직접 수정
 - `harness-rules.json` 직접 수정
 - 비교 기준 없이 "LLM 의견" 만으로 제안
 - 트리거 검증 생략하고 모든 Stop 이벤트에서 발화 (일일 상한 5회)
@@ -109,6 +110,6 @@ status: proposed
 
 ## 참고
 
-- 워크플로우 정의: `.analysis/feedback-loop/PIPELINE.md`
+- 워크플로우 정의: `pipelines/feedback-loop/PIPELINE.md`
 - 효과 측정 담당: `agents/feedback-loop-guardian.md`
 - 상위 설계: `REFACTOR.md` §4 의 9~11 단계

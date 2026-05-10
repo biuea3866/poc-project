@@ -45,7 +45,7 @@
 
 ## 산출물
 
-- `.analysis/release/<version>/`
+- `pipelines/release/<version>/`
   - `release-notes.md` (사용자/팀 공유용)
   - `impact-analysis.md` (영향도)
   - `rollback-plan.md`
@@ -59,5 +59,9 @@
 
 ## 참고
 
-- API 변경 분석: `.analysis/api-change/PIPELINE.md`
-- 인시던트 대응: `.analysis/incident/PIPELINE.md`
+- API 변경 분석: `pipelines/api-change/PIPELINE.md`
+- 인시던트 대응: `pipelines/incident/PIPELINE.md`
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

@@ -69,4 +69,4 @@ find <범위> -name '*Controller.kt' -o -name '*UseCase.kt' -o -name '*Listener.
 ## 메타-피드백 연동
 
 - 룰로 막을 수 있었는데 못 막은 패턴 발견 → `process-reviewer` 트리거 후보
-- 결과를 `.analysis/feedback-loop/<YYYY-MM-DD>-audit.md` 에 저장하면 nightly guardian 이 참조
+- 결과를 `pipelines/feedback-loop/<YYYY-MM-DD>-audit.md` 에 저장하면 nightly guardian 이 참조

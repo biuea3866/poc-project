@@ -711,6 +711,6 @@ sealed interface RentalState {
 ---
 
 ## 참고 공통 가이드
-- [be-code-convention](../../common/be-code-convention.md) — 레이어/네이밍/테스트 전반
-- [tdd-template](../../common/tdd-template.md) — 설계 문서 섹션
-- [output-style](../../common/output-style.md) — 코드 참조 형식
+- [be-code-convention](../../rules/be-code-convention.md) — 레이어/네이밍/테스트 전반
+- [tdd-template](../../rules/tdd-template.md) — 설계 문서 섹션
+- [output-style](../../rules/output-style.md) — 코드 참조 형식

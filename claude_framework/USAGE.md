@@ -142,17 +142,30 @@ CLAUDE_TOOL_INPUT='{"command":"git push -u origin main"}' \
   /init [--scan] [--classify-repos] — 프로젝트 이식 (플러그인 모드)
 ```
 
+### 3-1-a. Command ↔ Pipeline 매핑
+
+| Command | 진입하는 Pipeline | 산출물 위치 |
+|---------|-------------------|-------------|
+| `/analyze-prd` | `pipelines/prd/` | `pipelines/prd/<date>-<feature>/` |
+| `/plan-project` | `pipelines/project-analysis/` + `pipelines/be-implementation/` | `pipelines/be-implementation/<feature>/` |
+| `/review-pr` | `pipelines/pr-review/` | GitHub PR 코멘트 |
+| `/audit-feedback-loop` | `pipelines/feedback-loop/` | `pipelines/feedback-loop/<date>-health.md` |
+
+**커맨드 없는 파이프라인** (오케스트레이션으로만 진입): `incident`, `inquiry`, `multi-repo`, `refactoring`, `release`, `api-change`. main-orchestrator 가 상황 감지 시 자동 진입.
+
+**파이프라인 없는 커맨드** (단일 액션): `/init`, `/audit-harness`, `/tdd-implement`, `/split-tickets`, `/parallel-tickets`, `/security-review`, `/process-review`. 단일 에이전트/스킬 호출.
+
 ### 3-2. 일반적인 흐름 (Sprint 1개 가정)
 
 ```
 1. /analyze-prd <PRD URL>
-   → .analysis/prd/<feature>/{requirements,acceptance}.md
+   → pipelines/prd/<feature>/{requirements,acceptance}.md
 
-2. /plan-project .analysis/prd/<feature>/requirements.md
-   → .analysis/project-analysis/<feature>/{design,adr,tickets}.md
-   → .analysis/be-implementation/<feature>/ 도 함께
+2. /plan-project pipelines/prd/<feature>/requirements.md
+   → pipelines/project-analysis/<feature>/{design,adr,tickets}.md
+   → pipelines/be-implementation/<feature>/ 도 함께
 
-3. /parallel-tickets .analysis/project-analysis/<feature>/03-tickets.md 4
+3. /parallel-tickets pipelines/project-analysis/<feature>/03-tickets.md 4
    → 4개 worktree 동시 구현, 각 PR 자동 생성
 
 4. /review-pr <num>  (각 PR)
@@ -258,7 +271,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push -u origin main"}' \
     └── feedback-loop-stats.py         가디언 보조 통계
 
 agents/                                14종 (구현 + 리뷰 5종 + 메타 2종 + 분석)
-.analysis/                             10개 PIPELINE.md
+pipelines/                             10개 PIPELINE.md
 commands/                              11종 슬래시 커맨드
 docs/feedback-loop/proposals/          제안 파일 보관소
 .github/workflows/                     4개 자동 워크플로우

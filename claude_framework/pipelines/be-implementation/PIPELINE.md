@@ -9,7 +9,7 @@ BE 기능 구현 절차. PRD 분석 → 설계 → TDD → 티켓 → 구현 →
 ## 단계
 
 ### 1. PRD 정제 (선행 의존)
-- `.analysis/prd/PIPELINE.md` 의 산출물 (`requirements.md`, `acceptance.md`) 사용
+- `pipelines/prd/PIPELINE.md` 의 산출물 (`requirements.md`, `acceptance.md`) 사용
 - 의문점이 남아있다면 PM/PO 질의 → 답변 후 진행
 
 ### 2. 도메인 식별
@@ -39,7 +39,7 @@ BE 기능 구현 절차. PRD 분석 → 설계 → TDD → 티켓 → 구현 →
 ### 6. 구현 (티켓 단위 병렬 가능)
 - be-implementer 가 티켓 1개씩
 - TDD 사이클: Red → Green → Refactor
-- 각 티켓 완료 시 PR open → `.analysis/pr-review/PIPELINE.md`
+- 각 티켓 완료 시 PR open → `pipelines/pr-review/PIPELINE.md`
 
 ### 7. 통합·시나리오 테스트
 - 모든 티켓 머지 후 E2E 시나리오 검증
@@ -51,7 +51,7 @@ BE 기능 구현 절차. PRD 분석 → 설계 → TDD → 티켓 → 구현 →
 
 ## 산출물
 
-- `.analysis/be-implementation/<feature>/`
+- `pipelines/be-implementation/<feature>/`
   - `00-overview.md`
   - `01-design.md` (mermaid 포함)
   - `02-adr.md`
@@ -67,6 +67,10 @@ BE 기능 구현 절차. PRD 분석 → 설계 → TDD → 티켓 → 구현 →
 
 ## 참고
 
-- PRD 단계: `.analysis/prd/PIPELINE.md`
-- 프로젝트 분석: `.analysis/project-analysis/PIPELINE.md`
-- 리뷰: `.analysis/pr-review/PIPELINE.md`
+- PRD 단계: `pipelines/prd/PIPELINE.md`
+- 프로젝트 분석: `pipelines/project-analysis/PIPELINE.md`
+- 리뷰: `pipelines/pr-review/PIPELINE.md`
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

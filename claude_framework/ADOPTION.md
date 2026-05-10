@@ -34,10 +34,10 @@ git init && git add . && git commit -m "chore: bootstrap with claude_framework"
   - `harness-check.py` + `scripts/` (정적 + 동적 검사)
   - `scripts/senior-gate.py`, `scripts/harness-audit.py`, `scripts/qa-followup-extract.py`
   - `settings.json` 기본 + `settings.json.feedback-loop.example` (메타-피드백 활성화 옵션)
-- `.analysis/` — 10개 파이프라인 정의 (필수)
+- `pipelines/` — 10개 파이프라인 정의 (필수)
   - prd / project-analysis / be-implementation / pr-review / feedback-loop / refactoring / release / api-change / incident / inquiry
 - `agents/` — 14개 에이전트 (구현 + 리뷰 5종 + 메타-피드백 2종)
-- `skills/`, `commands/`, `common/`
+- `skills/`, `commands/`, `rules/`
 - `.github/workflows/` — pr-senior-review / harness-audit / qa-followup-tickets
 - `docs/feedback-loop/proposals/` — 제안 파일 보관소 (빈 README + archived/closed)
 - `CLAUDE.md`, `REFACTOR.md`, `README.md`, `ADOPTION.md`, `PLUGIN.md`
@@ -186,7 +186,7 @@ git config core.hooksPath .claude/git-hooks
 
 ### 3-3. `be-code-convention.md` 수정
 
-`.claude/common/be-code-convention.md`는 **rental-commerce 기반 예시**. 프로젝트 도메인명(rental, product, user)을 자신의 도메인으로 치환하거나, 불필요하면 삭제.
+`.claude/rules/be-code-convention.md`는 **rental-commerce 기반 예시**. 프로젝트 도메인명(rental, product, user)을 자신의 도메인으로 치환하거나, 불필요하면 삭제.
 
 ### 3-4. 보호 브랜치 조정
 
@@ -247,7 +247,7 @@ CLAUDE_TOOL_INPUT='{"command":"git push origin main --force"}' \
 ```bash
 # Claude Code 세션 시작 후
 /analyze-prd <샘플 PRD>
-# → .analysis/prd/YYYY-MM-DD-*.md 생성 확인
+# → pipelines/prd/YYYY-MM-DD-*.md 생성 확인
 ```
 
 ### 5-3. 에이전트 스폰 확인
@@ -261,7 +261,7 @@ Agent(subagent_type="be-tech-lead", prompt="간단한 자문: Hello")
 ## 체크리스트 (신규 프로젝트 이식 시)
 
 ### 필수
-- [ ] `.claude/`, `.analysis/` 복사
+- [ ] `.claude/`, `pipelines/` 복사
 - [ ] `CLAUDE.md` 프로젝트 특화 정보로 재작성
 - [ ] `harness-rules.json` 스택 맞게 조정
 - [ ] `git_guard.protected_branches` 프로젝트 브랜치 전략 반영
@@ -276,7 +276,7 @@ Agent(subagent_type="be-tech-lead", prompt="간단한 자문: Hello")
 - [ ] 팀원 대상 ADOPTION.md 공유
 
 ### 선택
-- [ ] `.analysis/be-refactoring/`, `incident/` 등 추가 파이프라인 이식
+- [ ] `pipelines/be-refactoring/`, `incident/` 등 추가 파이프라인 이식
 - [ ] 스택별 리뷰어 확장 (`kotlin-reviewer`, `python-reviewer` 등)
 - [ ] `be-code-convention.md`를 프로젝트 도메인명으로 치환
 
@@ -322,7 +322,7 @@ git fetch claude_framework main
 
 # 변경 사항 체리픽
 git log claude_framework/main -- claude_framework/ --oneline
-git checkout <commit> -- claude_framework/.claude/common/
+git checkout <commit> -- claude_framework/.claude/rules/
 ```
 
 또는 **git subtree**로 관리하면 더 깔끔:

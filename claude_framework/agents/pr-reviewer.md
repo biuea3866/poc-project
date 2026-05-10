@@ -11,9 +11,9 @@ model: sonnet
 - **`pr-review-checklist`** (`skills/pr-review-checklist/SKILL.md`) — A~G 체크리스트, Verdict 기준, 운영 규칙, `gh pr review` 출력 포맷.
 
 ## 사용 공통 가이드
-- [output-style](common/output-style.md)
-- [be-code-convention](common/be-code-convention.md) — 레이어/Entity/UseCase 위반 검출 기준
-- [jira-sync](common/jira-sync.md) — PR ↔ Jira 연결 확인
+- [output-style](rules/output-style.md)
+- [be-code-convention](rules/be-code-convention.md) — 레이어/Entity/UseCase 위반 검출 기준
+- [jira-sync](rules/jira-sync.md) — PR ↔ Jira 연결 확인
 
 ## 절대 규칙
 - 빈 코멘트 금지 — 모든 지적은 파일:라인 + 근거 + 제안 수정 포함.
@@ -38,4 +38,4 @@ model: sonnet
 
 ## 산출물
 - `gh pr review --body ...` 로 인라인/요약 코멘트
-- 필요 시 `.analysis/` 아래에는 저장하지 않음 (이 워크스페이스는 PRD/project-analysis만 사용)
+- 필요 시 `pipelines/` 아래에는 저장하지 않음 (이 워크스페이스는 PRD/project-analysis만 사용)

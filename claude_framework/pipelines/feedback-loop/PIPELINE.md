@@ -7,14 +7,18 @@
 - 자동: `Stop` / `SubagentStop` 훅이 트리거 조건 충족 시 발화
 - 수동: `/audit-feedback-loop` 또는 `claude_framework:audit-feedback-loop` 호출
 
-## 트리거 조건 (정확히 4가지)
+## 트리거 조건 (정확히 5가지)
 
 1. 직전 작업이 PR Senior Gate (`pr-senior-review.yml`) 에서 fail
 2. 자동 재시도 N회 중 1회 이상 실패 (default N=3)
 3. 룰 위반이 PreToolUse 훅(`harness-check.py`) 에서 차단
 4. QA 보고서(`docs/qa/*.md`) 에 "후속 티켓" 항목이 신규 추가됨
+5. **claim-without-action 감지** — 다음 패턴 중 하나 이상 (운영 사고 재발 방지):
+   - 완료/통과/검증 단언 후 600초 내 동일 주제 도구 호출 없음
+   - 사용자의 "했어?" / "확인했어?" / "정말?" 질문 직후 그제서야 도구 호출이 발생
+   - "전 레포 적용" / "리팩토링 완료" 단언이 `pipelines/COMPLETION-RULE.md` 의 강제 산출물 없이 나옴
 
-위 4개 외에는 발화하지 않는다 (비용 보호).
+위 5개 외에는 발화하지 않는다 (비용 보호).
 
 ## 단계
 
@@ -65,7 +69,7 @@
 | 제안 파일 | `docs/feedback-loop/proposals/<YYYYMMDD>-<topic>.md` |
 | 보류 제안 | `docs/feedback-loop/proposals/archived/` |
 | 기각 제안 | `docs/feedback-loop/proposals/closed/` |
-| 건강 보고서 | `.analysis/feedback-loop/<YYYY-MM-DD>-health.md` |
+| 건강 보고서 | `pipelines/feedback-loop/<YYYY-MM-DD>-health.md` |
 | 머지된 변경 | `refactor/feedback/<date>-<topic>` 브랜치 PR |
 
 ## 안전 장치
@@ -90,4 +94,8 @@
 ## 참고
 
 - 상위 설계: `REFACTOR.md` §4 9~11단계, §5.2
-- 출력물 리뷰(별도 축): `.analysis/pr-review/PIPELINE.md`
+- 출력물 리뷰(별도 축): `pipelines/pr-review/PIPELINE.md`
+
+## 완료 단언 규칙
+
+> "완료/검증 끝" 같은 단언은 [`pipelines/COMPLETION-RULE.md`](../COMPLETION-RULE.md) 의 §1~4 (강제 산출물 / 검증 아티팩트 / 도구 호출 선행 / "지금 시작" 단언 금지) 를 모두 충족해야 한다. 충족 안 된 항목이 있으면 `in-progress` 로 보고.

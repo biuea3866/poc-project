@@ -89,7 +89,7 @@ mkdir my-new-service && cd my-new-service
 git init
 # Claude Code 실행 후
 /init --stack=kotlin
-# → .claude/, .analysis/, CLAUDE.md 스캐폴드 완료
+# → .claude/, pipelines/, CLAUDE.md 스캐폴드 완료
 ```
 
 ### 시나리오 2 — 기존 프로젝트 이식 (컨벤션 스캔 포함)
@@ -148,7 +148,7 @@ cd doodlin-workspace  # 여러 레포가 하위에 있는 루트
 │  .claude/mcp.json           │
 │  .claude/git-hooks/         │
 │  .claude/presets/<stack>.json → harness-rules.json │
-│  .analysis/                  │
+│  pipelines/                  │
 │  CLAUDE.md (없으면)          │
 │                              │
 │ ⚠️ agents/skills/commands는   │
@@ -447,7 +447,7 @@ claude_framework/
 │   ├── agents/               # 플러그인이 제공하는 에이전트
 │   ├── skills/               # 플러그인이 제공하는 스킬
 │   ├── commands/             # 슬래시 커맨드 (/init 포함)
-│   ├── common/               # 공통 가이드 문서
+│   ├── rules/               # 공통 가이드 문서
 │   ├── harness-rules.json    # 플러그인 자체 개발용 (dogfood)
 │   ├── harness-check.py      # 플러그인 자체 개발용
 │   └── settings.json         # 플러그인 자체 개발용
@@ -458,13 +458,13 @@ claude_framework/
 │   │   ├── mcp.json
 │   │   ├── git-hooks/pre-commit
 │   │   └── presets/          # 스택별 harness-rules.json
-│   ├── .analysis/
+│   ├── pipelines/
 │   └── CLAUDE.md.template
-├── .analysis/                # 플러그인 자체 개발용 (dogfood)
+├── pipelines/                # 플러그인 자체 개발용 (dogfood)
 ├── CLAUDE.md
 ├── README.md
 ├── ADOPTION.md               # 수동 이식 가이드 (플러그인 없을 때)
 └── PLUGIN.md                 # 이 파일
 ```
 
-**dogfood 철학**: 플러그인 자체도 claude_framework로 개발 — `.claude/`와 `.analysis/`가 플러그인 루트에도 존재. 플러그인 기여자는 `/parallel-tickets`, `/review-pr` 등을 플러그인 개발 자체에 사용.
+**dogfood 철학**: 플러그인 자체도 claude_framework로 개발 — `.claude/`와 `pipelines/`가 플러그인 루트에도 존재. 플러그인 기여자는 `/parallel-tickets`, `/review-pr` 등을 플러그인 개발 자체에 사용.

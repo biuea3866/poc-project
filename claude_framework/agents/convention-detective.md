@@ -11,7 +11,7 @@ model: opus
 - **`codebase-convention-scan`** (`skills/codebase-convention-scan/SKILL.md`) — 6단계 스캔 절차, 패턴 추출 휴리스틱, 룰 생성 템플릿.
 
 ## 사용 공통 가이드
-- [output-style](common/output-style.md) — 보고서 문체
+- [output-style](rules/output-style.md) — 보고서 문체
 
 ## 절대 원칙
 - **코드 수정 금지** — 읽기 전용. 수정 제안만 반환.
