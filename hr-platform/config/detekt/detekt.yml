@@ -303,8 +303,8 @@ performance:
     active: true
     excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
   SpreadOperator:
-    active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/jsTest/**', '**/iosTest/**']
+    # Spring Boot main 함수의 runApplication<App>(*args) 표준 패턴은 허용
+    active: false
   UnnecessaryPartOfBinaryExpression:
     active: false
   UnnecessaryTemporaryInstantiation:
@@ -387,8 +387,6 @@ potential-bugs:
 
 style:
   active: true
-  AbstractOrInterface:
-    active: false
   BracesOnIfStatements:
     active: false
   BracesOnWhenStatements:
@@ -423,15 +421,12 @@ style:
     active: false
   ForbiddenComment:
     active: true
-    values:
+    allowedPatterns: ''
+    comments:
       - reason: 'Obsolete FIXME — remove or resolve this issue'
         value: 'FIXME:'
       - reason: 'Obsolete STOPSHIP — this indicates something that should not be shipped'
         value: 'STOPSHIP:'
-    allowedPatterns: ''
-    comments:
-      - reason: 'Obsolete FIXME — remove or resolve'
-        value: 'FIXME:'
   ForbiddenImport:
     active: false
   ForbiddenMethodCall:
@@ -575,8 +570,6 @@ style:
   UseRequireNotNull:
     active: true
   UseSumOfInsteadOfFlatMapSize:
-    active: false
-  UseWithIndex:
     active: false
   VarCouldBeVal:
     active: true

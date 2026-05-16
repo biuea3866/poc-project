@@ -5,6 +5,9 @@ out/
 *.jar
 *.war
 
+# Gradle wrapper JAR은 추적 필수 (fresh clone에서 빌드 가능해야 함)
+!gradle/wrapper/gradle-wrapper.jar
+
 .idea/
 *.iml
 .DS_Store
