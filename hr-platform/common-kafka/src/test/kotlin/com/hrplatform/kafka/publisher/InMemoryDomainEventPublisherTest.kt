@@ -1,11 +1,15 @@
 package com.hrplatform.kafka.publisher
 
 import com.hrplatform.core.domain.DomainEvent
+import com.hrplatform.core.domain.DomainEventAction
+import com.hrplatform.core.domain.DomainEventState
+import com.hrplatform.core.util.ZonedDateTimes
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class InMemoryDomainEventPublisherTest : BehaviorSpec({
 
@@ -13,9 +17,9 @@ class InMemoryDomainEventPublisherTest : BehaviorSpec({
         `when`("publishAll로 3건을 발행하면") {
             val publisher = InMemoryDomainEventPublisher()
             val events = listOf(
-                TestEvent("E1"),
-                TestEvent("E2"),
-                TestEvent("E3"),
+                TestEvent(eventType = "E1"),
+                TestEvent(eventType = "E2"),
+                TestEvent(eventType = "E3"),
             )
             publisher.publishAll(events)
 
@@ -29,7 +33,7 @@ class InMemoryDomainEventPublisherTest : BehaviorSpec({
 
         `when`("publish를 1건 호출하면") {
             val publisher = InMemoryDomainEventPublisher()
-            publisher.publish(TestEvent("SINGLE"))
+            publisher.publish(TestEvent(eventType = "SINGLE"))
 
             then("published 리스트에 1건이 존재한다") {
                 publisher.published shouldHaveSize 1
@@ -39,7 +43,7 @@ class InMemoryDomainEventPublisherTest : BehaviorSpec({
 
         `when`("clear() 호출 후") {
             val publisher = InMemoryDomainEventPublisher()
-            publisher.publish(TestEvent("BEFORE_CLEAR"))
+            publisher.publish(TestEvent(eventType = "BEFORE_CLEAR"))
             publisher.clear()
 
             then("published 리스트가 비어있다") {
@@ -51,5 +55,23 @@ class InMemoryDomainEventPublisherTest : BehaviorSpec({
 
 private data class TestEvent(
     override val eventType: String,
-    override val occurredAt: ZonedDateTime = ZonedDateTime.now(),
+    override val eventId: UUID = UUID.randomUUID(),
+    override val eventVersion: Int = 1,
+    override val occurredAt: ZonedDateTime = ZonedDateTimes.nowUtc(),
+    override val aggregateType: String = "TestAggregate",
+    override val aggregateId: Long = 0L,
+    override val companyId: Long = 0L,
+    override val actorEmploymentId: Long? = null,
+    override val action: DomainEventAction = TestEventAction(),
+    override val state: DomainEventState = TestEventState(),
 ) : DomainEvent
+
+private data class TestEventAction(
+    override val type: String = "TEST_ACTION",
+    override val details: Map<String, Any?> = emptyMap(),
+) : DomainEventAction
+
+private data class TestEventState(
+    override val status: String = "ACTIVE",
+    override val snapshot: Map<String, Any?> = emptyMap(),
+) : DomainEventState

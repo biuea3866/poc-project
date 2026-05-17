@@ -1,10 +1,12 @@
 package com.hrplatform.core.domain
 
+import com.hrplatform.core.util.ZonedDateTimes
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import java.time.ZonedDateTime
+import java.util.UUID
 
 class AggregateRootTest : BehaviorSpec({
 
@@ -12,8 +14,8 @@ class AggregateRootTest : BehaviorSpec({
         val aggregate = TestAggregate(id = 1L)
 
         `when`("addDomainEvent을 2번 호출하면") {
-            val event1 = TestDomainEvent("EVENT_1")
-            val event2 = TestDomainEvent("EVENT_2")
+            val event1 = TestDomainEvent(eventType = "EVENT_1")
+            val event2 = TestDomainEvent(eventType = "EVENT_2")
             aggregate.addTestEvent(event1)
             aggregate.addTestEvent(event2)
 
@@ -28,7 +30,7 @@ class AggregateRootTest : BehaviorSpec({
 
     given("pullDomainEvents 호출 이후") {
         val aggregate = TestAggregate(id = 2L)
-        aggregate.addTestEvent(TestDomainEvent("EVENT_ONCE"))
+        aggregate.addTestEvent(TestDomainEvent(eventType = "EVENT_ONCE"))
 
         `when`("pullDomainEvents를 첫 번째 호출하면") {
             val firstPull = aggregate.pullDomainEvents()
@@ -59,8 +61,8 @@ class AggregateRootTest : BehaviorSpec({
 
 private class TestAggregate(id: Long) : AggregateRoot(
     id = id,
-    createdAt = ZonedDateTime.now(),
-    updatedAt = ZonedDateTime.now(),
+    createdAt = ZonedDateTimes.nowUtc(),
+    updatedAt = ZonedDateTimes.nowUtc(),
 ) {
     fun addTestEvent(event: DomainEvent) {
         addDomainEvent(event)
@@ -69,5 +71,23 @@ private class TestAggregate(id: Long) : AggregateRoot(
 
 private data class TestDomainEvent(
     override val eventType: String,
-    override val occurredAt: ZonedDateTime = ZonedDateTime.now(),
+    override val eventId: UUID = UUID.randomUUID(),
+    override val eventVersion: Int = 1,
+    override val occurredAt: ZonedDateTime = ZonedDateTimes.nowUtc(),
+    override val aggregateType: String = "TestAggregate",
+    override val aggregateId: Long = 0L,
+    override val companyId: Long = 0L,
+    override val actorEmploymentId: Long? = null,
+    override val action: DomainEventAction = TestDomainEventAction(),
+    override val state: DomainEventState = TestDomainEventState(),
 ) : DomainEvent
+
+private data class TestDomainEventAction(
+    override val type: String = "TEST_ACTION",
+    override val details: Map<String, Any?> = emptyMap(),
+) : DomainEventAction
+
+private data class TestDomainEventState(
+    override val status: String = "ACTIVE",
+    override val snapshot: Map<String, Any?> = emptyMap(),
+) : DomainEventState
