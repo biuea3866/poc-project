@@ -42,12 +42,18 @@
       "type": "integer"
     },
     "actorEmploymentId": {
-      "type": ["integer", "null"]
+      "type": [
+        "integer",
+        "null"
+      ]
     },
     "action": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["type", "details"],
+      "required": [
+        "type",
+        "details"
+      ],
       "properties": {
         "type": {
           "type": "string",
@@ -56,13 +62,22 @@
         "details": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["oldHeadEmploymentId", "newHeadEmploymentId"],
+          "required": [
+            "oldHeadEmploymentId",
+            "newHeadEmploymentId"
+          ],
           "properties": {
             "oldHeadEmploymentId": {
-              "type": ["integer", "null"]
+              "type": [
+                "integer",
+                "null"
+              ]
             },
             "newHeadEmploymentId": {
-              "type": ["integer", "null"]
+              "type": [
+                "integer",
+                "null"
+              ]
             }
           }
         }
@@ -71,15 +86,31 @@
     "state": {
       "type": "object",
       "additionalProperties": false,
-      "required": ["snapshot"],
+      "required": [
+        "status",
+        "snapshot"
+      ],
       "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "ARCHIVED"
+          ],
+          "description": "Department lifecycle 상태 (active or archived)"
+        },
         "snapshot": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["headEmploymentId"],
+          "required": [
+            "headEmploymentId"
+          ],
           "properties": {
             "headEmploymentId": {
-              "type": ["integer", "null"]
+              "type": [
+                "integer",
+                "null"
+              ]
             }
           }
         }
