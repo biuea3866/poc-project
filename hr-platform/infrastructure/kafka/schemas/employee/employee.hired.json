@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Employee Hired Event",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["employee.hired"]
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "employmentId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "personId": {
+      "type": "integer"
+    },
+    "departmentId": {
+      "type": "integer"
+    },
+    "employmentType": {
+      "type": "string"
+    },
+    "startDate": {
+      "type": "string",
+      "format": "date"
+    }
+  },
+  "required": [
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "employmentId",
+    "companyId",
+    "actorEmploymentId",
+    "personId",
+    "departmentId",
+    "employmentType",
+    "startDate"
+  ],
+  "additionalProperties": false
+}

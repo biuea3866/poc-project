@@ -1,0 +1,46 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Employee Suspended Event",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["employee.suspended"]
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "employmentId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "reason": {
+      "type": "string"
+    },
+    "until": {
+      "type": ["string", "null"],
+      "format": "date"
+    }
+  },
+  "required": [
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "employmentId",
+    "companyId",
+    "actorEmploymentId",
+    "reason",
+    "until"
+  ],
+  "additionalProperties": false
+}

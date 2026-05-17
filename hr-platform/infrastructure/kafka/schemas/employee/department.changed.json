@@ -1,0 +1,57 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Department Changed Event",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["department.changed"]
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "employmentId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "departmentId": {
+      "type": "integer"
+    },
+    "oldParentId": {
+      "type": ["integer", "null"]
+    },
+    "newParentId": {
+      "type": ["integer", "null"]
+    },
+    "oldPath": {
+      "type": "string"
+    },
+    "newPath": {
+      "type": "string"
+    }
+  },
+  "required": [
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "employmentId",
+    "companyId",
+    "actorEmploymentId",
+    "departmentId",
+    "oldParentId",
+    "newParentId",
+    "oldPath",
+    "newPath"
+  ],
+  "additionalProperties": false
+}

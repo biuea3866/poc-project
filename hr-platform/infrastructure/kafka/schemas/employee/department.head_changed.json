@@ -1,0 +1,49 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Department Head Changed Event",
+  "type": "object",
+  "properties": {
+    "eventType": {
+      "type": "string",
+      "enum": ["department.head_changed"]
+    },
+    "eventVersion": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "employmentId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "departmentId": {
+      "type": "integer"
+    },
+    "oldHeadEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "newHeadEmploymentId": {
+      "type": ["integer", "null"]
+    }
+  },
+  "required": [
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "employmentId",
+    "companyId",
+    "actorEmploymentId",
+    "departmentId",
+    "oldHeadEmploymentId",
+    "newHeadEmploymentId"
+  ],
+  "additionalProperties": false
+}
