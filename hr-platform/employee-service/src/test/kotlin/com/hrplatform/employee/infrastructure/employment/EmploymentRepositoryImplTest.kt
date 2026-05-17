@@ -261,10 +261,18 @@ class EmploymentRepositoryImplTest(
 
         given("findByCompanyIdAndStatus() — companyId + status 조합으로 조회") {
             `when`("companyId=1 ACTIVE 2명, ON_LEAVE 1명, companyId=2 ACTIVE 1명이 있으면") {
-                employmentRepository.save(makeEmployment(companyId = 1L, personId = 700L, employeeNumber = "EMP-STS-001", status = EmploymentStatus.ACTIVE))
-                employmentRepository.save(makeEmployment(companyId = 1L, personId = 701L, employeeNumber = "EMP-STS-002", status = EmploymentStatus.ACTIVE))
-                employmentRepository.save(makeEmployment(companyId = 1L, personId = 702L, employeeNumber = "EMP-STS-003", status = EmploymentStatus.ON_LEAVE))
-                employmentRepository.save(makeEmployment(companyId = 2L, personId = 703L, employeeNumber = "EMP-STS-004", status = EmploymentStatus.ACTIVE))
+                employmentRepository.save(
+                    makeEmployment(companyId = 1L, personId = 700L, employeeNumber = "EMP-STS-001", status = EmploymentStatus.ACTIVE),
+                )
+                employmentRepository.save(
+                    makeEmployment(companyId = 1L, personId = 701L, employeeNumber = "EMP-STS-002", status = EmploymentStatus.ACTIVE),
+                )
+                employmentRepository.save(
+                    makeEmployment(companyId = 1L, personId = 702L, employeeNumber = "EMP-STS-003", status = EmploymentStatus.ON_LEAVE),
+                )
+                employmentRepository.save(
+                    makeEmployment(companyId = 2L, personId = 703L, employeeNumber = "EMP-STS-004", status = EmploymentStatus.ACTIVE),
+                )
 
                 val activeResults = employmentRepository.findByCompanyIdAndStatus(1L, EmploymentStatus.ACTIVE)
                 val onLeaveResults = employmentRepository.findByCompanyIdAndStatus(1L, EmploymentStatus.ON_LEAVE)
