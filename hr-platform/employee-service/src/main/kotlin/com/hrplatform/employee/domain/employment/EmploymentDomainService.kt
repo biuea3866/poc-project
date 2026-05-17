@@ -163,8 +163,10 @@ class EmploymentDomainService(
         return saved
     }
 
-    private fun findOrThrow(employmentId: Long): Employment =
-        employmentRepository.findById(employmentId) ?: throw EmploymentNotFoundException(employmentId)
+    fun getById(employmentId: Long): Employment =
+        employmentRepository.findById(employmentId) ?: throw EmploymentNotFoundException()
+
+    private fun findOrThrow(employmentId: Long): Employment = getById(employmentId)
 
     private fun applyRecordableEvent(
         employment: Employment,

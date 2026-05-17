@@ -41,7 +41,7 @@ class EmployeeQueryDomainService(
 
     fun getEmployee(viewer: Employment, employmentId: Long): Employment {
         val target = employmentRepository.findById(employmentId)
-            ?: throw EmploymentNotFoundException(employmentId)
+            ?: throw EmploymentNotFoundException()
         if (!target.isAccessibleBy(viewer)) {
             throw ForbiddenException("ACCESS_DENIED", "해당 직원 정보에 접근할 수 없습니다")
         }
