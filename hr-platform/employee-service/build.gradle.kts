@@ -6,6 +6,7 @@ plugins {
     alias(libs.plugins.kotlin.noarg)
     alias(libs.plugins.spring.boot)
     alias(libs.plugins.spring.dependency.management)
+    kotlin("kapt")
 }
 
 dependencyManagement {
@@ -56,9 +57,9 @@ dependencies {
 
     // QueryDSL
     implementation("${libs.querydsl.jpa.get()}:jakarta")
-    annotationProcessor("${libs.querydsl.apt.get()}:jakarta")
-    annotationProcessor("jakarta.annotation:jakarta.annotation-api")
-    annotationProcessor("jakarta.persistence:jakarta.persistence-api")
+    kapt("${libs.querydsl.apt.get()}:jakarta")
+    kapt("jakarta.annotation:jakarta.annotation-api")
+    kapt("jakarta.persistence:jakarta.persistence-api")
 
     // Hypersistence Utils (JsonStringType)
     implementation(libs.hypersistence.utils)
