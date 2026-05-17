@@ -1,21 +1,41 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Employee Transferred Event",
+  "title": "EmployeeTransferred",
   "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
   "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
     "eventType": {
       "type": "string",
-      "enum": ["employee.transferred"]
+      "const": "EmployeeTransferred"
     },
     "eventVersion": {
       "type": "integer",
-      "minimum": 1
+      "const": 1
     },
     "occurredAt": {
       "type": "string",
       "format": "date-time"
     },
-    "employmentId": {
+    "aggregateType": {
+      "type": "string",
+      "const": "Employment"
+    },
+    "aggregateId": {
       "type": "integer"
     },
     "companyId": {
@@ -24,22 +44,66 @@
     "actorEmploymentId": {
       "type": ["integer", "null"]
     },
-    "oldDepartmentId": {
-      "type": "integer"
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "details"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "TRANSFER"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["oldDepartmentId", "newDepartmentId"],
+          "properties": {
+            "oldDepartmentId": {
+              "type": "integer"
+            },
+            "newDepartmentId": {
+              "type": "integer"
+            }
+          }
+        }
+      }
     },
-    "newDepartmentId": {
-      "type": "integer"
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "snapshot"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PRE_HIRED", "ACTIVE", "ON_LEAVE", "RESIGNED"]
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["departmentId", "country", "currency", "timezone"],
+          "properties": {
+            "departmentId": {
+              "type": ["integer", "null"]
+            },
+            "managerEmploymentId": {
+              "type": ["integer", "null"]
+            },
+            "country": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3
+            },
+            "timezone": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
-  },
-  "required": [
-    "eventType",
-    "eventVersion",
-    "occurredAt",
-    "employmentId",
-    "companyId",
-    "actorEmploymentId",
-    "oldDepartmentId",
-    "newDepartmentId"
-  ],
-  "additionalProperties": false
+  }
 }

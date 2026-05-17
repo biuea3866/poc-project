@@ -4,7 +4,7 @@ Terraform module for managing HR Platform Kafka infrastructure. Defines the even
 
 ## Topics
 
-### event.hr.employee
+### event.hr.employee.v1
 
 Central topic for all employee domain events. Publishes events from hiring through termination, including department transfers, promotions, salary changes, and employment status changes.
 
@@ -17,23 +17,36 @@ Central topic for all employee domain events. Publishes events from hiring throu
 | Compression | lz4 |
 | Min In-Sync Replicas | dev: 1, prod: 2 |
 
+### event.hr.employee.v1.dlq
+
+Dead Letter Queue topic for failed message processing.
+
+| Config | Value |
+|--------|-------|
+| Partitions | 3 |
+| Replication Factor | dev: 1, prod: 3 |
+| Retention | 30 days (2592000000 ms) |
+| Cleanup Policy | delete |
+| Compression | lz4 |
+| Min In-Sync Replicas | dev: 1, prod: 2 |
+
 ## Events (13 types)
 
-| Event Type | Description |
-|---|---|
-| `employee.hired` | New employee hired |
-| `employee.resigned` | Employee resigned |
-| `employee.suspended` | Employment suspended |
-| `employee.resumed` | Employment resumed from suspension |
-| `employee.promoted` | Position/rank promotion |
-| `employee.transferred` | Department transfer |
-| `employee.salary_changed` | Salary amount updated |
-| `department.changed` | Department structure updated |
-| `department.head_changed` | Department head assignment |
-| `employee.transferred.cancelled` | Transfer cancelled |
-| `employee.promoted.cancelled` | Promotion cancelled |
-| `employee.salary_changed.cancelled` | Salary change cancelled |
-| `employee.suspended.cancelled` | Suspension cancelled |
+| Event Type | Aggregate Type | Action Type | Description |
+|---|---|---|---|
+| EmployeeHired | Employment | HIRE | New employee hired |
+| EmployeeResigned | Employment | RESIGN | Employee resigned |
+| EmployeeSuspended | Employment | SUSPEND | Employment suspended |
+| EmployeeResumed | Employment | RESUME | Employment resumed from suspension |
+| EmployeePromoted | Employment | PROMOTE | Position/rank promotion |
+| EmployeeTransferred | Employment | TRANSFER | Department transfer |
+| EmployeeSalaryChanged | Employment | SALARY_CHANGE | Salary amount updated |
+| DepartmentChanged | Department | DEPARTMENT_MOVE | Department structure updated |
+| DepartmentHeadChanged | Department | HEAD_CHANGE | Department head assignment |
+| EmployeeTransferredCancelled | Employment | TRANSFER_CANCELLED | Transfer cancelled |
+| EmployeePromotedCancelled | Employment | PROMOTE_CANCELLED | Promotion cancelled |
+| EmployeeSalaryChangedCancelled | Employment | SALARY_CHANGE_CANCELLED | Salary change cancelled |
+| EmployeeSuspendedCancelled | Employment | SUSPEND_CANCELLED | Suspension cancelled |
 
 ## Usage
 
@@ -67,18 +80,55 @@ terraform apply \
 
 ## Consumer Group Registration
 
-Downstream domains register their consumer groups through the Kafka infrastructure. Consumer definitions should reference the `event.hr.employee` topic.
+Downstream domains register their consumer groups through the Kafka infrastructure. Consumer definitions should reference the `event.hr.employee.v1` topic.
 
 Example consumer group registration (typically done in service configuration):
 
 ```properties
-spring.kafka.consumer.group-id=your-service-consumer-group
-spring.kafka.consumer.topics=event.hr.employee
+spring.kafka.consumer.group-id={service-name}.employee.v1
+spring.kafka.consumer.topics=event.hr.employee.v1
 ```
+
+Consumer group naming convention: `{service-name}.{producer-domain}.v1` (e.g., `auth-service.employee.v1`)
 
 ## JSON Schema
 
 Event payloads conform to JSON Schema Draft 7. Schema definitions are located in `schemas/employee/`.
+
+### Envelope Structure
+
+All events follow a consistent envelope structure with `action` and `state` sections:
+
+```json
+{
+  "eventId": "uuid",
+  "eventType": "EmployeeHired",
+  "eventVersion": 1,
+  "occurredAt": "2026-05-17T12:00:00Z",
+  "aggregateType": "Employment",
+  "aggregateId": 12345,
+  "companyId": 1,
+  "actorEmploymentId": 999,
+  "action": {
+    "type": "HIRE",
+    "details": {
+      "personId": 456,
+      "startDate": "2026-06-01",
+      "employmentType": "REGULAR"
+    }
+  },
+  "state": {
+    "status": "ACTIVE",
+    "snapshot": {
+      "departmentId": 10,
+      "managerEmploymentId": 888,
+      "country": "US",
+      "currency": "USD",
+      "timezone": "America/New_York"
+    }
+  }
+}
+```
 
 ### Common Fields
 
@@ -86,16 +136,22 @@ All events contain:
 
 | Field | Type | Description |
 |---|---|---|
-| eventType | string | Enum of event type |
-| eventVersion | integer | Schema version (starting at 1) |
+| eventId | string (UUID) | Unique event identifier |
+| eventType | string | Type of event (e.g., EmployeeHired) |
+| eventVersion | integer | Schema version (always 1 for v1) |
 | occurredAt | string | ISO-8601 UTC timestamp |
-| employmentId | integer | Unique employment record ID |
+| aggregateType | string | Domain aggregate type (Employment or Department) |
+| aggregateId | integer | Aggregate ID (employmentId or departmentId) |
 | companyId | integer | Company ID |
 | actorEmploymentId | integer \| null | Employment ID of the actor (null for system actions) |
+| action | object | Action type and details |
+| state | object | Current aggregate status and snapshot |
 
 ### Event-Specific Fields
 
-See `schemas/employee/` directory for complete JSON Schema definitions.
+See `schemas/employee/` directory for complete JSON Schema definitions of each event type.
+
+All event details are contained within `action.details` (event-specific fields) and `state.snapshot` (current state).
 
 ## Maintenance
 
@@ -129,11 +185,28 @@ kafka-topics --bootstrap-server localhost:9092 --list
 Describe topic:
 
 ```bash
-kafka-topics --bootstrap-server localhost:9092 --describe --topic event.hr.employee
+kafka-topics --bootstrap-server localhost:9092 --describe --topic event.hr.employee.v1
 ```
+
+Describe DLQ topic:
+
+```bash
+kafka-topics --bootstrap-server localhost:9092 --describe --topic event.hr.employee.v1.dlq
+```
+
+## DLQ Processing
+
+The DLQ topic (`event.hr.employee.v1.dlq`) is configured for operational monitoring:
+
+- **Retention**: 30 days for incident investigation
+- **Monitoring**: Sentry/Datadog alerts on message arrival
+- **Purpose**: Dead letter queue for messages that fail processing in downstream consumers
+- **Consumer**: DevOps/SRE team monitors for alerting and root cause analysis
+
+No dedicated consumer group is initially required; monitoring and alerting are handled externally.
 
 ## Related Documentation
 
 - **ADR-002**: Employee SSOT Model — `/docs/adr/ADR-002-employee-ssot-model.md`
 - **TDD-001**: Employee Service Technical Design — `/docs/tdd/TDD-001-employee-service.md`
-- **Ticket KF-01**: Kafka Topic Declaration — `/docs/tickets/HR-M1-EMPLOYEE-TICKETS.md`
+- **Ticket KF-02**: Kafka Topic v1 Declaration — Event sourcing with action/state payload
