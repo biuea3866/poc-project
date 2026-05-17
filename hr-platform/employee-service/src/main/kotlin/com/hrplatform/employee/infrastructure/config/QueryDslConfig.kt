@@ -5,13 +5,8 @@ import jakarta.persistence.EntityManager
 import jakarta.persistence.PersistenceContext
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
-import org.springframework.data.auditing.DateTimeProvider
-import org.springframework.data.jpa.repository.config.EnableJpaAuditing
-import java.time.ZonedDateTime
-import java.util.Optional
-
 @Configuration
-@EnableJpaAuditing(dateTimeProviderRef = "auditingDateTimeProvider")
+@org.springframework.context.annotation.Profile("!test")
 class QueryDslConfig {
 
     @PersistenceContext
@@ -19,9 +14,4 @@ class QueryDslConfig {
 
     @Bean
     fun jpaQueryFactory(): JPAQueryFactory = JPAQueryFactory(entityManager)
-
-    @Bean
-    fun auditingDateTimeProvider(): DateTimeProvider = DateTimeProvider {
-        Optional.of(ZonedDateTime.now())
-    }
 }
