@@ -1,6 +1,7 @@
 package com.hrplatform.employee
 
 import com.hrplatform.employee.infrastructure.department.DepartmentJpaRepository
+import com.hrplatform.employee.infrastructure.employment.EmploymentJpaRepository
 import com.hrplatform.employee.infrastructure.history.EmploymentHistoryJpaRepository
 import com.hrplatform.employee.infrastructure.person.PersonJpaRepository
 import com.ninjasquad.springmockk.MockkBean
@@ -33,6 +34,9 @@ class EmployeeServiceApplicationTest(
 
     @MockkBean
     lateinit var employmentHistoryJpaRepository: EmploymentHistoryJpaRepository
+
+    @MockkBean
+    lateinit var employmentJpaRepository: EmploymentJpaRepository
 
     @MockkBean
     lateinit var jpaQueryFactory: JPAQueryFactory
