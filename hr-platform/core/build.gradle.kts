@@ -1,5 +1,7 @@
 plugins {
     alias(libs.plugins.kotlin.jvm)
+    alias(libs.plugins.kotlin.jpa)
+    kotlin("kapt")
 }
 
 dependencies {
@@ -15,4 +17,11 @@ dependencies {
     // Spring Data Auditing 어노테이션 (@CreatedBy/@LastModifiedBy 등) + AuditingEntityListener compileOnly.
     // 구현체 활성화(@EnableJpaAuditing)는 각 service 모듈의 @SpringBootApplication에서 선언.
     compileOnly(libs.spring.data.jpa)
+
+    // QueryDSL Q 클래스 생성 — @MappedSuperclass BaseEntity의 Q 클래스를 생성해
+    // 하위 모듈 Entity가 QBaseEntity._super 를 참조할 수 있도록 함.
+    compileOnly("${rootProject.libs.querydsl.jpa.get()}:jakarta")
+    kapt("${rootProject.libs.querydsl.apt.get()}:jakarta")
+    kapt("jakarta.annotation:jakarta.annotation-api:3.0.0")
+    kapt("jakarta.persistence:jakarta.persistence-api:3.1.0")
 }
