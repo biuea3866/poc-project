@@ -1,8 +1,9 @@
-package com.hrplatform.employee.domain.employment
+package com.hrplatform.employee.infrastructure.employment
 
-interface EmploymentRepository {
-    fun save(employment: Employment): Employment
-    fun findById(id: Long): Employment?
+import com.hrplatform.employee.domain.employment.Employment
+import com.hrplatform.employee.domain.employment.EmploymentStatus
+
+interface EmploymentCustomRepository {
     fun findByCompanyIdAndEmployeeNumber(companyId: Long, employeeNumber: String): Employment?
     fun findByPersonId(personId: Long): List<Employment>
     fun findByDepartmentTreePath(pathPrefix: String): List<Employment>
