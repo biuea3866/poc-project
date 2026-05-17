@@ -20,6 +20,7 @@ kover = "0.9.1"
 hypersistence-utils = "3.9.0"
 spring-kafka = "3.3.1"
 slf4j = "2.0.16"
+jakarta-persistence = "3.1.0"
 
 [libraries]
 # Kotlin
@@ -63,6 +64,7 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 
 # Logging
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
 
 # Micrometer
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }

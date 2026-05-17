@@ -6,8 +6,9 @@ import java.time.format.DateTimeFormatter
 
 object ZonedDateTimes {
 
-    private val ISO_8601_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ssX")
-        .withZone(ZoneOffset.UTC)
+    // ISO-8601 with microsecond precision (DATETIME(6) DB 컬럼·Kafka 이벤트 occurredAt 정밀도 보존)
+    private val ISO_8601_MICROS: DateTimeFormatter =
+        DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSSSSSXXX").withZone(ZoneOffset.UTC)
 
     fun nowUtc(): ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)
 
@@ -16,5 +17,5 @@ object ZonedDateTimes {
             .withZoneSameInstant(ZoneOffset.UTC)
 
     fun toIso8601(zdt: ZonedDateTime): String =
-        ISO_8601_FORMATTER.format(zdt.withZoneSameInstant(ZoneOffset.UTC))
+        ISO_8601_MICROS.format(zdt.withZoneSameInstant(ZoneOffset.UTC))
 }
