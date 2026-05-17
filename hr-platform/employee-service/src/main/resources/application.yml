@@ -10,6 +10,9 @@ server:
 hrplatform:
   encryption:
     aes-key: ${HRPLATFORM_ENCRYPTION_AES_KEY:}
+  kafka:
+    topics:
+      employee: event.hr.employee.v1
 
 ---
 spring:
