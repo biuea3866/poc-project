@@ -21,6 +21,7 @@ hypersistence-utils = "3.9.0"
 spring-kafka = "3.3.1"
 slf4j = "2.0.16"
 jakarta-persistence = "3.1.0"
+spring-data-commons = "3.4.1"
 
 [libraries]
 # Kotlin
@@ -65,6 +66,8 @@ jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
 # Logging
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 jakarta-persistence-api = { module = "jakarta.persistence:jakarta.persistence-api", version.ref = "jakarta-persistence" }
+spring-data-commons = { module = "org.springframework.data:spring-data-commons", version.ref = "spring-data-commons" }
+spring-data-jpa = { module = "org.springframework.data:spring-data-jpa", version.ref = "spring-data-commons" }
 
 # Micrometer
 micrometer-registry-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer" }
