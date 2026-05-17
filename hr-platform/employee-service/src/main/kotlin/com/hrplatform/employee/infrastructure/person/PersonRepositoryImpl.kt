@@ -13,5 +13,8 @@ class PersonRepositoryImpl(
 
     override fun findById(id: Long): Person? = personJpaRepository.findById(id).orElse(null)
 
+    override fun findByPersonalEmail(personalEmail: String): Person? =
+        personJpaRepository.findAll().firstOrNull { it.personalEmail == personalEmail }
+
     override fun findByPersonalEmailHash(hash: String): Person? = null
 }

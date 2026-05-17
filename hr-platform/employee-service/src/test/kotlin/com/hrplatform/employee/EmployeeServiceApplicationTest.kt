@@ -1,5 +1,6 @@
 package com.hrplatform.employee
 
+import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.employee.infrastructure.department.DepartmentJpaRepository
 import com.hrplatform.employee.infrastructure.employment.EmploymentJpaRepository
 import com.hrplatform.employee.infrastructure.history.EmploymentHistoryJpaRepository
@@ -40,4 +41,7 @@ class EmployeeServiceApplicationTest(
 
     @MockkBean
     lateinit var jpaQueryFactory: JPAQueryFactory
+
+    @MockkBean
+    lateinit var domainEventPublisher: DomainEventPublisher
 }
