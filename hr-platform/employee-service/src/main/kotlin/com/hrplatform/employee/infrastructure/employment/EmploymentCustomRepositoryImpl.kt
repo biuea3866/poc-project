@@ -4,8 +4,12 @@ import com.hrplatform.employee.domain.department.QDepartment
 import com.hrplatform.employee.domain.employment.Employment
 import com.hrplatform.employee.domain.employment.EmploymentStatus
 import com.hrplatform.employee.domain.employment.QEmployment
+import com.querydsl.core.types.dsl.BooleanExpression
 import com.querydsl.core.types.dsl.Expressions
 import com.querydsl.jpa.impl.JPAQueryFactory
+import org.springframework.data.domain.Page
+import org.springframework.data.domain.PageImpl
+import org.springframework.data.domain.Pageable
 import java.time.ZonedDateTime
 
 class EmploymentCustomRepositoryImpl(
@@ -70,5 +74,42 @@ class EmploymentCustomRepositoryImpl(
                 deletedAtPath.isNull,
             )
             .fetch()
+    }
+
+    override fun findByCompanyIdWithPage(
+        companyId: Long,
+        departmentPathPrefix: String?,
+        employmentId: Long?,
+        pageable: Pageable,
+    ): Page<Employment> {
+        val deletedAtPath = Expressions.dateTimePath(ZonedDateTime::class.java, employment, "deletedAt")
+        val pathPrefixCondition: BooleanExpression? = departmentPathPrefix?.let {
+            val departmentId = Expressions.numberPath(Long::class.java, department, "id")
+            val departmentDeletedAt = Expressions.dateTimePath(ZonedDateTime::class.java, department, "deletedAt")
+            employment.departmentId.`in`(
+                queryFactory.select(departmentId)
+                    .from(department)
+                    .where(
+                        department.path.like("$it%"),
+                        departmentDeletedAt.isNull,
+                    ),
+            )
+        }
+        val employmentIdCondition: BooleanExpression? = employmentId?.let {
+            Expressions.numberPath(Long::class.java, employment, "id").eq(it)
+        }
+        val query = queryFactory.selectFrom(employment)
+            .where(
+                employment.companyId.eq(companyId),
+                deletedAtPath.isNull,
+                pathPrefixCondition,
+                employmentIdCondition,
+            )
+        val total = query.fetch().size.toLong()
+        val content = query
+            .offset(pageable.offset)
+            .limit(pageable.pageSize.toLong())
+            .fetch()
+        return PageImpl(content, pageable, total)
     }
 }

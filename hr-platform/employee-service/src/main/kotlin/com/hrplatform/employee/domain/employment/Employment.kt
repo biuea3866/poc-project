@@ -47,6 +47,10 @@ class Employment(
     @Column(nullable = false)
     var status: EmploymentStatus,
 
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    var role: EmploymentRole = EmploymentRole.EMPLOYEE,
+
     @Column(name = "start_date", nullable = false)
     var startDate: LocalDate,
 

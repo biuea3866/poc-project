@@ -2,6 +2,7 @@ package com.hrplatform.employee.support
 
 import io.kotest.core.spec.style.BehaviorSpec
 import org.springframework.boot.test.context.SpringBootTest
+import org.springframework.context.annotation.Import
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.context.DynamicPropertyRegistry
 import org.springframework.test.context.DynamicPropertySource
@@ -10,6 +11,7 @@ import org.testcontainers.junit.jupiter.Container
 
 @SpringBootTest
 @ActiveProfiles("test-integration")
+@Import(TestDomainEventPublisherConfig::class)
 abstract class BaseIntegrationTest : BehaviorSpec() {
 
     companion object {
