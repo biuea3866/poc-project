@@ -1,5 +1,5 @@
-resource "kafka_topic" "event_hr_employee" {
-  name               = "event.hr.employee"
+resource "kafka_topic" "event_hr_employee_v1" {
+  name               = "event.hr.employee.v1"
   replication_factor = var.replication_factor
   partitions         = var.partitions
 
@@ -7,6 +7,19 @@ resource "kafka_topic" "event_hr_employee" {
     "retention.ms"        = "604800000" # 7 days in milliseconds
     "cleanup.policy"      = "delete"
     "compression.type"    = "lz4"
-    "min.insync.replicas" = var.min_insync_replicas
+    "min.insync.replicas" = tostring(var.min_insync_replicas)
+  }
+}
+
+resource "kafka_topic" "event_hr_employee_v1_dlq" {
+  name               = "event.hr.employee.v1.dlq"
+  replication_factor = var.replication_factor
+  partitions         = 3
+
+  config = {
+    "retention.ms"        = "2592000000" # 30 days in milliseconds
+    "cleanup.policy"      = "delete"
+    "compression.type"    = "lz4"
+    "min.insync.replicas" = tostring(var.min_insync_replicas)
   }
 }

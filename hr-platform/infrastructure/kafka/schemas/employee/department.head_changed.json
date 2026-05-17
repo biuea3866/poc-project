@@ -1,49 +1,120 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Department Head Changed Event",
+  "title": "DepartmentHeadChanged",
   "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
   "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
     "eventType": {
       "type": "string",
-      "enum": ["department.head_changed"]
+      "const": "DepartmentHeadChanged"
     },
     "eventVersion": {
       "type": "integer",
-      "minimum": 1
+      "const": 1
     },
     "occurredAt": {
       "type": "string",
       "format": "date-time"
     },
-    "employmentId": {
+    "aggregateType": {
+      "type": "string",
+      "const": "Department"
+    },
+    "aggregateId": {
       "type": "integer"
     },
     "companyId": {
       "type": "integer"
     },
     "actorEmploymentId": {
-      "type": ["integer", "null"]
+      "type": [
+        "integer",
+        "null"
+      ]
     },
-    "departmentId": {
-      "type": "integer"
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "type",
+        "details"
+      ],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "HEAD_CHANGE"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "oldHeadEmploymentId",
+            "newHeadEmploymentId"
+          ],
+          "properties": {
+            "oldHeadEmploymentId": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            },
+            "newHeadEmploymentId": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        }
+      }
     },
-    "oldHeadEmploymentId": {
-      "type": ["integer", "null"]
-    },
-    "newHeadEmploymentId": {
-      "type": ["integer", "null"]
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "status",
+        "snapshot"
+      ],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "ACTIVE",
+            "ARCHIVED"
+          ],
+          "description": "Department lifecycle 상태 (active or archived)"
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "headEmploymentId"
+          ],
+          "properties": {
+            "headEmploymentId": {
+              "type": [
+                "integer",
+                "null"
+              ]
+            }
+          }
+        }
+      }
     }
-  },
-  "required": [
-    "eventType",
-    "eventVersion",
-    "occurredAt",
-    "employmentId",
-    "companyId",
-    "actorEmploymentId",
-    "departmentId",
-    "oldHeadEmploymentId",
-    "newHeadEmploymentId"
-  ],
-  "additionalProperties": false
+  }
 }

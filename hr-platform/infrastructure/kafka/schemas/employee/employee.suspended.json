@@ -1,21 +1,41 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "Employee Suspended Event",
+  "title": "EmployeeSuspended",
   "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
   "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
     "eventType": {
       "type": "string",
-      "enum": ["employee.suspended"]
+      "const": "EmployeeSuspended"
     },
     "eventVersion": {
       "type": "integer",
-      "minimum": 1
+      "const": 1
     },
     "occurredAt": {
       "type": "string",
       "format": "date-time"
     },
-    "employmentId": {
+    "aggregateType": {
+      "type": "string",
+      "const": "Employment"
+    },
+    "aggregateId": {
       "type": "integer"
     },
     "companyId": {
@@ -24,23 +44,67 @@
     "actorEmploymentId": {
       "type": ["integer", "null"]
     },
-    "reason": {
-      "type": "string"
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "details"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "SUSPEND"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["reason", "until"],
+          "properties": {
+            "reason": {
+              "type": "string"
+            },
+            "until": {
+              "type": ["string", "null"],
+              "format": "date"
+            }
+          }
+        }
+      }
     },
-    "until": {
-      "type": ["string", "null"],
-      "format": "date"
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "snapshot"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["PRE_HIRED", "ACTIVE", "ON_LEAVE", "RESIGNED"]
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["departmentId", "country", "currency", "timezone"],
+          "properties": {
+            "departmentId": {
+              "type": ["integer", "null"]
+            },
+            "managerEmploymentId": {
+              "type": ["integer", "null"]
+            },
+            "country": {
+              "type": "string",
+              "minLength": 2,
+              "maxLength": 2
+            },
+            "currency": {
+              "type": "string",
+              "minLength": 3,
+              "maxLength": 3
+            },
+            "timezone": {
+              "type": "string"
+            }
+          }
+        }
+      }
     }
-  },
-  "required": [
-    "eventType",
-    "eventVersion",
-    "occurredAt",
-    "employmentId",
-    "companyId",
-    "actorEmploymentId",
-    "reason",
-    "until"
-  ],
-  "additionalProperties": false
+  }
 }
