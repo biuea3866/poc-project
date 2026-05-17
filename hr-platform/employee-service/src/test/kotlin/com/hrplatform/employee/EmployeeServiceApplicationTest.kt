@@ -1,5 +1,8 @@
 package com.hrplatform.employee
 
+import com.hrplatform.employee.infrastructure.department.DepartmentJpaRepository
+import com.ninjasquad.springmockk.MockkBean
+import com.querydsl.jpa.impl.JPAQueryFactory
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldNotBe
 import org.springframework.boot.test.context.SpringBootTest
@@ -19,4 +22,10 @@ class EmployeeServiceApplicationTest(
             }
         }
     }
-})
+}) {
+    @MockkBean
+    lateinit var departmentJpaRepository: DepartmentJpaRepository
+
+    @MockkBean
+    lateinit var jpaQueryFactory: JPAQueryFactory
+}
