@@ -10,13 +10,14 @@ import org.testcontainers.utility.DockerImageName
 import java.sql.DriverManager
 
 /**
- * Flyway V1~V4 마이그레이션 순차 적용 검증.
+ * Flyway V1~V5 마이그레이션 순차 적용 검증.
  *
  * Testcontainers MySQL 8.0 컨테이너를 직접 구동하여 Spring 컨텍스트 의존 없이 DDL만 검증한다.
  * 검증 항목:
  *   1) 4개 테이블(person, employment, department, employment_history) 생성 여부
  *   2) 각 테이블 인덱스 정확성
  *   3) 주요 컬럼의 NOT NULL / DEFAULT / 타입 명세 준수
+ *   4) V5: 4개 테이블에 audit + soft-delete 컬럼(created_by, updated_by, deleted_at, deleted_by) 추가 여부
  */
 class FlywayMigrationTest : BehaviorSpec({
 
@@ -32,7 +33,7 @@ class FlywayMigrationTest : BehaviorSpec({
     beforeSpec { mysql.start() }
     afterSpec { mysql.stop() }
 
-    given("Flyway V1~V4 마이그레이션을 순차 적용하면") {
+    given("Flyway V1~V5 마이그레이션을 순차 적용하면") {
 
         val flyway = Flyway.configure()
             .dataSource(mysql.jdbcUrl, mysql.username, mysql.password)
@@ -359,12 +360,152 @@ class FlywayMigrationTest : BehaviorSpec({
                 }
             }
 
-            then("V1, V2, V3, V4 가 모두 적용되어 있다") {
-                versions shouldContainAll listOf("1", "2", "3", "4")
+            then("V1, V2, V3, V4, V5 가 모두 적용되어 있다") {
+                versions shouldContainAll listOf("1", "2", "3", "4", "5")
             }
 
             then("모든 마이그레이션이 success=1 이다") {
                 statuses.all { it == "1" } shouldBe true
+            }
+        }
+
+        // ─────────────────────────────────────────────────────────────────
+        // V5: audit + soft-delete 컬럼 검증
+        // ─────────────────────────────────────────────────────────────────
+        `when`("V5 적용 후 audit + soft-delete 컬럼 존재 여부를 확인하면") {
+            val auditColumns = listOf("created_by", "updated_by", "deleted_at", "deleted_by")
+            val targetTables = listOf("person", "employment", "department", "employment_history")
+
+            fun existsColumn(table: String, column: String): Boolean {
+                connection.prepareStatement(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = 'employee_db' AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                ).use { ps ->
+                    ps.setString(1, table)
+                    ps.setString(2, column)
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        return rs.getInt(1) == 1
+                    }
+                }
+            }
+
+            fun columnDataType(table: String, column: String): String {
+                connection.prepareStatement(
+                    "SELECT DATA_TYPE FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = 'employee_db' AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                ).use { ps ->
+                    ps.setString(1, table)
+                    ps.setString(2, column)
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        return rs.getString(1)
+                    }
+                }
+            }
+
+            fun isNullable(table: String, column: String): Boolean {
+                connection.prepareStatement(
+                    "SELECT IS_NULLABLE FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = 'employee_db' AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                ).use { ps ->
+                    ps.setString(1, table)
+                    ps.setString(2, column)
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        return rs.getString(1) == "YES"
+                    }
+                }
+            }
+
+            fun hasIndex(table: String, indexName: String): Boolean {
+                connection.prepareStatement(
+                    "SELECT COUNT(*) FROM INFORMATION_SCHEMA.STATISTICS " +
+                        "WHERE TABLE_SCHEMA = 'employee_db' AND TABLE_NAME = ? AND INDEX_NAME = ?",
+                ).use { ps ->
+                    ps.setString(1, table)
+                    ps.setString(2, indexName)
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        return rs.getInt(1) > 0
+                    }
+                }
+            }
+
+            for (table in targetTables) {
+                for (column in auditColumns) {
+                    then("${table}.${column} 컬럼이 존재한다") {
+                        existsColumn(table, column) shouldBe true
+                    }
+                }
+
+                then("${table}.created_by 는 BIGINT NULL 이다") {
+                    columnDataType(table, "created_by") shouldBe "bigint"
+                    isNullable(table, "created_by") shouldBe true
+                }
+
+                then("${table}.updated_by 는 BIGINT NULL 이다") {
+                    columnDataType(table, "updated_by") shouldBe "bigint"
+                    isNullable(table, "updated_by") shouldBe true
+                }
+
+                then("${table}.deleted_at 는 TIMESTAMP NULL 이다") {
+                    columnDataType(table, "deleted_at") shouldBe "timestamp"
+                    isNullable(table, "deleted_at") shouldBe true
+                }
+
+                then("${table}.deleted_by 는 BIGINT NULL 이다") {
+                    columnDataType(table, "deleted_by") shouldBe "bigint"
+                    isNullable(table, "deleted_by") shouldBe true
+                }
+            }
+
+            then("person 테이블에 idx_person_deleted_at 인덱스가 존재한다") {
+                hasIndex("person", "idx_person_deleted_at") shouldBe true
+            }
+
+            then("employment 테이블에 idx_employment_deleted_at 인덱스가 존재한다") {
+                hasIndex("employment", "idx_employment_deleted_at") shouldBe true
+            }
+
+            then("department 테이블에 idx_department_deleted_at 인덱스가 존재한다") {
+                hasIndex("department", "idx_department_deleted_at") shouldBe true
+            }
+
+            then("employment_history 테이블에 idx_employment_history_deleted_at 인덱스가 존재한다") {
+                hasIndex("employment_history", "idx_employment_history_deleted_at") shouldBe true
+            }
+        }
+
+        `when`("V5 적용 후 각 컬럼의 COMMENT 를 확인하면") {
+            fun columnComment(table: String, column: String): String {
+                connection.prepareStatement(
+                    "SELECT COLUMN_COMMENT FROM INFORMATION_SCHEMA.COLUMNS " +
+                        "WHERE TABLE_SCHEMA = 'employee_db' AND TABLE_NAME = ? AND COLUMN_NAME = ?",
+                ).use { ps ->
+                    ps.setString(1, table)
+                    ps.setString(2, column)
+                    ps.executeQuery().use { rs ->
+                        rs.next()
+                        return rs.getString(1) ?: ""
+                    }
+                }
+            }
+
+            then("person.created_by COMMENT 가 비어 있지 않다") {
+                columnComment("person", "created_by").isNotBlank() shouldBe true
+            }
+
+            then("person.deleted_at COMMENT 가 비어 있지 않다") {
+                columnComment("person", "deleted_at").isNotBlank() shouldBe true
+            }
+
+            then("employment_history.updated_by COMMENT 에 append-only 안내가 포함된다") {
+                columnComment("employment_history", "updated_by") shouldContain "append-only"
+            }
+
+            then("employment_history.deleted_at COMMENT 에 append-only 안내가 포함된다") {
+                columnComment("employment_history", "deleted_at") shouldContain "append-only"
             }
         }
 
