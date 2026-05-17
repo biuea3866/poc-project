@@ -59,11 +59,19 @@ class AggregateRootTest : BehaviorSpec({
     }
 })
 
+<<<<<<< HEAD
 private class TestAggregate(id: Long) : AggregateRoot(
     id = id,
     createdAt = ZonedDateTimes.nowUtc(),
     updatedAt = ZonedDateTimes.nowUtc(),
 ) {
+=======
+private class TestAggregate(id: Long) : AggregateRoot() {
+    init {
+        this.id = id
+    }
+
+>>>>>>> 9f35da15 (feat(core): BaseEntity에 createdBy/updatedBy + soft-delete 통합 (CM-03))
     fun addTestEvent(event: DomainEvent) {
         addDomainEvent(event)
     }
