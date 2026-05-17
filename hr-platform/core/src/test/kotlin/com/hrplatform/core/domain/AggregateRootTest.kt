@@ -59,11 +59,11 @@ class AggregateRootTest : BehaviorSpec({
     }
 })
 
-private class TestAggregate(id: Long) : AggregateRoot(
-    id = id,
-    createdAt = ZonedDateTimes.nowUtc(),
-    updatedAt = ZonedDateTimes.nowUtc(),
-) {
+private class TestAggregate(id: Long) : AggregateRoot() {
+    init {
+        this.id = id
+    }
+
     fun addTestEvent(event: DomainEvent) {
         addDomainEvent(event)
     }

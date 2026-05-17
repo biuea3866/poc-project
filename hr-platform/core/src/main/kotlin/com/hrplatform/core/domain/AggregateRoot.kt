@@ -1,13 +1,8 @@
 package com.hrplatform.core.domain
 
 import jakarta.persistence.Transient
-import java.time.ZonedDateTime
 
-abstract class AggregateRoot(
-    id: Long?,
-    createdAt: ZonedDateTime,
-    updatedAt: ZonedDateTime,
-) : BaseEntity(id, createdAt, updatedAt) {
+abstract class AggregateRoot : BaseEntity() {
 
     @Transient
     private val _domainEvents: MutableList<DomainEvent> = mutableListOf()
