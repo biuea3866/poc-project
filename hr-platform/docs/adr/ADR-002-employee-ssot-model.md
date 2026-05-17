@@ -71,6 +71,22 @@ RESIGNED  ─[*]  (재입사는 새 Employment 생성)
 
 **금지 전이**: PRE_HIRED → RESIGNED 직접, RESIGNED → 다른 상태, RESIGNED → 재활성 (Entity의 검증 메서드에서 throw).
 
+#### 발령 취소 보상 이벤트 (직전 1건만 허용)
+
+오기재된 발령(부서 이동·승진·연봉 변경·휴직)은 **직전 1건만 취소** 가능합니다. 취소 시 EmploymentHistory에 새 행을 append하지 않고 직전 이력에 `cancelledAt`을 기록하며, 동일 토픽에 보상 이벤트를 발행합니다.
+
+| 취소 대상 | 보상 이벤트 | 호출 메서드 |
+|---|---|---|
+| 부서 이동 취소 | `employee.transferred.cancelled` + `department.changed` (역방향) | `Employment.cancelLastTransfer()` |
+| 승진 취소 | `employee.promoted.cancelled` | `Employment.cancelLastPromotion()` |
+| 연봉 변경 취소 | `employee.salary_changed.cancelled` | `Employment.cancelLastSalaryChange()` |
+| 휴직 취소 | `employee.suspended.cancelled` | `Employment.cancelLastSuspend()` |
+
+**제약**:
+- 직전이 아닌 이력 취소는 `IneligibleCancellationException` throw (Entity 검증)
+- 퇴사(`employee.resigned`)는 보상 이벤트 없음 — 재입사는 새 Employment 생성으로 처리
+- 입사(`employee.hired`)는 보상 이벤트 없음 — 잘못 등록한 입사는 즉시 퇴사 처리로 닫음
+
 ### 5. Rich Domain Model — Entity 캡슐화 메서드 목록
 
 #### Person

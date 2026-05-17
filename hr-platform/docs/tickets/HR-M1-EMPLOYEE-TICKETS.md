@@ -11,13 +11,13 @@
 
 - 1명 / 1일 / 1PR 단위, AC와 파일 목록은 작성하지 않음
 - 후행 의존 카운트 ≥ 3 티켓은 분해 재검토 → 병목 4종(BS-01 · DB-01 · KF-01 · CM-01)만 의도된 병목으로 유지
-- TPM 검수 권고 반영: L 사이즈 3건(BE-02 / BE-08 / BE-11) 분할 → 총 19개 티켓
+- TPM 검수 권고 반영: L 사이즈 3건(BE-02 / BE-08 / BE-11) 분할 → 총 21개 티켓 (PR #117 p2 보강에서 BE-08d/BE-08e 추가)
 - Single Writer per File — 같은 wave 안 동일 파일 수정 금지
-- 평균 wave 너비 ≥ 2.8 (4인 팀 70%) 목표 → 실제 3.0 달성
+- 평균 wave 너비 2.625 · 4인 팀 가동률 평균 약 66% — wave 6 피크 7(175%)로 보장. 70% 목표 미달은 본 도메인이 SSOT라 통합 게이트(BE-12)·공통 Controller(BE-11a) 단독 wave가 본질적 병목
 
 ## 티켓 사이즈 정의
 
-- **S**: 약 200줄 (구현 코드 기준, 테스트 제외)
+- **S**: 약 200줄 (구현 코드 기준, 테스트 제외 — test 카테고리 티켓은 테스트 코드 줄수 기준으로 별도 측정)
 - **M**: 약 400줄
 - **L**: 약 800줄 — 본 분해에서 L 티켓은 0개 (모두 S/M으로 분할 완료)
 
@@ -157,11 +157,14 @@
 - 작업 내용:
   - `domain/person/PersonDomainService.kt` — `findOrCreate()`, `updateContact()`, `updateEmergencyContacts()`
   - `domain/employment/EmploymentDomainService.kt` — `hire()`, `recordEvent()`, `cancelEvent()`, `suspend()`, `resume()`, `resign()`. **Repository · Gateway · DomainEventPublisher 직접 의존 + DomainEvent 발행**
+  - `domain/history/EmploymentHistoryDomainService.kt` — `findByEmployment()`, `rebuildAt(yyyymm)` (시점 재구성)
+  - `domain/query/EmployeeQueryDomainService.kt` — `viewer + criteria → page` 권한 자동 범위 필터링 (TEAM_LEAD/HR_MANAGER 분기). Department path 트리 활용
+  - 단위 테스트(Kotest BehaviorSpec + MockK) — 도메인 서비스 4종 메서드별
   - 메서드 15줄 이내 강제 (`be-code-convention.md`)
   - 다른 도메인 패키지 import 금지 (Employment ↔ Department는 ID만)
-- 선행: BE-01, BE-02a, BE-02b, BE-04, CM-01
-- 후행 의존: BE-08a~c, BE-09
-- 테스트 케이스: EmploymentDomainService.hire() 호출 시 Person 1건 + Employment 1건 + EmploymentHistory(HIRE) 1건 + EmployeeHiredEvent 1건이 한 트랜잭션에서 발행된다
+- 선행: BE-01, BE-02a, BE-02b, BE-03, BE-04, CM-01
+- 후행 의존: BE-08a~e, BE-09
+- 테스트 케이스: EmploymentDomainService.hire() 호출 시 Person 1건 + Employment 1건 + EmploymentHistory(HIRE) 1건 + EmployeeHiredEvent 1건이 한 트랜잭션에서 발행되고, EmployeeQueryDomainService.search(viewer=TEAM_LEAD)는 viewer 자기 팀 path 하위 직원만 반환한다
 
 ---
 
@@ -184,12 +187,13 @@
 - 카테고리: infrastructure · 사이즈: S · 담당: BE
 - 작업 내용:
   - `infrastructure/kafka/KafkaDomainEventPublisher.kt` — `DomainEventPublisher` 구현
-  - 토픽 라우팅: 모든 9종 이벤트 → `event.hr.employee`
+  - 토픽 라우팅: 13종 이벤트 → `event.hr.employee` (9종 정방향 + 4종 보상 `*.cancelled` — ADR-002 §발령 취소 보상 이벤트)
   - ZonedDateTime UTC ISO-8601 직렬화 (LocalDateTime 금지, `zoned_datetime` 룰)
-  - `@TransactionalEventListener(AFTER_COMMIT)` 또는 outbox 패턴 (선택은 구현 단계에서 트레이드오프 검토)
+  - `@TransactionalEventListener(AFTER_COMMIT)` 또는 outbox 패턴 (선택은 구현 단계에서 트레이드오프 검토 — ADR-005로 분리 예정)
+  - Testcontainers Kafka 통합 테스트 (13종 페이로드 각각 검증)
 - 선행: KF-01, CM-01
-- 후행 의존: BE-05, BE-06, BE-12
-- 테스트 케이스: DomainEvent 9종이 각각 정확한 JSON 페이로드로 `event.hr.employee` 토픽에 발행된다 (Testcontainers Kafka)
+- 후행 의존: BE-12 (DomainService BE-05/BE-06은 인터페이스(domain layer)에만 의존하므로 컴파일 선행 아님. wave 4 조기 배치는 통합 테스트 영향 차단 목적)
+- 테스트 케이스: DomainEvent 13종이 각각 정확한 JSON 페이로드로 `event.hr.employee` 토픽에 발행된다 (Testcontainers Kafka)
 
 ---
 
@@ -228,6 +232,33 @@
 - 선행: BE-05
 - 후행 의존: BE-11a
 - 테스트 케이스: SuspendEmploymentUseCase 가 RESIGNED Employment에 대해 호출되면 `InvalidStateTransitionException` 발생한다
+
+---
+
+### BE-08d — UseCase: UpdatePersonalInfo + UpdateEmergencyContacts (본인 영역)
+
+- 카테고리: application · 사이즈: S · 담당: BE
+- 작업 내용:
+  - `application/employee/UpdatePersonalInfoUseCase.kt` — `@Transactional`, PersonDomainService.updateContact() 호출. 개인 영역만 (연락처·주소). 본인 외 호출 시 ForbiddenException.
+  - `application/employee/UpdateEmergencyContactsUseCase.kt` — `@Transactional`, PersonDomainService.updateEmergencyContacts() 호출. JSON 배열 갱신.
+  - 단위 테스트 — viewer가 본인이 아니면 차단되는 케이스 검증
+- 선행: BE-05
+- 후행 의존: BE-11a
+- 테스트 케이스: UpdatePersonalInfoUseCase가 본인 외 personId로 호출되면 `ForbiddenException` 발생한다
+
+---
+
+### BE-08e — UseCase: 조회 (Search/Get + 발령 이력)
+
+- 카테고리: application · 사이즈: S · 담당: BE
+- 작업 내용:
+  - `application/employee/SearchEmployeesUseCase.kt` — read-only. EmployeeQueryDomainService.search() 호출. 권한 자동 범위 필터링 (TEAM_LEAD/HR_MANAGER 분기)
+  - `application/employee/GetEmployeeUseCase.kt` — read-only. 권한 검증(`Employment.isAccessibleBy(viewer)`)
+  - `application/employee/GetEmploymentHistoryUseCase.kt` — read-only. EmploymentHistoryDomainService.findByEmployment() 호출
+  - 단위 테스트 — TEAM_LEAD viewer가 다른 팀 직원 조회 시 ForbiddenException 검증
+- 선행: BE-05 (EmployeeQueryDomainService + EmploymentHistoryDomainService 포함)
+- 후행 의존: BE-11a
+- 테스트 케이스: TEAM_LEAD viewer가 자기 팀 path 외 직원을 GetEmployeeUseCase로 조회하면 `ForbiddenException` 발생한다
 
 ---
 
@@ -284,19 +315,20 @@
 
 ---
 
-### BE-12 — 통합 + 시나리오 테스트 (X1, X4 검증)
+### BE-12 — E2E 시나리오 + 비기능 검증 (X1, X4)
 
-- 카테고리: test · 사이즈: M · 담당: BE
-- 작업 내용:
-  - Testcontainers MySQL 8.0 + Kafka 환경
+- 카테고리: test · 사이즈: M (테스트 코드 기준) · 담당: BE
+- 작업 내용 (도메인·application 단위 테스트와 infrastructure/presentation 통합 테스트는 각 티켓 작업 범위에 포함되어 있음. BE-12는 5계층 중 **scenario 레이어** 전용):
+  - Testcontainers MySQL 8.0 + Kafka 환경 (실제 인프라 부트)
   - 시나리오 X1: 퇴사 처리 → Employment.RESIGNED + EmploymentHistory(RESIGN) + employee.resigned Kafka 발행 + (auth-service 이벤트 구독은 별도 검증)
   - 시나리오 X4: 100명 일괄 등록 트랜잭션 보장 (1명 실패 시 전체 롤백)
   - 부서 이동 → path 재계산 + 자식 path 갱신 + department.changed 발행
   - 부서장 휴직 → department.head_employment_id null + department.head_changed 발행
+  - 발령 취소 보상 시나리오: 부서 이동 → 직전 취소 → `employee.transferred.cancelled` 발행 + EmploymentHistory cancelledAt 기록
   - 비기능 검증: 1만명 검색 < 500ms (벤치마크)
 - 선행: BE-11a, BE-11b, BE-07
 - 후행 의존: (M1 종료)
-- 테스트 케이스: X1·X4 두 시나리오가 모두 통과하며 Kafka 토픽에 정확한 이벤트가 발행된다
+- 테스트 케이스: X1·X4·발령 취소 시나리오 3종이 모두 통과하며 Kafka 토픽에 정확한 이벤트가 발행된다
 
 ---
 
@@ -313,15 +345,17 @@
 | BE-02b | BE-02a, DB-01 |
 | BE-03 | DB-01, CM-01 |
 | BE-04 | DB-01, CM-01 |
-| BE-05 | BE-01, BE-02a, BE-02b, BE-04, CM-01 |
+| BE-05 | BE-01, BE-02a, BE-02b, BE-03, BE-04, CM-01 |
 | BE-06 | BE-03, BE-02b, CM-01 |
 | BE-07 | KF-01, CM-01 |
 | BE-08a | BE-05, BE-07 |
 | BE-08b | BE-05 |
 | BE-08c | BE-05 |
+| BE-08d | BE-05 |
+| BE-08e | BE-05 |
 | BE-09 | BE-05 |
 | BE-10 | BE-06, BE-07 |
-| BE-11a | BE-08a, BE-08b, BE-08c, BE-10 |
+| BE-11a | BE-08a, BE-08b, BE-08c, BE-08d, BE-08e, BE-10 |
 | BE-11b | BE-09 |
 | BE-12 | BE-11a, BE-11b, BE-07 |
 
@@ -333,29 +367,41 @@
 | 2 | CM-01, DB-01, KF-01 | 3 | 공통 산출물 3종 동시 |
 | 3 | BE-01, BE-02a, BE-03, BE-04 | 4 | 도메인 패키지 4종 fan-out (BE-02b는 BE-02a 의존이라 다음 wave) |
 | 4 | BE-02b, BE-07 | 2 | Employment Repository + Kafka Publisher |
-| 5 | BE-05, BE-06 | 2 | DomainService 2종 |
-| 6 | BE-08a, BE-08b, BE-08c, BE-09, BE-10 | 5 | UseCase fan-out (Single Writer 안전: 각 UseCase는 자기 파일만) |
+| 5 | BE-05, BE-06 | 2 | DomainService 2종 (BE-05에 EmployeeQueryDomainService + EmploymentHistoryDomainService 포함) |
+| 6 | BE-08a, BE-08b, BE-08c, BE-08d, BE-08e, BE-09, BE-10 | 7 | UseCase fan-out (Single Writer 안전: 각 UseCase는 자기 파일만) |
 | 7 | BE-11a, BE-11b | 2 | Controller — 11a/11b는 다른 파일이므로 같은 wave |
-| 8 | BE-12 | 1 | 통합 시나리오 최종 게이트 |
+| 8 | BE-12 | 1 | E2E 시나리오 최종 게이트 |
 
 ### Fan-out 통계
 
-- 총 티켓: 19개
+- 총 티켓: **21개** (PR #117 p2 보강에서 BE-08d/BE-08e 추가)
 - 총 wave: 8
-- 평균 wave 너비: (1+3+4+2+2+5+2+1) / 8 = **2.5**
-- 최대 wave 너비: 5 (Wave 6)
-- 4인 팀 가동률: 5/4=125% (Wave 6) · 4/4=100% (Wave 3) · 3/4=75% (Wave 2) · 평균 ≈ 62%
+- 평균 wave 너비: (1+3+4+2+2+7+2+1) / 8 = **2.75**
+- 최대 wave 너비: 7 (Wave 6)
+- 4인 팀 가동률: 7/4=175% (Wave 6) · 4/4=100% (Wave 3) · 3/4=75% (Wave 2) · 평균 ≈ **69%**
 - 직선화 비율 (너비 1): 2/8 = 25% — `ticket-guide.md`의 50% 이하 기준 통과
+- 70% 목표 미달분(약 1%)은 본 도메인이 SSOT라 통합 게이트(BE-12)·공통 Controller(BE-11a) 단독 wave가 본질적 병목
 
 ### Single Writer per File 검증
 
 - Wave 3: BE-01(person/), BE-02a(employment/), BE-03(department/), BE-04(history/) — **신규 패키지 각자 다른 디렉토리** ✅
 - Wave 4: BE-02b(infrastructure/employment/), BE-07(infrastructure/kafka/) — **다른 디렉토리** ✅
-- Wave 5: BE-05(person+employment DomainService), BE-06(department DomainService) — **다른 디렉토리** ✅
-- Wave 6: BE-08a/b/c(application/employee/ 안에서 각자 다른 UseCase 파일), BE-09(application/employee/Bulk*), BE-10(application/department/) — **각 UseCase는 독립 파일** ✅
+- Wave 5: BE-05(person+employment+history+query DomainService 4종), BE-06(department DomainService) — **다른 디렉토리** ✅
+- Wave 6: BE-08a/b/c/d/e(application/employee/ 안에서 각자 다른 UseCase 파일), BE-09(application/employee/Bulk*), BE-10(application/department/) — **각 UseCase는 독립 파일** ✅
 - Wave 7: BE-11a(presentation/Employee*Controller + Department*Controller), BE-11b(presentation/EmployeeBulkApiController) — **다른 파일** ✅
 
 모든 wave에서 같은 파일을 동시 수정하지 않습니다.
+
+### 5계층 테스트 분리 매핑 (`be-code-convention.md` 필수 테스트 레이어)
+
+| 레이어 | 적용 티켓 |
+|---|---|
+| domain (단위) | BE-01, BE-02a, BE-03, BE-04 (Entity + 상태머신·트리 알고리즘 단위 테스트) |
+| domain-service (단위) | BE-05, BE-06 (Kotest + MockK, DomainService 4+1종) |
+| application (단위) | BE-08a~e, BE-09, BE-10 (DomainService 모킹) |
+| infrastructure (통합) | BE-02b, BE-07 (Testcontainers MySQL + Kafka) |
+| presentation (통합) | BE-11a, BE-11b (MockMvc/WebTestClient + 권한 인터셉터) |
+| scenario (E2E) | BE-12 (X1·X4·발령 취소 보상 3종) |
 
 ## 후속 단계
 
@@ -378,3 +424,4 @@
 | 날짜 | 변경 내용 | 작성자 |
 |---|---|---|
 | 2026-05-16 | 초안 — TPM 분석 16티켓 → 검수 권고에 따라 L 분할 후 19티켓, Wave 8 DAG | 메인 세션 |
+| 2026-05-17 | PR #117 pr-reviewer p2 보강 6건 반영 — BE-08d/BE-08e 신규 추가(UC 5종), BE-05에 EmployeeQueryDomainService 책임 명시, BE-07 의존 표기 정정, BE-12 5계층 분리, 발령 취소 보상 이벤트 4종 추가, wave 너비 수치 정정(2.5→2.75, 가동률 62%→69%). 총 21티켓 | 메인 세션 |

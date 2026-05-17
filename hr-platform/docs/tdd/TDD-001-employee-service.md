@@ -126,7 +126,7 @@ hr-platform은 한국 SMB(50~300인) 대상 AI-Ready HR SaaS로, **직원 데이
 | 클래스명 | 역할 | 입력 → 출력 | 의존 |
 |---|---|---|---|
 | `PersonDomainService` | Person 조회·생성·연락처 변경 | command → Person | `PersonRepository` |
-| `EmploymentDomainService` | 입사/발령/퇴사/휴직 오케스트레이션 | command → Employment | `EmploymentRepository`, `PersonDomainService`, `DepartmentDomainService`, `DomainEventPublisher` |
+| `EmploymentDomainService` | 입사/발령/퇴사/휴직 + 발령 취소 보상 오케스트레이션 (`cancelLastTransfer()` · `cancelLastPromotion()` · `cancelLastSalaryChange()` · `cancelLastSuspend()`) | command → Employment | `EmploymentRepository`, `PersonDomainService`, `DepartmentDomainService`, `DomainEventPublisher` |
 | `DepartmentDomainService` | 부서 CRUD·트리 이동·부서장 변경 | command → Department | `DepartmentRepository`, `EmploymentRepository`(부서장 검증), `DomainEventPublisher` |
 | `EmploymentHistoryDomainService` | 발령 이력 조회·시점 재구성 | employmentId, date → List<EmploymentHistory> | `EmploymentHistoryRepository` |
 | `EmployeeQueryDomainService` | 권한 자동 범위 필터링 (TEAM_LEAD/HR_MANAGER) | viewer + criteria → page | `EmploymentRepository`, `DepartmentRepository` |
@@ -488,3 +488,4 @@ Wave 7: BE-12 (통합 + 시나리오 테스트, 최종 게이트)
 | 날짜 | 변경 내용 | 작성자 |
 |---|---|---|
 | 2026-05-16 | 초안 작성 — PRD 사전 리뷰 누락 보강 반영 (Employment 상태 머신·일괄 API·휴직/복직·비상연락처) | 메인 세션 |
+| 2026-05-17 | PR #117 pr-reviewer p2 보강 — EmploymentDomainService에 발령 취소 보상 메서드 4종 추가. (BE-08d/BE-08e 분해, EmployeeQueryDomainService 책임 명시는 HR-M1-EMPLOYEE-TICKETS.md 참조) | 메인 세션 |
