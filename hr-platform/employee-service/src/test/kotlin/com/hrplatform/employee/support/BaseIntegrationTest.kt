@@ -38,6 +38,10 @@ abstract class BaseIntegrationTest : BehaviorSpec() {
             registry.add("spring.datasource.password") { mysql.password }
             registry.add("spring.jpa.properties.hibernate.jdbc.time_zone") { "UTC" }
             registry.add("spring.jpa.properties.hibernate.timezone.default_storage") { "NORMALIZE" }
+            registry.add("hrplatform.encryption.aes-key") {
+                // 테스트용 32바이트 Base64 키
+                java.util.Base64.getEncoder().encodeToString(ByteArray(32) { it.toByte() })
+            }
         }
     }
 }

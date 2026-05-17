@@ -1,6 +1,8 @@
 package com.hrplatform.employee
 
 import com.hrplatform.employee.infrastructure.department.DepartmentJpaRepository
+import com.hrplatform.employee.infrastructure.history.EmploymentHistoryJpaRepository
+import com.hrplatform.employee.infrastructure.person.PersonJpaRepository
 import com.ninjasquad.springmockk.MockkBean
 import com.querydsl.jpa.impl.JPAQueryFactory
 import io.kotest.core.spec.style.BehaviorSpec
@@ -25,6 +27,12 @@ class EmployeeServiceApplicationTest(
 }) {
     @MockkBean
     lateinit var departmentJpaRepository: DepartmentJpaRepository
+
+    @MockkBean
+    lateinit var personJpaRepository: PersonJpaRepository
+
+    @MockkBean
+    lateinit var employmentHistoryJpaRepository: EmploymentHistoryJpaRepository
 
     @MockkBean
     lateinit var jpaQueryFactory: JPAQueryFactory
