@@ -1,13 +1,17 @@
-package com.hrplatform.auth.application.auth
+package com.hrplatform.auth.domain.auth
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
+import com.hrplatform.auth.domain.auth.service.AuthDomainService
+import com.hrplatform.auth.domain.auth.service.JwtTokenService
+import com.hrplatform.auth.domain.auth.service.TokenPair
 import com.hrplatform.auth.domain.login.LoginAttempt
 import com.hrplatform.auth.domain.login.LoginAttemptRepository
 import com.hrplatform.auth.domain.token.JtiBlacklist
 import com.hrplatform.auth.domain.token.RefreshToken
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
+import com.hrplatform.auth.domain.twofactor.service.TotpService
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.UnauthorizedException
 import io.kotest.assertions.throwables.shouldThrow
@@ -27,7 +31,6 @@ class AuthDomainServiceTest : BehaviorSpec({
         id: Long = 1L,
         email: String = "test@example.com",
         passwordHash: String = "hashed",
-        twoFactorEnabled: Boolean = false,
     ): UserAccount {
         val account = UserAccount.create(
             employmentId = 100L,
@@ -47,6 +50,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         loginAttemptRepository: LoginAttemptRepository = mockk(),
         passwordEncoder: PasswordEncoder = mockk(),
         jwtTokenService: JwtTokenService = mockk(),
+        totpService: TotpService = mockk(),
         jtiBlacklist: JtiBlacklist = mockk(),
         eventPublisher: DomainEventPublisher = mockk(relaxed = true),
     ): AuthDomainService = AuthDomainService(
@@ -55,6 +59,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         loginAttemptRepository = loginAttemptRepository,
         passwordEncoder = passwordEncoder,
         jwtTokenService = jwtTokenService,
+        totpService = totpService,
         jtiBlacklist = jtiBlacklist,
         eventPublisher = eventPublisher,
     )
@@ -210,7 +215,7 @@ class AuthDomainServiceTest : BehaviorSpec({
     given("로그인 — 2FA 활성화 계정") {
         then("2FA 활성화 계정은 requiresTwoFactor=true를 반환한다") {
             val email = "2fa@example.com"
-            val userAccount = buildActiveUserAccount(email = email, passwordHash = "hashed", twoFactorEnabled = true)
+            val userAccount = buildActiveUserAccount(email = email, passwordHash = "hashed")
 
             val field = UserAccount::class.java.getDeclaredField("twoFactorEnabled")
             field.isAccessible = true
@@ -236,13 +241,14 @@ class AuthDomainServiceTest : BehaviorSpec({
     }
 
     given("logout") {
-        then("유효한 refresh token으로 logout하면 token이 폐기된다") {
+        then("유효한 refresh token으로 logout하면 token이 폐기되고 jti가 blacklist에 추가된다") {
             val now = ZonedDateTime.now(ZoneOffset.UTC)
             val rawToken = "raw-refresh-token"
             val tokenHash = "hash"
             val refreshToken = RefreshToken(
                 userAccountId = 1L,
                 tokenHash = tokenHash,
+                accessJti = "test-jti",
                 expiresAt = now.plusDays(14),
                 deviceInfo = null,
                 ipAddress = null,
@@ -252,19 +258,24 @@ class AuthDomainServiceTest : BehaviorSpec({
 
             val refreshTokenRepository = mockk<RefreshTokenRepository>()
             val jwtTokenService = mockk<JwtTokenService>()
+            val jtiBlacklist = mockk<JtiBlacklist>()
 
             every { jwtTokenService.hashRefreshToken(rawToken) } returns tokenHash
+            every { jwtTokenService.accessTokenExpirySeconds() } returns 1800L
             every { refreshTokenRepository.findByTokenHash(tokenHash) } returns refreshToken
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
+            every { jtiBlacklist.add(any(), any()) } returns Unit
 
             val service = buildAuthDomainService(
                 refreshTokenRepository = refreshTokenRepository,
                 jwtTokenService = jwtTokenService,
+                jtiBlacklist = jtiBlacklist,
             )
 
             service.logout(rawToken)
 
             verify { refreshTokenRepository.save(any()) }
+            verify { jtiBlacklist.add("test-jti", any()) }
             refreshToken.revokedAt shouldNotBe null
         }
     }

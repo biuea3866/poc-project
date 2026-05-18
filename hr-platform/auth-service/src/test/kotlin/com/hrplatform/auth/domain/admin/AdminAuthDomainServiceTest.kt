@@ -1,8 +1,9 @@
-package com.hrplatform.auth.application.admin
+package com.hrplatform.auth.domain.admin
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
+import com.hrplatform.auth.domain.admin.service.AdminAuthDomainService
 import com.hrplatform.auth.domain.token.ApiToken
 import com.hrplatform.auth.domain.token.ApiTokenRepository
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
@@ -133,7 +134,6 @@ class AdminAuthDomainServiceTest : BehaviorSpec({
 
     given("revokeApiToken") {
         then("유효한 apiTokenId로 revokeApiToken 호출 시 토큰이 폐기된다") {
-            val now = ZonedDateTime.now(ZoneOffset.UTC)
             val apiToken = ApiToken(
                 userAccountId = 1L,
                 name = "test",

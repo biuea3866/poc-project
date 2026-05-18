@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.role
+package com.hrplatform.auth.domain.role
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
@@ -6,6 +6,7 @@ import com.hrplatform.auth.domain.role.Role
 import com.hrplatform.auth.domain.role.RoleRepository
 import com.hrplatform.auth.domain.role.UserAccountRole
 import com.hrplatform.auth.domain.role.UserAccountRoleRepository
+import com.hrplatform.auth.domain.role.service.RoleDomainService
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.BusinessException
 import com.hrplatform.core.exception.NotFoundException

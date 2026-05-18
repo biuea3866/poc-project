@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.role
+package com.hrplatform.auth.domain.role.service
 
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.event.UserRoleAssignedEvent
@@ -29,13 +29,7 @@ class RoleDomainService(
         val role = roleRepository.findById(roleId)
             ?: throw NotFoundException(errorCode = "ROLE_NOT_FOUND", message = "Role을 찾을 수 없습니다: $roleId")
 
-        val existing = userAccountRoleRepository.findByUserAccountIdAndRoleId(userAccountId, roleId)
-        if (existing != null) {
-            throw BusinessException(
-                errorCode = "ROLE_ALREADY_ASSIGNED",
-                message = "이미 부여된 역할입니다: ${role.code}",
-            )
-        }
+        validateRoleNotAlreadyAssigned(userAccountId, roleId, role.code)
 
         userAccountRoleRepository.save(
             UserAccountRole(
@@ -94,4 +88,14 @@ class RoleDomainService(
 
     fun findAllRoles(companyId: Long): List<Role> =
         roleRepository.findAllByCompanyId(companyId)
+
+    private fun validateRoleNotAlreadyAssigned(userAccountId: Long, roleId: Long, roleCode: String) {
+        val existing = userAccountRoleRepository.findByUserAccountIdAndRoleId(userAccountId, roleId)
+        if (existing != null) {
+            throw BusinessException(
+                errorCode = "ROLE_ALREADY_ASSIGNED",
+                message = "이미 부여된 역할입니다: $roleCode",
+            )
+        }
+    }
 }

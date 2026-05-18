@@ -35,12 +35,8 @@ class AesGcmStringConverter
     private val secretKey: SecretKeySpec
 
     init {
-        val effectiveKey = if (base64Key.isBlank()) {
-            Base64.getEncoder().encodeToString(ByteArray(32))
-        } else {
-            base64Key
-        }
-        val keyBytes = Base64.getDecoder().decode(effectiveKey)
+        require(base64Key.isNotBlank()) { "HRPLATFORM_AUTH_AES_KEY 환경변수 필수" }
+        val keyBytes = Base64.getDecoder().decode(base64Key)
         require(keyBytes.size == 32) { "AES-256 키는 32바이트여야 합니다. 현재: ${keyBytes.size}바이트" }
         secretKey = SecretKeySpec(keyBytes, "AES")
     }

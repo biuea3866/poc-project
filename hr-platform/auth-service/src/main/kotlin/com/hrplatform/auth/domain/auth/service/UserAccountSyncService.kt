@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.auth
+package com.hrplatform.auth.domain.auth.service
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
@@ -36,7 +36,7 @@ class UserAccountSyncService(
         val employmentId = envelope.aggregateId
         val companyId = envelope.companyId
         val email = envelope.action.details["email"] as? String
-            ?: return
+            ?: error("EmployeeHired 이벤트에 email 누락. eventId=${envelope.eventId}, aggregateId=${envelope.aggregateId}")
 
         val existing = userAccountRepository.findByEmploymentId(employmentId)
         if (existing != null) return

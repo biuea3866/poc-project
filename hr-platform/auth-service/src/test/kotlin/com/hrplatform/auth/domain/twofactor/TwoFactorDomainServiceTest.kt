@@ -1,10 +1,12 @@
-package com.hrplatform.auth.application.twofactor
+package com.hrplatform.auth.domain.twofactor
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.twofactor.TwoFactorBackupCode
 import com.hrplatform.auth.domain.twofactor.TwoFactorBackupCodeRepository
-import com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter
+import com.hrplatform.auth.domain.twofactor.service.TotpService
+import com.hrplatform.auth.domain.twofactor.service.TotpSetup
+import com.hrplatform.auth.domain.twofactor.service.TwoFactorDomainService
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.BusinessException
 import io.kotest.assertions.throwables.shouldThrow
@@ -14,7 +16,6 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.security.crypto.password.PasswordEncoder
-import java.time.ZonedDateTime
 
 class TwoFactorDomainServiceTest : BehaviorSpec({
 
@@ -38,7 +39,6 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             val backupCodeRepository = mockk<TwoFactorBackupCodeRepository>()
             val passwordEncoder = mockk<PasswordEncoder>()
             val totpService = mockk<TotpService>()
-            val aesGcmStringConverter = mockk<AesGcmStringConverter>()
             val eventPublisher = mockk<DomainEventPublisher>(relaxed = true)
 
             every { userAccountRepository.findById(1L) } returns userAccount
@@ -50,8 +50,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             every { userAccountRepository.save(any()) } answers { firstArg() }
 
             val service = TwoFactorDomainService(
-                userAccountRepository, backupCodeRepository, passwordEncoder,
-                totpService, aesGcmStringConverter, eventPublisher,
+                userAccountRepository, backupCodeRepository, passwordEncoder, totpService, eventPublisher,
             )
 
             val result = service.enroll(1L, null)
@@ -77,7 +76,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             every { totpService.verify("SECRET", "123456") } returns true
 
             val service = TwoFactorDomainService(
-                userAccountRepository, mockk(), mockk(), totpService, mockk(), mockk(relaxed = true),
+                userAccountRepository, mockk(), mockk(), totpService, mockk(relaxed = true),
             )
 
             service.verify(1L, "123456") shouldBe true
@@ -99,7 +98,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             every { backupCodeRepository.save(any()) } answers { firstArg() }
 
             val service = TwoFactorDomainService(
-                mockk(), backupCodeRepository, passwordEncoder, mockk(), mockk(), mockk(relaxed = true),
+                mockk(), backupCodeRepository, passwordEncoder, mockk(), mockk(relaxed = true),
             )
 
             val result = service.useBackupCode(1L, "raw-code")
@@ -116,7 +115,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             every { backupCodeRepository.findUnused(1L) } returns emptyList()
 
             val service = TwoFactorDomainService(
-                mockk(), backupCodeRepository, passwordEncoder, mockk(), mockk(), mockk(relaxed = true),
+                mockk(), backupCodeRepository, passwordEncoder, mockk(), mockk(relaxed = true),
             )
 
             service.useBackupCode(1L, "raw-code") shouldBe false
@@ -142,7 +141,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             every { userAccountRepository.save(any()) } answers { firstArg() }
 
             val service = TwoFactorDomainService(
-                userAccountRepository, backupCodeRepository, mockk(), mockk(), mockk(), eventPublisher,
+                userAccountRepository, backupCodeRepository, mockk(), mockk(), eventPublisher,
             )
 
             service.disable(1L, null)

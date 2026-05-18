@@ -1,10 +1,9 @@
-package com.hrplatform.auth.application.twofactor
+package com.hrplatform.auth.domain.twofactor.service
 
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
 import com.hrplatform.auth.domain.twofactor.TwoFactorBackupCode
 import com.hrplatform.auth.domain.twofactor.TwoFactorBackupCodeRepository
-import com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.BusinessException
 import com.hrplatform.core.exception.NotFoundException
@@ -16,13 +15,18 @@ import java.util.UUID
 
 private const val BACKUP_CODE_COUNT = 5
 
+data class TwoFactorEnrollmentResult(
+    val qrCodeDataUri: String,
+    val secret: String,
+    val backupCodes: List<String>,
+)
+
 @Service
 class TwoFactorDomainService(
     private val userAccountRepository: UserAccountRepository,
     private val backupCodeRepository: TwoFactorBackupCodeRepository,
     private val passwordEncoder: PasswordEncoder,
     private val totpService: TotpService,
-    private val aesGcmStringConverter: AesGcmStringConverter,
     private val eventPublisher: DomainEventPublisher,
 ) {
 

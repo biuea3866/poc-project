@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.twofactor
+package com.hrplatform.auth.domain.twofactor.service
 
 import dev.samstevens.totp.code.CodeGenerator
 import dev.samstevens.totp.code.CodeVerifier

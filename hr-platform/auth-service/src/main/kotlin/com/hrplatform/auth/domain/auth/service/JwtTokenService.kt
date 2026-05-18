@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.auth
+package com.hrplatform.auth.domain.auth.service
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
@@ -23,7 +23,7 @@ data class TokenPair(
 /**
  * JWT 발급/검증 내부 컴포넌트.
  * - Access token: 30분, claims: sub=userAccountId, jti=UUID
- * - Refresh token: 14일, SHA-256 hash로 DB 저장
+ * - Refresh token: 14일, SHA-256 hex hash로 DB 저장 (CHAR(64))
  */
 @Component
 class JwtTokenService(
@@ -98,10 +98,9 @@ class JwtTokenService(
             .compact()
     }
 
-    private fun sha256(input: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        return Base64.getEncoder().encodeToString(digest.digest(input.toByteArray(Charsets.UTF_8)))
-    }
+    private fun sha256(input: String): String =
+        MessageDigest.getInstance("SHA-256").digest(input.toByteArray(Charsets.UTF_8))
+            .joinToString("") { "%02x".format(it) }
 
     fun accessTokenExpirySeconds(): Long = accessTokenExpiryMinutes * 60
 

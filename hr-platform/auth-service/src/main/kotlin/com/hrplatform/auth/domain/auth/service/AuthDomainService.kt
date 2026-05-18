@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.auth
+package com.hrplatform.auth.domain.auth.service
 
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
@@ -9,6 +9,7 @@ import com.hrplatform.auth.domain.login.LoginFailureReason
 import com.hrplatform.auth.domain.token.JtiBlacklist
 import com.hrplatform.auth.domain.token.RefreshToken
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
+import com.hrplatform.auth.domain.twofactor.service.TotpService
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.BusinessException
 import com.hrplatform.core.exception.UnauthorizedException
@@ -30,6 +31,7 @@ class AuthDomainService(
     private val loginAttemptRepository: LoginAttemptRepository,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenService: JwtTokenService,
+    private val totpService: TotpService,
     private val jtiBlacklist: JtiBlacklist,
     private val eventPublisher: DomainEventPublisher,
 ) {
@@ -51,7 +53,7 @@ class AuthDomainService(
             throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
         }
 
-        validateAccountAccessible(userAccount, now)
+        validateAccountAccessibleBeforePassword(userAccount, now)
 
         if (!passwordEncoder.matches(rawPassword, userAccount.passwordHash)) {
             userAccount.recordFailedAttempt(now)
@@ -62,6 +64,8 @@ class AuthDomainService(
             eventPublisher.publishAll(userAccount.pullDomainEvents())
             throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
         }
+
+        unlockIfExpired(userAccount, now)
 
         if (userAccount.twoFactorEnabled) {
             return LoginResult(
@@ -81,12 +85,11 @@ class AuthDomainService(
         val userAccount = userAccountRepository.findByEmail(email)
             ?: throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
 
-        validateAccountAccessible(userAccount, now)
+        validateAccountAccessibleBeforePassword(userAccount, now)
+        verifyPasswordOrThrow(rawPassword, userAccount.passwordHash)
+        verifyOtpOrThrow(userAccount, otp)
 
-        if (!passwordEncoder.matches(rawPassword, userAccount.passwordHash)) {
-            throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
-        }
-
+        unlockIfExpired(userAccount, now)
         return completeLogin(userAccount, null, null, null, now)
     }
 
@@ -100,15 +103,9 @@ class AuthDomainService(
             throw UnauthorizedException(errorCode = "EXPIRED_REFRESH_TOKEN", message = "만료되거나 폐기된 Refresh Token입니다")
         }
 
-        val userAccount = userAccountRepository.findById(refreshToken.userAccountId)
-            ?: throw UnauthorizedException(errorCode = "ACCOUNT_NOT_FOUND", message = "계정을 찾을 수 없습니다")
-
-        if (userAccount.status == UserAccountStatus.DEACTIVATED) {
-            throw UnauthorizedException(errorCode = "ACCOUNT_DEACTIVATED", message = "비활성화된 계정입니다")
-        }
-
+        val userAccount = findAccountForRefreshOrThrow(refreshToken.userAccountId)
         val newPair = jwtTokenService.issueTokenPair(requireNotNull(userAccount.id), now)
-        refreshToken.rotate(newPair.refreshTokenHash)
+        refreshToken.rotate(newPair.refreshTokenHash, newPair.jti)
         refreshTokenRepository.save(refreshToken)
 
         return newPair
@@ -119,6 +116,10 @@ class AuthDomainService(
         val tokenHash = jwtTokenService.hashRefreshToken(rawRefreshToken)
         val refreshToken = refreshTokenRepository.findByTokenHash(tokenHash) ?: return
         if (refreshToken.revokedAt == null) {
+            val jti = refreshToken.accessJti
+            if (jti != null) {
+                jtiBlacklist.add(jti, Duration.ofMinutes(jwtTokenService.accessTokenExpirySeconds() / 60 + 5))
+            }
             refreshToken.revoke("LOGOUT", now)
             refreshTokenRepository.save(refreshToken)
         }
@@ -137,6 +138,7 @@ class AuthDomainService(
             throw UnauthorizedException(errorCode = "WRONG_PASSWORD", message = "현재 비밀번호가 올바르지 않습니다")
         }
 
+        PasswordPolicy.validate(newRawPassword)
         val newHash = passwordEncoder.encode(newRawPassword)
         userAccount.changePassword(newHash, "SELF_CHANGE", actorEmploymentId, now)
         userAccountRepository.save(userAccount)
@@ -148,19 +150,19 @@ class AuthDomainService(
         return UUID.randomUUID().toString()
     }
 
-    fun confirmPasswordReset(token: String, newRawPassword: String) {
+    fun confirmPasswordReset(resetToken: String, newRawPassword: String) {
         throw BusinessException(
             errorCode = "NOT_IMPLEMENTED",
-            message = "비밀번호 재설정 토큰 검증은 별도 토큰 저장소 구현 필요",
+            message = "비밀번호 재설정 토큰(${resetToken.take(8)}...) 검증은 별도 토큰 저장소 구현 필요. 새 비밀번호 길이: ${newRawPassword.length}",
         )
     }
 
     fun revokeAllSessions(userAccountId: Long, reason: String) {
         val now = ZonedDateTime.now(ZoneOffset.UTC)
         val activeTokens = refreshTokenRepository.findActiveByUserAccountId(userAccountId)
-        val jtis = activeTokens.mapNotNull { it.revokedReason }
+        val jtis = activeTokens.mapNotNull { it.accessJti }
         if (jtis.isNotEmpty()) {
-            jtiBlacklist.addAll(jtis, Duration.ofDays(15))
+            jtiBlacklist.addAll(jtis, Duration.ofMinutes(jwtTokenService.accessTokenExpirySeconds() / 60 + 5))
         }
         refreshTokenRepository.revokeAllByUserAccountId(userAccountId, reason, now)
     }
@@ -179,6 +181,7 @@ class AuthDomainService(
         val refreshTokenEntity = RefreshToken(
             userAccountId = requireNotNull(userAccount.id),
             tokenHash = tokenPair.refreshTokenHash,
+            accessJti = tokenPair.jti,
             expiresAt = tokenPair.refreshTokenExpiresAt,
             deviceInfo = deviceInfo,
             ipAddress = ipAddress,
@@ -202,38 +205,79 @@ class AuthDomainService(
         )
     }
 
-    private fun validateAccountAccessible(userAccount: UserAccount, now: ZonedDateTime) {
+    /**
+     * password 검증 이전: DEACTIVATED, SUSPENDED, LOCKED(아직 잠금 중) 상태 차단.
+     * LOCKED이지만 잠금 해제 시각이 지난 경우는 password 검증 이후 unlock 처리.
+     */
+    private fun validateAccountAccessibleBeforePassword(userAccount: UserAccount, now: ZonedDateTime) {
         when (userAccount.status) {
             UserAccountStatus.DEACTIVATED ->
                 throw UnauthorizedException(errorCode = "ACCOUNT_DEACTIVATED", message = "비활성화된 계정입니다")
-            UserAccountStatus.SUSPENDED -> {
-                loginAttemptRepository.save(
-                    LoginAttempt.failure(
-                        userAccount.id, userAccount.email,
-                        LoginFailureReason.ACCOUNT_SUSPENDED, null, null, now,
-                    ),
-                )
-                throw UnauthorizedException(errorCode = "ACCOUNT_SUSPENDED", message = "정지된 계정입니다")
-            }
-            UserAccountStatus.LOCKED -> {
-                val autoUnlocked = userAccount.tryAutoUnlock(now)
-                if (!autoUnlocked) {
-                    loginAttemptRepository.save(
-                        LoginAttempt.failure(
-                            userAccount.id, userAccount.email,
-                            LoginFailureReason.ACCOUNT_LOCKED, null, null, now,
-                        ),
-                    )
-                    throw UnauthorizedException(
-                        errorCode = "ACCOUNT_LOCKED",
-                        message = "잠긴 계정입니다. 잠금 해제 시각: ${userAccount.lockedUntil}",
-                    )
-                }
-                userAccountRepository.save(userAccount)
-                eventPublisher.publishAll(userAccount.pullDomainEvents())
-            }
+            UserAccountStatus.SUSPENDED -> throwSuspendedAndRecord(userAccount, now)
+            UserAccountStatus.LOCKED -> throwLockedAndRecordIfStillLocked(userAccount, now)
             UserAccountStatus.ACTIVE -> Unit
         }
+    }
+
+    private fun throwSuspendedAndRecord(userAccount: UserAccount, now: ZonedDateTime) {
+        loginAttemptRepository.save(
+            LoginAttempt.failure(
+                userAccount.id, userAccount.email,
+                LoginFailureReason.ACCOUNT_SUSPENDED, null, null, now,
+            ),
+        )
+        throw UnauthorizedException(errorCode = "ACCOUNT_SUSPENDED", message = "정지된 계정입니다")
+    }
+
+    private fun throwLockedAndRecordIfStillLocked(userAccount: UserAccount, now: ZonedDateTime) {
+        val lockUntil = userAccount.lockedUntil
+        if (lockUntil == null || lockUntil.isAfter(now)) {
+            loginAttemptRepository.save(
+                LoginAttempt.failure(
+                    userAccount.id, userAccount.email,
+                    LoginFailureReason.ACCOUNT_LOCKED, null, null, now,
+                ),
+            )
+            throw UnauthorizedException(
+                errorCode = "ACCOUNT_LOCKED",
+                message = "잠긴 계정입니다. 잠금 해제 시각: ${userAccount.lockedUntil}",
+            )
+        }
+        // 잠금 시각이 지났으면 password 검증 이후 unlock 처리
+    }
+
+    /**
+     * password 검증 이후: LOCKED이지만 잠금 해제 시각이 지난 경우 unlock 처리.
+     */
+    private fun unlockIfExpired(userAccount: UserAccount, now: ZonedDateTime) {
+        if (userAccount.status == UserAccountStatus.LOCKED) {
+            userAccount.tryAutoUnlock(now)
+            userAccountRepository.save(userAccount)
+            eventPublisher.publishAll(userAccount.pullDomainEvents())
+        }
+    }
+
+    private fun verifyPasswordOrThrow(rawPassword: String, passwordHash: String) {
+        if (!passwordEncoder.matches(rawPassword, passwordHash)) {
+            throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
+        }
+    }
+
+    private fun verifyOtpOrThrow(userAccount: UserAccount, otp: String) {
+        val encryptedSecret = userAccount.twoFactorSecret
+            ?: throw UnauthorizedException(errorCode = "2FA_NOT_ENROLLED", message = "2FA가 등록되지 않은 계정입니다")
+        if (!totpService.verify(encryptedSecret, otp)) {
+            throw UnauthorizedException(errorCode = "INVALID_OTP", message = "OTP가 올바르지 않습니다")
+        }
+    }
+
+    private fun findAccountForRefreshOrThrow(userAccountId: Long): UserAccount {
+        val userAccount = userAccountRepository.findById(userAccountId)
+            ?: throw UnauthorizedException(errorCode = "ACCOUNT_NOT_FOUND", message = "계정을 찾을 수 없습니다")
+        if (userAccount.status == UserAccountStatus.DEACTIVATED) {
+            throw UnauthorizedException(errorCode = "ACCOUNT_DEACTIVATED", message = "비활성화된 계정입니다")
+        }
+        return userAccount
     }
 
     private fun findActiveOrThrow(userAccountId: Long): UserAccount {

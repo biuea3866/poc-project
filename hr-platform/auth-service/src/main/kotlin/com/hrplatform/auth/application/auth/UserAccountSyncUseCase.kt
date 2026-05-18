@@ -1,5 +1,6 @@
 package com.hrplatform.auth.application.auth
 
+import com.hrplatform.auth.domain.auth.service.UserAccountSyncService
 import com.hrplatform.core.domain.DomainEventEnvelope
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional

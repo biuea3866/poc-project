@@ -22,6 +22,9 @@ class AuthKafkaDomainEventPublisher(
     private val logger = LoggerFactory.getLogger(javaClass)
 
     override fun publish(event: DomainEvent) {
+        require(event.aggregateType == "UserAccount") {
+            "AuthKafkaDomainEventPublisher는 UserAccount 이벤트만 발행합니다. 실제 aggregateType: ${event.aggregateType}"
+        }
         val envelope = DomainEventEnvelope.from(event)
         val payload = objectMapper.writeValueAsString(envelope)
         val partitionKey = event.aggregateId.toString()

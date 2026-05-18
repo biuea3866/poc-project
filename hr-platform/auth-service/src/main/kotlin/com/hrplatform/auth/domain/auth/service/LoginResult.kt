@@ -1,4 +1,4 @@
-package com.hrplatform.auth.application.auth
+package com.hrplatform.auth.domain.auth.service
 
 import java.time.ZonedDateTime
 

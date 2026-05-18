@@ -15,6 +15,9 @@ class RefreshToken(
     @Column(name = "token_hash", nullable = false, unique = true)
     var tokenHash: String,
 
+    @Column(name = "access_jti", length = 36, columnDefinition = "CHAR(36)")
+    var accessJti: String?,
+
     @Column(name = "expires_at", nullable = false)
     val expiresAt: ZonedDateTime,
 
@@ -37,9 +40,10 @@ class RefreshToken(
         revokedReason = reason
     }
 
-    fun rotate(newHash: String) {
+    fun rotate(newHash: String, newAccessJti: String) {
         check(revokedAt == null) { "폐기된 RefreshToken은 rotate할 수 없습니다" }
         tokenHash = newHash
+        accessJti = newAccessJti
     }
 
     fun isExpired(now: ZonedDateTime): Boolean = expiresAt.isBefore(now)
