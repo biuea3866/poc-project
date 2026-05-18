@@ -224,6 +224,9 @@ class DepartmentRepositoryImplTest : BehaviorSpec({
                 "--collation-server=utf8mb4_unicode_ci",
             )
             .also { container ->
+                // Hibernate가 Spring 없이 AesGcmStringConverter를 직접 instantiate할 때
+                // isTestProfile() 검사를 통과하도록 test profile을 명시적으로 설정.
+                System.setProperty("spring.profiles.active", "test")
                 container.start()
                 Flyway.configure()
                     .dataSource(container.jdbcUrl, container.username, container.password)
