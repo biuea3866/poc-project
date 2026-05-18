@@ -2,6 +2,7 @@ package com.hrplatform.auth.application.auth
 
 import com.hrplatform.auth.domain.auth.service.AuthDomainService
 import com.hrplatform.auth.domain.auth.service.LoginResult
+import com.hrplatform.core.exception.BusinessException
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
 
@@ -18,7 +19,7 @@ class LoginUseCase(
     private val authDomainService: AuthDomainService,
 ) {
 
-    @Transactional
+    @Transactional(noRollbackFor = [BusinessException::class])
     fun execute(command: LoginCommand): LoginResult =
         authDomainService.login(
             email = command.email,

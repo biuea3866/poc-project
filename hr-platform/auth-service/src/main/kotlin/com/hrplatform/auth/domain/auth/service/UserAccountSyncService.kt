@@ -2,11 +2,13 @@ package com.hrplatform.auth.domain.auth.service
 
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
+import com.hrplatform.auth.domain.token.JtiBlacklist
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
 import com.hrplatform.core.domain.DomainEventEnvelope
 import com.hrplatform.core.event.DomainEventPublisher
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.time.Duration
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -18,6 +20,7 @@ import java.time.ZonedDateTime
 class UserAccountSyncService(
     private val userAccountRepository: UserAccountRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
+    private val jtiBlacklist: JtiBlacklist,
     private val eventPublisher: DomainEventPublisher,
 ) {
     private val logger = LoggerFactory.getLogger(UserAccountSyncService::class.java)
@@ -43,7 +46,14 @@ class UserAccountSyncService(
 
         userAccount.deactivate("EmployeeResigned", envelope.actorEmploymentId, now)
         userAccountRepository.save(userAccount)
-        refreshTokenRepository.revokeAllByUserAccountId(requireNotNull(userAccount.id), "ACCOUNT_DEACTIVATED", now)
+
+        val userAccountId = requireNotNull(userAccount.id)
+        val activeTokens = refreshTokenRepository.findActiveByUserAccountId(userAccountId)
+        val jtis = activeTokens.mapNotNull { it.accessJti }
+        if (jtis.isNotEmpty()) {
+            jtiBlacklist.addAll(jtis, Duration.ofHours(2))
+        }
+        refreshTokenRepository.revokeAllByUserAccountId(userAccountId, "ACCOUNT_DEACTIVATED", now)
         eventPublisher.publishAll(userAccount.pullDomainEvents())
     }
 

@@ -106,7 +106,7 @@ class AuthDomainServiceTest : BehaviorSpec({
 
             every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { passwordEncoder.matches(rawPassword, "bcrypt-hashed") } returns true
-            every { jwtTokenService.issueTokenPair(1L, any()) } returns tokenPair
+            every { jwtTokenService.issueTokenPair(1L, any(), any()) } returns tokenPair
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
             every { userAccountRepository.save(any()) } answers { firstArg() }
@@ -209,7 +209,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { userAccountRepository.save(any()) } answers { firstArg() }
             every { passwordEncoder.matches(any(), "hashed") } returns true
-            every { jwtTokenService.issueTokenPair(any(), any()) } returns tokenPair
+            every { jwtTokenService.issueTokenPair(any(), any(), any()) } returns tokenPair
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
 
