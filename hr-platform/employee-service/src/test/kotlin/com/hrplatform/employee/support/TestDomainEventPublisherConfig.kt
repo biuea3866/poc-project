@@ -4,11 +4,13 @@ import com.hrplatform.core.domain.DomainEvent
 import com.hrplatform.core.event.DomainEventPublisher
 import org.springframework.boot.test.context.TestConfiguration
 import org.springframework.context.annotation.Bean
+import org.springframework.context.annotation.Primary
 
 @TestConfiguration
 class TestDomainEventPublisherConfig {
 
     @Bean
+    @Primary
     fun domainEventPublisher(): DomainEventPublisher = NoOpDomainEventPublisher()
 }
 

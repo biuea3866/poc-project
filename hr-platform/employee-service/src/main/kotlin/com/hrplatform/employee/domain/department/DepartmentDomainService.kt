@@ -5,7 +5,6 @@ import com.hrplatform.employee.domain.employment.EmploymentNotFoundException
 import com.hrplatform.employee.domain.employment.EmploymentRepository
 import com.hrplatform.employee.domain.employment.EmploymentStatus
 import org.springframework.stereotype.Service
-import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
 @Service
@@ -35,13 +34,15 @@ class DepartmentDomainService(
         return departmentRepository.save(saved)
     }
 
-    fun moveTo(departmentId: Long, newParentId: Long?, actorEmploymentId: Long?): Department {
+    fun moveTo(departmentId: Long, newParentId: Long?, actorEmploymentId: Long?, now: ZonedDateTime): Department {
         val department = departmentRepository.findById(departmentId) ?: throw DepartmentNotFoundException()
         val newParent = newParentId?.let {
             departmentRepository.findById(it) ?: throw DepartmentNotFoundException()
         }
         val oldPath = department.path
-        department.moveTo(newParent, actorEmploymentId, ZonedDateTime.now(ZoneOffset.UTC))
+        department.moveTo(newParent, actorEmploymentId, now)
+        // NOTE: N+1 발생 — SMB MVP 기준 부서 ~30개 가정으로 허용.
+        // 부서 1000+ 규모 시점에 QueryDSL bulk update로 교체 예정.
         updateDescendantPaths(oldPath, department.path, department.id ?: departmentId)
         val events = department.pullDomainEvents()
         val saved = departmentRepository.save(department)
@@ -49,20 +50,20 @@ class DepartmentDomainService(
         return saved
     }
 
-    fun assignHead(departmentId: Long, employmentId: Long, actorEmploymentId: Long?): Department {
+    fun assignHead(departmentId: Long, employmentId: Long, actorEmploymentId: Long?, now: ZonedDateTime): Department {
         val department = departmentRepository.findById(departmentId) ?: throw DepartmentNotFoundException()
         val head = employmentRepository.findById(employmentId) ?: throw EmploymentNotFoundException()
         if (head.status != EmploymentStatus.ACTIVE) throw IneligibleHeadException()
-        department.assignHead(employmentId, actorEmploymentId, ZonedDateTime.now(ZoneOffset.UTC))
+        department.assignHead(employmentId, actorEmploymentId, now)
         val events = department.pullDomainEvents()
         val saved = departmentRepository.save(department)
         if (events.isNotEmpty()) eventPublisher.publishAll(events)
         return saved
     }
 
-    fun removeHead(departmentId: Long, actorEmploymentId: Long?): Department {
+    fun removeHead(departmentId: Long, actorEmploymentId: Long?, now: ZonedDateTime): Department {
         val department = departmentRepository.findById(departmentId) ?: throw DepartmentNotFoundException()
-        department.removeHead(actorEmploymentId, ZonedDateTime.now(ZoneOffset.UTC))
+        department.removeHead(actorEmploymentId, now)
         val events = department.pullDomainEvents()
         val saved = departmentRepository.save(department)
         if (events.isNotEmpty()) eventPublisher.publishAll(events)
