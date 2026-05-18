@@ -22,9 +22,9 @@ class AuthEmploymentIdArgumentResolver : HandlerMethodArgumentResolver {
         binderFactory: WebDataBinderFactory?,
     ): Long {
         val authentication = SecurityContextHolder.getContext().authentication
+        val jwtAuthentication = authentication as? JwtAuthenticationToken
             ?: throw UnauthorizedException(errorCode = "E_AUTH_REQUIRED", message = "JWT 인증이 필요합니다")
-        val token = authentication as JwtAuthenticationToken
-        return token.employmentId
+        return jwtAuthentication.employmentId
             ?: throw UnauthorizedException(errorCode = "E_EMPLOYMENT_REQUIRED", message = "employmentId가 없는 계정입니다")
     }
 }

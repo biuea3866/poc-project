@@ -22,7 +22,8 @@ class AuthUserAccountIdArgumentResolver : HandlerMethodArgumentResolver {
         binderFactory: WebDataBinderFactory?,
     ): Long {
         val authentication = SecurityContextHolder.getContext().authentication
+        val jwtAuthentication = authentication as? JwtAuthenticationToken
             ?: throw UnauthorizedException(errorCode = "E_AUTH_REQUIRED", message = "JWT 인증이 필요합니다")
-        return (authentication as JwtAuthenticationToken).userAccountId
+        return jwtAuthentication.userAccountId
     }
 }

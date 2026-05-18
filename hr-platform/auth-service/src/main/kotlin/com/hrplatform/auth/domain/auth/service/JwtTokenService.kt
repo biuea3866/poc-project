@@ -1,5 +1,6 @@
 package com.hrplatform.auth.domain.auth.service
 
+import io.jsonwebtoken.JwtException
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import org.springframework.beans.factory.annotation.Value
@@ -96,7 +97,7 @@ class JwtTokenService(
         val employmentIdClaim = claims["eid"]
         return JwtClaims(
             userAccountId = claims.subject.toLong(),
-            jti = requireNotNull(claims.id) { "JWT에 jti가 없습니다" },
+            jti = claims.id ?: throw JwtException("jti 클레임 누락"),
             employmentId = (employmentIdClaim as? Number)?.toLong(),
         )
     }

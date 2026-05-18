@@ -16,7 +16,6 @@ import com.hrplatform.auth.application.twofactor.VerifyTwoFactorCommand
 import com.hrplatform.auth.application.twofactor.VerifyTwoFactorUseCase
 import com.hrplatform.auth.presentation.auth.AuthUserAccountId
 import jakarta.validation.Valid
-import org.slf4j.LoggerFactory
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
@@ -34,8 +33,6 @@ class AuthApiController(
     private val enrollTwoFactorUseCase: EnrollTwoFactorUseCase,
     private val verifyTwoFactorUseCase: VerifyTwoFactorUseCase,
 ) {
-
-    private val log = LoggerFactory.getLogger(javaClass)
 
     @PostMapping("/login")
     fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
@@ -65,8 +62,7 @@ class AuthApiController(
 
     @PostMapping("/password-reset/request")
     fun requestReset(@Valid @RequestBody request: PasswordResetRequest): ResponseEntity<Void> {
-        val rawToken = requestPasswordResetUseCase.execute(RequestPasswordResetCommand(email = request.email))
-        log.info("[STUB] 비밀번호 재설정 토큰 발급 (notification-service 미구현): email={}, token={}...", request.email, rawToken.take(8))
+        requestPasswordResetUseCase.execute(RequestPasswordResetCommand(email = request.email))
         return ResponseEntity.noContent().build()
     }
 

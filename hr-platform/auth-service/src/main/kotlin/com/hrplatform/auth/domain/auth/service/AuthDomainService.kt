@@ -14,6 +14,7 @@ import com.hrplatform.auth.domain.token.RefreshTokenRepository
 import com.hrplatform.auth.domain.twofactor.service.TotpService
 import com.hrplatform.core.event.DomainEventPublisher
 import com.hrplatform.core.exception.BusinessException
+import com.hrplatform.core.exception.NotFoundException
 import com.hrplatform.core.exception.UnauthorizedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
@@ -207,6 +208,14 @@ class AuthDomainService(
         passwordResetTokenRepository.markUsed(tokenHash)
         revokeAllSessions(resetToken.userAccountId, "PASSWORD_RESET")
         eventPublisher.publishAll(userAccount.pullDomainEvents())
+    }
+
+    fun getMe(userAccountId: Long): UserAccount {
+        return userAccountRepository.findById(userAccountId)
+            ?: throw NotFoundException(
+                errorCode = "USER_ACCOUNT_NOT_FOUND",
+                message = "UserAccount를 찾을 수 없습니다: $userAccountId",
+            )
     }
 
     fun revokeAllSessions(userAccountId: Long, reason: String) {
