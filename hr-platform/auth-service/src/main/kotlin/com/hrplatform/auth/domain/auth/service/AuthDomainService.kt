@@ -151,7 +151,10 @@ class AuthDomainService(
 
     fun requestPasswordReset(email: String): String {
         val emailHash = emailHashService.hash(email)
-        userAccountRepository.findByEmailHash(emailHash) ?: return UUID.randomUUID().toString()
+        // timing attack 방어: 계정 존재 여부 무관하게 동일 응답 반환.
+        // 조회 결과를 활용하지 않고 항상 새 토큰을 반환하여 계정 열거(account enumeration) 공격 차단.
+        // 실제 이메일 발송은 notification-service가 담당 (별도 구현 예정).
+        userAccountRepository.findByEmailHash(emailHash)
         return UUID.randomUUID().toString()
     }
 
@@ -226,9 +229,11 @@ class AuthDomainService(
     }
 
     private fun throwSuspendedAndRecord(userAccount: UserAccount, now: ZonedDateTime) {
+        // emailHash가 null인 경우(backfill 미완료) 빈 문자열로 기록. 로그인 불가 상태이므로 영향 없음.
+        val emailHash = userAccount.emailHash ?: ""
         loginAttemptRepository.save(
             LoginAttempt.failure(
-                userAccount.id, userAccount.emailHash,
+                userAccount.id, emailHash,
                 LoginFailureReason.ACCOUNT_SUSPENDED, null, null, now,
             ),
         )
@@ -238,9 +243,10 @@ class AuthDomainService(
     private fun throwLockedAndRecordIfStillLocked(userAccount: UserAccount, now: ZonedDateTime) {
         val lockUntil = userAccount.lockedUntil
         if (lockUntil == null || lockUntil.isAfter(now)) {
+            val emailHash = userAccount.emailHash ?: ""
             loginAttemptRepository.save(
                 LoginAttempt.failure(
-                    userAccount.id, userAccount.emailHash,
+                    userAccount.id, emailHash,
                     LoginFailureReason.ACCOUNT_LOCKED, null, null, now,
                 ),
             )

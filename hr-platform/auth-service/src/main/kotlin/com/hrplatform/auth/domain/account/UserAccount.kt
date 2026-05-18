@@ -30,12 +30,14 @@ class UserAccount(
     @Column(name = "company_id", nullable = false)
     val companyId: Long,
 
+    // TODO(domain-purity): AttributeConverter를 domain interface로 추상화 — 별도 리팩토링 티켓
     @Convert(converter = com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter::class)
     @Column(nullable = true, columnDefinition = "VARBINARY(500)")
     val email: String?,
 
-    @Column(name = "email_hash", nullable = false, length = 64)
-    val emailHash: String,
+    // nullable = true: 운영 backfill 완료 전 NULL 허용. backfill 후 별도 마이그레이션에서 NOT NULL로 변경 예정.
+    @Column(name = "email_hash", nullable = true, length = 64)
+    val emailHash: String?,
 
     @Column(name = "password_hash", nullable = false)
     var passwordHash: String,
@@ -56,6 +58,7 @@ class UserAccount(
     @Column(name = "two_factor_enabled", nullable = false)
     var twoFactorEnabled: Boolean,
 
+    // TODO(domain-purity): AttributeConverter를 domain interface로 추상화 — 별도 리팩토링 티켓
     @Convert(converter = com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter::class)
     @Column(name = "two_factor_secret")
     var twoFactorSecret: String?,
