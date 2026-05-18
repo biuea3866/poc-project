@@ -1,0 +1,104 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "UserRoleRevoked",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "UserRoleRevoked"
+    },
+    "eventVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aggregateType": {
+      "type": "string",
+      "const": "UserAccount"
+    },
+    "aggregateId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "details"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "ROLE_REVOKE"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["roleId", "roleCode"],
+          "properties": {
+            "roleId": {
+              "type": "integer"
+            },
+            "roleCode": {
+              "type": "string"
+            }
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "snapshot"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": ["ACTIVE", "SUSPENDED", "LOCKED", "DEACTIVATED"]
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentId", "email", "twoFactorEnabled", "lockedUntil"],
+          "properties": {
+            "employmentId": {
+              "type": "integer"
+            },
+            "email": {
+              "type": "string",
+              "format": "email"
+            },
+            "twoFactorEnabled": {
+              "type": "boolean"
+            },
+            "lockedUntil": {
+              "type": ["string", "null"],
+              "format": "date-time"
+            }
+          }
+        }
+      }
+    }
+  }
+}
