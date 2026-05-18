@@ -1,6 +1,7 @@
 package com.hrplatform.auth.domain.auth.service
 
 import com.hrplatform.auth.domain.account.EmailHashService
+import com.hrplatform.auth.domain.account.PasswordResetTokenRepository
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
@@ -16,20 +17,27 @@ import com.hrplatform.core.exception.BusinessException
 import com.hrplatform.core.exception.UnauthorizedException
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
+import java.security.MessageDigest
+import java.security.SecureRandom
 import java.time.Duration
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.UUID
+import java.util.Base64
 
 /**
  * 인증 핵심 도메인 서비스.
  * @Transactional 없음 — UseCase(application 레이어)에서 선언.
  */
+private val secureRandom = SecureRandom()
+private val TOKEN_TTL = Duration.ofMinutes(30)
+
 @Service
 class AuthDomainService(
     private val userAccountRepository: UserAccountRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val loginAttemptRepository: LoginAttemptRepository,
+    private val passwordResetTokenRepository: PasswordResetTokenRepository,
     private val emailHashService: EmailHashService,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenService: JwtTokenService,
@@ -149,20 +157,56 @@ class AuthDomainService(
         eventPublisher.publishAll(userAccount.pullDomainEvents())
     }
 
+    /**
+     * 비밀번호 재설정 요청.
+     * timing attack 방어: 계정 존재 여부와 무관하게 동일한 응답 반환(계정 열거 공격 차단).
+     * rawToken을 반환하며, Controller가 notification-service에 이메일 발송을 위임해야 함.
+     * TODO: 운영 Controller에서 rawToken을 응답 body에 포함하지 않고 notification-service에만 전달할 것.
+     */
     fun requestPasswordReset(email: String): String {
         val emailHash = emailHashService.hash(email)
-        // timing attack 방어: 계정 존재 여부 무관하게 동일 응답 반환.
-        // 조회 결과를 활용하지 않고 항상 새 토큰을 반환하여 계정 열거(account enumeration) 공격 차단.
-        // 실제 이메일 발송은 notification-service가 담당 (별도 구현 예정).
-        userAccountRepository.findByEmailHash(emailHash)
-        return UUID.randomUUID().toString()
+        val userAccount = userAccountRepository.findByEmailHash(emailHash)
+
+        val rawToken = generateRawToken()
+        val tokenHash = sha256Hex(rawToken)
+        val expiresAt = Instant.now().plus(TOKEN_TTL)
+
+        if (userAccount != null) {
+            passwordResetTokenRepository.save(tokenHash, requireNotNull(userAccount.id), expiresAt)
+        }
+
+        return rawToken
     }
 
-    fun confirmPasswordReset(resetToken: String, newRawPassword: String) {
-        throw BusinessException(
-            errorCode = "NOT_IMPLEMENTED",
-            message = "비밀번호 재설정 토큰(${resetToken.take(8)}...) 검증은 별도 토큰 저장소 구현 필요. 새 비밀번호 길이: ${newRawPassword.length}",
-        )
+    /**
+     * 비밀번호 재설정 확인.
+     * rawToken을 sha256 해싱하여 저장소에서 검색, 만료/사용 여부 검증 후 비밀번호 변경.
+     * 성공 시 모든 RefreshToken을 무효화하고 UserPasswordChangedEvent를 발행한다.
+     */
+    fun confirmPasswordReset(rawToken: String, newRawPassword: String) {
+        val tokenHash = sha256Hex(rawToken)
+        val resetToken = passwordResetTokenRepository.findByHash(tokenHash)
+            ?: throw BusinessException(errorCode = "INVALID_RESET_TOKEN", message = "유효하지 않거나 만료된 비밀번호 재설정 토큰입니다")
+
+        if (resetToken.usedAt != null) {
+            throw BusinessException(errorCode = "INVALID_RESET_TOKEN", message = "이미 사용된 비밀번호 재설정 토큰입니다")
+        }
+        if (Instant.now().isAfter(resetToken.expiresAt)) {
+            throw BusinessException(errorCode = "INVALID_RESET_TOKEN", message = "만료된 비밀번호 재설정 토큰입니다")
+        }
+
+        val now = ZonedDateTime.now(ZoneOffset.UTC)
+        val userAccount = userAccountRepository.findById(resetToken.userAccountId)
+            ?: throw BusinessException(errorCode = "ACCOUNT_NOT_FOUND", message = "계정을 찾을 수 없습니다")
+
+        PasswordPolicy.validate(newRawPassword)
+        val newHash = passwordEncoder.encode(newRawPassword)
+        userAccount.changePassword(newHash, "PASSWORD_RESET", null, now)
+        userAccountRepository.save(userAccount)
+
+        passwordResetTokenRepository.markUsed(tokenHash)
+        revokeAllSessions(resetToken.userAccountId, "PASSWORD_RESET")
+        eventPublisher.publishAll(userAccount.pullDomainEvents())
     }
 
     fun revokeAllSessions(userAccountId: Long, reason: String) {
@@ -302,5 +346,17 @@ class AuthDomainService(
             )
         }
         return userAccount
+    }
+
+    private fun generateRawToken(): String {
+        val bytes = ByteArray(32)
+        secureRandom.nextBytes(bytes)
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+    }
+
+    private fun sha256Hex(input: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hashBytes = digest.digest(input.toByteArray(Charsets.UTF_8))
+        return hashBytes.joinToString("") { "%02x".format(it) }
     }
 }
