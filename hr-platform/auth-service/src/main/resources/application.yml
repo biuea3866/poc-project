@@ -57,6 +57,7 @@ spring:
       - org.springframework.boot.autoconfigure.data.redis.RedisReactiveAutoConfiguration
       - org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration
       - org.springframework.boot.autoconfigure.security.servlet.SecurityFilterAutoConfiguration
+      - org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration
       - org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration
 
 hrplatform:
@@ -150,7 +151,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.hrplatform.auth.presentation.consumer.dto"
+        spring.json.trusted.packages: "com.hrplatform.core.domain"
       auto-offset-reset: earliest
   data:
     redis:
@@ -190,7 +191,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.hrplatform.auth.presentation.consumer.dto"
+        spring.json.trusted.packages: "com.hrplatform.core.domain"
   data:
     redis:
       host: ${REDIS_HOST}
@@ -229,7 +230,7 @@ spring:
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
       properties:
-        spring.json.trusted.packages: "com.hrplatform.auth.presentation.consumer.dto"
+        spring.json.trusted.packages: "com.hrplatform.core.domain"
   data:
     redis:
       host: ${REDIS_HOST}

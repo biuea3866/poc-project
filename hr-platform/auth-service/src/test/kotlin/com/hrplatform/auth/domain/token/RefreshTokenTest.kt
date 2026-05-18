@@ -13,6 +13,7 @@ class RefreshTokenTest : BehaviorSpec({
     fun createToken(expiresAt: ZonedDateTime = now.plusDays(14)) = RefreshToken(
         userAccountId = 1L,
         tokenHash = "original-hash",
+        accessJti = "test-jti",
         expiresAt = expiresAt,
         deviceInfo = "Chrome/Mac",
         ipAddress = "127.0.0.1",
@@ -23,7 +24,7 @@ class RefreshTokenTest : BehaviorSpec({
     given("유효한 RefreshToken") {
         `when`("rotate 호출 시") {
             val token = createToken()
-            token.rotate("new-hash")
+            token.rotate("new-hash", "new-jti")
             then("tokenHash가 새 값으로 교체된다") {
                 token.tokenHash shouldBe "new-hash"
             }
@@ -71,7 +72,7 @@ class RefreshTokenTest : BehaviorSpec({
             token.revoke("폐기", now)
             then("IllegalStateException 발생") {
                 shouldThrow<IllegalStateException> {
-                    token.rotate("new-hash")
+                    token.rotate("new-hash", "new-jti")
                 }
             }
         }

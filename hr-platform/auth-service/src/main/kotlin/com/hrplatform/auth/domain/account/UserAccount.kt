@@ -8,7 +8,6 @@ import com.hrplatform.auth.domain.account.event.UserSuspendedEvent
 import com.hrplatform.auth.domain.account.event.UserTwoFactorDisabledEvent
 import com.hrplatform.auth.domain.account.event.UserTwoFactorEnrolledEvent
 import com.hrplatform.auth.domain.account.event.UserUnlockedEvent
-import com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter
 import com.hrplatform.core.domain.AggregateRoot
 import jakarta.persistence.Column
 import jakarta.persistence.Convert
@@ -53,7 +52,7 @@ class UserAccount(
     @Column(name = "two_factor_enabled", nullable = false)
     var twoFactorEnabled: Boolean,
 
-    @Convert(converter = AesGcmStringConverter::class)
+    @Convert(converter = com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter::class)
     @Column(name = "two_factor_secret")
     var twoFactorSecret: String?,
 ) : AggregateRoot() {
