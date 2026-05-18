@@ -43,6 +43,12 @@ class JwtTokenService(
     private val refreshTokenExpiryDays: Long,
 ) {
 
+    init {
+        require(base64Secret.isNotBlank()) {
+            "HRPLATFORM_JWT_SECRET(hrplatform.jwt.secret) 환경변수가 설정되지 않았습니다. 운영 서버 시작을 차단합니다."
+        }
+    }
+
     private val secretKey: SecretKey by lazy {
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(base64Secret))
     }

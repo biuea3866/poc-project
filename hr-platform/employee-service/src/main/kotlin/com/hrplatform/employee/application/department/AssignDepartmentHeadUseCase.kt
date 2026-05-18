@@ -3,17 +3,20 @@ package com.hrplatform.employee.application.department
 import com.hrplatform.employee.domain.department.DepartmentDomainService
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 @Service
 class AssignDepartmentHeadUseCase(
     private val departmentDomainService: DepartmentDomainService,
 ) {
     @Transactional
-    fun execute(command: AssignDepartmentHeadCommand): DepartmentResult {
+    fun execute(command: AssignDepartmentHeadCommand, now: ZonedDateTime = ZonedDateTime.now(ZoneOffset.UTC)): DepartmentResult {
         val department = departmentDomainService.assignHead(
             departmentId = command.departmentId,
             employmentId = command.employmentId,
             actorEmploymentId = command.actorEmploymentId,
+            now = now,
         )
         return DepartmentResult.of(department)
     }

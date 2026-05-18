@@ -98,15 +98,18 @@ class EmploymentCustomRepositoryImpl(
         val employmentIdCondition: BooleanExpression? = employmentId?.let {
             Expressions.numberPath(Long::class.java, employment, "id").eq(it)
         }
-        val query = queryFactory.selectFrom(employment)
-            .where(
-                employment.companyId.eq(companyId),
-                deletedAtPath.isNull,
-                pathPrefixCondition,
-                employmentIdCondition,
-            )
-        val total = query.fetch().size.toLong()
-        val content = query
+        val whereConditions = arrayOf(
+            employment.companyId.eq(companyId),
+            deletedAtPath.isNull,
+            pathPrefixCondition,
+            employmentIdCondition,
+        )
+        val total = queryFactory.select(employment.count())
+            .from(employment)
+            .where(*whereConditions)
+            .fetchOne() ?: 0L
+        val content = queryFactory.selectFrom(employment)
+            .where(*whereConditions)
             .offset(pageable.offset)
             .limit(pageable.pageSize.toLong())
             .fetch()

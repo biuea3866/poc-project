@@ -90,7 +90,7 @@ class DepartmentApiControllerTest(
                 headEmploymentId = null,
                 effectiveFrom = LocalDate.of(2026, 1, 1),
             )
-            every { moveUseCase.execute(any()) } returns moveResult
+            every { moveUseCase.execute(any(), any()) } returns moveResult
 
             then("200 OK와 변경된 DepartmentResult를 반환한다") {
                 mockMvc.patch("/departments/1") {
@@ -118,7 +118,7 @@ class DepartmentApiControllerTest(
                 headEmploymentId = 50L,
                 effectiveFrom = LocalDate.of(2026, 1, 1),
             )
-            every { assignHeadUseCase.execute(any()) } returns headResult
+            every { assignHeadUseCase.execute(any(), any()) } returns headResult
 
             then("200 OK와 headEmploymentId가 설정된 DepartmentResult를 반환한다") {
                 mockMvc.patch("/departments/1/head") {

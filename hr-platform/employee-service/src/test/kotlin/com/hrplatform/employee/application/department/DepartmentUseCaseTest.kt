@@ -71,12 +71,12 @@ class DepartmentUseCaseTest : BehaviorSpec({
                 every { headEmploymentId } returns null
                 every { effectiveFrom } returns LocalDate.of(2026, 1, 1)
             }
-            every { departmentDomainService.moveTo(5L, 2L, 100L) } returns mockDepartment
+            every { departmentDomainService.moveTo(5L, 2L, 100L, any()) } returns mockDepartment
 
             then("DomainService.moveTo를 정확히 1회 호출하고 결과를 반환한다") {
                 val result = moveUseCase.execute(command)
 
-                verify(exactly = 1) { departmentDomainService.moveTo(5L, 2L, 100L) }
+                verify(exactly = 1) { departmentDomainService.moveTo(5L, 2L, 100L, any()) }
                 result.departmentId shouldBe 5L
                 result.parentId shouldBe 2L
             }
@@ -89,7 +89,7 @@ class DepartmentUseCaseTest : BehaviorSpec({
                 actorEmploymentId = 100L,
             )
             every {
-                departmentDomainService.moveTo(5L, 5L, 100L)
+                departmentDomainService.moveTo(5L, 5L, 100L, any())
             } throws CircularDepartmentException()
 
             then("CircularDepartmentException이 전파된다") {
@@ -116,12 +116,12 @@ class DepartmentUseCaseTest : BehaviorSpec({
                 every { headEmploymentId } returns 2L
                 every { effectiveFrom } returns LocalDate.of(2026, 1, 1)
             }
-            every { departmentDomainService.assignHead(1L, 2L, 100L) } returns mockDepartment
+            every { departmentDomainService.assignHead(1L, 2L, 100L, any()) } returns mockDepartment
 
             then("DomainService.assignHead를 정확히 1회 호출하고 headEmploymentId가 반영된 결과를 반환한다") {
                 val result = assignHeadUseCase.execute(command)
 
-                verify(exactly = 1) { departmentDomainService.assignHead(1L, 2L, 100L) }
+                verify(exactly = 1) { departmentDomainService.assignHead(1L, 2L, 100L, any()) }
                 result.headEmploymentId shouldBe 2L
             }
         }
@@ -133,7 +133,7 @@ class DepartmentUseCaseTest : BehaviorSpec({
                 actorEmploymentId = 100L,
             )
             every {
-                departmentDomainService.assignHead(1L, 99L, 100L)
+                departmentDomainService.assignHead(1L, 99L, 100L, any())
             } throws IneligibleHeadException()
 
             then("IneligibleHeadException이 전파된다") {

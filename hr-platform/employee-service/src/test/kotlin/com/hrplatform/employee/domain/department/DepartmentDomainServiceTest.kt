@@ -14,6 +14,8 @@ import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import java.time.LocalDate
+import java.time.ZoneOffset
+import java.time.ZonedDateTime
 
 class DepartmentDomainServiceTest : BehaviorSpec({
 
@@ -125,7 +127,8 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             every { departmentRepository.findByPathPrefix("/1/") } returns listOf(targetDept, childDept)
             every { departmentRepository.save(any()) } answers { firstArg() }
 
-            service.moveTo(departmentId = 1L, newParentId = 5L, actorEmploymentId = 10L)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            service.moveTo(departmentId = 1L, newParentId = 5L, actorEmploymentId = 10L, now = now)
 
             then("대상 부서의 path가 갱신된다") {
                 targetDept.path shouldBe "/5/1/"
@@ -142,10 +145,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val (departmentRepository, employmentRepository, eventPublisher) = mocks()
             val service = DepartmentDomainService(departmentRepository, employmentRepository, eventPublisher)
             every { departmentRepository.findById(999L) } returns null
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("DepartmentNotFoundException이 발생한다") {
                 shouldThrow<DepartmentNotFoundException> {
-                    service.moveTo(departmentId = 999L, newParentId = null, actorEmploymentId = null)
+                    service.moveTo(departmentId = 999L, newParentId = null, actorEmploymentId = null, now = now)
                 }
             }
         }
@@ -156,10 +160,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val targetDept = makeDepartment(id = 1L, path = "/1/")
             every { departmentRepository.findById(1L) } returns targetDept
             every { departmentRepository.findById(999L) } returns null
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("DepartmentNotFoundException이 발생한다") {
                 shouldThrow<DepartmentNotFoundException> {
-                    service.moveTo(departmentId = 1L, newParentId = 999L, actorEmploymentId = null)
+                    service.moveTo(departmentId = 1L, newParentId = 999L, actorEmploymentId = null, now = now)
                 }
             }
         }
@@ -175,7 +180,8 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             every { employmentRepository.findById(50L) } returns activeEmployment
             every { departmentRepository.save(any()) } answers { firstArg() }
 
-            val result = service.assignHead(departmentId = 1L, employmentId = 50L, actorEmploymentId = 10L)
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val result = service.assignHead(departmentId = 1L, employmentId = 50L, actorEmploymentId = 10L, now = now)
 
             then("부서장이 지정된다") {
                 result.headEmploymentId shouldBe 50L
@@ -192,10 +198,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val onLeaveEmployment = makeEmployment(id = 60L, status = EmploymentStatus.ON_LEAVE)
             every { departmentRepository.findById(1L) } returns dept
             every { employmentRepository.findById(60L) } returns onLeaveEmployment
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("IneligibleHeadException이 발생한다") {
                 shouldThrow<IneligibleHeadException> {
-                    service.assignHead(departmentId = 1L, employmentId = 60L, actorEmploymentId = 10L)
+                    service.assignHead(departmentId = 1L, employmentId = 60L, actorEmploymentId = 10L, now = now)
                 }
             }
         }
@@ -207,10 +214,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val resignedEmployment = makeEmployment(id = 70L, status = EmploymentStatus.RESIGNED)
             every { departmentRepository.findById(1L) } returns dept
             every { employmentRepository.findById(70L) } returns resignedEmployment
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("IneligibleHeadException이 발생한다") {
                 shouldThrow<IneligibleHeadException> {
-                    service.assignHead(departmentId = 1L, employmentId = 70L, actorEmploymentId = 10L)
+                    service.assignHead(departmentId = 1L, employmentId = 70L, actorEmploymentId = 10L, now = now)
                 }
             }
         }
@@ -219,10 +227,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val (departmentRepository, employmentRepository, eventPublisher) = mocks()
             val service = DepartmentDomainService(departmentRepository, employmentRepository, eventPublisher)
             every { departmentRepository.findById(999L) } returns null
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("DepartmentNotFoundException이 발생한다") {
                 shouldThrow<DepartmentNotFoundException> {
-                    service.assignHead(departmentId = 999L, employmentId = 50L, actorEmploymentId = null)
+                    service.assignHead(departmentId = 999L, employmentId = 50L, actorEmploymentId = null, now = now)
                 }
             }
         }
@@ -233,10 +242,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val dept = makeDepartment(id = 1L)
             every { departmentRepository.findById(1L) } returns dept
             every { employmentRepository.findById(999L) } returns null
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("EmploymentNotFoundException이 발생한다") {
                 shouldThrow<EmploymentNotFoundException> {
-                    service.assignHead(departmentId = 1L, employmentId = 999L, actorEmploymentId = null)
+                    service.assignHead(departmentId = 1L, employmentId = 999L, actorEmploymentId = null, now = now)
                 }
             }
         }
@@ -249,8 +259,9 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val dept = makeDepartment(id = 1L, headEmploymentId = 50L)
             every { departmentRepository.findById(1L) } returns dept
             every { departmentRepository.save(any()) } answers { firstArg() }
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
-            val result = service.removeHead(departmentId = 1L, actorEmploymentId = 10L)
+            val result = service.removeHead(departmentId = 1L, actorEmploymentId = 10L, now = now)
 
             then("headEmploymentId가 null이 된다") {
                 result.headEmploymentId shouldBe null
@@ -266,8 +277,9 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val dept = makeDepartment(id = 1L, headEmploymentId = null)
             every { departmentRepository.findById(1L) } returns dept
             every { departmentRepository.save(any()) } answers { firstArg() }
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
-            val result = service.removeHead(departmentId = 1L, actorEmploymentId = null)
+            val result = service.removeHead(departmentId = 1L, actorEmploymentId = null, now = now)
 
             then("이벤트가 발행되지 않는다") {
                 verify(exactly = 0) { eventPublisher.publishAll(any()) }
@@ -281,10 +293,11 @@ class DepartmentDomainServiceTest : BehaviorSpec({
             val (departmentRepository, employmentRepository, eventPublisher) = mocks()
             val service = DepartmentDomainService(departmentRepository, employmentRepository, eventPublisher)
             every { departmentRepository.findById(999L) } returns null
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
 
             then("DepartmentNotFoundException이 발생한다") {
                 shouldThrow<DepartmentNotFoundException> {
-                    service.removeHead(departmentId = 999L, actorEmploymentId = null)
+                    service.removeHead(departmentId = 999L, actorEmploymentId = null, now = now)
                 }
             }
         }
