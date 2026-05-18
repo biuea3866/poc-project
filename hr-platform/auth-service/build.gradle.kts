@@ -89,4 +89,5 @@ dependencies {
     testImplementation(libs.testcontainers.junit)
     testImplementation(libs.testcontainers.mysql)
     testImplementation(libs.testcontainers.kafka)
+    testImplementation(libs.testcontainers.core)
 }

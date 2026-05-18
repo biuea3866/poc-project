@@ -117,7 +117,7 @@ class AuthDomainService(
         }
 
         val userAccount = findAccountForRefreshOrThrow(refreshToken.userAccountId)
-        val newPair = jwtTokenService.issueTokenPair(requireNotNull(userAccount.id), now)
+        val newPair = jwtTokenService.issueTokenPair(requireNotNull(userAccount.id), userAccount.employmentId, now)
         refreshToken.rotate(newPair.refreshTokenHash, newPair.jti)
         refreshTokenRepository.save(refreshToken)
 
@@ -239,7 +239,7 @@ class AuthDomainService(
         userAccount.recordSuccessfulLogin(now)
         userAccountRepository.save(userAccount)
 
-        val tokenPair = jwtTokenService.issueTokenPair(requireNotNull(userAccount.id), now)
+        val tokenPair = jwtTokenService.issueTokenPair(requireNotNull(userAccount.id), userAccount.employmentId, now)
         val refreshTokenEntity = RefreshToken(
             userAccountId = requireNotNull(userAccount.id),
             tokenHash = tokenPair.refreshTokenHash,

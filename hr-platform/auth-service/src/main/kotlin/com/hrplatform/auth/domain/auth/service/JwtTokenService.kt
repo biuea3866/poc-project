@@ -60,9 +60,9 @@ class JwtTokenService(
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(base64Secret))
     }
 
-    fun issueTokenPair(userAccountId: Long, now: ZonedDateTime): TokenPair {
+    fun issueTokenPair(userAccountId: Long, employmentId: Long?, now: ZonedDateTime): TokenPair {
         val jti = UUID.randomUUID().toString()
-        val accessToken = buildAccessToken(userAccountId, jti, now)
+        val accessToken = buildAccessToken(userAccountId, employmentId, jti, now)
         val rawRefreshToken = UUID.randomUUID().toString()
         val refreshTokenHash = sha256(rawRefreshToken)
         val refreshTokenExpiresAt = now.plusDays(refreshTokenExpiryDays)
@@ -112,20 +112,6 @@ class JwtTokenService(
     }
 
     fun hashRefreshToken(rawToken: String): String = sha256(rawToken)
-
-    private fun buildAccessToken(userAccountId: Long, jti: String, now: ZonedDateTime): String {
-        val issuedAt = Date.from(now.toInstant())
-        val expiry = Date.from(now.plusMinutes(accessTokenExpiryMinutes).toInstant())
-        return Jwts.builder()
-            .subject(userAccountId.toString())
-            .issuer(issuer)
-            .audience().add(audience).and()
-            .issuedAt(issuedAt)
-            .expiration(expiry)
-            .id(jti)
-            .signWith(secretKey)
-            .compact()
-    }
 
     private fun buildAccessToken(userAccountId: Long, employmentId: Long?, jti: String, now: ZonedDateTime): String {
         val issuedAt = Date.from(now.toInstant())
