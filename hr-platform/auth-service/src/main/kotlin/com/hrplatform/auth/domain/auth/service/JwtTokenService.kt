@@ -20,6 +20,12 @@ data class TokenPair(
     val jti: String,
 )
 
+data class JwtClaims(
+    val userAccountId: Long,
+    val jti: String,
+    val employmentId: Long?,
+)
+
 /**
  * JWT 발급/검증 내부 컴포넌트.
  * - Access token: 30분, claims: sub=userAccountId, jti=UUID
@@ -79,6 +85,22 @@ class JwtTokenService(
         return claims.subject.toLong()
     }
 
+    fun verifyAccessToken(token: String): JwtClaims {
+        val claims = Jwts.parser()
+            .verifyWith(secretKey)
+            .requireIssuer(issuer)
+            .requireAudience(audience)
+            .build()
+            .parseSignedClaims(token)
+            .payload
+        val employmentIdClaim = claims["eid"]
+        return JwtClaims(
+            userAccountId = claims.subject.toLong(),
+            jti = requireNotNull(claims.id) { "JWT에 jti가 없습니다" },
+            employmentId = (employmentIdClaim as? Number)?.toLong(),
+        )
+    }
+
     fun extractJti(token: String): String {
         val claims = Jwts.parser()
             .verifyWith(secretKey)
@@ -102,6 +124,22 @@ class JwtTokenService(
             .id(jti)
             .signWith(secretKey)
             .compact()
+    }
+
+    private fun buildAccessToken(userAccountId: Long, employmentId: Long?, jti: String, now: ZonedDateTime): String {
+        val issuedAt = Date.from(now.toInstant())
+        val expiry = Date.from(now.plusMinutes(accessTokenExpiryMinutes).toInstant())
+        val builder = Jwts.builder()
+            .subject(userAccountId.toString())
+            .issuer(issuer)
+            .audience().add(audience).and()
+            .issuedAt(issuedAt)
+            .expiration(expiry)
+            .id(jti)
+        if (employmentId != null) {
+            builder.claim("eid", employmentId)
+        }
+        return builder.signWith(secretKey).compact()
     }
 
     private fun sha256(input: String): String =

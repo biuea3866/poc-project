@@ -13,22 +13,20 @@ class UserAccountRepositoryImplTest(
 
     init {
         given("UserAccount 저장 후") {
-            val testEmail = "repo-test@example.com"
-            val testEmailHash = "a".repeat(64)
             val account = UserAccount.create(
                 employmentId = 1001L,
                 companyId = 10L,
-                email = testEmail,
-                emailHash = testEmailHash,
+                email = "repo-test@example.com",
+                emailHash = null,
                 passwordHash = "hashed-pw",
             )
             val saved = userAccountRepository.save(account)
 
-            `when`("findByEmailHash 조회") {
-                val found = userAccountRepository.findByEmailHash(testEmailHash)
+            `when`("findByEmail 조회") {
+                val found = userAccountRepository.findByEmail("repo-test@example.com")
                 then("저장된 계정이 반환된다") {
                     found shouldNotBe null
-                    found!!.emailHash shouldBe testEmailHash
+                    found!!.email shouldBe "repo-test@example.com"
                     found.employmentId shouldBe 1001L
                 }
             }
