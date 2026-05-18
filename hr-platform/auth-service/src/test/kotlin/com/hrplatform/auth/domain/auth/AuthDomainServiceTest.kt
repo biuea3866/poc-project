@@ -1,6 +1,8 @@
 package com.hrplatform.auth.domain.auth
 
 import com.hrplatform.auth.domain.account.EmailHashService
+import com.hrplatform.auth.domain.account.PasswordResetToken
+import com.hrplatform.auth.domain.account.PasswordResetTokenRepository
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
@@ -14,15 +16,18 @@ import com.hrplatform.auth.domain.token.RefreshToken
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
 import com.hrplatform.auth.domain.twofactor.service.TotpService
 import com.hrplatform.core.event.DomainEventPublisher
+import com.hrplatform.core.exception.BusinessException
 import com.hrplatform.core.exception.UnauthorizedException
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.BehaviorSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.every
+import io.mockk.justRun
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.security.crypto.password.PasswordEncoder
+import java.time.Instant
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
 
@@ -56,6 +61,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         userAccountRepository: UserAccountRepository = mockk(),
         refreshTokenRepository: RefreshTokenRepository = mockk(),
         loginAttemptRepository: LoginAttemptRepository = mockk(),
+        passwordResetTokenRepository: PasswordResetTokenRepository = mockk(relaxed = true),
         emailHashService: EmailHashService = testEmailHashService,
         passwordEncoder: PasswordEncoder = mockk(),
         jwtTokenService: JwtTokenService = mockk(),
@@ -66,6 +72,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         userAccountRepository = userAccountRepository,
         refreshTokenRepository = refreshTokenRepository,
         loginAttemptRepository = loginAttemptRepository,
+        passwordResetTokenRepository = passwordResetTokenRepository,
         emailHashService = emailHashService,
         passwordEncoder = passwordEncoder,
         jwtTokenService = jwtTokenService,
@@ -287,6 +294,149 @@ class AuthDomainServiceTest : BehaviorSpec({
             verify { refreshTokenRepository.save(any()) }
             verify { jtiBlacklist.add("test-jti", any()) }
             refreshToken.revokedAt shouldNotBe null
+        }
+    }
+
+    given("requestPasswordReset — 존재하는 계정") {
+        then("계정이 존재하면 rawToken을 반환하고 repository에 tokenHash를 저장한다") {
+            val email = "user@example.com"
+            val userAccount = buildActiveUserAccount(email = email)
+
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>()
+
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
+            justRun { passwordResetTokenRepository.save(any(), any(), any()) }
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                passwordResetTokenRepository = passwordResetTokenRepository,
+            )
+
+            val rawToken = service.requestPasswordReset(email)
+
+            rawToken.isNotBlank() shouldBe true
+            verify { passwordResetTokenRepository.save(any(), 1L, any()) }
+        }
+    }
+
+    given("requestPasswordReset — 존재하지 않는 계정") {
+        then("계정이 없어도 rawToken을 반환한다 (timing attack 방어)") {
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>(relaxed = true)
+
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns null
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                passwordResetTokenRepository = passwordResetTokenRepository,
+            )
+
+            val rawToken = service.requestPasswordReset("unknown@example.com")
+
+            rawToken.isNotBlank() shouldBe true
+            verify(exactly = 0) { passwordResetTokenRepository.save(any(), any(), any()) }
+        }
+    }
+
+    given("confirmPasswordReset — 유효한 토큰") {
+        then("유효한 rawToken으로 confirmPasswordReset 호출 시 비밀번호가 변경되고 세션이 무효화된다") {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val userAccount = buildActiveUserAccount()
+
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>()
+            val passwordEncoder = mockk<PasswordEncoder>()
+            val refreshTokenRepository = mockk<RefreshTokenRepository>()
+            val jwtTokenService = mockk<JwtTokenService>()
+            val jtiBlacklist = mockk<JtiBlacklist>(relaxed = true)
+
+            every { passwordResetTokenRepository.findByHash(any()) } returns PasswordResetToken(
+                tokenHash = "any-hash",
+                userAccountId = 1L,
+                expiresAt = Instant.now().plusSeconds(1800),
+                usedAt = null,
+            )
+            justRun { passwordResetTokenRepository.markUsed(any()) }
+            every { userAccountRepository.findById(1L) } returns userAccount
+            every { userAccountRepository.save(any()) } answers { firstArg() }
+            every { passwordEncoder.encode(any()) } returns "new-hash"
+            every { refreshTokenRepository.findActiveByUserAccountId(1L) } returns emptyList()
+            justRun { refreshTokenRepository.revokeAllByUserAccountId(any(), any(), any()) }
+            every { jwtTokenService.accessTokenExpirySeconds() } returns 1800L
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                passwordResetTokenRepository = passwordResetTokenRepository,
+                passwordEncoder = passwordEncoder,
+                refreshTokenRepository = refreshTokenRepository,
+                jwtTokenService = jwtTokenService,
+                jtiBlacklist = jtiBlacklist,
+            )
+
+            service.confirmPasswordReset("valid-raw-token", "NewPassword123!")
+
+            verify { passwordResetTokenRepository.markUsed(any()) }
+            verify { refreshTokenRepository.revokeAllByUserAccountId(1L, "PASSWORD_RESET", any()) }
+            userAccount.passwordHash shouldBe "new-hash"
+        }
+    }
+
+    given("confirmPasswordReset — 유효하지 않은 토큰") {
+        then("존재하지 않는 토큰으로 호출 시 BusinessException이 발생한다") {
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>()
+
+            every { passwordResetTokenRepository.findByHash(any()) } returns null
+
+            val service = buildAuthDomainService(
+                passwordResetTokenRepository = passwordResetTokenRepository,
+            )
+
+            shouldThrow<BusinessException> {
+                service.confirmPasswordReset("invalid-token", "NewPassword123!")
+            }
+        }
+    }
+
+    given("confirmPasswordReset — 만료된 토큰") {
+        then("만료된 토큰으로 호출 시 BusinessException이 발생한다") {
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>()
+
+            every { passwordResetTokenRepository.findByHash(any()) } returns PasswordResetToken(
+                tokenHash = "any-hash",
+                userAccountId = 1L,
+                expiresAt = Instant.now().minusSeconds(1),
+                usedAt = null,
+            )
+
+            val service = buildAuthDomainService(
+                passwordResetTokenRepository = passwordResetTokenRepository,
+            )
+
+            shouldThrow<BusinessException> {
+                service.confirmPasswordReset("expired-token", "NewPassword123!")
+            }
+        }
+    }
+
+    given("confirmPasswordReset — 이미 사용된 토큰") {
+        then("이미 사용된 토큰으로 호출 시 BusinessException이 발생한다") {
+            val passwordResetTokenRepository = mockk<PasswordResetTokenRepository>()
+
+            every { passwordResetTokenRepository.findByHash(any()) } returns PasswordResetToken(
+                tokenHash = "any-hash",
+                userAccountId = 1L,
+                expiresAt = Instant.now().plusSeconds(1800),
+                usedAt = Instant.now().minusSeconds(60),
+            )
+
+            val service = buildAuthDomainService(
+                passwordResetTokenRepository = passwordResetTokenRepository,
+            )
+
+            shouldThrow<BusinessException> {
+                service.confirmPasswordReset("used-token", "NewPassword123!")
+            }
         }
     }
 })

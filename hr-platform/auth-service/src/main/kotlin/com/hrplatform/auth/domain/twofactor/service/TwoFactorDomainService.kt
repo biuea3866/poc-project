@@ -1,5 +1,6 @@
 package com.hrplatform.auth.domain.twofactor.service
 
+import com.fasterxml.jackson.annotation.JsonIgnore
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
 import com.hrplatform.auth.domain.twofactor.TwoFactorBackupCode
@@ -17,6 +18,11 @@ private const val BACKUP_CODE_COUNT = 5
 
 data class TwoFactorEnrollmentResult(
     val qrCodeDataUri: String,
+    /**
+     * TOTP raw secret. Wave 7 Controller에서 응답 body에 직접 노출하지 않을 것.
+     * QR 코드만 응답하고, secret은 QR에 인코딩된 형태로만 제공.
+     */
+    @JsonIgnore
     val secret: String,
     val backupCodes: List<String>,
 )
