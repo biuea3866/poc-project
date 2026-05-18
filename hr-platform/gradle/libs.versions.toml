@@ -15,6 +15,7 @@ kotlinx-coroutines = "1.9.0"
 micrometer = "1.14.2"
 kafka = "3.9.0"
 jjwt = "0.12.6"
+totp = "1.7.1"
 detekt = "1.23.8"
 kover = "0.9.1"
 hypersistence-utils = "3.9.0"
@@ -62,6 +63,9 @@ hypersistence-utils = { module = "io.hypersistence:hypersistence-utils-hibernate
 jjwt-api = { module = "io.jsonwebtoken:jjwt-api", version.ref = "jjwt" }
 jjwt-impl = { module = "io.jsonwebtoken:jjwt-impl", version.ref = "jjwt" }
 jjwt-jackson = { module = "io.jsonwebtoken:jjwt-jackson", version.ref = "jjwt" }
+
+# TOTP
+totp = { module = "dev.samstevens.totp:totp", version.ref = "totp" }
 
 # Logging
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
