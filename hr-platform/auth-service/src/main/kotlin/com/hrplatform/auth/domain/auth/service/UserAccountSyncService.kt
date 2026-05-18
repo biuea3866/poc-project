@@ -1,5 +1,6 @@
 package com.hrplatform.auth.domain.auth.service
 
+import com.hrplatform.auth.domain.account.EmailHashService
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
@@ -27,6 +28,7 @@ class UserAccountSyncService(
     private val refreshTokenRepository: RefreshTokenRepository,
     private val roleRepository: RoleRepository,
     private val userAccountRoleRepository: UserAccountRoleRepository,
+    private val emailHashService: EmailHashService,
     private val passwordEncoder: PasswordEncoder,
     private val eventPublisher: DomainEventPublisher,
 ) {
@@ -46,6 +48,7 @@ class UserAccountSyncService(
             employmentId = employmentId,
             companyId = companyId,
             email = email,
+            emailHash = emailHashService.hash(email),
             passwordHash = passwordEncoder.encode(tempPassword),
         )
         val saved = userAccountRepository.save(userAccount)
@@ -66,7 +69,6 @@ class UserAccountSyncService(
             userAccountId = requireNotNull(saved.id),
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             defaultRoleCode = RoleCode.EMPLOYEE.name,
             actorEmploymentId = envelope.actorEmploymentId,
             occurredAt = now,

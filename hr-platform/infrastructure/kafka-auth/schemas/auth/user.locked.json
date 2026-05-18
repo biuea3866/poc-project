@@ -81,14 +81,10 @@
         "snapshot": {
           "type": "object",
           "additionalProperties": false,
-          "required": ["employmentId", "email", "twoFactorEnabled", "lockedUntil"],
+          "required": ["employmentId", "twoFactorEnabled", "lockedUntil"],
           "properties": {
             "employmentId": {
               "type": "integer"
-            },
-            "email": {
-              "type": "string",
-              "format": "email"
             },
             "twoFactorEnabled": {
               "type": "boolean"

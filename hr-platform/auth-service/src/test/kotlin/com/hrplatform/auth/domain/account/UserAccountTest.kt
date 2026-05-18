@@ -22,6 +22,7 @@ class UserAccountTest : BehaviorSpec({
         employmentId = 1L,
         companyId = 10L,
         email = "test@example.com",
+        emailHash = "a".repeat(64),
         passwordHash = "hashed",
     )
 

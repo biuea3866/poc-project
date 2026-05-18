@@ -10,7 +10,6 @@ data class UserRoleRevokedEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     val twoFactorEnabled: Boolean,
     val lockedUntil: ZonedDateTime?,
     val roleId: Long,
@@ -38,7 +37,6 @@ data class UserRoleRevokedEvent(
         override val status: String = "ACTIVE"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to twoFactorEnabled,
             "lockedUntil" to lockedUntil?.toString(),
         )

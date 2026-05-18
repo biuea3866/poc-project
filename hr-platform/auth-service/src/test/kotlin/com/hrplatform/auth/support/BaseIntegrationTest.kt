@@ -42,6 +42,7 @@ abstract class BaseIntegrationTest : BehaviorSpec() {
             registry.add("hrplatform.encryption.aes-key") {
                 java.util.Base64.getEncoder().encodeToString(ByteArray(32) { it.toByte() })
             }
+            registry.add("hrplatform.auth.email-hash-secret") { "test-email-hash-secret-for-integration-tests-only" }
         }
     }
 }

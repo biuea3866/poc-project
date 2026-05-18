@@ -13,8 +13,8 @@ class LoginAttemptRepositoryImplTest(
 ) : BaseIntegrationTest() {
 
     init {
-        given("동일 이메일에 5건 실패 저장 후") {
-            val email = "lockme@example.com"
+        given("동일 emailHash로 5건 실패 저장 후") {
+            val emailHash = "a".repeat(64)
             val now = ZonedDateTime.now()
             val since = now.minusMinutes(15)
 
@@ -22,7 +22,7 @@ class LoginAttemptRepositoryImplTest(
                 loginAttemptRepository.save(
                     LoginAttempt.failure(
                         userAccountId = null,
-                        email = email,
+                        emailHash = emailHash,
                         failureReason = LoginFailureReason.BAD_PASSWORD,
                         ipAddress = "127.0.0.1",
                         userAgent = null,
@@ -32,14 +32,14 @@ class LoginAttemptRepositoryImplTest(
             }
 
             `when`("countRecentFailures 조회 시") {
-                val count = loginAttemptRepository.countRecentFailures(email, since)
+                val count = loginAttemptRepository.countRecentFailures(emailHash, since)
                 then("5 반환") {
                     count shouldBe 5
                 }
             }
 
-            `when`("findRecentByEmail 조회 시") {
-                val attempts = loginAttemptRepository.findRecentByEmail(email, 10)
+            `when`("findRecentByEmailHash 조회 시") {
+                val attempts = loginAttemptRepository.findRecentByEmailHash(emailHash, 10)
                 then("5건 반환") {
                     attempts.size shouldBe 5
                 }

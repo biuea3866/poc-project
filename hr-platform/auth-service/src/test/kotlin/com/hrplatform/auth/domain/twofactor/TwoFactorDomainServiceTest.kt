@@ -24,6 +24,7 @@ class TwoFactorDomainServiceTest : BehaviorSpec({
             employmentId = 100L,
             companyId = 1L,
             email = "test@example.com",
+            emailHash = "a".repeat(64),
             passwordHash = "hash",
         )
         val idField = UserAccount::class.java.superclass.superclass.getDeclaredField("id")

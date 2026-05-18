@@ -7,12 +7,13 @@ import java.time.ZonedDateTime
 class LoginAttemptTest : BehaviorSpec({
 
     val now = ZonedDateTime.now()
+    val emailHash = "a".repeat(64)
 
     given("성공 로그인 시도 생성") {
         `when`("success factory 호출") {
             val attempt = LoginAttempt.success(
                 userAccountId = 1L,
-                email = "test@example.com",
+                emailHash = emailHash,
                 ipAddress = "127.0.0.1",
                 userAgent = "Chrome",
                 now = now,
@@ -20,7 +21,7 @@ class LoginAttemptTest : BehaviorSpec({
             then("success=true, failureReason=null") {
                 attempt.success shouldBe true
                 attempt.failureReason shouldBe null
-                attempt.email shouldBe "test@example.com"
+                attempt.emailHash shouldBe emailHash
                 attempt.userAccountId shouldBe 1L
             }
         }
@@ -30,7 +31,7 @@ class LoginAttemptTest : BehaviorSpec({
         `when`("failure factory 호출") {
             val attempt = LoginAttempt.failure(
                 userAccountId = null,
-                email = "unknown@example.com",
+                emailHash = emailHash,
                 failureReason = LoginFailureReason.EMAIL_NOT_FOUND,
                 ipAddress = "10.0.0.1",
                 userAgent = null,

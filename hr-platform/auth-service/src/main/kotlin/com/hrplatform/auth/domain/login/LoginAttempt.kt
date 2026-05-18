@@ -10,6 +10,7 @@ import java.time.ZonedDateTime
 
 /**
  * 로그인 시도 이력 (append-only).
+ * email 평문 대신 emailHash(HMAC-SHA-256 hex)를 저장한다.
  * setter 노출 0. companion factory 메서드만 사용.
  */
 @Entity
@@ -18,8 +19,8 @@ class LoginAttempt private constructor(
     @Column(name = "user_account_id")
     val userAccountId: Long?,
 
-    @Column(nullable = false)
-    val email: String,
+    @Column(name = "email_hash", nullable = false, length = 64)
+    val emailHash: String,
 
     @Column(name = "attempted_at", nullable = false)
     val attemptedAt: ZonedDateTime,
@@ -41,13 +42,13 @@ class LoginAttempt private constructor(
     companion object {
         fun success(
             userAccountId: Long,
-            email: String,
+            emailHash: String,
             ipAddress: String?,
             userAgent: String?,
             now: ZonedDateTime,
         ): LoginAttempt = LoginAttempt(
             userAccountId = userAccountId,
-            email = email,
+            emailHash = emailHash,
             attemptedAt = now,
             success = true,
             failureReason = null,
@@ -57,14 +58,14 @@ class LoginAttempt private constructor(
 
         fun failure(
             userAccountId: Long?,
-            email: String,
+            emailHash: String,
             failureReason: LoginFailureReason,
             ipAddress: String?,
             userAgent: String?,
             now: ZonedDateTime,
         ): LoginAttempt = LoginAttempt(
             userAccountId = userAccountId,
-            email = email,
+            emailHash = emailHash,
             attemptedAt = now,
             success = false,
             failureReason = failureReason,

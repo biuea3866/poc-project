@@ -10,6 +10,8 @@ server:
 hrplatform:
   encryption:
     aes-key: ${HRPLATFORM_AUTH_AES_KEY:}
+  auth:
+    email-hash-secret: ${HRPLATFORM_AUTH_EMAIL_HASH_SECRET:}
   jwt:
     secret: ${HRPLATFORM_AUTH_JWT_SECRET:}
     issuer: ${HRPLATFORM_AUTH_JWT_ISSUER:hr-platform}
@@ -63,6 +65,8 @@ spring:
 hrplatform:
   encryption:
     aes-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  auth:
+    email-hash-secret: test-email-hash-secret-for-unit-tests-only
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LWZvci11bml0LXRlc3RzLW9ubHk=
     issuer: hr-platform-test
@@ -113,6 +117,8 @@ spring:
 hrplatform:
   encryption:
     aes-key: AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=
+  auth:
+    email-hash-secret: test-email-hash-secret-for-integration-tests-only
   jwt:
     secret: dGVzdC1zZWNyZXQta2V5LWZvci10ZXN0LWludGVncmF0aW9u
     issuer: hr-platform-test
