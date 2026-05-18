@@ -71,11 +71,36 @@ class AesGcmStringConverterTest : BehaviorSpec({
             }
         }
 
-        `when`("키가 없으면 Hibernate fallback이 활성화된다") {
-            then("zero 키로 초기화되어 예외를 던지지 않는다 (운영은 @Value 또는 환경변수로 정상 주입)") {
-                val converter = AesGcmStringConverter("")
-                val encrypted = converter.convertToDatabaseColumn("test")
-                encrypted shouldNotBe null
+        `when`("키가 빈 문자열로 주입되면") {
+            then("운영 profile에서 IllegalArgumentException이 발생한다 (zero-key fallback 금지 — fail-loud)") {
+                // spring.profiles.active를 비운 상태에서 빈 키 → 운영 경로 → fail-loud
+                val previousProp = System.getProperty("spring.profiles.active")
+                System.clearProperty("spring.profiles.active")
+                try {
+                    shouldThrow<IllegalArgumentException> {
+                        AesGcmStringConverter("")
+                    }
+                } finally {
+                    if (previousProp != null) {
+                        System.setProperty("spring.profiles.active", previousProp)
+                    }
+                }
+            }
+
+            then("test profile에서는 zero-key fallback이 허용된다 (Hibernate EMF 직접 빌드 경로)") {
+                val previousProp = System.getProperty("spring.profiles.active")
+                System.setProperty("spring.profiles.active", "test")
+                try {
+                    val converter = AesGcmStringConverter("")
+                    val encrypted = converter.convertToDatabaseColumn("test")
+                    encrypted shouldNotBe null
+                } finally {
+                    if (previousProp != null) {
+                        System.setProperty("spring.profiles.active", previousProp)
+                    } else {
+                        System.clearProperty("spring.profiles.active")
+                    }
+                }
             }
         }
 
