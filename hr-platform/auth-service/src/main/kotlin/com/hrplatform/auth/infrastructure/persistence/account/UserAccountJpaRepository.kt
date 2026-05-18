@@ -10,6 +10,8 @@ interface UserAccountJpaRepository :
 
     fun findByEmailHashAndDeletedAtIsNull(emailHash: String): UserAccount?
 
+    fun findByEmailHash(emailHash: String): UserAccount?
+
     fun findByCompanyIdAndStatusAndDeletedAtIsNull(
         companyId: Long,
         status: UserAccountStatus,
