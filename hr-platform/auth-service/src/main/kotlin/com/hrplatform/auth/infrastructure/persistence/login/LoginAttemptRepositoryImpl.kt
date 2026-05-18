@@ -13,11 +13,11 @@ class LoginAttemptRepositoryImpl(
     override fun save(loginAttempt: LoginAttempt): LoginAttempt =
         jpaRepository.save(loginAttempt)
 
-    override fun countRecentFailures(email: String, since: ZonedDateTime): Int =
-        jpaRepository.countRecentFailures(email, since)
+    override fun countRecentFailures(emailHash: String, since: ZonedDateTime): Int =
+        jpaRepository.countRecentFailures(emailHash, since)
 
-    override fun findRecentByEmail(email: String, limit: Int): List<LoginAttempt> =
-        jpaRepository.findRecentByEmail(email, limit)
+    override fun findRecentByEmailHash(emailHash: String, limit: Int): List<LoginAttempt> =
+        jpaRepository.findRecentByEmailHash(emailHash, limit)
 
     override fun findRecentByUserAccountId(userAccountId: Long, limit: Int): List<LoginAttempt> =
         jpaRepository.findRecentByUserAccountId(userAccountId, limit)

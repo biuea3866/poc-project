@@ -21,7 +21,7 @@ import java.time.ZonedDateTime
 @Entity
 @Table(
     name = "user_accounts",
-    uniqueConstraints = [UniqueConstraint(columnNames = ["email"])],
+    uniqueConstraints = [UniqueConstraint(columnNames = ["email_hash"])],
 )
 class UserAccount(
     @Column(name = "employment_id", nullable = false)
@@ -30,8 +30,14 @@ class UserAccount(
     @Column(name = "company_id", nullable = false)
     val companyId: Long,
 
-    @Column(nullable = false, unique = true)
-    val email: String,
+    // TODO(domain-purity): AttributeConverter를 domain interface로 추상화 — 별도 리팩토링 티켓
+    @Convert(converter = com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter::class)
+    @Column(nullable = true, columnDefinition = "VARBINARY(500)")
+    val email: String?,
+
+    // nullable = true: 운영 backfill 완료 전 NULL 허용. backfill 후 별도 마이그레이션에서 NOT NULL로 변경 예정.
+    @Column(name = "email_hash", nullable = true, length = 64)
+    val emailHash: String?,
 
     @Column(name = "password_hash", nullable = false)
     var passwordHash: String,
@@ -52,6 +58,7 @@ class UserAccount(
     @Column(name = "two_factor_enabled", nullable = false)
     var twoFactorEnabled: Boolean,
 
+    // TODO(domain-purity): AttributeConverter를 domain interface로 추상화 — 별도 리팩토링 티켓
     @Convert(converter = com.hrplatform.auth.infrastructure.crypto.AesGcmStringConverter::class)
     @Column(name = "two_factor_secret")
     var twoFactorSecret: String?,
@@ -65,11 +72,13 @@ class UserAccount(
             employmentId: Long,
             companyId: Long,
             email: String,
+            emailHash: String,
             passwordHash: String,
         ): UserAccount = UserAccount(
             employmentId = employmentId,
             companyId = companyId,
             email = email,
+            emailHash = emailHash,
             passwordHash = passwordHash,
             status = UserAccountStatus.ACTIVE,
             failedLoginAttempts = 0,
@@ -108,7 +117,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 failedAttempts = failedLoginAttempts,
                 lockedUntil = until,
                 twoFactorEnabled = twoFactorEnabled,
@@ -120,7 +128,6 @@ class UserAccount(
 
     /**
      * 잠금 해제 (수동). 관리자 호출.
-     * @return UserUnlockedEvent가 적재됨
      */
     fun unlock(actorEmploymentId: Long?, now: ZonedDateTime) {
         requireTransition(UserAccountStatus.ACTIVE)
@@ -132,7 +139,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 trigger = "MANUAL",
                 actorEmploymentId = actorEmploymentId,
@@ -158,7 +164,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 trigger = "AUTO",
                 actorEmploymentId = null,
@@ -176,7 +181,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 reason = reason,
                 actorEmploymentId = actorEmploymentId,
@@ -193,7 +197,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 actorEmploymentId = actorEmploymentId,
                 occurredAt = now,
@@ -209,7 +212,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 reason = reason,
                 actorEmploymentId = actorEmploymentId,
@@ -228,7 +230,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = twoFactorEnabled,
                 trigger = trigger,
                 actorEmploymentId = actorEmploymentId,
@@ -248,7 +249,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 actorEmploymentId = actorEmploymentId,
                 occurredAt = now,
             ),
@@ -264,7 +264,6 @@ class UserAccount(
                 userAccountId = id ?: 0L,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 actorEmploymentId = actorEmploymentId,
                 occurredAt = now,
             ),

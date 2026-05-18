@@ -10,7 +10,6 @@ data class UserCreatedEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     val defaultRoleCode: String,
     override val actorEmploymentId: Long?,
     override val occurredAt: ZonedDateTime,
@@ -26,7 +25,6 @@ data class UserCreatedEvent(
         override val type: String = "CREATE"
         override val details: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "defaultRole" to defaultRoleCode,
         )
     }
@@ -35,7 +33,6 @@ data class UserCreatedEvent(
         override val status: String = "ACTIVE"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to false,
             "lockedUntil" to null,
         )

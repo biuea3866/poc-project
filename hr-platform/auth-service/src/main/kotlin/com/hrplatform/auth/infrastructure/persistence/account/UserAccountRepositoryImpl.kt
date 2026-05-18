@@ -16,8 +16,8 @@ class UserAccountRepositoryImpl(
     override fun findById(id: Long): UserAccount? =
         jpaRepository.findById(id).orElse(null)
 
-    override fun findByEmail(email: String): UserAccount? =
-        jpaRepository.findByEmailAndDeletedAtIsNull(email)
+    override fun findByEmailHash(emailHash: String): UserAccount? =
+        jpaRepository.findByEmailHashAndDeletedAtIsNull(emailHash)
 
     override fun findByEmploymentId(employmentId: Long): UserAccount? =
         jpaRepository.findByEmploymentId(employmentId)

@@ -1,21 +1,14 @@
 package com.hrplatform.auth.domain.auth.service
 
-import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
-import com.hrplatform.auth.domain.account.event.UserCreatedEvent
-import com.hrplatform.auth.domain.role.RoleCode
-import com.hrplatform.auth.domain.role.RoleRepository
-import com.hrplatform.auth.domain.role.UserAccountRole
-import com.hrplatform.auth.domain.role.UserAccountRoleRepository
 import com.hrplatform.auth.domain.token.RefreshTokenRepository
 import com.hrplatform.core.domain.DomainEventEnvelope
 import com.hrplatform.core.event.DomainEventPublisher
-import org.springframework.security.crypto.password.PasswordEncoder
+import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.time.ZoneOffset
 import java.time.ZonedDateTime
-import java.util.UUID
 
 /**
  * employee-service 이벤트를 수신하여 UserAccount를 동기화하는 도메인 서비스.
@@ -25,53 +18,22 @@ import java.util.UUID
 class UserAccountSyncService(
     private val userAccountRepository: UserAccountRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
-    private val roleRepository: RoleRepository,
-    private val userAccountRoleRepository: UserAccountRoleRepository,
-    private val passwordEncoder: PasswordEncoder,
     private val eventPublisher: DomainEventPublisher,
 ) {
+    private val logger = LoggerFactory.getLogger(UserAccountSyncService::class.java)
 
+    /**
+     * EmployeeHired 이벤트 수신 시 UserAccount 자동 생성하지 않음.
+     * PII 정책상 employee-service는 email을 이벤트에 포함하지 않으므로,
+     * UserAccount는 HR이 명시적으로 /auth/users/invite API를 호출해야 생성됨.
+     * 해당 API 구현은 별도 티켓으로 분리.
+     */
     fun handleHired(envelope: DomainEventEnvelope) {
-        val now = ZonedDateTime.now(ZoneOffset.UTC)
-        val employmentId = envelope.aggregateId
-        val companyId = envelope.companyId
-        val email = envelope.action.details["email"] as? String
-            ?: error("EmployeeHired 이벤트에 email 누락. eventId=${envelope.eventId}, aggregateId=${envelope.aggregateId}")
-
-        val existing = userAccountRepository.findByEmploymentId(employmentId)
-        if (existing != null) return
-
-        val tempPassword = UUID.randomUUID().toString()
-        val userAccount = UserAccount.create(
-            employmentId = employmentId,
-            companyId = companyId,
-            email = email,
-            passwordHash = passwordEncoder.encode(tempPassword),
+        logger.info(
+            "EmployeeHired 수신 — HR의 명시적 invite API 호출 대기. employmentId={}, eventId={}",
+            envelope.aggregateId,
+            envelope.eventId,
         )
-        val saved = userAccountRepository.save(userAccount)
-
-        val employeeRole = roleRepository.findByCompanyIdAndCode(0L, RoleCode.EMPLOYEE.name)
-        if (employeeRole != null) {
-            userAccountRoleRepository.save(
-                UserAccountRole(
-                    userAccountId = requireNotNull(saved.id),
-                    roleId = requireNotNull(employeeRole.id),
-                    assignedAt = now,
-                    assignedBy = null,
-                ),
-            )
-        }
-
-        val createdEvent = UserCreatedEvent(
-            userAccountId = requireNotNull(saved.id),
-            companyIdValue = companyId,
-            employmentId = employmentId,
-            email = email,
-            defaultRoleCode = RoleCode.EMPLOYEE.name,
-            actorEmploymentId = envelope.actorEmploymentId,
-            occurredAt = now,
-        )
-        eventPublisher.publish(createdEvent)
     }
 
     fun handleResigned(envelope: DomainEventEnvelope) {

@@ -43,7 +43,7 @@ class TwoFactorDomainService(
         }
 
         val secret = totpService.generateSecret()
-        val setup = totpService.buildQrCode(userAccount.email, secret)
+        val setup = totpService.buildQrCode("user-${userAccount.employmentId}", secret)
 
         val rawBackupCodes = (1..BACKUP_CODE_COUNT).map { UUID.randomUUID().toString().take(10) }
         val backupCodeEntities = rawBackupCodes.map { rawCode ->

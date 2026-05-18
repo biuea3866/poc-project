@@ -10,7 +10,6 @@ data class UserLockedEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     val failedAttempts: Int,
     val lockedUntil: ZonedDateTime,
     val twoFactorEnabled: Boolean,
@@ -36,7 +35,6 @@ data class UserLockedEvent(
         override val status: String = "LOCKED"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to twoFactorEnabled,
             "lockedUntil" to lockedUntil.toString(),
         )

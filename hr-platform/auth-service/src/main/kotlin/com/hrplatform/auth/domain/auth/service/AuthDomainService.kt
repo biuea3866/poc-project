@@ -1,5 +1,6 @@
 package com.hrplatform.auth.domain.auth.service
 
+import com.hrplatform.auth.domain.account.EmailHashService
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
@@ -29,6 +30,7 @@ class AuthDomainService(
     private val userAccountRepository: UserAccountRepository,
     private val refreshTokenRepository: RefreshTokenRepository,
     private val loginAttemptRepository: LoginAttemptRepository,
+    private val emailHashService: EmailHashService,
     private val passwordEncoder: PasswordEncoder,
     private val jwtTokenService: JwtTokenService,
     private val totpService: TotpService,
@@ -44,11 +46,12 @@ class AuthDomainService(
         userAgent: String?,
     ): LoginResult {
         val now = ZonedDateTime.now(ZoneOffset.UTC)
-        val userAccount = userAccountRepository.findByEmail(email)
+        val emailHash = emailHashService.hash(email)
+        val userAccount = userAccountRepository.findByEmailHash(emailHash)
 
         if (userAccount == null) {
             loginAttemptRepository.save(
-                LoginAttempt.failure(null, email, LoginFailureReason.EMAIL_NOT_FOUND, ipAddress, userAgent, now),
+                LoginAttempt.failure(null, emailHash, LoginFailureReason.EMAIL_NOT_FOUND, ipAddress, userAgent, now),
             )
             throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
         }
@@ -59,7 +62,7 @@ class AuthDomainService(
             userAccount.recordFailedAttempt(now)
             userAccountRepository.save(userAccount)
             loginAttemptRepository.save(
-                LoginAttempt.failure(userAccount.id, email, LoginFailureReason.BAD_PASSWORD, ipAddress, userAgent, now),
+                LoginAttempt.failure(userAccount.id, emailHash, LoginFailureReason.BAD_PASSWORD, ipAddress, userAgent, now),
             )
             eventPublisher.publishAll(userAccount.pullDomainEvents())
             throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
@@ -77,12 +80,13 @@ class AuthDomainService(
             )
         }
 
-        return completeLogin(userAccount, deviceInfo, ipAddress, userAgent, now)
+        return completeLogin(userAccount, emailHash, deviceInfo, ipAddress, userAgent, now)
     }
 
     fun loginWithOtp(email: String, rawPassword: String, otp: String): LoginResult {
         val now = ZonedDateTime.now(ZoneOffset.UTC)
-        val userAccount = userAccountRepository.findByEmail(email)
+        val emailHash = emailHashService.hash(email)
+        val userAccount = userAccountRepository.findByEmailHash(emailHash)
             ?: throw UnauthorizedException(errorCode = "UNAUTHORIZED", message = "이메일 또는 비밀번호가 올바르지 않습니다")
 
         validateAccountAccessibleBeforePassword(userAccount, now)
@@ -90,7 +94,7 @@ class AuthDomainService(
         verifyOtpOrThrow(userAccount, otp)
 
         unlockIfExpired(userAccount, now)
-        return completeLogin(userAccount, null, null, null, now)
+        return completeLogin(userAccount, emailHash, null, null, null, now)
     }
 
     fun refresh(rawRefreshToken: String): TokenPair {
@@ -146,7 +150,11 @@ class AuthDomainService(
     }
 
     fun requestPasswordReset(email: String): String {
-        userAccountRepository.findByEmail(email) ?: return UUID.randomUUID().toString()
+        val emailHash = emailHashService.hash(email)
+        // timing attack 방어: 계정 존재 여부 무관하게 동일 응답 반환.
+        // 조회 결과를 활용하지 않고 항상 새 토큰을 반환하여 계정 열거(account enumeration) 공격 차단.
+        // 실제 이메일 발송은 notification-service가 담당 (별도 구현 예정).
+        userAccountRepository.findByEmailHash(emailHash)
         return UUID.randomUUID().toString()
     }
 
@@ -169,6 +177,7 @@ class AuthDomainService(
 
     private fun completeLogin(
         userAccount: UserAccount,
+        emailHash: String,
         deviceInfo: String?,
         ipAddress: String?,
         userAgent: String?,
@@ -191,7 +200,7 @@ class AuthDomainService(
         refreshTokenRepository.save(refreshTokenEntity)
 
         loginAttemptRepository.save(
-            LoginAttempt.success(requireNotNull(userAccount.id), userAccount.email, ipAddress, userAgent, now),
+            LoginAttempt.success(requireNotNull(userAccount.id), emailHash, ipAddress, userAgent, now),
         )
 
         eventPublisher.publishAll(userAccount.pullDomainEvents())
@@ -220,9 +229,11 @@ class AuthDomainService(
     }
 
     private fun throwSuspendedAndRecord(userAccount: UserAccount, now: ZonedDateTime) {
+        // emailHash가 null인 경우(backfill 미완료) 빈 문자열로 기록. 로그인 불가 상태이므로 영향 없음.
+        val emailHash = userAccount.emailHash ?: ""
         loginAttemptRepository.save(
             LoginAttempt.failure(
-                userAccount.id, userAccount.email,
+                userAccount.id, emailHash,
                 LoginFailureReason.ACCOUNT_SUSPENDED, null, null, now,
             ),
         )
@@ -232,9 +243,10 @@ class AuthDomainService(
     private fun throwLockedAndRecordIfStillLocked(userAccount: UserAccount, now: ZonedDateTime) {
         val lockUntil = userAccount.lockedUntil
         if (lockUntil == null || lockUntil.isAfter(now)) {
+            val emailHash = userAccount.emailHash ?: ""
             loginAttemptRepository.save(
                 LoginAttempt.failure(
-                    userAccount.id, userAccount.email,
+                    userAccount.id, emailHash,
                     LoginFailureReason.ACCOUNT_LOCKED, null, null, now,
                 ),
             )

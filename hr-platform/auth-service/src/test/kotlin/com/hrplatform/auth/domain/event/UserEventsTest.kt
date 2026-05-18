@@ -23,7 +23,6 @@ class UserEventsTest : BehaviorSpec({
     val userAccountId = 1L
     val companyId = 10L
     val employmentId = 100L
-    val email = "user@example.com"
 
     given("UserCreatedEvent") {
         `when`("envelope 변환") {
@@ -31,7 +30,6 @@ class UserEventsTest : BehaviorSpec({
                 userAccountId = userAccountId,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 defaultRoleCode = "EMPLOYEE",
                 actorEmploymentId = null,
                 occurredAt = now,
@@ -43,16 +41,14 @@ class UserEventsTest : BehaviorSpec({
                 envelope.aggregateType shouldBe "UserAccount"
                 envelope.eventVersion shouldBe 1
             }
-            then("action.type=CREATE, details에 employmentId/email/defaultRole 포함") {
+            then("action.type=CREATE, details에 employmentId/defaultRole 포함") {
                 envelope.action.type shouldBe "CREATE"
                 (envelope.action.details.containsKey("employmentId")) shouldBe true
-                (envelope.action.details.containsKey("email")) shouldBe true
                 (envelope.action.details.containsKey("defaultRole")) shouldBe true
             }
-            then("state.status=ACTIVE, snapshot에 4개 필드 포함") {
+            then("state.status=ACTIVE, snapshot에 3개 필드 포함") {
                 envelope.state.status shouldBe "ACTIVE"
                 (envelope.state.snapshot.containsKey("employmentId")) shouldBe true
-                (envelope.state.snapshot.containsKey("email")) shouldBe true
                 (envelope.state.snapshot.containsKey("twoFactorEnabled")) shouldBe true
                 (envelope.state.snapshot.containsKey("lockedUntil")) shouldBe true
             }
@@ -64,7 +60,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             failedAttempts = 5,
             lockedUntil = now.plusMinutes(15),
             twoFactorEnabled = false,
@@ -87,7 +82,6 @@ class UserEventsTest : BehaviorSpec({
                 userAccountId = userAccountId,
                 companyIdValue = companyId,
                 employmentId = employmentId,
-                email = email,
                 twoFactorEnabled = false,
                 trigger = "AUTO",
                 actorEmploymentId = null,
@@ -108,7 +102,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             reason = "휴직",
             actorEmploymentId = 99L,
@@ -128,7 +121,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             actorEmploymentId = null,
             occurredAt = now,
@@ -146,7 +138,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             reason = "퇴사",
             actorEmploymentId = null,
@@ -166,7 +157,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             lockedUntil = null,
             roleId = 2L,
@@ -188,7 +178,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             lockedUntil = null,
             roleId = 2L,
@@ -208,7 +197,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             twoFactorEnabled = false,
             trigger = "SELF_CHANGE",
             actorEmploymentId = null,
@@ -227,7 +215,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             actorEmploymentId = null,
             occurredAt = now,
         )
@@ -245,7 +232,6 @@ class UserEventsTest : BehaviorSpec({
             userAccountId = userAccountId,
             companyIdValue = companyId,
             employmentId = employmentId,
-            email = email,
             actorEmploymentId = null,
             occurredAt = now,
         )

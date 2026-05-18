@@ -8,9 +8,7 @@ interface UserAccountJpaRepository :
     JpaRepository<UserAccount, Long>,
     UserAccountCustomRepository {
 
-    fun findByEmail(email: String): UserAccount?
-
-    fun findByEmailAndDeletedAtIsNull(email: String): UserAccount?
+    fun findByEmailHashAndDeletedAtIsNull(emailHash: String): UserAccount?
 
     fun findByCompanyIdAndStatusAndDeletedAtIsNull(
         companyId: Long,

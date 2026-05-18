@@ -10,7 +10,6 @@ data class UserReactivatedEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     val twoFactorEnabled: Boolean,
     override val actorEmploymentId: Long?,
     override val occurredAt: ZonedDateTime,
@@ -31,7 +30,6 @@ data class UserReactivatedEvent(
         override val status: String = "ACTIVE"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to twoFactorEnabled,
             "lockedUntil" to null,
         )

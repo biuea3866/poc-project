@@ -1,5 +1,6 @@
 package com.hrplatform.auth.domain.auth
 
+import com.hrplatform.auth.domain.account.EmailHashService
 import com.hrplatform.auth.domain.account.UserAccount
 import com.hrplatform.auth.domain.account.UserAccountRepository
 import com.hrplatform.auth.domain.account.UserAccountStatus
@@ -27,6 +28,11 @@ import java.time.ZonedDateTime
 
 class AuthDomainServiceTest : BehaviorSpec({
 
+    val testEmailHash = "a".repeat(64)
+    val testEmailHashService = mockk<EmailHashService>().also {
+        every { it.hash(any()) } returns testEmailHash
+    }
+
     fun buildActiveUserAccount(
         id: Long = 1L,
         email: String = "test@example.com",
@@ -36,8 +42,10 @@ class AuthDomainServiceTest : BehaviorSpec({
             employmentId = 100L,
             companyId = 1L,
             email = email,
+            emailHash = testEmailHash,
             passwordHash = passwordHash,
         )
+
         val field = UserAccount::class.java.superclass.superclass.getDeclaredField("id")
         field.isAccessible = true
         field.set(account, id)
@@ -48,6 +56,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         userAccountRepository: UserAccountRepository = mockk(),
         refreshTokenRepository: RefreshTokenRepository = mockk(),
         loginAttemptRepository: LoginAttemptRepository = mockk(),
+        emailHashService: EmailHashService = testEmailHashService,
         passwordEncoder: PasswordEncoder = mockk(),
         jwtTokenService: JwtTokenService = mockk(),
         totpService: TotpService = mockk(),
@@ -57,6 +66,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         userAccountRepository = userAccountRepository,
         refreshTokenRepository = refreshTokenRepository,
         loginAttemptRepository = loginAttemptRepository,
+        emailHashService = emailHashService,
         passwordEncoder = passwordEncoder,
         jwtTokenService = jwtTokenService,
         totpService = totpService,
@@ -87,7 +97,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             val eventPublisher = mockk<DomainEventPublisher>(relaxed = true)
             val jtiBlacklist = mockk<JtiBlacklist>()
 
-            every { userAccountRepository.findByEmail(email) } returns userAccount
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { passwordEncoder.matches(rawPassword, "bcrypt-hashed") } returns true
             every { jwtTokenService.issueTokenPair(1L, any()) } returns tokenPair
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
@@ -117,7 +127,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             val userAccountRepository = mockk<UserAccountRepository>()
             val loginAttemptRepository = mockk<LoginAttemptRepository>()
 
-            every { userAccountRepository.findByEmail(any()) } returns null
+            every { userAccountRepository.findByEmailHash(any()) } returns null
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
 
             val service = buildAuthDomainService(
@@ -140,7 +150,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             val passwordEncoder = mockk<PasswordEncoder>()
             val eventPublisher = mockk<DomainEventPublisher>(relaxed = true)
 
-            every { userAccountRepository.findByEmail(email) } returns userAccount
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { passwordEncoder.matches("wrong", "hashed") } returns false
             every { userAccountRepository.save(any()) } answers { firstArg() }
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
@@ -189,7 +199,7 @@ class AuthDomainServiceTest : BehaviorSpec({
                 jti = "jti-uuid",
             )
 
-            every { userAccountRepository.findByEmail(email) } returns userAccount
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { userAccountRepository.save(any()) } answers { firstArg() }
             every { passwordEncoder.matches(any(), "hashed") } returns true
             every { jwtTokenService.issueTokenPair(any(), any()) } returns tokenPair
@@ -225,7 +235,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             val loginAttemptRepository = mockk<LoginAttemptRepository>()
             val passwordEncoder = mockk<PasswordEncoder>()
 
-            every { userAccountRepository.findByEmail(email) } returns userAccount
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { passwordEncoder.matches(any(), "hashed") } returns true
 
             val service = buildAuthDomainService(

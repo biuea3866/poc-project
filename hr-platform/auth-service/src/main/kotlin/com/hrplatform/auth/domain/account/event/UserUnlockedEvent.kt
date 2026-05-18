@@ -10,7 +10,6 @@ data class UserUnlockedEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     val twoFactorEnabled: Boolean,
     /** AUTO (시간 만료) 또는 MANUAL (관리자 수동) */
     val trigger: String,
@@ -36,7 +35,6 @@ data class UserUnlockedEvent(
         override val status: String = "ACTIVE"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to twoFactorEnabled,
             "lockedUntil" to null,
         )

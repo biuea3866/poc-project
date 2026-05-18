@@ -10,7 +10,6 @@ data class UserTwoFactorEnrolledEvent(
     val userAccountId: Long,
     val companyIdValue: Long,
     val employmentId: Long,
-    val email: String,
     override val actorEmploymentId: Long?,
     override val occurredAt: ZonedDateTime,
 ) : DomainEvent {
@@ -32,7 +31,6 @@ data class UserTwoFactorEnrolledEvent(
         override val status: String = "ACTIVE"
         override val snapshot: Map<String, Any?> = mapOf(
             "employmentId" to employmentId,
-            "email" to email,
             "twoFactorEnabled" to true,
             "lockedUntil" to null,
         )

@@ -11,19 +11,19 @@ class LoginAttemptCustomRepositoryImpl(
 
     private val loginAttempt = QLoginAttempt.loginAttempt
 
-    override fun countRecentFailures(email: String, since: ZonedDateTime): Int =
+    override fun countRecentFailures(emailHash: String, since: ZonedDateTime): Int =
         queryFactory.selectFrom(loginAttempt)
                     .where(
-                        loginAttempt.email.eq(email),
+                        loginAttempt.emailHash.eq(emailHash),
                         loginAttempt.success.isFalse,
                         loginAttempt.attemptedAt.goe(since),
                     )
                     .fetch()
                     .size
 
-    override fun findRecentByEmail(email: String, limit: Int): List<LoginAttempt> =
+    override fun findRecentByEmailHash(emailHash: String, limit: Int): List<LoginAttempt> =
         queryFactory.selectFrom(loginAttempt)
-                    .where(loginAttempt.email.eq(email))
+                    .where(loginAttempt.emailHash.eq(emailHash))
                     .orderBy(loginAttempt.attemptedAt.desc())
                     .limit(limit.toLong())
                     .fetch()
