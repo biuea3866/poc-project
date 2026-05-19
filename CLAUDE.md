@@ -1,155 +1,64 @@
-# Greeting Platform — Doodlin Workspace
+LLM의 일반적인 코딩 실수를 줄이기 위한 행동 지침이다. 프로젝트별 지침이 있을 경우 본 가이드라인과 병합하여 사용한다.
 
-46개 레포로 구성된 ATS(채용 관리 시스템) 채용 플랫폼.
+트레이드오프: 본 지침은 속도보다 신중함에 우선순위를 둔다. 사소한 작업은 상황에 맞게 판단한다.
 
-## 플랫폼 개요
+### 1. 구현 전 사고 (Think Before Coding)
+가정하지 않는다. 모호함을 숨기지 않는다. 트레이드오프를 명확히 밝힌다.
 
-Greeting은 B2B SaaS 채용 관리 시스템이다. 채용 공고 → 지원자 접수 → 평가 → 합격까지의 파이프라인을 관리한다.
+구현을 시작하기 전 다음을 준수한다:
 
-주요 제품:
-- **Greeting ATS**: 채용 관리 (공고, 지원자, 평가, 면접)
-- **Greeting TRM**: 인재 관리 (탤런트 풀)
-- **Offercent**: 보상/오퍼 관리
-- **Greepick AI**: AI 서류 평가, 매칭
+- 자신의 가정을 명시적으로 기술한다. 불확실한 경우 질문한다.
 
-## 기술 스택
+- 해석의 여지가 여러 가지라면 임의로 선택하지 말고 대안들을 제시한다.
 
-| 영역 | 기술 |
-|------|------|
-| BE (메인) | Kotlin, Spring Boot 3.x, JPA/Hibernate, QueryDSL |
-| BE (레거시/워커) | Node.js, NestJS, Express |
-| DB | MySQL 8.0 (Flyway), MongoDB 5.0 |
-| 메시징 | Apache Kafka (Avro, spring-kafka) |
-| 캐시 | Redis 7.0 |
-| 검색 | OpenSearch (offercent-search) |
-| 인프라 | AWS EKS, S3, Terraform |
-| 빌드 | Gradle (Kotlin DSL), npm/pnpm |
-| 테스트 | Kotest (BehaviorSpec), Testcontainers, MockK |
+- 더 간단한 접근 방식이 있다면 제안한다. 정당한 사유가 있다면 사용자의 요청에 반대 의견을 제시한다.
 
-## 개발 환경
+- 불분명한 부분이 있다면 작업을 중단한다. 혼란스러운 부분을 구체적으로 언급하며 질문한다.
 
-```
-JAVA_HOME=/Users/biuea/Library/Java/JavaVirtualMachines/corretto-17.0.18/Contents/Home
-```
+### 2. 단순성 우선 (Simplicity First)
+- 문제를 해결하는 최소한의 코드만 작성한다. 추측에 기반한 코드는 배제한다.
 
-- Java 17 (Amazon Corretto)
-- Gradle 8.x (각 프로젝트 gradlew 사용)
-- Node.js 18+ (Node 프로젝트)
+- 요청되지 않은 기능은 추가하지 않는다.
 
-## 서비스 아키텍처
+- 일회성 코드를 위해 추상화 계층을 만들지 않는다.
 
-```
-                        ┌─────────────┐
-                        │ API Gateway │
-                        └──────┬──────┘
-                               │
-         ┌─────────────────────┼─────────────────────┐
-         │                     │                     │
-    ┌────▼────┐          ┌─────▼─────┐         ┌────▼────┐
-    │greeting │          │  greeting │         │offercent│
-    │-new-back│          │-aggregator│         │  -bff   │
-    │(메인ATS)│          │(집계/오케) │         │(보상BFF)│
-    └────┬────┘          └─────┬─────┘         └────┬────┘
-         │                     │                     │
-    ┌────┼────┬────┬──────┬────┤              ┌──────┼──────┐
-    │    │    │    │      │    │              │      │      │
-   MySQL Mongo Kafka Redis  S3  PG           search  user  offer
-```
+- 요청되지 않은 유연성이나 설정 가능성을 고려하지 않는다.
 
-## 레포 맵
+- 발생 불가능한 시나리오에 대한 예외 처리를 하지 않는다.
 
-### BE — JVM (Kotlin/Java)
+- 200줄의 코드를 50줄로 줄일 수 있다면 코드를 다시 작성한다.
 
-| 레포 | 역할 |
-|------|------|
-| **greeting-new-back** | 메인 ATS 백엔드 (Hexagonal Architecture). 공고, 지원자, 평가, 면접 |
-| **greeting-aggregator** | 서비스 간 오케스트레이션 (결제 Facade 등) |
-| **greeting-api-gateway** | API Gateway (인증, 라우팅, 플랜 체크) |
-| **greeting-communication** | 메일/문자/알림톡 발송 |
-| **greeting-integration** | 외부 서비스 연동 (잡보드, 무하유 등) |
-| **greeting-workspace-server** | 워크스페이스 관리 |
-| **greeting_authn-server** | 인증 서버 (JWT) |
-| **greeting_authz-server** | 인가 서버 (RBAC) |
-| **greeting_payment-server** | 결제 서버 (Toss Payments, 구독, 크레딧) |
-| **greeting_dashboard-back** | 대시보드 백엔드 |
-| **greeting_trm-server** | TRM 서버 |
-| **greeting-ats** | ATS 레거시 |
-| **greeting-expired_applicant_processor** | 만료 지원자 처리 |
-| **greeting-shiftee-worker** | Shiftee 연동 워커 |
-| **offercent-bff** | 오퍼센트 BFF |
-| **offercent-search** | 오퍼센트 검색 (OpenSearch) |
-| **offercent-user** | 오퍼센트 유저 |
-| **opening** | 공고 서비스 |
-| **integration** | 통합 서비스 |
-| **doodlin-commons** | 공통 라이브러리 |
-| **doodlin-communication** | 커뮤니케이션 공통 |
-| **spring-kafka** | Kafka 공통 |
+- "시니어 엔지니어가 보기에 이 코드가 지나치게 복잡한가?"라고 자문한다. 그렇다면 단순화한다.
 
-### BE — Node.js
+### 3. 정밀한 수정 (Surgical Changes)
+필요한 부분만 수정한다. 본인이 만든 코드의 뒷정리만 수행한다.
 
-| 레포 | 역할 |
-|------|------|
-| **greeting-alert-server** | 알림 서버 (WebSocket) |
-| **greeting-notifiacation_server** | 알림 발송 서버 |
-| **greeting-excel-worker** | 엑셀 처리 워커 |
-| **greeting_plan-data-processor** | 플랜 다운그레이드 처리 (Kafka Consumer) |
-| **greeting_recruitment-api** | 채용 API |
-| **next-greeting** | Next.js 서버 |
-| **doodlin-utils** | 유틸리티 |
+기존 코드를 편집할 때 다음을 준수한다:
 
-### 인프라/데이터
+- 인접한 코드, 주석, 포맷을 임의로 개선하지 않는다.
+- 망가지지 않은 부분을 리팩토링하지 않는다.
+- 본인의 스타일과 다르더라도 기존 스타일을 따른다.
+- 작업과 무관한 데드 코드를 발견하면 보고하되 직접 삭제하지 않는다.
 
-| 레포 | 역할 |
-|------|------|
-| **greeting-db-schema** | DB 스키마 (Flyway 마이그레이션) |
-| **greeting-topic** | Kafka 토픽 (Terraform) |
-| **data-normalizer** | 데이터 정규화 |
-| **greepick-ai** | AI 서비스 |
+수정으로 인해 사용되지 않게 된 요소가 발생할 경우:
 
-## 공통 컨벤션
+- 본인의 수정으로 인해 불필요해진 임포트, 변수, 함수는 제거한다.
+- 기존에 존재하던 데드 코드는 요청이 없는 한 그대로 둔다.
+- 테스트 기준: 변경된 모든 라인은 사용자의 요청사항과 직접적으로 연결되어야 한다.
 
-### Git
-- 브랜치: `feature/grt-{번호}`, `fix/grt-{번호}`, `refactor/xxx`
-- base branch: `dev` (대부분), `main` (일부)
-- PR → 코드 리뷰 → dev 머지 → QA → prod 배포
+### 4. 목표 중심 실행 (Goal-Driven Execution)
+성공 기준을 정의한다. 검증될 때까지 반복한다.
+작업을 검증 가능한 목표로 변환한다:
 
-### 코드
-- Kotlin: 엔티티에 비즈니스 로직 캡슐화, Service는 얇게
-- enum에 상태 전이 규칙 캡슐화 (`canTransitionTo`, `validateTransitionTo`)
-- Controller → Facade → Service (SRP)
-- DB: FK/JSON/ENUM 미사용, TINYINT(1) for boolean, DATETIME(6), COMMENT 필수
+- "유효성 검사 추가" → "잘못된 입력에 대한 테스트 작성 후 통과 확인"
+- "버그 수정" → "버그를 재현하는 테스트 작성 후 통과 확인"
+- "X 리팩토링" → "리팩토링 전후의 테스트 통과 확인"
 
-### Feature Flag
-- `SimpleRuntimeConfig` + `FeatureFlagService` + `BooleanFeatureKey` 패턴
-- Retool에서 배포 없이 런타임 on/off
+다단계 작업의 경우 간략한 계획을 수립한다:
 
-### 테스트
-- Kotest BehaviorSpec (Given/When/Then)
-- TestContainers (MySQL, Redis, Kafka)
-- `BaseIntegrationTest` 패턴 (싱글턴 컨테이너 + Initializer)
+1. [단계] → 검증: [확인 사항]
+2. [단계] → 검증: [확인 사항]
+3. [단계] → 검증: [확인 사항]
+성공 기준이 명확해야 독립적인 작업이 가능하다. "작동하게 만들기"와 같은 모호한 기준은 불필요한 재질의를 야기한다.
 
-## 분석 파이프라인
-
-`.analysis/` 디렉토리에 8개 파이프라인이 정의되어 있다.
-
-| 파이프라인 | 용도 | 가이드 |
-|----------|------|--------|
-| **prd** | PRD 분석 | `.analysis/prd/PIPELINE.md` |
-| **be-implementation** | BE 구현 설계 (TDD + 티켓) | `.analysis/be-implementation/PIPELINE.md` |
-| **inquiry** | 문의/버그 대응 | `.analysis/inquiry/PIPELINE.md` |
-| **incident** | 장애 대응 | `.analysis/incident/PIPELINE.md` |
-| **pr-review** | PR 코드 리뷰 | `.analysis/pr-review/PIPELINE.md` |
-| **release** | 배포 영향 분석 | `.analysis/release/PIPELINE.md` |
-| **refactoring** | 리팩토링 계획 | `.analysis/refactoring/PIPELINE.md` |
-| **api-change** | API 변경 분석 | `.analysis/api-change/PIPELINE.md` |
-
-사용법: 해당 PIPELINE.md를 읽고 지시에 따라 수행.
-
-## 유틸리티
-
-```bash
-# Worktree 관리
-bin/worktree-create.sh <repo> <branch>   # 생성
-bin/worktree-list.sh [repo]              # 조회
-bin/worktree-remove.sh <repo> <branch>   # 제거
-```
+지침 작동 확인: Diff 내 불필요한 변경 감소, 복잡성으로 인한 재작성 빈도 감소, 구현 전 질문을 통한 명확한 의사결정 증대.

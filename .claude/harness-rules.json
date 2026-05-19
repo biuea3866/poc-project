@@ -1,0 +1,470 @@
+{
+  "_doc": "<PROJECT> 하네스 룰 — 규칙 추가/수정은 이 파일만 편집하세요",
+
+  "file_guard": {
+    "description": "민감 파일 수정 차단",
+    "blocked_extensions": [".env", ".credentials", ".secret", ".key", ".pem"],
+    "blocked_filenames": ["credentials.json", "secrets.yaml", "secrets.yml"],
+    "message": "BLOCKED: 민감 파일 수정 차단 — .env, credentials, secret, key, pem 파일은 직접 수정하세요."
+  },
+
+  "forbidden_patterns": {
+    "description": "코드에 사용하면 안 되는 패턴들",
+    "rules": [
+      {
+        "id": "no-jpa-query",
+        "pattern": "@Query\\(",
+        "file_glob": "*.kt",
+        "message": "@Query 사용 금지 — QueryDSL CustomImpl 패턴으로 작성하세요. 예외: 비관적 락(@Lock + @Query)은 허용.",
+        "severity": "error",
+        "exceptions": ["비관적 락 (@Lock + @Query) 조합은 허용"]
+      },
+      {
+        "id": "no-plain-repository-queryfactory",
+        "pattern": "@Repository\\s*\\n.*class\\s+\\w+\\(.*JPAQueryFactory",
+        "file_glob": "*.kt",
+        "exclude_glob": "*CustomImpl*",
+        "message": "@Repository class에 JPAQueryFactory 직접 사용 금지 — JpaRepository + Custom + CustomImpl 패턴 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-consumer-record",
+        "pattern": "ConsumerRecord<String,\\s*String>",
+        "file_glob": "*.kt",
+        "message": "ConsumerRecord<String, String> 사용 금지 — DTO로 직접 매핑하세요 (JsonDeserializer).",
+        "severity": "error"
+      },
+      {
+        "id": "no-local-datetime",
+        "pattern": "LocalDateTime",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/migration/**",
+        "message": "LocalDateTime 사용 금지 — ZonedDateTime을 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-default-constructor-values",
+        "pattern": "=\\s*(\"\"|0|LocalDateTime\\.now\\(\\)|ZonedDateTime\\.now\\(\\))",
+        "file_glob": "*Entity*.kt",
+        "message": "Entity 생성자 default 값 금지 — 호출하는 쪽에서 명시적으로 전달하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-repository-in-consumer",
+        "pattern": "(Repository|JpaRepository).*\\.(save|find|delete|update)",
+        "file_glob": "*Consumer*.kt",
+        "message": "Consumer에서 Repository 직접 호출 금지 — Facade/Service를 경유하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-fqcn",
+        "pattern": "<COMPANY>\\.<PROJECT>\\.[a-z]+\\.[a-z]+\\.[a-z]+\\.[A-Z]",
+        "file_glob": "*.kt",
+        "exclude_glob": "**/import **",
+        "message": "FQCN 사용 금지 — import 문을 사용하세요. 코드 본문에서 패키지 경로를 직접 쓰지 않습니다.",
+        "severity": "error",
+        "note": "import 라인은 제외. 코드 본문에서 <COMPANY>.<PROJECT>.xxx.xxx.XxxClass 직접 사용을 검출"
+      },
+      {
+        "id": "no-db-fk",
+        "pattern": "FOREIGN KEY|REFERENCES\\s+\\w+\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "FK 사용 금지 — 애플리케이션 레벨에서 관계를 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-enum",
+        "pattern": "\\bENUM\\s*\\(",
+        "file_glob": "*.sql",
+        "message": "DB ENUM 사용 금지 — VARCHAR + 애플리케이션 enum으로 관리하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-json",
+        "pattern": "\\bJSON\\b",
+        "file_glob": "*.sql",
+        "message": "DB JSON 컬럼 사용 금지 — 정규화된 테이블로 설계하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-boolean-type",
+        "pattern": "\\bBOOLEAN\\b",
+        "file_glob": "*.sql",
+        "message": "BOOLEAN 타입 사용 금지 — TINYINT(1) 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-db-datetime-no-precision",
+        "pattern": "\\bDATETIME\\b(?!\\s*\\(6\\))",
+        "file_glob": "*.sql",
+        "message": "DATETIME 사용 시 반드시 DATETIME(6) 마이크로초 정밀도 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-native-query",
+        "pattern": "createNativeQuery",
+        "file_glob": "*.kt",
+        "message": "Native query 감지 — QueryDSL로 변환 가능한지 확인하세요.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-entity-manager-persist",
+        "pattern": "entityManager\\.persist",
+        "file_glob": "*.kt",
+        "message": "entityManager.persist 직접 사용 감지 — JpaRepository.save()를 사용하세요.",
+        "severity": "warning"
+      },
+      {
+        "id": "no-transactional-in-repository",
+        "pattern": "@Transactional",
+        "file_glob": "*Repository*.kt",
+        "exclude_glob": "*Service*",
+        "message": "@Transactional은 Repository가 아닌 Service/Facade에서 사용하세요.",
+        "severity": "error"
+      },
+      {
+        "id": "no-double-bang",
+        "pattern": "!!",
+        "file_glob": "*.kt",
+        "message": "!! 사용 금지 — requireNotNull(), ?:, ?.let {} 중 적절한 방식으로 교체하세요.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "git_guard": {
+    "description": "Git 안전 규칙",
+    "rules": [
+      {
+        "id": "no-push-main",
+        "pattern": "git push.*\\b(origin|upstream)\\s+(main|master)\\b",
+        "message": "BLOCKED: main 직접 푸시 금지 — feature 브랜치 + PR로만 반영하세요."
+      },
+      {
+        "id": "no-force-push",
+        "pattern": "git push.*--force(?!-with-lease)",
+        "message": "BLOCKED: --force 푸시 금지 — --force-with-lease를 사용하세요."
+      },
+      {
+        "id": "no-push-dev",
+        "pattern": "git push.*\\b(origin|upstream)\\s+dev\\b",
+        "message": "BLOCKED: dev 직접 푸시 금지 — feature 브랜치 + PR로만 반영하세요."
+      },
+      {
+        "id": "no-track-dev",
+        "pattern": "git (push\\s+(-u|--set-upstream).*\\bdev\\b|branch\\s+--set-upstream-to=.*dev)",
+        "message": "BLOCKED: dev를 upstream으로 설정 금지 — feature 브랜치의 remote만 tracking하세요."
+      }
+    ]
+  },
+
+  "jira_guard": {
+    "description": "Jira 안전 규칙",
+    "rules": [
+      {
+        "id": "no-jira-comment",
+        "tool": "mcp__atlassian-<COMPANY>__add_jira_comment",
+        "message": "BLOCKED: Jira 코멘트 사용 금지 — 본문(description)을 curl REST API로 직접 수정하세요."
+      },
+      {
+        "id": "no-jira-comment-claude-ai",
+        "tool": "mcp__claude_ai_Atlassian__addCommentToJiraIssue",
+        "message": "BLOCKED: Jira 코멘트 사용 금지 — 본문(description)을 curl REST API로 직접 수정하세요."
+      }
+    ]
+  },
+
+  "branch_naming": {
+    "description": "브랜치명 규칙",
+    "pattern": "^(feat|fix|refactor|chore)/[A-Z]+-[0-9]+(-[a-z0-9-]+)?$",
+    "exclude": ["dev", "main", "master", "qa", "prod"],
+    "message": "브랜치명이 <type>/<티켓접두사>-<번호>[-<short-description>] 형식이 아닙니다. type 은 feat|fix|refactor|chore 중 하나. short-description 은 선택."
+  },
+
+  "build_check": {
+    "description": "빌드 성공 여부 확인",
+    "gradle_commands": ["compileKotlin", "compileTestKotlin", "test "],
+    "success_marker": "BUILD SUCCESSFUL",
+    "failure_message": "BUILD FAILED — 에러 로그를 확인하세요."
+  },
+
+  "pr_template": {
+    "description": "PR 생성 시 레포지토리의 .github/pull_request_template.md 템플릿을 따라 body를 작성해야 한다",
+    "rule": "gh pr create 실행 시 해당 레포의 .github/pull_request_template.md를 읽고, 그 섹션 구조(개요, 작업 내용, 체크리스트, 연관된 backend application, 추가 유의사항)에 맞게 body를 채워서 생성한다",
+    "template_path": ".github/pull_request_template.md",
+    "sections": [
+      { "name": "개요", "required": true, "hint": "Jira 티켓 링크 포함" },
+      { "name": "작업 내용", "required": true, "hint": "Jira 본문에 내용이 있다면 간략하게 작성" },
+      { "name": "체크리스트", "required": true, "hint": "빌드 확인, 테스트 통과 등" },
+      { "name": "연관된 backend application", "required": true, "hint": "영향받는 backend application" },
+      { "name": "추가 유의사항", "required": false, "hint": "리뷰어나 배포 시 반드시 알아야 할 사항" }
+    ]
+  },
+
+  "repository_naming": {
+    "description": "<WORKER_SERVICE> Repository 레이어 컨벤션",
+    "scope": "<WORKER_SERVICE>",
+    "layers": {
+      "domain_service": {
+        "description": "domain 패키지 — 기능별 Service",
+        "naming": "XxxDowngradeService",
+        "example": "ApplicantDowngradeService",
+        "injection": "infrastructure의 도메인 애그리거트 Repository를 주입받아 비즈니스 처리",
+        "example_constructor": "class ApplicantDowngradeService(private val openingRepository: OpeningRepository, private val applicantRepository: ApplicantRepository)"
+      },
+      "aggregate_repository": {
+        "description": "infrastructure 패키지 — 도메인 애그리거트 Repository",
+        "naming": "XxxRepository (도메인명 기반, 기능명 금지)",
+        "annotation": "@Component",
+        "example": "class OpeningRepository(private val openingJpaRepository: OpeningJpaRepository, private val openingSettingJpaRepository: OpeningSettingJpaRepository)",
+        "role": "도메인 하위 JpaRepository, MongoRepository를 주입받아 CRUD 위임 제공"
+      },
+      "entity_jpa_repository": {
+        "description": "infrastructure 패키지 — 엔티티별 JpaRepository",
+        "naming": "XxxJpaRepository",
+        "custom_interface": "XxxRepositoryCustom",
+        "custom_impl": "XxxRepositoryCustomImpl(private val queryFactory: JPAQueryFactory)",
+        "patterns": {
+          "crud_needed": {
+            "description": "JPA CRUD(save, findById 등)가 필요한 경우",
+            "interface": "interface XxxJpaRepository : JpaRepository<XxxEntity, ID>, XxxRepositoryCustom",
+            "impl_annotation": "없음 (Spring Data JPA가 자동 감지)",
+            "impl_implements": "XxxRepositoryCustom"
+          },
+          "querydsl_only": {
+            "description": "QueryDSL만 필요한 경우 (현재 대부분)",
+            "interface": "interface XxxJpaRepository : XxxRepositoryCustom",
+            "impl_annotation": "@Component",
+            "impl_implements": "XxxJpaRepository",
+            "note": "추후 JPA CRUD 필요 시 JpaRepository<Entity, ID> 추가만 하면 됨"
+          }
+        }
+      }
+    },
+    "forbidden": [
+      "기능 기반 Repository 네이밍 금지 (XxxDowngradeRepository 등)",
+      "Service에서 Entity JpaRepository 직접 주입 금지 — 반드시 aggregate Repository를 경유"
+    ]
+  },
+
+  "variable_naming": {
+    "description": "변수명은 풀네임으로 작성. 원래 단어를 복원할 수 없는 축약은 전부 약어로 간주",
+    "rules": [
+      "단어 축약 금지: ws → workspaceId, comp → component, eval → evaluation, msg → message, btn → button, cfg → config, req → request, res → response",
+      "이니셜 조합 금지: jp → jobPlanet, orp → orpIntegrate, em → entityManager, poo → processOnOpening",
+      "접두어 축약 금지: jpApplicantIds → jobPlanetApplicantIds, orpWorkspace → orpIntegrateWorkspace",
+      "판단 기준: 변수명만 보고 원래 단어를 100% 복원할 수 없으면 약어다"
+    ]
+  },
+
+  "integration_test_style": {
+    "description": "쿼리 통합 테스트 작성 규칙",
+    "rules": [
+      "도메인별 SQL fixture 파일 생성 (src/test/resources/sql/), 다양한 데이터 조합 포함",
+      "affectedRow가 아닌 SELECT 쿼리로 실제 컬럼값이 정확히 반영되었는지 검증",
+      "AS-IS raw SQL 실행 → 결과 SELECT → 데이터 리셋 → TO-BE QueryDSL 실행 → 결과 SELECT → 두 결과 비교",
+      "다른 workspace/opening의 데이터가 영향받지 않는지 검증"
+    ]
+  },
+
+  "service_plan_branching": {
+    "description": "플랜 분기가 있는 Service의 메서드 구조",
+    "rule": "when(changedPlan)으로 분기하여 downgradeToBasic(), downgradeToStandard() 등 private 메서드로 위임"
+  },
+
+  "json_column_serialization": {
+    "description": "JPA Entity의 JSON 컬럼 처리",
+    "rule": "@Type(JsonStringType::class) + data class 사용. ObjectMapper 직접 사용 금지"
+  },
+
+  "mongo_repository_style": {
+    "description": "MongoDB Repository 구조",
+    "rule": "컬렉션별 Repository 분리 (MongoTemplate 기반). 하나의 Repository에 여러 컬렉션 메서드를 넣지 않는다"
+  },
+
+  "method_chain_style": {
+    "description": "메서드 체이닝 개행 규칙",
+    "rule": "첫 번째 호출은 변수 선언과 같은 줄에 붙이고, 두 번째 체인부터 개행. 들여쓰기는 첫 번째 .에 맞춘다",
+    "example": "queryFactory.select(openingEntity.id)\n            .from(openingEntity)\n            .where(openingEntity.workspaceId.eq(workspaceId))\n            .fetch()",
+    "bad_example": "queryFactory\n            .select(openingEntity.id)\n            .from(openingEntity)",
+    "validation": {
+      "description": "위반 검출 시 Grep multiline: true로 검사할 것. Bash -z 옵션은 멀티라인 매칭이 안 되므로 사용 금지",
+      "pattern": "queryFactory\\s*\\n\\s*\\.",
+      "tool": "Grep with multiline: true"
+    }
+  },
+
+  "constructor_parameter_style": {
+    "description": "생성자/함수 호출 시 파라미터 포맷 규칙",
+    "rules": [
+      {
+        "condition": "파라미터 5개 이하 + 타입이 전부 다름",
+        "style": "namedArgument 없이 한 줄에 몰아 넣기",
+        "example": "OpeningEntity(0, 1, false)"
+      },
+      {
+        "condition": "파라미터 5개 이하 + 타입이 하나라도 중복",
+        "style": "namedArgument 사용 + 한 줄씩 개행",
+        "example": "OpeningSettingEntity(\n    id = 0,\n    openingId = 1,\n    privateBetweenProcess = true,\n    readOtherEvaluationContent = false,\n    enableEmployeeReferral = false,\n)"
+      },
+      {
+        "condition": "파라미터 5개 초과",
+        "style": "namedArgument 사용 + 한 줄씩 개행",
+        "example": "EvaluationModuleEntity(\n    id = 0,\n    processId = 1,\n    totalScoreType = \"STEP5\",\n    ...\n)"
+      }
+    ]
+  },
+
+  "push_guard": {
+    "description": "git push 전 필수 검증",
+    "rule": "push 전에 반드시 테스트와 빌드가 정상 통과하는지 확인한다. 실패 시 push하지 않는다",
+    "steps": [
+      "1. ./gradlew :모듈:clean :모듈:test 실행 (JAVA_HOME 설정 필수)",
+      "2. BUILD SUCCESSFUL 확인",
+      "3. 실패 시 원인 파악 후 수정 → 재테스트 → 통과 후 push"
+    ]
+  },
+
+  "pr_title_convention": {
+    "description": "PR 제목 포맷",
+    "format": "[티켓번호] - type: 제목",
+    "types": ["fix", "feat", "chore", "test", "deploy", "refactor", "style", "docs", "perf"],
+    "examples": [
+      "[<PROJ>-7094] - refactor: EvaluationDowngradeService <평가> 잠금 해제 및 초기화",
+      "[<PROJ>-7097] - feat: IntegrationDowngradeService 외부 연동 해제",
+      "[<PROJ>-7093] - fix: OpeningDowngradeServiceTest 구조 수정"
+    ]
+  },
+
+  "repository_query_strategy": {
+    "description": "Repository 쿼리 구현 전략",
+    "rules": [
+      "단순 SELECT (엔티티/컬럼 조회, 조건 단순) → JpaRepository 메서드 네이밍 (findByWorkspaceId 등)",
+      "비관적 락 → @Lock + @Query 허용",
+      "UPDATE SET, projection(특정 컬럼만), 복잡 조건, JOIN → QueryDSL CustomImpl",
+      "chunk 처리는 Service layer에서. Repository는 단순 쿼리만 수행",
+      "메서드 prefix: save, update, delete, find만 사용. reset/unlock/deactivate 등은 update로 통일"
+    ]
+  },
+
+  "layer_dependency": {
+    "description": "레이어 간 의존 방향 규칙 (Hexagonal Architecture) — 정적 검출, PR 리뷰어 강제",
+    "rules": [
+      {
+        "id": "no-infra-in-domain",
+        "pattern": "import\\s+\\S+\\.infrastructure\\.",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Infrastructure 직접 참조 금지 — Port interface 사용.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-domain",
+        "pattern": "import\\s+\\S+\\.presentation\\.",
+        "file_glob": "*/domain/**/*.kt",
+        "message": "Domain 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-presentation-in-application",
+        "pattern": "import\\s+\\S+\\.presentation\\.",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Presentation 직접 참조 금지.",
+        "severity": "error"
+      },
+      {
+        "id": "no-infra-in-application",
+        "pattern": "import\\s+\\S+\\.infrastructure\\.",
+        "file_glob": "*/application/**/*.kt",
+        "message": "Application 레이어에서 Infrastructure 직접 참조 금지 — Domain interface 사용.",
+        "severity": "error"
+      }
+    ]
+  },
+
+  "clean_code": {
+    "description": "클린 코드 원칙 — PR 리뷰어가 강제 검증",
+    "rules": [
+      "Service/Facade 메서드 30줄 이내 — 초과 시 private 분리 또는 도메인 위임",
+      "한 메서드는 하나의 추상화 수준만",
+      "Guard clause(early return) 적극 사용",
+      "if-else 중첩 depth 2 이상 금지",
+      "매직 넘버/문자열 금지 — 상수/enum으로 정의",
+      "주석 대신 메서드명으로 의도 표현",
+      "한 메서드는 한 가지 일만"
+    ]
+  },
+
+  "design_patterns": {
+    "description": "디자인 패턴 적용 가이드 (리뷰 체크)",
+    "patterns": {
+      "strategy": "동일 인터페이스의 여러 구현체가 런타임 교체 (PaymentGateway, NotificationSender 등). when 분기 금지",
+      "state": "객체 상태별 행위 변화 — 상태 enum이 자기 행위 캡슐화",
+      "factory": "객체 생성 로직이 복잡/조건별 다른 타입 반환",
+      "template_method": "여러 클래스가 동일 골격 반복 → Abstract 추출",
+      "observer": "한 이벤트에 여러 후속 처리 → @TransactionalEventListener(AFTER_COMMIT) + @Async"
+    },
+    "review_criteria": [
+      "if-else/when 분기 3개 이상 → Strategy 검토",
+      "상태별 행위 분기 → State 검토",
+      "동일 구조 메서드 3개 이상 반복 → Template Method",
+      "한 이벤트 후속 처리 2개 이상 → Observer",
+      "객체 생성 조건 복잡 → Factory"
+    ]
+  },
+
+  "be_test_requirements": {
+    "description": "BE 필수 테스트 레이어 — 모두 존재해야 PR 승인 (신규 도메인 로직 기준)",
+    "layers": [
+      { "layer": "domain/entity", "type": "단위", "tools": "Kotest BehaviorSpec + MockK" },
+      { "layer": "service/facade", "type": "단위", "tools": "Kotest + MockK (Repository 모킹)" },
+      { "layer": "infrastructure", "type": "통합", "tools": "Kotest + TestContainers (MySQL/Redis/Kafka)" },
+      { "layer": "controller", "type": "통합", "tools": "Kotest + MockMvc + TestContainers" }
+    ]
+  },
+
+  "git_guard_extended": {
+    "description": "git_guard 확장 패턴 — framework에서 추가된 고위험 git 명령 차단",
+    "rules": [
+      {
+        "id": "no-hard-reset-protected",
+        "pattern": "git\\s+reset\\s+--hard\\s+origin/(main|master|dev)",
+        "message": "보호 브랜치 hard reset 차단."
+      },
+      {
+        "id": "no-no-verify",
+        "pattern": "git\\s+commit\\s+.*--no-verify",
+        "message": "--no-verify 차단 — pre-commit 훅 실패는 근본 해결 후 재커밋."
+      },
+      {
+        "id": "no-delete-protected-branch",
+        "pattern": "git\\s+branch\\s+-D\\s+(main|master|dev)",
+        "message": "보호 브랜치 강제 삭제 차단."
+      },
+      {
+        "id": "no-push-mirror",
+        "pattern": "git\\s+push\\s+(\\S+\\s+)?--mirror\\b",
+        "message": "BLOCKED: --mirror push 금지 — 모든 ref를 강제 동기화하므로 보호 브랜치까지 덮어씁니다."
+      },
+      {
+        "id": "no-push-all",
+        "pattern": "git\\s+push\\s+(\\S+\\s+)?--all\\b",
+        "message": "BLOCKED: --all push 금지 — 모든 로컬 브랜치를 push해 잘못된 upstream의 브랜치도 함께 올라갈 위험."
+      },
+      {
+        "id": "no-push-matching",
+        "pattern": "git\\s+config\\s+(--global\\s+)?push\\.default\\s+matching\\b",
+        "message": "BLOCKED: push.default=matching 설정 금지 — 인자 없는 push가 같은 이름의 모든 원격 브랜치를 동시 갱신해 보호 브랜치까지 침범."
+      },
+      {
+        "id": "no-push-refspec-to-protected",
+        "pattern": "git\\s+push\\s+\\S+\\s+\\S+:(main|master|dev)\\b",
+        "message": "BLOCKED: refspec(<local>:<remote>)으로 보호 브랜치에 push 금지."
+      },
+      {
+        "id": "no-push-head-to-protected",
+        "pattern": "git\\s+push\\s+\\S+\\s+HEAD:(main|master|dev)\\b",
+        "message": "BLOCKED: HEAD:보호브랜치 형태 push 금지."
+      }
+    ]
+  }
+}

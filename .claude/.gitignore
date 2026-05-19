@@ -1,0 +1,16 @@
+# runtime-only state / caches (don't track)
+__pycache__/
+*.pyc
+worktrees/
+violation-counters.json
+pipeline-state.json
+pipeline-history.json
+workflow-state.json
+phase-state.json
+gc-state.json
+gc-report.json
+orchestrator-queue.json
+scheduled_tasks.lock
+# personal / secret overrides
+settings.local.json
+harness-rules.local.json
