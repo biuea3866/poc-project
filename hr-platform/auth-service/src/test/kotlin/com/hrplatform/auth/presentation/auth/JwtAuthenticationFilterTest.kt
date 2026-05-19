@@ -53,7 +53,7 @@ class JwtAuthenticationFilterTest : BehaviorSpec({
             request.addHeader("Authorization", "Bearer valid-token")
             val response = MockHttpServletResponse()
 
-            val claims = JwtClaims(userAccountId = 42L, jti = "jti-uuid-1", employmentId = 100L)
+            val claims = JwtClaims(userAccountId = 42L, jti = "jti-uuid-1", employmentId = 100L, departmentId = null)
             val role = mockk<Role>()
             every { role.code } returns "HR_MANAGER"
             every { jwtTokenService.verifyAccessToken("valid-token") } returns claims
@@ -79,7 +79,7 @@ class JwtAuthenticationFilterTest : BehaviorSpec({
             request.addHeader("Authorization", "Bearer blacklisted-token")
             val response = MockHttpServletResponse()
 
-            val claims = JwtClaims(userAccountId = 42L, jti = "blacklisted-jti", employmentId = null)
+            val claims = JwtClaims(userAccountId = 42L, jti = "blacklisted-jti", employmentId = null, departmentId = null)
             every { jwtTokenService.verifyAccessToken("blacklisted-token") } returns claims
             every { jtiBlacklist.contains("blacklisted-jti") } returns true
 

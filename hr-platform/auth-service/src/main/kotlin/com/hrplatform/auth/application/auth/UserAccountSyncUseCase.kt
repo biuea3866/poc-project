@@ -29,4 +29,9 @@ class UserAccountSyncUseCase(
     fun syncResumed(envelope: DomainEventEnvelope) {
         userAccountSyncService.handleResumed(envelope)
     }
+
+    @Transactional
+    fun syncTransferred(envelope: DomainEventEnvelope) {
+        userAccountSyncService.handleTransferred(envelope)
+    }
 }

@@ -23,7 +23,7 @@ class FlywayMigrationTest : BehaviorSpec({
     afterSpec { mysql.stop() }
 
     given("Flyway 적용") {
-        `when`("V1 + V2 + V3 순차 적용하면") {
+        `when`("V1 + V2 + V3 + V4 순차 적용하면") {
             val flyway = Flyway.configure()
                 .dataSource(mysql.jdbcUrl, mysql.username, mysql.password)
                 .locations("classpath:db/migration")
@@ -67,6 +67,34 @@ class FlywayMigrationTest : BehaviorSpec({
                     while (rs.next()) columns.add(rs.getString("COLUMN_NAME"))
                 }
                 columns shouldContainAll listOf("email_hash")
+            }
+
+            then("V4: user_accounts에 department_id 컬럼이 존재하고 NULL 허용이다") {
+                val conn = DriverManager.getConnection(mysql.jdbcUrl, mysql.username, mysql.password)
+                var columnFound = false
+                var isNullable = false
+                conn.use {
+                    val rs = it.metaData.getColumns(mysql.databaseName, null, "user_accounts", "department_id")
+                    if (rs.next()) {
+                        columnFound = true
+                        isNullable = rs.getString("IS_NULLABLE") == "YES"
+                    }
+                }
+                columnFound shouldBe true
+                isNullable shouldBe true
+            }
+
+            then("V4: user_accounts에 idx_user_account_department 인덱스가 존재한다") {
+                val conn = DriverManager.getConnection(mysql.jdbcUrl, mysql.username, mysql.password)
+                val indexes = mutableListOf<String>()
+                conn.use {
+                    val rs = it.metaData.getIndexInfo(mysql.databaseName, null, "user_accounts", false, false)
+                    while (rs.next()) {
+                        val indexName = rs.getString("INDEX_NAME")
+                        if (indexName != null) indexes.add(indexName)
+                    }
+                }
+                indexes shouldContainAll listOf("idx_user_account_department")
             }
         }
     }

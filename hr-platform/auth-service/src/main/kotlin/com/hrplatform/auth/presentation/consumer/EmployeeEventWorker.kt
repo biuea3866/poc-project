@@ -47,6 +47,7 @@ class EmployeeEventWorker(
                 "EmployeeResigned" -> userAccountSyncUseCase.syncResigned(envelope)
                 "EmployeeSuspended" -> userAccountSyncUseCase.syncSuspended(envelope)
                 "EmployeeResumed" -> userAccountSyncUseCase.syncResumed(envelope)
+                "EmployeeTransferred" -> userAccountSyncUseCase.syncTransferred(envelope)
                 else -> logger.debug("Ignoring unhandled employee event type: {}", envelope.eventType)
             }
         } catch (exception: IllegalStateException) {
