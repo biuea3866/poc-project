@@ -27,6 +27,9 @@ class UserAccount(
     @Column(name = "employment_id", nullable = false)
     val employmentId: Long,
 
+    @Column(name = "department_id", nullable = true)
+    var departmentId: Long?,
+
     @Column(name = "company_id", nullable = false)
     val companyId: Long,
 
@@ -74,8 +77,10 @@ class UserAccount(
             email: String,
             emailHash: String,
             passwordHash: String,
+            departmentId: Long? = null,
         ): UserAccount = UserAccount(
             employmentId = employmentId,
+            departmentId = departmentId,
             companyId = companyId,
             email = email,
             emailHash = emailHash,
@@ -268,6 +273,14 @@ class UserAccount(
                 occurredAt = now,
             ),
         )
+    }
+
+    /**
+     * 부서 이동(EmployeeTransferred) 이벤트 수신 시 departmentId 갱신.
+     * JWT did claim 캐시 목적. 부서 미배치 직원은 null 허용.
+     */
+    fun updateDepartment(newDepartmentId: Long?) {
+        departmentId = newDepartmentId
     }
 
     private fun requireTransition(target: UserAccountStatus) {

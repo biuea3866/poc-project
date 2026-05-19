@@ -25,6 +25,7 @@ data class JwtClaims(
     val userAccountId: Long,
     val jti: String,
     val employmentId: Long?,
+    val departmentId: Long?,
 )
 
 /**
@@ -60,9 +61,9 @@ class JwtTokenService(
         Keys.hmacShaKeyFor(Base64.getDecoder().decode(base64Secret))
     }
 
-    fun issueTokenPair(userAccountId: Long, employmentId: Long?, now: ZonedDateTime): TokenPair {
+    fun issueTokenPair(userAccountId: Long, employmentId: Long?, departmentId: Long?, now: ZonedDateTime): TokenPair {
         val jti = UUID.randomUUID().toString()
-        val accessToken = buildAccessToken(userAccountId, employmentId, jti, now)
+        val accessToken = buildAccessToken(userAccountId, employmentId, departmentId, jti, now)
         val rawRefreshToken = UUID.randomUUID().toString()
         val refreshTokenHash = sha256(rawRefreshToken)
         val refreshTokenExpiresAt = now.plusDays(refreshTokenExpiryDays)
@@ -95,10 +96,12 @@ class JwtTokenService(
             .parseSignedClaims(token)
             .payload
         val employmentIdClaim = claims["eid"]
+        val departmentIdClaim = claims["did"]
         return JwtClaims(
             userAccountId = claims.subject.toLong(),
             jti = claims.id ?: throw JwtException("jti 클레임 누락"),
             employmentId = (employmentIdClaim as? Number)?.toLong(),
+            departmentId = (departmentIdClaim as? Number)?.toLong(),
         )
     }
 
@@ -113,7 +116,13 @@ class JwtTokenService(
 
     fun hashRefreshToken(rawToken: String): String = sha256(rawToken)
 
-    private fun buildAccessToken(userAccountId: Long, employmentId: Long?, jti: String, now: ZonedDateTime): String {
+    private fun buildAccessToken(
+        userAccountId: Long,
+        employmentId: Long?,
+        departmentId: Long?,
+        jti: String,
+        now: ZonedDateTime,
+    ): String {
         val issuedAt = Date.from(now.toInstant())
         val expiry = Date.from(now.plusMinutes(accessTokenExpiryMinutes).toInstant())
         val builder = Jwts.builder()
@@ -125,6 +134,9 @@ class JwtTokenService(
             .id(jti)
         if (employmentId != null) {
             builder.claim("eid", employmentId)
+            if (departmentId != null) {
+                builder.claim("did", departmentId)
+            }
         }
         return builder.signWith(secretKey).compact()
     }

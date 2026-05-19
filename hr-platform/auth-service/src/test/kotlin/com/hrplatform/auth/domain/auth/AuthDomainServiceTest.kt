@@ -42,6 +42,7 @@ class AuthDomainServiceTest : BehaviorSpec({
         id: Long = 1L,
         email: String = "test@example.com",
         passwordHash: String = "hashed",
+        departmentId: Long? = null,
     ): UserAccount {
         val account = UserAccount.create(
             employmentId = 100L,
@@ -49,6 +50,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             email = email,
             emailHash = testEmailHash,
             passwordHash = passwordHash,
+            departmentId = departmentId,
         )
 
         val field = UserAccount::class.java.superclass.superclass.getDeclaredField("id")
@@ -106,7 +108,7 @@ class AuthDomainServiceTest : BehaviorSpec({
 
             every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { passwordEncoder.matches(rawPassword, "bcrypt-hashed") } returns true
-            every { jwtTokenService.issueTokenPair(1L, any(), any()) } returns tokenPair
+            every { jwtTokenService.issueTokenPair(1L, any(), any(), any()) } returns tokenPair
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
             every { userAccountRepository.save(any()) } answers { firstArg() }
@@ -126,6 +128,143 @@ class AuthDomainServiceTest : BehaviorSpec({
             result.userAccountId shouldBe 1L
             result.accessToken shouldBe "access-token"
             result.requiresTwoFactor shouldBe false
+        }
+    }
+
+    given("로그인 — did claim 포함 여부") {
+        val email = "user@example.com"
+        val rawPassword = "password"
+
+        then("UserAccount.departmentId가 있는 계정으로 로그인하면 issueTokenPair에 departmentId가 전달된다") {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val userAccount = buildActiveUserAccount(email = email, passwordHash = "hashed", departmentId = 7L)
+            val tokenPair = TokenPair(
+                accessToken = "access-with-did",
+                refreshToken = "raw-refresh",
+                refreshTokenHash = "hash",
+                refreshTokenExpiresAt = now.plusDays(14),
+                jti = "jti-uuid",
+            )
+
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val refreshTokenRepository = mockk<RefreshTokenRepository>()
+            val loginAttemptRepository = mockk<LoginAttemptRepository>()
+            val passwordEncoder = mockk<PasswordEncoder>()
+            val jwtTokenService = mockk<JwtTokenService>()
+            val eventPublisher = mockk<DomainEventPublisher>(relaxed = true)
+            val jtiBlacklist = mockk<JtiBlacklist>()
+
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
+            every { passwordEncoder.matches(rawPassword, "hashed") } returns true
+            every { jwtTokenService.issueTokenPair(1L, 100L, 7L, any()) } returns tokenPair
+            every { refreshTokenRepository.save(any()) } answers { firstArg() }
+            every { loginAttemptRepository.save(any()) } answers { firstArg() }
+            every { userAccountRepository.save(any()) } answers { firstArg() }
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                refreshTokenRepository = refreshTokenRepository,
+                loginAttemptRepository = loginAttemptRepository,
+                passwordEncoder = passwordEncoder,
+                jwtTokenService = jwtTokenService,
+                jtiBlacklist = jtiBlacklist,
+                eventPublisher = eventPublisher,
+            )
+
+            val result = service.login(email, rawPassword, null, null, null)
+
+            result.accessToken shouldBe "access-with-did"
+            verify { jwtTokenService.issueTokenPair(1L, 100L, 7L, any()) }
+        }
+
+        then("UserAccount.departmentId가 null인 계정으로 로그인하면 issueTokenPair에 departmentId=null이 전달된다") {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val userAccount = buildActiveUserAccount(email = email, passwordHash = "hashed", departmentId = null)
+            val tokenPair = TokenPair(
+                accessToken = "access-no-did",
+                refreshToken = "raw-refresh",
+                refreshTokenHash = "hash",
+                refreshTokenExpiresAt = now.plusDays(14),
+                jti = "jti-uuid",
+            )
+
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val refreshTokenRepository = mockk<RefreshTokenRepository>()
+            val loginAttemptRepository = mockk<LoginAttemptRepository>()
+            val passwordEncoder = mockk<PasswordEncoder>()
+            val jwtTokenService = mockk<JwtTokenService>()
+            val eventPublisher = mockk<DomainEventPublisher>(relaxed = true)
+            val jtiBlacklist = mockk<JtiBlacklist>()
+
+            every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
+            every { passwordEncoder.matches(rawPassword, "hashed") } returns true
+            every { jwtTokenService.issueTokenPair(1L, 100L, null, any()) } returns tokenPair
+            every { refreshTokenRepository.save(any()) } answers { firstArg() }
+            every { loginAttemptRepository.save(any()) } answers { firstArg() }
+            every { userAccountRepository.save(any()) } answers { firstArg() }
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                refreshTokenRepository = refreshTokenRepository,
+                loginAttemptRepository = loginAttemptRepository,
+                passwordEncoder = passwordEncoder,
+                jwtTokenService = jwtTokenService,
+                jtiBlacklist = jtiBlacklist,
+                eventPublisher = eventPublisher,
+            )
+
+            val result = service.login(email, rawPassword, null, null, null)
+
+            result.accessToken shouldBe "access-no-did"
+            verify { jwtTokenService.issueTokenPair(1L, 100L, null, any()) }
+        }
+    }
+
+    given("refresh — departmentId가 토큰 재발급 시에도 전달된다") {
+        then("refresh 시 UserAccount.departmentId가 issueTokenPair에 전달된다") {
+            val now = ZonedDateTime.now(ZoneOffset.UTC)
+            val userAccount = buildActiveUserAccount(departmentId = 5L)
+            val tokenHash = "token-hash"
+            val refreshToken = com.hrplatform.auth.domain.token.RefreshToken(
+                userAccountId = 1L,
+                tokenHash = tokenHash,
+                accessJti = "old-jti",
+                expiresAt = now.plusDays(1),
+                deviceInfo = null,
+                ipAddress = null,
+                revokedAt = null,
+                revokedReason = null,
+            )
+            val newTokenPair = TokenPair(
+                accessToken = "new-access",
+                refreshToken = "new-refresh",
+                refreshTokenHash = "new-hash",
+                refreshTokenExpiresAt = now.plusDays(14),
+                jti = "new-jti",
+            )
+
+            val userAccountRepository = mockk<UserAccountRepository>()
+            val refreshTokenRepository = mockk<RefreshTokenRepository>()
+            val jwtTokenService = mockk<JwtTokenService>()
+            val jtiBlacklist = mockk<JtiBlacklist>()
+
+            every { jwtTokenService.hashRefreshToken("raw-token") } returns tokenHash
+            every { refreshTokenRepository.findByTokenHash(tokenHash) } returns refreshToken
+            every { userAccountRepository.findById(1L) } returns userAccount
+            every { jwtTokenService.issueTokenPair(1L, 100L, 5L, any()) } returns newTokenPair
+            every { refreshTokenRepository.save(any()) } answers { firstArg() }
+
+            val service = buildAuthDomainService(
+                userAccountRepository = userAccountRepository,
+                refreshTokenRepository = refreshTokenRepository,
+                jwtTokenService = jwtTokenService,
+                jtiBlacklist = jtiBlacklist,
+            )
+
+            val result = service.refresh("raw-token")
+
+            result.accessToken shouldBe "new-access"
+            verify { jwtTokenService.issueTokenPair(1L, 100L, 5L, any()) }
         }
     }
 
@@ -209,7 +348,7 @@ class AuthDomainServiceTest : BehaviorSpec({
             every { userAccountRepository.findByEmailHash(testEmailHash) } returns userAccount
             every { userAccountRepository.save(any()) } answers { firstArg() }
             every { passwordEncoder.matches(any(), "hashed") } returns true
-            every { jwtTokenService.issueTokenPair(any(), any(), any()) } returns tokenPair
+            every { jwtTokenService.issueTokenPair(any(), any(), any(), any()) } returns tokenPair
             every { refreshTokenRepository.save(any()) } answers { firstArg() }
             every { loginAttemptRepository.save(any()) } answers { firstArg() }
 
