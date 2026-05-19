@@ -1,0 +1,112 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AttendanceCheckedOut",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "AttendanceCheckedOut"
+    },
+    "eventVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aggregateType": {
+      "type": "string",
+      "const": "AttendanceRecord"
+    },
+    "aggregateId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "details"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "CHECK_OUT"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentId", "workDate", "checkOutAt"],
+          "properties": {
+            "employmentId": {
+              "type": "integer"
+            },
+            "workDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "checkOutAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "durationMinutes": {
+              "type": ["integer", "null"]
+            },
+            "abnormalFlags": {
+              "type": ["array", "null"],
+              "items": {
+                "type": "string",
+                "enum": ["EARLY_CHECKOUT", "LATE_CHECKOUT", "OVERTIME"]
+              }
+            }
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "snapshot"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "const": "COMPLETED"
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentId", "workDate"],
+          "properties": {
+            "employmentId": {
+              "type": "integer"
+            },
+            "workDate": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    }
+  }
+}

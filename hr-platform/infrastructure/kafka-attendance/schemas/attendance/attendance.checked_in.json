@@ -1,0 +1,143 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AttendanceCheckedIn",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "eventId",
+    "eventType",
+    "eventVersion",
+    "occurredAt",
+    "aggregateType",
+    "aggregateId",
+    "companyId",
+    "action",
+    "state"
+  ],
+  "properties": {
+    "eventId": {
+      "type": "string",
+      "format": "uuid"
+    },
+    "eventType": {
+      "type": "string",
+      "const": "AttendanceCheckedIn"
+    },
+    "eventVersion": {
+      "type": "integer",
+      "const": 1
+    },
+    "occurredAt": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "aggregateType": {
+      "type": "string",
+      "const": "AttendanceRecord"
+    },
+    "aggregateId": {
+      "type": "integer"
+    },
+    "companyId": {
+      "type": "integer"
+    },
+    "actorEmploymentId": {
+      "type": ["integer", "null"]
+    },
+    "action": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["type", "details"],
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "CHECK_IN"
+        },
+        "details": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentId", "workDate", "checkInAt", "location"],
+          "properties": {
+            "employmentId": {
+              "type": "integer"
+            },
+            "workDate": {
+              "type": "string",
+              "format": "date"
+            },
+            "checkInAt": {
+              "type": "string",
+              "format": "date-time"
+            },
+            "location": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["latitude", "longitude"],
+              "properties": {
+                "latitude": {
+                  "type": "number"
+                },
+                "longitude": {
+                  "type": "number"
+                },
+                "address": {
+                  "type": ["string", "null"]
+                },
+                "ipAddress": {
+                  "type": ["string", "null"]
+                }
+              }
+            },
+            "schedule": {
+              "type": ["object", "null"],
+              "additionalProperties": false,
+              "properties": {
+                "scheduleId": {
+                  "type": "integer"
+                },
+                "coreHours": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["startTime", "endTime"],
+                  "properties": {
+                    "startTime": {
+                      "type": "string"
+                    },
+                    "endTime": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "state": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "snapshot"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "const": "IN_PROGRESS"
+        },
+        "snapshot": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["employmentId", "workDate"],
+          "properties": {
+            "employmentId": {
+              "type": "integer"
+            },
+            "workDate": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        }
+      }
+    }
+  }
+}
