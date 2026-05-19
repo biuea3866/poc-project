@@ -77,4 +77,15 @@ class UserAccountSyncService(
         userAccountRepository.save(userAccount)
         eventPublisher.publishAll(userAccount.pullDomainEvents())
     }
+
+    /**
+     * EmployeeTransferred 이벤트 수신 시 UserAccount.departmentId 갱신.
+     * JWT did claim 캐시를 최신 상태로 유지. 다음 로그인/refresh 시 새 departmentId가 토큰에 반영된다.
+     */
+    fun handleTransferred(envelope: DomainEventEnvelope) {
+        val userAccount = userAccountRepository.findByEmploymentId(envelope.aggregateId) ?: return
+        val newDepartmentId = (envelope.action.details["departmentId"] as? Number)?.toLong()
+        userAccount.updateDepartment(newDepartmentId)
+        userAccountRepository.save(userAccount)
+    }
 }

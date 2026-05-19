@@ -94,6 +94,17 @@ class EmployeeEventWorkerTest : BehaviorSpec({
         }
     }
 
+    given("EmployeeTransferred 이벤트 수신") {
+        then("consume 호출 시 userAccountSyncUseCase.syncTransferred가 호출된다") {
+            val userAccountSyncUseCase = mockk<UserAccountSyncUseCase>(relaxed = true)
+            val worker = buildWorker(userAccountSyncUseCase)
+
+            worker.consume(buildEnvelope("EmployeeTransferred"))
+
+            verify { userAccountSyncUseCase.syncTransferred(any()) }
+        }
+    }
+
     given("중복 이벤트 수신 (멱등성)") {
         then("같은 eventId의 이벤트를 두 번 수신하면 두 번째는 무시된다") {
             val userAccountSyncUseCase = mockk<UserAccountSyncUseCase>(relaxed = true)
