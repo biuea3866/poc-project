@@ -42,7 +42,20 @@ TDD(Technical Design Document)는 아래 섹션을 모두 포함합니다.
 {Mermaid erDiagram — DDL 전문은 티켓에, TDD에는 요약만}
 
 ## Testing Plan
-{테스트 전략, 레벨별 범위}
+TDD에서는 **세 계층의 커버리지 전략**을 명시합니다. 각 티켓은 [`ticket-guide.md`](./ticket-guide.md)의 형식에 따라
+세 계층 케이스를 모두 채워야 하며, TDD는 그 상위에서 **계층별 범위·도구·환경**을 정의합니다.
+
+| 계층 | 범위 | 도구 | 환경 |
+|---|---|---|---|
+| 단위 (Unit) | 도메인 모델·서비스의 순수 로직, 상태 전이, 정책 | Kotest BehaviorSpec + MockK | JVM 단독, 외부 의존 없음 |
+| 레포지토리 (Repository) | JPA 매핑·QueryDSL 쿼리·인덱스·트랜잭션·낙관락·고유제약 | `@DataJpaTest` + Testcontainers | 실 DB 컨테이너 |
+| 시나리오 (Scenario) | UseCase·Facade End-to-End — 외부 이벤트 진입부터 상태·발행까지 | `@SpringBootTest` + Testcontainers + WireMock | DB + Redis + Kafka + 외부 stub |
+
+다음 항목을 본문에 포함합니다.
+- 각 계층의 **목표 커버리지**(라인/브랜치)와 측정 도구(Kover 등).
+- 시나리오 계층에서 **반드시 다루는 플로우 목록**(메인, 멱등, 보상, 동시성, 외부 장애).
+- 성능/부하 테스트가 있는 경우 별도 절로 분리 (kafka throughput, p99 응답 등).
+- `BaseIntegrationTest` 같은 공유 인프라가 필요하면 그 위치와 사용 규칙.
 
 ## Release Scenario
 {배포 순서, 마이그레이션 선/후 조건, 롤백 플랜}
