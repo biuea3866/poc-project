@@ -1,21 +1,32 @@
 """
-외부 MCP 서버 데모 — 우리 Spring AI 앱이 *클라이언트*로 접속해 도구를 끌어다 쓰는 시나리오.
+외부 MCP 서버 — Spring AI 앱이 *클라이언트*로 접속해 도구를 끌어다 쓰는 독립 서비스.
 
-PoC 학습 목적이라 단순한 도구 2종만 노출한다.
+도구 2종:
   - convert_krw: 한국 원화를 다른 통화로 변환
   - season_tip: 월(1~12) 입력 → 추천 의류 카테고리
 
-실행:
-    uv run --with mcp uvicorn server:app --port 9090
-또는 단순 SSE:
-    uv run --with mcp python server.py
+실행 방식 (3가지 중 택일):
+  1) docker-compose 로 함께:
+       docker compose up mcp-external-server
+  2) 로컬 uv:
+       uv run --with mcp python server.py
+  3) 호스트 바인딩 변경 (외부 접속 허용):
+       MCP_HOST=0.0.0.0 MCP_PORT=9090 uv run --with mcp python server.py
+
+환경변수:
+  MCP_HOST (기본: 0.0.0.0) — Docker 안에서 외부 노출 위해 0.0.0.0
+  MCP_PORT (기본: 9090)
 """
 
+import os
 from datetime import datetime
 
 from mcp.server.fastmcp import FastMCP
 
-mcp = FastMCP("clothing-external-mcp", host="127.0.0.1", port=9090)
+HOST = os.environ.get("MCP_HOST", "0.0.0.0")
+PORT = int(os.environ.get("MCP_PORT", "9090"))
+
+mcp = FastMCP("clothing-external-mcp", host=HOST, port=PORT)
 
 # 단순 PoC 환율 (실제로는 외부 API 호출). 2026-05 기준 대략값.
 KRW_PER_UNIT = {

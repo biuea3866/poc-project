@@ -1,27 +1,23 @@
 package com.biuea.springai.tool
 
-import com.biuea.springai.audit.ToolAuditLogger
 import com.biuea.springai.domain.Order
 import com.biuea.springai.domain.OrderRepository
 import com.biuea.springai.domain.Product
 import com.biuea.springai.domain.ProductRepository
-import com.biuea.springai.security.ScopeGuard
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.core.io.ClassPathResource
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken
-import org.springframework.security.core.authority.SimpleGrantedAuthority
-import org.springframework.security.core.context.SecurityContextHolder
 
 /**
- * CatalogTools 단위 테스트 — LLM 없이 인메모리 시드 데이터로 도구 동작을 검증한다.
- * 인앱 툴 콜링(Feature 3)과 MCP 서버가 노출하는 도구의 실제 로직이 여기서 보장된다.
+ * CatalogTools 단위 테스트 — LLM 없이 인메모리 시드 데이터로 도구 본문 로직을 검증한다.
+ *
+ * 스코프 검사 + 감사 로그는 `GuardedToolCallback` 데코레이터가 처리하므로 본 테스트에서는 제외한다.
+ * (해당 흐름은 [com.biuea.springai.security.GuardedToolCallbackTest] 에서 검증)
  */
 class CatalogToolsTest {
 
@@ -36,25 +32,7 @@ class CatalogToolsTest {
         val orderRepository = OrderRepository().apply {
             saveAll(mapper.readValue<List<Order>>(ClassPathResource("data/orders.json").inputStream))
         }
-        val toolGuard = ToolGuard(ScopeGuard(), ToolAuditLogger(mapper))
-        catalogTools = CatalogTools(productRepository, orderRepository, ToolInputValidator(), toolGuard)
-
-        // 단위 테스트는 SecurityContext 가 비어 있으므로 모든 스코프를 가진 가짜 주체를 주입한다.
-        SecurityContextHolder.getContext().authentication = UsernamePasswordAuthenticationToken(
-            "test-user", null,
-            listOf(
-                SimpleGrantedAuthority("SCOPE_catalog:read"),
-                SimpleGrantedAuthority("SCOPE_catalog:write"),
-                SimpleGrantedAuthority("SCOPE_order:read"),
-                SimpleGrantedAuthority("SCOPE_order:write"),
-                SimpleGrantedAuthority("SCOPE_shipment:write"),
-            ),
-        )
-    }
-
-    @AfterEach
-    fun tearDown() {
-        SecurityContextHolder.clearContext()
+        catalogTools = CatalogTools(productRepository, orderRepository, ToolInputValidator())
     }
 
     @Test

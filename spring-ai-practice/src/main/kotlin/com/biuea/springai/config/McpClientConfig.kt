@@ -59,7 +59,14 @@ class McpClientConfig {
     fun externalToolCallbacks(client: McpSyncClient?): List<ToolCallback> {
         if (client == null) return emptyList()
         return try {
-            val callbacks = SyncMcpToolCallbackProvider(client).toolCallbacks.toList()
+            // 1.1.x 권장 패턴: deprecated 생성자 대신 builder() 사용.
+            // McpToolFilter, McpToolNamePrefixGenerator, ToolContextToMcpMetaConverter 같은
+            // 옵션을 함께 구성할 수 있는 표준 진입점이다.
+            val callbacks = SyncMcpToolCallbackProvider.builder()
+                .mcpClients(client)
+                .build()
+                .toolCallbacks
+                .toList()
             log.info("External MCP server 도구 ${callbacks.size}개 노출됨")
             callbacks
         } catch (e: Exception) {

@@ -62,6 +62,7 @@
         .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
         .msg.user { align-self: flex-end; background: #1f6feb; color: white; border-bottom-right-radius: 4px; }
         .msg.assistant { align-self: flex-start; background: #21262d; color: #e6e6e6; border-bottom-left-radius: 4px; }
+        .msg-meta { margin-top: 8px; padding-top: 6px; border-top: 1px solid #2a2f3a; font-size: 11px; color: #79b8ff; line-height: 1.45; display: flex; flex-direction: column; gap: 2px; }
         .msg.error { align-self: flex-start; background: #67191e; color: #ffb3b3; border-bottom-left-radius: 4px; }
         .msg.system { align-self: center; font-size: 12px; color: #6e7681; }
 
@@ -212,6 +213,33 @@
             return el;
         }
 
+        function attachMeta(el, pairs) {
+            const meta = document.createElement("div");
+            meta.className = "msg-meta";
+            for (const [k, v] of pairs) {
+                if (!v || (Array.isArray(v) && v.length === 0)) continue;
+                const row = document.createElement("div");
+                row.textContent = `${k}: ${Array.isArray(v) ? v.join(", ") : v}`;
+                meta.appendChild(row);
+            }
+            if (meta.children.length > 0) el.appendChild(meta);
+        }
+
+        function renderChatResult(el, result) {
+            el.textContent = result.answer || "(빈 응답)";
+            attachMeta(el, [
+                ["intent", result.intent],
+            ]);
+        }
+
+        function renderVisionResult(el, result) {
+            el.textContent = result.description || "(빈 응답)";
+            attachMeta(el, [
+                ["카테고리", result.detectedCategory],
+                ["색상", result.detectedColor],
+            ]);
+        }
+
         const streamToggle = $("stream-toggle");
         const imageInput = $("image-input");
         let attachedImage = null;
@@ -289,7 +317,7 @@
                         loadingEl.classList.add("error");
                         loadingEl.textContent = "오류 " + res.status + ": " + (body.message || body.error || "unknown");
                     } else {
-                        loadingEl.textContent = body.answer;
+                        renderVisionResult(loadingEl, body.result || {});
                     }
                     attachedImage = null;
                     imageInput.value = "";
@@ -310,7 +338,7 @@
                         loadingEl.classList.add("error");
                         loadingEl.textContent = "오류 " + res.status + ": " + (body.message || body.error || "unknown");
                     } else {
-                        loadingEl.textContent = body.answer;
+                        renderChatResult(loadingEl, body.result || {});
                     }
                 }
             } catch (e) {

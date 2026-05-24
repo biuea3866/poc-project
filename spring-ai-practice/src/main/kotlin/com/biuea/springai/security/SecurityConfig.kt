@@ -16,13 +16,16 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 /**
  * 보안 필터 체인.
  *
- * 공개 경로:
- *   - POST /auth/login    : 토큰 발급
- *   - /actuator/health    : 헬스체크
+ * JWT 의 의무 사용 경로는 외부 LLM / MCP 클라이언트가 진입하는 곳에 한정한다.
  *
- * 보호 경로:
- *   - `/sse`, `/mcp/...`  : MCP SSE 핸드셰이크 + 메시지 (JWT 필수)
- *   - `/api/...`          : 인앱 REST API
+ * 공개 경로 (permitAll):
+ *   - `POST /auth/login`           : 토큰 발급 (외부 클라이언트가 자격증명으로 JWT 받음)
+ *   - `GET  /`, `/index.html`, `/static/...`, `/error`, `/actuator/health`
+ *   - `POST /chat`, `/chat/stream`, `/chat/vision` : 브라우저 UI 채팅 — 인증 없음(anonymous 가 catalog:read / order:read 기본 보유)
+ *
+ * 보호 경로 (authenticated, Bearer JWT 필수):
+ *   - `GET  /sse`                  : MCP SSE 핸드셰이크
+ *   - `POST /mcp/...`              : MCP JSONRPC 메시지
  *
  * 필터 순서: JwtAuthenticationFilter → RateLimitFilter → 기본 인가 평가
  */
@@ -44,6 +47,12 @@ class SecurityConfig {
             .formLogin { it.disable() }
             .httpBasic { it.disable() }
             .sessionManagement { it.sessionCreationPolicy(SessionCreationPolicy.STATELESS) }
+            // anonymous 사용자(UI 채팅 등 permitAll 경로)에게 기본 조회 스코프 부여.
+            // → ToolGuardAspect 가 catalog:read / order:read 도구 호출을 통과시킨다.
+            // 쓰기 스코프(catalog:write / order:write / shipment:write) 는 일부러 제외 — 외부 인증된 클라이언트만.
+            .anonymous {
+                it.principal("ui-user").authorities("SCOPE_catalog:read", "SCOPE_order:read")
+            }
             .authorizeHttpRequests {
                 it.requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
                 it.requestMatchers("/actuator/health").permitAll()
@@ -51,6 +60,9 @@ class SecurityConfig {
                 it.requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico", "/static/**").permitAll()
                 // Spring Boot 의 /error 페이지로 forward 시 헤더가 사라져 401 이 되는 것을 방지
                 it.requestMatchers("/error").permitAll()
+                // 브라우저 UI 채팅 — JWT 없이 호출 가능 (도구 호출에 권한 검사 없음)
+                it.requestMatchers(HttpMethod.POST, "/chat", "/chat/stream", "/chat/vision").permitAll()
+                // 외부 LLM / MCP 클라이언트 진입점만 JWT 필수
                 it.anyRequest().authenticated()
             }
             .exceptionHandling {

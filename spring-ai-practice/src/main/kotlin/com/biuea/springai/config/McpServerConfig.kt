@@ -9,22 +9,22 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
 /**
- * MCP 서버 — `@Tool` 메서드를 Model Context Protocol 도구로 외부 LLM 호스트에 노출.
+ * MCP 서버 — `@Tool` / `@McpTool` 메서드를 Model Context Protocol 도구로 외부 LLM 호스트에 노출.
  *
- * `MethodToolCallbackProvider` 가 `toolObjects(...)` 로 받은 빈들의 `@Tool` 메서드를
- * 리플렉션으로 수집해 `ToolCallback` 으로 변환한다. spring-ai-starter-mcp-server-webmvc 가
- * 이 빈을 자동 찾아 `/sse` + `/mcp/message` SSE 엔드포인트로 노출.
+ * 1) `MethodToolCallbackProvider` 가 `@Tool` 메서드를 리플렉션으로 수집해 `ToolCallback` 으로 변환
+ * 2) spring-ai-starter-mcp-server-webmvc 가 이 빈을 자동 찾아 `/sse` + `/mcp/message` 로 노출
  *
- * 노출되는 도구:
- *   - **CatalogTools** (조회 7 + 쓰기 4) — 의류 도메인
- *   - **ExtractionTool** (`BeanOutputConverter` 시연) — 자유 텍스트 → ExtractedProduct
- *   - **ImageGenerationTool** (`ImageModel` 시연) — DALL-E 이미지 생성
- *
- * → 외부 LLM 호스트는 우리 인앱 ChatClient 와 동일한 도구 집합을 사용 가능.
+ * 스코프 검사는 Spring AOP (`ToolGuardAspect`) 가 `@RequireScope` 어노테이션을 가로채서 처리.
+ * `MethodToolCallback` 가 `toolObject` (CGLIB 프록시 빈) 의 메서드를 `Method.invoke()` 로 호출하면
+ * 프록시가 자동으로 advice 를 트리거한다.
  */
 @Configuration
 class McpServerConfig {
 
+    /**
+     * `@Tool` 어노테이션 메서드만 수집한다. `@McpTool` (McpAnnotationDemo) 은
+     * `spring-ai-mcp-annotations` autoconfig 가 별도로 자동 발견해 MCP 서버에 등록한다.
+     */
     @Bean
     fun toolCallbackProvider(
         catalogTools: CatalogTools,

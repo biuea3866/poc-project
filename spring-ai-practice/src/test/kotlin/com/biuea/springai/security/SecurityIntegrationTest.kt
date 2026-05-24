@@ -115,6 +115,20 @@ class SecurityIntegrationTest {
     fun `S-07 actuator 헬스체크 는 permitAll`() {
         assertEquals(200, get("/actuator/health", null))
     }
+
+    @Test
+    fun `S-08 UI 채팅 POST chat 은 토큰 없이도 permitAll — 401 이 아닌 처리됨`() {
+        // /chat 은 인증 없이 통과. 본문(ChatModel mock) 으로 인해 5xx 또는 200 이 떨어지지만,
+        // 핵심은 SecurityFilterChain 단계에서 401 unauthorized 로 차단되지 않는다는 점.
+        val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
+        val body = """{"conversationId":"ui","message":"hi"}"""
+        val response = rest.postForEntity(
+            baseUrl("/chat"),
+            HttpEntity(body, headers),
+            String::class.java,
+        )
+        assertTrue(response.statusCode.value() != 401, "/chat 은 인증 없이 호출 가능해야 합니다. 응답=${response.statusCode}")
+    }
 }
 
 class NoopErrorHandler : org.springframework.web.client.ResponseErrorHandler {

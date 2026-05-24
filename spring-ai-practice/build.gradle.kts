@@ -50,6 +50,8 @@ dependencies {
     // 보안 (JWT 인증 + 스코프 인가)
     implementation("org.springframework.boot:spring-boot-starter-security")
     implementation("org.springframework.boot:spring-boot-starter-validation")
+    // Spring AOP — @RequireScope 어노테이션 처리용 (Aspect + @Around)
+    implementation("org.springframework.boot:spring-boot-starter-aop")
 
     // JWT (jjwt 0.12.x)
     implementation("io.jsonwebtoken:jjwt-api:0.12.6")

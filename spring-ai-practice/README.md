@@ -23,7 +23,7 @@ REST 로 도구를 직접 노출하는 API(`/api/tools/...`)는 의도적으로 
 | 9 | **`VectorStore`** (`SimpleVectorStore`) | [VectorStoreConfig.kt](src/main/kotlin/com/biuea/springai/config/VectorStoreConfig.kt) |
 | 10 | **`Document`** + **`TokenTextSplitter`** | [KnowledgeBaseLoader.kt](src/main/kotlin/com/biuea/springai/service/KnowledgeBaseLoader.kt) — 시작 시 rag/*.md 청킹·임베딩 |
 | 11 | **`QuestionAnswerAdvisor`** (RAG 자동 컨텍스트 주입) | ChatClientConfig |
-| 12 | **`BeanOutputConverter`** (`chatClient.entity(...)`) | [ExtractionTool.kt](src/main/kotlin/com/biuea/springai/tool/ExtractionTool.kt) — JSON Schema 자동화 + 역직렬화 |
+| 12 | **`BeanOutputConverter`** (`chatClient.entity(...)` 또는 수동) | [ChatGatewayService.kt](src/main/kotlin/com/biuea/springai/chat/ChatGatewayService.kt) — `/chat` 응답을 `ChatAnswer` 로 받음 · [VisionService.kt](src/main/kotlin/com/biuea/springai/chat/VisionService.kt) — `VisionAnswer` 수동 변환 · [ExtractionTool.kt](src/main/kotlin/com/biuea/springai/tool/ExtractionTool.kt) — `ExtractedProduct` |
 | 13 | **`Media`** + multimodal `UserMessage` | [VisionService.kt](src/main/kotlin/com/biuea/springai/chat/VisionService.kt) — 이미지 첨부 |
 | 14 | **`chatClient.stream()`** + `Flux<String>` | [ChatGatewayController.kt](src/main/kotlin/com/biuea/springai/chat/ChatGatewayController.kt) — SSE `/chat/stream` |
 | 15 | **MCP Server (WebMVC SSE/JSONRPC)** | `spring-ai-starter-mcp-server-webmvc` autoconfig — `/sse`, `/mcp/message` |
@@ -55,29 +55,40 @@ REST 로 도구를 직접 노출하는 API(`/api/tools/...`)는 의도적으로 
 | MCP 전송 | SSE / streamable-HTTP (WebMVC) |
 | 보안 | Spring Security 6.4.x + JJWT 0.12.6 + Resilience4j RateLimiter |
 
-## 사전 준비
+## 사전 준비 — docker-compose (권장)
+
+레포 루트의 [`docker-compose.yml`](../docker-compose.yml) 이 Ollama + 외부 MCP 서버를 함께 띄우고 필수 모델 2개를 자동 pull 한다.
+
+```bash
+cd /Users/biuea/feature/flag_project
+docker compose up -d                              # ollama + mcp-external-server 동시 기동
+docker compose logs -f ollama-pull                # llama3.2:3b + nomic-embed-text 자동 다운로드 진행
+```
+
+Spring 앱은 호스트에서 띄우고 두 컨테이너의 노출 포트(11434, 9090) 를 그대로 사용한다.
+
+```bash
+cd spring-ai-practice
+./gradlew bootRun                                                # 외부 MCP 비활성
+EXTERNAL_MCP_ENABLED=true ./gradlew bootRun                      # 외부 MCP 도구도 함께 노출
+./gradlew bootRun --args='--spring.profiles.active=tls'          # HTTPS (자체서명)
+open http://localhost:8080
+```
+
+### Ollama 직접 설치 (Docker 없이)
 
 ```bash
 brew install ollama
-ollama serve &                    # 별도 터미널 또는 백그라운드
-ollama pull llama3.2:3b           # 도구 콜링 모델 — 필수 (~2GB)
-ollama pull nomic-embed-text      # RAG 임베딩 모델 — 필수 (~270MB, 시작 시 인덱싱에 사용)
-ollama pull llava:7b              # 멀티모달(Vision) 모델 — 선택, /chat/vision 사용 시 필요 (~4.7GB)
+ollama serve &
+ollama pull llama3.2:3b           # 채팅 + 도구 콜링 (필수)
+ollama pull nomic-embed-text      # RAG 임베딩 (필수)
+ollama pull llava:7b              # 멀티모달 (선택, /chat/vision 사용 시)
 ```
 
 > **모델별 용도**
 > - `llama3.2:3b` → 채팅 + 도구 선택. 미설치 시 `/chat` 호출이 502 `llm_unreachable` 응답.
-> - `nomic-embed-text` → RAG 임베딩. 미설치 시 앱 시작 시 KnowledgeBaseLoader 가 실패.
-> - `llava:7b` → 이미지 분석. 미설치 시 `/chat/vision` 응답이 비전 모델을 못 찾는다는 에러.
-
-## 실행
-
-```bash
-cd spring-ai-practice
-./gradlew bootRun                                        # http://localhost:8080
-./gradlew bootRun --args='--spring.profiles.active=tls'  # https://localhost:8443 (자체서명)
-open http://localhost:8080                               # UI 접속
-```
+> - `nomic-embed-text` → RAG 임베딩. 미설치 시 앱 시작 시 KnowledgeBaseLoader 가 graceful skip + 경고 로그.
+> - `llava:7b` → 이미지 분석. 미설치 시 `/chat/vision` 응답이 비전 모델을 못 찾는다는 에러. docker-compose 시 `docker compose exec ollama ollama pull llava:7b` 추가 실행.
 
 ## 사용 흐름 (UI)
 
@@ -124,24 +135,152 @@ LLM 추출 도구 (1개 — BeanOutputConverter)
 
 | 경로 | 사용 컴포넌트 | 설명 |
 |---|---|---|
-| `POST /chat` | ChatClient `.call()` | 동기 응답 (도구 라운드 마치고 한 번에) |
-| `POST /chat/stream` | ChatClient `.stream()` → `Flux<String>` | SSE 스트리밍 — UI 타자기 효과 |
-| `POST /chat/vision` | ChatModel + `UserMessage.media(...)` + `OllamaOptions(llava)` | multipart 이미지 첨부 분석 |
+| `POST /chat` | ChatClient `.call().entity(ChatAnswer)` | 동기 + **구조화 응답** (`{ answer, intent, mentionedProductIds, mentionedOrderIds, suggestedFollowUps }`) |
+| `POST /chat/stream` | ChatClient `.stream()` → `Flux<String>` | SSE 스트리밍 — 토큰 청크 (스트리밍 본질상 구조화 미적용) |
+| `POST /chat/vision` | ChatModel + `UserMessage.media(...)` + `BeanOutputConverter<VisionAnswer>` 수동 적용 | multipart 이미지 → 구조화 응답 (`{ description, detectedCategory, detectedColor, detectedFit, ... }`) |
 
 추가로 매 채팅에서 **`QuestionAnswerAdvisor`** 가 자동으로 VectorStore 를 검색해 `rag/*.md` (사이즈 가이드 · FAQ · 관리 가이드) 의 관련 청크를 LLM 컨텍스트에 끼워 넣습니다. 따라서 *"키 175 / 70kg 인데 L 사이즈 맞아?"* 같은 질문도 도구 없이 자체 문서로 답변합니다.
 
-### 외부 MCP 서버 연동 (우리 앱이 다른 MCP 서버의 클라이언트)
+### 보안 적용 범위
+
+JWT 의 의무 사용 경로는 **외부 LLM / MCP 클라이언트 전용**입니다.
+
+| 경로 | 인증 | 권한 검사 | 비고 |
+|---|---|---|---|
+| `POST /auth/login` | permitAll | — | 외부 클라이언트가 토큰 발급받는 엔드포인트 |
+| `GET /sse`, `POST /mcp/**` | **Bearer JWT 필수** | `@RequireScope` + Spring AOP `ToolGuardAspect` | 외부 LLM 호스트 (Claude Desktop / MCP 클라이언트) 진입점 |
+| `POST /chat`, `/chat/stream`, `/chat/vision` | permitAll | 없음 | 브라우저 UI 채팅 — 인증 없이 동작 |
+| 정적 리소스 / `/actuator/health` | permitAll | — | |
+
+UI 의 로그인 폼은 발급된 JWT 를 받기 위한 도우미 UI 로 유지되지만, UI 채팅 자체는 인증 없이 작동합니다.
+
+### Structured Output — 모든 채팅 응답을 LLM 호출 결과로 구조화
+
+모든 `/chat`·`/chat/vision` 응답은 `BeanOutputConverter` 로 JSON Schema 가 LLM 프롬프트에 자동 주입되어
+LLM 이 정해진 스키마에 맞춰 응답을 채워주는 형태입니다.
+
+#### `POST /chat` 응답 예시
+
+요청
+```bash
+curl -sS -X POST localhost:8080/chat \
+  -H 'Content-Type: application/json' \
+  -d '{"conversationId":"u1","message":"재고 있는 블랙 옷 추천해줘"}'
+```
+
+응답 (`ChatAnswer`)
+```json
+{
+  "conversationId": "u1",
+  "result": {
+    "answer": "재고 있는 블랙 옷으로는 P-1002 오버핏 그래픽 반팔 티셔츠(44개, 29,000원), P-1007 구스다운 푸퍼 패딩(15개, 199,000원), P-1011 와이드 코튼 슬랙스(22개, 72,000원) 가 있어요.",
+    "intent": "SEARCH",
+    "mentionedProductIds": ["P-1002", "P-1007", "P-1011"],
+    "mentionedOrderIds": [],
+    "suggestedFollowUps": [
+      "P-1002 의 사이즈별 재고 알려줘",
+      "5만원 이하 블랙 옷만 보여줘"
+    ]
+  }
+}
+```
+
+#### `POST /chat/vision` 응답 예시
+
+요청
+```bash
+curl -sS -X POST localhost:8080/chat/vision \
+  -F 'image=@jacket.jpg' \
+  -F 'prompt=이 사진 속 옷을 분석해줘'
+```
+
+응답 (`VisionAnswer`)
+```json
+{
+  "conversationId": "vision",
+  "result": {
+    "description": "검정색 코튼 자켓이에요. 오버핏 실루엣이고 가을용으로 적합해 보입니다.",
+    "detectedCategory": "자켓",
+    "detectedColor": "블랙",
+    "detectedFit": "오버핏",
+    "detectedMaterial": "코튼",
+    "detectedSeason": "가을",
+    "keywords": ["오버핏", "코튼", "캐주얼"]
+  }
+}
+```
+
+UI 는 `result.answer` (또는 `result.description`) 를 채팅 메시지 본문으로 렌더링하고, 그 아래에 메타데이터(intent · 언급 ID · 후속 질문 등) 를 작은 글씨로 함께 표시합니다.
+
+#### Stream 은 비구조화 (예외)
+
+`POST /chat/stream` 만 토큰 청크 텍스트를 그대로 흘려보냅니다 — SSE 스트리밍 특성상 응답을 객체로 묶을 수 없기 때문입니다. UI 의 "스트리밍 응답" 토글을 켜면 이 경로로 가고, 끄면 `/chat` 의 구조화 응답을 받습니다.
+
+### 어노테이션 기반 스코프 검사 (`@RequireScope` + Spring AOP)
+
+도구 메서드는 어노테이션만 부착하면 스코프 검사·감사 로그가 자동 적용됩니다.
+
+```kotlin
+@Tool(description = "...")
+@RequireScope("catalog:read")            // ← 메타데이터만 선언
+fun searchProducts(...): List<ProductSummary> {
+    // 비즈니스 로직만 — 보일러플레이트 없음
+    return productRepository.search(...)
+}
+```
+
+동작 흐름:
+
+1. `@Component` 빈 중 `@RequireScope` 메서드가 있으면 Spring 이 자동으로 **CGLIB 프록시** 생성
+2. [`ToolGuardAspect`](src/main/kotlin/com/biuea/springai/security/ToolGuardAspect.kt) 가 `@Around("@annotation(requireScope)")` 포인트컷으로 메서드 호출을 가로챔
+3. advice 가 호출 진입부에서 **SecurityContext 권한 검사** (`SCOPE_<name>`) + [`ToolAuditLogger`](src/main/kotlin/com/biuea/springai/audit/ToolAuditLogger.kt) 기록 후 `joinPoint.proceed()`
+4. 스코프 부족 시 `AccessDeniedException` → LLM 응답에 자연어로 반영
+
+#### MCP 경로에서도 AOP 가 동작하는 이유
+
+이전엔 "MCP `MethodToolCallback` 가 리플렉션으로 호출하니 AOP 우회" 라고 추정했으나, 실제로는:
+- `MethodToolCallback.toolObject` 가 **CGLIB 프록시 빈을 그대로 받음**
+- `Method.invoke(proxyTarget, args)` 호출 시 프록시 클래스의 메서드가 실행 → advisor chain 통과
+- 결과: 인앱 ChatClient 경로(`/chat`) 와 MCP 경로(`/sse`) 양쪽에서 동일하게 advice 트리거
+
+검증 — MCP 클라이언트로 `searchProducts` 호출 시 audit 로그가 찍히는지로 확인 가능:
+```text
+INFO audit.tool : {"subject":"shopper-llm","tool":"searchProducts",...,"outcome":"success"}
+WARN audit.tool : {"subject":"catalog-only-llm","tool":"getOrderStatus",...,"outcome":"denied","reason":"missing required scope: order:read"}
+```
+
+UI 채팅(`/chat` 계열) 은 SecurityFilterChain 에서 permitAll 이라 SecurityContext 가 anonymous. AOP advice 도 같이 작동하면 `authentication.authorities` 조회 시점에 NPE 가 나므로, UI 채팅에서는 도구 호출 자체가 일어나지 않거나(스코프 검사 미적용 도구로 한정) 사용자가 토큰을 함께 보내야 동작.
+
+### 외부 MCP 서버 연동 (독립 프로젝트)
+
+외부 MCP 서버는 별도 디렉토리 [`../mcp-external-server/`](../mcp-external-server/README.md) 로 분리되어 있으며 자체 Dockerfile · pyproject.toml 을 가진다.
 
 ```bash
-# 외부 MCP 서버 띄우기 (의류 도메인 보조 도구 — 환율 / 시즌 추천)
-uv run --with mcp mcp-external-server/server.py     # 9090 포트
+# A. docker-compose 로 함께 (권장)
+cd /Users/biuea/feature/flag_project
+docker compose up -d mcp-external-server
+
+# B. 또는 로컬 uv
+cd mcp-external-server && uv run --with mcp python server.py
 
 # Spring AI 앱을 연결 모드로 띄우기
+cd spring-ai-practice
 EXTERNAL_MCP_ENABLED=true EXTERNAL_MCP_URL=http://localhost:9090 \
   ./gradlew bootRun
 ```
 
-이러면 UI 에서 *"5만원이면 미국 달러로 얼마야?"* 같은 질문 시 LLM 이 외부 `convert_krw` 도구를 자동 호출합니다. 우리 앱은 **MCP gateway** 역할도 겸해 외부 도구가 우리 `/sse` 엔드포인트로도 노출됩니다 (외부 LLM 호스트가 우리 앱 하나만 보면 외부 + 내부 도구를 모두 사용 가능).
+부팅 로그에 `External MCP server 도구 2개 노출됨` + `Registered tools: 16` 이 보이면 성공. UI 에서 *"5만원이면 미국 달러로 얼마야?"* 같은 질문 시 LLM 이 외부 `convert_krw` 도구를 자동 호출합니다. 우리 앱은 **MCP gateway** 역할도 겸해 외부 도구가 우리 `/sse` 엔드포인트로도 노출됩니다 (외부 LLM 호스트가 우리 앱 하나만 보면 외부 + 내부 도구를 모두 사용 가능).
+
+#### 클라이언트 패턴 — deprecation 정리
+
+`SyncMcpToolCallbackProvider` 의 생성자는 1.1.x 부터 deprecated. 본 PoC 는 [McpClientConfig.kt](src/main/kotlin/com/biuea/springai/config/McpClientConfig.kt) 에서 권장 builder 패턴을 사용합니다.
+
+```kotlin
+SyncMcpToolCallbackProvider.builder()
+    .mcpClients(client)
+    .build()
+    .toolCallbacks
+```
 
 ### 이미지 생성 (`ImageModel`)
 
@@ -169,7 +308,7 @@ UI 상단의 스코프 배지가 토큰의 보유 권한을 보여줍니다 (보
 |---|---|---|---|
 | `GET /` | GET | permitAll | UI (static/index.html) |
 | `POST /auth/login` | POST | permitAll | clientId/Secret → JWT 발급 |
-| `POST /chat` | POST | Bearer JWT | 자연어 → LLM(도구 동적 호출) → 자연어 응답 |
+| `POST /chat` | POST | permitAll | 자연어 → LLM(도구 동적 호출) → 구조화된 `ChatAnswer` JSON 응답 |
 | `GET /sse` | GET (MCP) | Bearer JWT | MCP SSE 핸드셰이크 (외부 LLM 호스트) |
 | `POST /mcp/message?sessionId=...` | POST (MCP) | Bearer JWT | MCP JSONRPC 메시지 |
 | `GET /actuator/health` | GET | permitAll | 헬스체크 |
@@ -179,7 +318,7 @@ UI 상단의 스코프 배지가 토큰의 보유 권한을 보여줍니다 (보
 | 항목 | 구현 | 동작 |
 |---|---|---|
 | JWT 인증 (HS256) | [security/JwtService.kt](src/main/kotlin/com/biuea/springai/security/JwtService.kt) | Bearer 헤더 누락/오류 시 401 |
-| 스코프 인가 | [security/ScopeGuard.kt](src/main/kotlin/com/biuea/springai/security/ScopeGuard.kt) + [tool/ToolGuard.kt](src/main/kotlin/com/biuea/springai/tool/ToolGuard.kt) | 부족 시 403 + audit `denied` |
+| 스코프 인가 | `@RequireScope("scope")` 어노테이션 + Spring AOP [security/ToolGuardAspect.kt](src/main/kotlin/com/biuea/springai/security/ToolGuardAspect.kt) (`@Around` advice) | 부족 시 403 + audit `denied` |
 | Rate limit | Resilience4j [security/RateLimitFilter.kt](src/main/kotlin/com/biuea/springai/security/RateLimitFilter.kt) | 한도 초과 시 429 + `Retry-After` |
 | 감사 로그 | [audit/ToolAuditLogger.kt](src/main/kotlin/com/biuea/springai/audit/ToolAuditLogger.kt) → `audit.tool` logger | subject·tool·args·outcome·latencyMs |
 | 입력 검증 | [tool/ToolInputValidator.kt](src/main/kotlin/com/biuea/springai/tool/ToolInputValidator.kt) | 위반 시 400 + audit `error` |
@@ -235,16 +374,16 @@ MCP_CLIENT_ID=catalog-only-llm MCP_CLIENT_SECRET=dev-secret-2 \
 
 ## 테스트
 
-### 자동 테스트 — 46/46 PASS
+### 자동 테스트 — 32/32 PASS
 
 `./gradlew test` 한 번에 다음을 모두 실행합니다.
 
 | 클래스 | 건수 | 검증 |
 |---|---|---|
 | `SpringAiPracticeApplicationTests` | 1 | 컨텍스트 로드 + MCP 도구 11개 등록 + 보안 빈 그래프 |
-| `CatalogToolsTest` | 22 | 도구 11종 로직 — 조회·쓰기 동작 + 입력 검증 + 재고 차감/복원 |
-| `ToolGuardTest` | 15 | ScopeGuard 거부 (5개 스코프) + 정상 호출 + 운영자 권한 통합 |
-| `SecurityIntegrationTest` | 7 | JWT 발급/거부, /sse 인증, 정적 리소스 permitAll |
+| `CatalogToolsTest` | 22 | 도구 11종 비즈니스 로직 — 조회·쓰기 동작 + 입력 검증 + 재고 차감/복원 (스코프 검사는 데코레이터로 분리) |
+| AOP advice 동작 검증 | (수동) | MCP 클라이언트로 도구 호출 시 audit `success` / `denied` 로그 확인 |
+| `SecurityIntegrationTest` | 8 | JWT 발급/거부, /sse 인증, 정적 리소스 permitAll, **/chat 토큰 없이 permitAll 확인** |
 | `RateLimitIntegrationTest` | 1 | 한도 초과 시 429 + `Retry-After` |
 
 ### UI 자동 검증 (Playwright)

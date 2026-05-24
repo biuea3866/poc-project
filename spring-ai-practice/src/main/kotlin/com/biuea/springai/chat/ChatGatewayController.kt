@@ -38,9 +38,9 @@ class ChatGatewayController(
 ) {
 
     @PostMapping("/chat")
-    fun chat(@Valid @RequestBody request: ChatRequest): ChatResponse {
-        val answer = chatGatewayService.ask(request.conversationId, request.message)
-        return ChatResponse(answer = answer, conversationId = request.conversationId)
+    fun chat(@Valid @RequestBody request: ChatRequest): ChatAnswerResponse {
+        val answer = chatGatewayService.ask(request.conversationId, request.message, request.useRag)
+        return ChatAnswerResponse(conversationId = request.conversationId, result = answer)
     }
 
     /**
@@ -69,10 +69,10 @@ class ChatGatewayController(
     fun chatVision(
         @RequestPart("image") image: MultipartFile,
         @RequestParam("prompt", defaultValue = "이 사진 속 옷의 카테고리·색상·핏·스타일을 한국어로 분석해줘.") prompt: String,
-    ): ChatResponse {
+    ): VisionAnswerResponse {
         require(!image.isEmpty) { "image 파일이 비어 있습니다." }
         val answer = visionService.describe(image, prompt)
-        return ChatResponse(answer = answer, conversationId = "vision")
+        return VisionAnswerResponse(conversationId = "vision", result = answer)
     }
 
     @ExceptionHandler(AccessDeniedException::class)
@@ -102,9 +102,16 @@ class ChatGatewayController(
 data class ChatRequest(
     @field:NotBlank val conversationId: String,
     @field:NotBlank val message: String,
+    /** RAG (QuestionAnswerAdvisor) 자동 컨텍스트 주입 사용 여부. 작은 모델 + 단순 도구 호출은 false 로 더 빠름. */
+    val useRag: Boolean = true,
 )
 
-data class ChatResponse(
-    val answer: String,
+data class ChatAnswerResponse(
     val conversationId: String,
+    val result: ChatAnswer,
+)
+
+data class VisionAnswerResponse(
+    val conversationId: String,
+    val result: VisionAnswer,
 )
