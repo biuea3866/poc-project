@@ -1,0 +1,88 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-ai-practice
+  servlet:
+    multipart:
+      max-file-size: 10MB
+      max-request-size: 10MB
+  ai:
+    # ── 활성 제공자 선택 ─ Ollama 가 기본 (로컬·무료). API 키 기반 전환을 원하면 프로필 활성화. ──
+    model:
+      chat: ollama
+      embedding: ollama
+    ollama:
+      base-url: http://localhost:11434
+      init:
+        pull-model-strategy: never
+      chat:
+        options:
+          model: llama3.2:3b
+          temperature: 0.3
+      embedding:
+        options:
+          # RAG 임베딩: 한국어 포함 다국어 가능. ollama pull nomic-embed-text (~270MB)
+          model: nomic-embed-text
+    # OpenAI ImageModel(DALL-E) 전용. API 키 미설정 시 ImageModel 빈이 등록되지 않음.
+    openai:
+      api-key: ${OPENAI_API_KEY:disabled}
+      image:
+        options:
+          model: dall-e-3
+          size: 1024x1024
+          quality: standard
+
+# 멀티모달(Vision) 도구 전용 모델 — 텍스트 모델과 분리 지정. ollama pull llava:7b (~4.7GB)
+app:
+  ollama:
+    vision-model: llava:7b
+  # 외부 MCP 서버 연결 — 우리 앱이 다른 MCP 서버의 클라이언트가 되어 도구를 끌어옴.
+  # 외부 서버를 띄운 후 enabled=true 로 변경 (또는 ${EXTERNAL_MCP_ENABLED} 환경변수).
+  external-mcp:
+    enabled: ${EXTERNAL_MCP_ENABLED:false}
+    server-url: ${EXTERNAL_MCP_URL:http://localhost:9090}
+    # ── MCP 서버: @Tool 메서드를 외부 LLM 에 노출 (SSE/HTTP 전송) ───────────────────
+    mcp:
+      server:
+        enabled: true
+        name: clothing-ecommerce-mcp
+        version: 0.0.1
+        type: SYNC
+        instructions: "의류 이커머스 상품 검색·재고 조회·주문 상태 조회 도구를 제공합니다."
+
+# ── 보안 PoC: JWT 인증 + 스코프 인가 + Rate limit + 정적 클라이언트 디렉토리 ───────
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-please-change-me-please-change-me}
+    issuer: clothing-ecommerce-mcp
+    ttl-minutes: 60
+  rate-limit:
+    limit-for-period: 30
+    refresh-period-seconds: 60
+    timeout-millis: 0
+  clients:
+    - id: shopper-llm
+      secret: ${SHOPPER_LLM_SECRET:dev-secret-1}
+      scopes:
+        - catalog:read
+        - order:read
+        - order:write
+    - id: catalog-only-llm
+      secret: ${CATALOG_ONLY_SECRET:dev-secret-2}
+      scopes:
+        - catalog:read
+    - id: ops-llm
+      secret: ${OPS_LLM_SECRET:dev-secret-3}
+      scopes:
+        - catalog:read
+        - catalog:write
+        - order:read
+        - order:write
+        - shipment:write
+
+logging:
+  level:
+    org.springframework.ai: INFO
+    audit.tool: INFO

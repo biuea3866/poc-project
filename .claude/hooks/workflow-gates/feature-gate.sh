@@ -26,7 +26,11 @@ if echo "$FILE_PATH" | grep -qE '(/test/|\.test\.|\.spec\.)'; then
   echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
   exit 0
 fi
-
+# PoC 샌드박스 예외 — spring-ai-practice 는 학습용 PoC 로 /feature 게이트 제외
+if echo "$FILE_PATH" | grep -qE '/spring-ai-practice/'; then
+  echo '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow"}}'
+  exit 0
+fi
 PROJECT_DIR="${CLAUDE_PROJECT_DIR:-.}"
 
 # FILE_PATH 기준 실제 git repo root 탐색 (서브레포 지원)

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8" />
+    <title>의류 이커머스 어시스턴트 (Spring AI MCP PoC)</title>
+    <style>
+        :root { color-scheme: light dark; }
+        * { box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            margin: 0; padding: 0;
+            background: #0f1117; color: #e6e6e6;
+            display: flex; flex-direction: column; min-height: 100vh;
+        }
+        header {
+            padding: 16px 24px; border-bottom: 1px solid #2a2f3a;
+            display: flex; align-items: center; gap: 16px;
+        }
+        header h1 { margin: 0; font-size: 16px; font-weight: 600; }
+        .scopes { display: flex; gap: 6px; }
+        .scope-badge {
+            font-size: 11px; padding: 2px 8px; border-radius: 10px;
+            background: #1f6feb33; border: 1px solid #1f6feb; color: #79b8ff;
+        }
+        .scope-badge.absent {
+            background: #6e768166; border-color: #6e7681; color: #8b949e;
+            text-decoration: line-through;
+        }
+        .subject { margin-left: auto; font-size: 12px; color: #9ba6b3; }
+        .logout {
+            background: none; border: 1px solid #444; color: #9ba6b3;
+            padding: 4px 10px; border-radius: 6px; cursor: pointer; font-size: 12px;
+        }
+        main { flex: 1; display: flex; flex-direction: column; max-width: 720px; margin: 0 auto; width: 100%; padding: 16px; }
+
+        /* 로그인 화면 */
+        #login-view {
+            max-width: 360px; margin: 80px auto;
+            background: #161b22; padding: 24px; border-radius: 12px; border: 1px solid #2a2f3a;
+        }
+        #login-view h2 { margin-top: 0; font-size: 18px; }
+        #login-view label { display: block; font-size: 12px; color: #9ba6b3; margin-top: 12px; }
+        #login-view input, #login-view select {
+            width: 100%; margin-top: 4px; padding: 8px 10px;
+            background: #0d1117; border: 1px solid #2a2f3a; border-radius: 6px;
+            color: #e6e6e6; font-size: 14px;
+        }
+        #login-view button {
+            margin-top: 20px; width: 100%; padding: 10px;
+            background: #1f6feb; border: none; border-radius: 6px;
+            color: white; font-size: 14px; font-weight: 600; cursor: pointer;
+        }
+        #login-view button:hover { background: #388bfd; }
+        #login-error { color: #f85149; font-size: 12px; margin-top: 12px; min-height: 1em; }
+
+        /* 채팅 화면 */
+        #chat-view { display: none; flex: 1; flex-direction: column; }
+        #messages {
+            flex: 1; overflow-y: auto; padding: 8px;
+            display: flex; flex-direction: column; gap: 12px;
+        }
+        .msg { max-width: 80%; padding: 10px 14px; border-radius: 12px; line-height: 1.5; white-space: pre-wrap; word-break: break-word; }
+        .msg.user { align-self: flex-end; background: #1f6feb; color: white; border-bottom-right-radius: 4px; }
+        .msg.assistant { align-self: flex-start; background: #21262d; color: #e6e6e6; border-bottom-left-radius: 4px; }
+        .msg.error { align-self: flex-start; background: #67191e; color: #ffb3b3; border-bottom-left-radius: 4px; }
+        .msg.system { align-self: center; font-size: 12px; color: #6e7681; }
+
+        #input-row { display: flex; gap: 8px; padding: 8px; border-top: 1px solid #2a2f3a; }
+        #message-input {
+            flex: 1; padding: 10px 12px; background: #0d1117; border: 1px solid #2a2f3a;
+            border-radius: 8px; color: #e6e6e6; font-size: 14px;
+        }
+        #send-btn {
+            padding: 10px 18px; background: #238636; border: none; border-radius: 8px;
+            color: white; font-weight: 600; cursor: pointer;
+        }
+        #send-btn:disabled { background: #2a2f3a; cursor: not-allowed; }
+        .icon-btn { padding: 8px 10px; background: #21262d; border: 1px solid #2a2f3a; border-radius: 8px; cursor: pointer; }
+        .icon-btn:hover { background: #2a2f3a; }
+        .attached-pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #1f6feb33; color: #79b8ff; margin-left: 6px; }
+
+        .hint { font-size: 12px; color: #6e7681; padding: 4px 8px; }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>🛒 의류 이커머스 어시스턴트</h1>
+        <span class="scopes" id="scopes"></span>
+        <span class="subject" id="subject"></span>
+        <button class="logout" id="logout-btn" style="display:none">로그아웃</button>
+    </header>
+
+    <main>
+        <section id="login-view">
+            <h2>클라이언트 로그인</h2>
+            <p style="font-size:12px; color:#9ba6b3; margin-top:4px;">
+                MCP 클라이언트 자격증명으로 JWT 를 발급받습니다.
+            </p>
+
+            <label>Client ID
+                <select id="client-id">
+                    <option value="shopper-llm">shopper-llm (shopper — 조회/주문)</option>
+                    <option value="catalog-only-llm">catalog-only-llm (조회만)</option>
+                    <option value="ops-llm">ops-llm (운영자 — 전체 권한)</option>
+                </select>
+            </label>
+
+            <label>Client Secret
+                <input type="password" id="client-secret" value="dev-secret-1" />
+            </label>
+
+            <button id="login-btn">로그인 → JWT 발급</button>
+            <div id="login-error"></div>
+        </section>
+
+        <section id="chat-view">
+            <div id="messages">
+                <div class="msg system">대화를 시작하세요. 예) "재고 있는 블랙 옷 추천해줘", "M 사이즈 키 175 에 맞아?", "사진 첨부 후 비슷한 옷 찾기"</div>
+            </div>
+            <div id="input-row">
+                <input id="message-input" placeholder="메시지를 입력하세요…" autocomplete="off" />
+                <label class="icon-btn" title="이미지 첨부 (비전 모델 호출)">
+                    🖼️
+                    <input type="file" id="image-input" accept="image/*" style="display:none" />
+                </label>
+                <button id="send-btn">보내기</button>
+            </div>
+            <div class="hint">
+                <label style="cursor:pointer">
+                    <input type="checkbox" id="stream-toggle" /> 스트리밍 응답 (chatClient.stream)
+                </label>
+                — 스코프 부족 도구 호출은 LLM 응답에 권한 부족 안내로 반영됩니다.
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const $ = (id) => document.getElementById(id);
+        const loginView = $("login-view"), chatView = $("chat-view");
+        const scopesEl = $("scopes"), subjectEl = $("subject"), logoutBtn = $("logout-btn");
+        const messagesEl = $("messages"), inputEl = $("message-input"), sendBtn = $("send-btn");
+        const loginBtn = $("login-btn"), errorEl = $("login-error");
+        const KNOWN_SCOPES = ["catalog:read", "catalog:write", "order:read", "order:write", "shipment:write"];
+
+        let token = null;
+        let scopes = [];
+        let subject = null;
+        const conversationId = "ui-" + Math.random().toString(36).slice(2, 10);
+
+        // 클라이언트 ID 가 바뀔 때 기본 비밀번호 채워줌
+        const DEFAULT_SECRETS = {
+            "shopper-llm": "dev-secret-1",
+            "catalog-only-llm": "dev-secret-2",
+            "ops-llm": "dev-secret-3",
+        };
+        $("client-id").addEventListener("change", (e) => {
+            $("client-secret").value = DEFAULT_SECRETS[e.target.value] || "";
+        });
+
+        loginBtn.addEventListener("click", async () => {
+            errorEl.textContent = "";
+            const clientId = $("client-id").value;
+            const clientSecret = $("client-secret").value;
+            try {
+                const res = await fetch("/auth/login", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ clientId, clientSecret }),
+                });
+                if (!res.ok) {
+                    const err = await res.json().catch(() => ({}));
+                    errorEl.textContent = "로그인 실패: " + (err.error || res.status);
+                    return;
+                }
+                const body = await res.json();
+                token = body.accessToken;
+                scopes = body.scopes || [];
+                subject = clientId;
+                showChat();
+            } catch (e) {
+                errorEl.textContent = "네트워크 오류: " + e.message;
+            }
+        });
+
+        logoutBtn.addEventListener("click", () => {
+            token = null; scopes = []; subject = null;
+            loginView.style.display = "block";
+            chatView.style.display = "none";
+            scopesEl.innerHTML = ""; subjectEl.textContent = "";
+            logoutBtn.style.display = "none";
+            messagesEl.innerHTML = '<div class="msg system">대화를 시작하세요.</div>';
+        });
+
+        function showChat() {
+            loginView.style.display = "none";
+            chatView.style.display = "flex";
+            logoutBtn.style.display = "inline-block";
+            subjectEl.textContent = subject;
+            scopesEl.innerHTML = KNOWN_SCOPES.map((s) => {
+                const has = scopes.includes(s);
+                return `<span class="scope-badge${has ? "" : " absent"}">${s}</span>`;
+            }).join("");
+            inputEl.focus();
+        }
+
+        function addMsg(text, kind) {
+            const el = document.createElement("div");
+            el.className = "msg " + kind;
+            el.textContent = text;
+            messagesEl.appendChild(el);
+            messagesEl.scrollTop = messagesEl.scrollHeight;
+            return el;
+        }
+
+        const streamToggle = $("stream-toggle");
+        const imageInput = $("image-input");
+        let attachedImage = null;
+
+        imageInput.addEventListener("change", () => {
+            attachedImage = imageInput.files[0] || null;
+            if (attachedImage) {
+                addMsg(`🖼️ 이미지 첨부: ${attachedImage.name} (다음 메시지에 함께 전송)`, "system");
+            }
+        });
+
+        async function sendVision(image, prompt) {
+            const form = new FormData();
+            form.append("image", image);
+            form.append("prompt", prompt);
+            const res = await fetch("/chat/vision", {
+                method: "POST",
+                headers: { "Authorization": "Bearer " + token },
+                body: form,
+            });
+            return res;
+        }
+
+        async function streamingChat(message, loadingEl) {
+            const res = await fetch("/chat/stream", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": "Bearer " + token,
+                    "Accept": "text/event-stream",
+                },
+                body: JSON.stringify({ conversationId, message }),
+            });
+            if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error("HTTP " + res.status + ": " + (err.message || err.error || ""));
+            }
+            const reader = res.body.getReader();
+            const decoder = new TextDecoder();
+            let buf = "";
+            let accumulated = "";
+            loadingEl.textContent = "";
+            for (;;) {
+                const { value, done } = await reader.read();
+                if (done) break;
+                buf += decoder.decode(value, { stream: true });
+                // SSE 프레임: "data: chunk\n\n"
+                const frames = buf.split("\n\n");
+                buf = frames.pop();
+                for (const frame of frames) {
+                    const line = frame.split("\n").find((l) => l.startsWith("data:"));
+                    if (!line) continue;
+                    const chunk = line.slice(5).trimStart();
+                    if (chunk === "[DONE]") return;
+                    accumulated += chunk;
+                    loadingEl.textContent = accumulated;
+                    messagesEl.scrollTop = messagesEl.scrollHeight;
+                }
+            }
+        }
+
+        async function send() {
+            const message = inputEl.value.trim();
+            if (!message && !attachedImage) return;
+            inputEl.value = "";
+            if (message) addMsg(message, "user");
+            sendBtn.disabled = true;
+            const loadingEl = addMsg("…", "assistant");
+            try {
+                if (attachedImage) {
+                    const res = await sendVision(attachedImage, message || "이 사진 속 옷의 카테고리·색상·핏·스타일을 분석해줘.");
+                    const body = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        loadingEl.classList.remove("assistant");
+                        loadingEl.classList.add("error");
+                        loadingEl.textContent = "오류 " + res.status + ": " + (body.message || body.error || "unknown");
+                    } else {
+                        loadingEl.textContent = body.answer;
+                    }
+                    attachedImage = null;
+                    imageInput.value = "";
+                } else if (streamToggle.checked) {
+                    await streamingChat(message, loadingEl);
+                } else {
+                    const res = await fetch("/chat", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json",
+                            "Authorization": "Bearer " + token,
+                        },
+                        body: JSON.stringify({ conversationId, message }),
+                    });
+                    const body = await res.json().catch(() => ({}));
+                    if (!res.ok) {
+                        loadingEl.classList.remove("assistant");
+                        loadingEl.classList.add("error");
+                        loadingEl.textContent = "오류 " + res.status + ": " + (body.message || body.error || "unknown");
+                    } else {
+                        loadingEl.textContent = body.answer;
+                    }
+                }
+            } catch (e) {
+                loadingEl.classList.remove("assistant");
+                loadingEl.classList.add("error");
+                loadingEl.textContent = "네트워크 오류: " + e.message;
+            } finally {
+                sendBtn.disabled = false;
+                inputEl.focus();
+            }
+        }
+
+        sendBtn.addEventListener("click", send);
+        inputEl.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,78 @@
+[
+  {
+    "orderId": "ORD-1001",
+    "productId": "P-1005",
+    "productName": "슬림 스트레이트 청바지",
+    "size": "30",
+    "quantity": 1,
+    "status": "배송중",
+    "orderedAt": "2026-05-15",
+    "trackingNo": "1234-5678-9012",
+    "trackingEvents": [
+      { "timestamp": "2026-05-15T13:42:00+09:00", "status": "결제완료",   "location": "온라인 결제" },
+      { "timestamp": "2026-05-16T09:10:00+09:00", "status": "상품 준비중", "location": "성남 풀필먼트 센터" },
+      { "timestamp": "2026-05-17T18:30:00+09:00", "status": "발송",       "location": "성남 풀필먼트 센터" },
+      { "timestamp": "2026-05-18T07:15:00+09:00", "status": "간선 운송",   "location": "수도권 허브" },
+      { "timestamp": "2026-05-19T11:45:00+09:00", "status": "배송중",     "location": "강남 영업소" }
+    ]
+  },
+  {
+    "orderId": "ORD-1002",
+    "productId": "P-1007",
+    "productName": "구스다운 푸퍼 패딩",
+    "size": "L",
+    "quantity": 1,
+    "status": "배송완료",
+    "orderedAt": "2026-05-08",
+    "trackingNo": "2345-6789-0123",
+    "trackingEvents": [
+      { "timestamp": "2026-05-08T20:05:00+09:00", "status": "결제완료",   "location": "온라인 결제" },
+      { "timestamp": "2026-05-09T10:00:00+09:00", "status": "상품 준비중", "location": "용인 풀필먼트 센터" },
+      { "timestamp": "2026-05-09T17:20:00+09:00", "status": "발송",       "location": "용인 풀필먼트 센터" },
+      { "timestamp": "2026-05-10T08:30:00+09:00", "status": "간선 운송",   "location": "수도권 허브" },
+      { "timestamp": "2026-05-10T14:10:00+09:00", "status": "배송중",     "location": "서초 영업소" },
+      { "timestamp": "2026-05-11T11:25:00+09:00", "status": "배송완료",   "location": "수령인 직접 수령" }
+    ]
+  },
+  {
+    "orderId": "ORD-1003",
+    "productId": "P-1001",
+    "productName": "옥스포드 코튼 셔츠",
+    "size": "M",
+    "quantity": 2,
+    "status": "결제완료",
+    "orderedAt": "2026-05-20",
+    "trackingNo": null,
+    "trackingEvents": [
+      { "timestamp": "2026-05-20T22:18:00+09:00", "status": "결제완료", "location": "온라인 결제" }
+    ]
+  },
+  {
+    "orderId": "ORD-1004",
+    "productId": "P-1016",
+    "productName": "프렌치 슬리브 니트 원피스",
+    "size": "S",
+    "quantity": 1,
+    "status": "취소",
+    "orderedAt": "2026-05-11",
+    "trackingNo": null,
+    "trackingEvents": [
+      { "timestamp": "2026-05-11T14:30:00+09:00", "status": "결제완료", "location": "온라인 결제" },
+      { "timestamp": "2026-05-11T15:02:00+09:00", "status": "취소",     "location": "고객 요청" }
+    ]
+  },
+  {
+    "orderId": "ORD-1005",
+    "productId": "P-1010",
+    "productName": "헤비웨이트 후드 집업",
+    "size": "L",
+    "quantity": 1,
+    "status": "배송준비중",
+    "orderedAt": "2026-05-21",
+    "trackingNo": null,
+    "trackingEvents": [
+      { "timestamp": "2026-05-21T10:48:00+09:00", "status": "결제완료",   "location": "온라인 결제" },
+      { "timestamp": "2026-05-22T09:25:00+09:00", "status": "상품 준비중", "location": "성남 풀필먼트 센터" }
+    ]
+  }
+]
