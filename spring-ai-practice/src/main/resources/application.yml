@@ -4,10 +4,6 @@ server:
 spring:
   application:
     name: spring-ai-practice
-  servlet:
-    multipart:
-      max-file-size: 10MB
-      max-request-size: 10MB
   ai:
     # ── 활성 제공자 선택 ─ Ollama 가 기본 (로컬·무료). ─────────────────────────────────
     model:
@@ -21,7 +17,9 @@ spring:
         pull-model-strategy: never   # 모델은 docker-compose 의 ollama-pull init 컨테이너가 받음
       chat:
         options:
-          model: llama3.2:3b
+          # qwen2.5:7b — tool calling 정확도가 높고 한국어 응답 자연스러움.
+          # 더 작은 llama3.2:3b 는 도구 호출 루프에 빠지는 한계가 있어 7b 로 상향.
+          model: qwen2.5:7b
           temperature: 0.3
       embedding:
         options:
@@ -46,9 +44,6 @@ spring:
 
 # 애플리케이션 고유 설정 ─────────────────────────────────────────────────────────────
 app:
-  ollama:
-    # 멀티모달(Vision) 전용 모델. /chat/vision 사용 시 'docker compose exec ollama ollama pull llava:7b' 필요.
-    vision-model: llava:7b
   # 외부 MCP 서버 연결 — 우리 앱이 다른 MCP 서버의 클라이언트가 되어 도구를 끌어옴.
   # docker-compose 의 mcp-external-server 가 9090 포트에 노출되므로 기본값 그대로 사용 가능.
   external-mcp:

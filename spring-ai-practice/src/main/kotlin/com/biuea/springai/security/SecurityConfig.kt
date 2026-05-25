@@ -19,9 +19,9 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
  * JWT 의 의무 사용 경로는 외부 LLM / MCP 클라이언트가 진입하는 곳에 한정한다.
  *
  * 공개 경로 (permitAll):
- *   - `POST /auth/login`           : 토큰 발급 (외부 클라이언트가 자격증명으로 JWT 받음)
+ *   - `POST /auth/token`           : MCP 클라이언트 토큰 발급 (client_credentials → JWT)
  *   - `GET  /`, `/index.html`, `/static/...`, `/error`, `/actuator/health`
- *   - `POST /chat`, `/chat/stream`, `/chat/vision` : 브라우저 UI 채팅 — 인증 없음(anonymous 가 catalog:read / order:read 기본 보유)
+ *   - `POST /chat`, `/chat/stream` : 브라우저 UI 채팅 — 인증 없음(anonymous 가 catalog:read / order:read 기본 보유)
  *
  * 보호 경로 (authenticated, Bearer JWT 필수):
  *   - `GET  /sse`                  : MCP SSE 핸드셰이크
@@ -54,14 +54,14 @@ class SecurityConfig {
                 it.principal("ui-user").authorities("SCOPE_catalog:read", "SCOPE_order:read")
             }
             .authorizeHttpRequests {
-                it.requestMatchers(HttpMethod.POST, "/auth/login").permitAll()
+                it.requestMatchers(HttpMethod.POST, "/auth/token").permitAll()
                 it.requestMatchers("/actuator/health").permitAll()
                 // UI 정적 리소스 (브라우저에서 직접 로드)
                 it.requestMatchers(HttpMethod.GET, "/", "/index.html", "/favicon.ico", "/static/**").permitAll()
                 // Spring Boot 의 /error 페이지로 forward 시 헤더가 사라져 401 이 되는 것을 방지
                 it.requestMatchers("/error").permitAll()
-                // 브라우저 UI 채팅 — JWT 없이 호출 가능 (도구 호출에 권한 검사 없음)
-                it.requestMatchers(HttpMethod.POST, "/chat", "/chat/stream", "/chat/vision").permitAll()
+                // 브라우저 UI 채팅 — JWT 없이 호출 가능 (anonymous 가 catalog:read / order:read 보유)
+                it.requestMatchers(HttpMethod.POST, "/chat", "/chat/stream").permitAll()
                 // 외부 LLM / MCP 클라이언트 진입점만 JWT 필수
                 it.anyRequest().authenticated()
             }

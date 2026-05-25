@@ -1,0 +1,10 @@
+### 헬스체크 — Spring Boot Actuator
+GET http://localhost:8080/actuator/health
+Accept: application/json
+
+### UI 페이지 (정적 리소스)
+GET http://localhost:8080/
+
+### Ollama 직접 헬스체크
+GET http://localhost:11434/api/tags
+Accept: application/json

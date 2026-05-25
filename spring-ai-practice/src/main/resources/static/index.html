@@ -76,9 +76,6 @@
             color: white; font-weight: 600; cursor: pointer;
         }
         #send-btn:disabled { background: #2a2f3a; cursor: not-allowed; }
-        .icon-btn { padding: 8px 10px; background: #21262d; border: 1px solid #2a2f3a; border-radius: 8px; cursor: pointer; }
-        .icon-btn:hover { background: #2a2f3a; }
-        .attached-pill { font-size: 11px; padding: 2px 8px; border-radius: 10px; background: #1f6feb33; color: #79b8ff; margin-left: 6px; }
 
         .hint { font-size: 12px; color: #6e7681; padding: 4px 8px; }
     </style>
@@ -88,14 +85,15 @@
         <h1>🛒 의류 이커머스 어시스턴트</h1>
         <span class="scopes" id="scopes"></span>
         <span class="subject" id="subject"></span>
-        <button class="logout" id="logout-btn" style="display:none">로그아웃</button>
+        <button class="logout" id="logout-btn" style="display:none">토큰 해제</button>
     </header>
 
     <main>
         <section id="login-view">
-            <h2>클라이언트 로그인</h2>
+            <h2>MCP 클라이언트 토큰 발급</h2>
             <p style="font-size:12px; color:#9ba6b3; margin-top:4px;">
-                MCP 클라이언트 자격증명으로 JWT 를 발급받습니다.
+                사용자 로그인이 아닙니다. MCP 클라이언트(외부 LLM 시스템) 의 자격증명으로
+                JWT 를 발급받아 시연용 페르소나를 선택합니다. (OAuth2 client_credentials grant)
             </p>
 
             <label>Client ID
@@ -110,20 +108,16 @@
                 <input type="password" id="client-secret" value="dev-secret-1" />
             </label>
 
-            <button id="login-btn">로그인 → JWT 발급</button>
+            <button id="login-btn">토큰 발급</button>
             <div id="login-error"></div>
         </section>
 
         <section id="chat-view">
             <div id="messages">
-                <div class="msg system">대화를 시작하세요. 예) "재고 있는 블랙 옷 추천해줘", "M 사이즈 키 175 에 맞아?", "사진 첨부 후 비슷한 옷 찾기"</div>
+                <div class="msg system">대화를 시작하세요. 예) "재고 있는 블랙 옷 추천해줘", "M 사이즈 키 175 에 맞아?"</div>
             </div>
             <div id="input-row">
                 <input id="message-input" placeholder="메시지를 입력하세요…" autocomplete="off" />
-                <label class="icon-btn" title="이미지 첨부 (비전 모델 호출)">
-                    🖼️
-                    <input type="file" id="image-input" accept="image/*" style="display:none" />
-                </label>
                 <button id="send-btn">보내기</button>
             </div>
             <div class="hint">
@@ -163,14 +157,14 @@
             const clientId = $("client-id").value;
             const clientSecret = $("client-secret").value;
             try {
-                const res = await fetch("/auth/login", {
+                const res = await fetch("/auth/token", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ clientId, clientSecret }),
                 });
                 if (!res.ok) {
                     const err = await res.json().catch(() => ({}));
-                    errorEl.textContent = "로그인 실패: " + (err.error || res.status);
+                    errorEl.textContent = "토큰 발급 실패: " + (err.error || res.status);
                     return;
                 }
                 const body = await res.json();
@@ -232,36 +226,7 @@
             ]);
         }
 
-        function renderVisionResult(el, result) {
-            el.textContent = result.description || "(빈 응답)";
-            attachMeta(el, [
-                ["카테고리", result.detectedCategory],
-                ["색상", result.detectedColor],
-            ]);
-        }
-
         const streamToggle = $("stream-toggle");
-        const imageInput = $("image-input");
-        let attachedImage = null;
-
-        imageInput.addEventListener("change", () => {
-            attachedImage = imageInput.files[0] || null;
-            if (attachedImage) {
-                addMsg(`🖼️ 이미지 첨부: ${attachedImage.name} (다음 메시지에 함께 전송)`, "system");
-            }
-        });
-
-        async function sendVision(image, prompt) {
-            const form = new FormData();
-            form.append("image", image);
-            form.append("prompt", prompt);
-            const res = await fetch("/chat/vision", {
-                method: "POST",
-                headers: { "Authorization": "Bearer " + token },
-                body: form,
-            });
-            return res;
-        }
 
         async function streamingChat(message, loadingEl) {
             const res = await fetch("/chat/stream", {
@@ -303,25 +268,13 @@
 
         async function send() {
             const message = inputEl.value.trim();
-            if (!message && !attachedImage) return;
+            if (!message) return;
             inputEl.value = "";
-            if (message) addMsg(message, "user");
+            addMsg(message, "user");
             sendBtn.disabled = true;
             const loadingEl = addMsg("…", "assistant");
             try {
-                if (attachedImage) {
-                    const res = await sendVision(attachedImage, message || "이 사진 속 옷의 카테고리·색상·핏·스타일을 분석해줘.");
-                    const body = await res.json().catch(() => ({}));
-                    if (!res.ok) {
-                        loadingEl.classList.remove("assistant");
-                        loadingEl.classList.add("error");
-                        loadingEl.textContent = "오류 " + res.status + ": " + (body.message || body.error || "unknown");
-                    } else {
-                        renderVisionResult(loadingEl, body.result || {});
-                    }
-                    attachedImage = null;
-                    imageInput.value = "";
-                } else if (streamToggle.checked) {
+                if (streamToggle.checked) {
                     await streamingChat(message, loadingEl);
                 } else {
                     const res = await fetch("/chat", {

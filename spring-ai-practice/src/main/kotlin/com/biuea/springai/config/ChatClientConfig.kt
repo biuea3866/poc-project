@@ -26,7 +26,9 @@ import org.springframework.context.annotation.Primary
 class ChatClientConfig {
 
     private val systemPrompt =
-        "당신은 의류 이커머스 어시스턴트입니다. 도구를 적극 호출해 답합니다. " +
+        "당신은 의류 이커머스 어시스턴트입니다. " +
+            "사용자 질문에 답하기 위해 *필요한 경우에만* 도구를 호출하세요. " +
+            "인사나 일반 대화처럼 도구가 필요 없는 질문에는 도구를 호출하지 말고 바로 답하세요. " +
             "한국어 해요체로 답합니다. 응답은 ChatAnswer JSON 스키마({answer, intent}) 를 따르세요."
 
     @Bean

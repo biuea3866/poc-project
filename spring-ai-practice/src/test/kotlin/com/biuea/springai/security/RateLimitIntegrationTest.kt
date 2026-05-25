@@ -54,14 +54,14 @@ class RateLimitIntegrationTest {
 
     @Test
     fun `S-08 한도 초과 시 429 와 Retry-After 헤더가 반환된다`() {
-        // /auth/login 은 permitAll 이지만 RateLimitFilter 는 actuator 만 제외하므로
+        // /auth/token 은 permitAll 이지만 RateLimitFilter 는 actuator 만 제외하므로
         // 같은 client IP 키로 6회 호출 시 6번째에서 429 가 떨어진다.
         val headers = HttpHeaders().apply { contentType = org.springframework.http.MediaType.APPLICATION_JSON }
         val body = """{"clientId":"shopper-llm","clientSecret":"dev-secret-1"}"""
 
         repeat(5) {
             val response = rest.postForEntity(
-                baseUrl("/auth/login"),
+                baseUrl("/auth/token"),
                 HttpEntity(body, headers),
                 String::class.java,
             )
@@ -70,7 +70,7 @@ class RateLimitIntegrationTest {
         }
 
         val sixth = rest.postForEntity(
-            baseUrl("/auth/login"),
+            baseUrl("/auth/token"),
             HttpEntity(body, headers),
             String::class.java,
         )

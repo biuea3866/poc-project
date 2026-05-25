@@ -23,7 +23,7 @@ import org.springframework.web.client.RestTemplate
  * 보안 PoC End-to-End 통합 테스트 (REST 도구 노출이 없는 환경).
  *
  * 검증 대상:
- *   - 인증: /auth/login → JWT 발급, 잘못된 자격증명 401
+ *   - 인증: /auth/token → JWT 발급, 잘못된 자격증명 401
  *   - 인가: 토큰 없이 /sse 호출 → 401
  *   - 인가: 잘못된 토큰 → 401
  *   - 정적 리소스: / 와 /actuator/health 는 permitAll
@@ -54,7 +54,7 @@ class SecurityIntegrationTest {
         val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
         val body = mapOf("clientId" to clientId, "clientSecret" to clientSecret)
         val response = rest.postForEntity(
-            baseUrl("/auth/login"),
+            baseUrl("/auth/token"),
             HttpEntity(objectMapper.writeValueAsString(body), headers),
             String::class.java,
         )
@@ -82,7 +82,7 @@ class SecurityIntegrationTest {
         val headers = HttpHeaders().apply { contentType = MediaType.APPLICATION_JSON }
         val body = """{"clientId":"shopper-llm","clientSecret":"wrong"}"""
         val response = rest.postForEntity(
-            baseUrl("/auth/login"),
+            baseUrl("/auth/token"),
             HttpEntity(body, headers),
             String::class.java,
         )

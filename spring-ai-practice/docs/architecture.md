@@ -50,7 +50,7 @@ flowchart LR
         end
 
         subgraph Auth["인증 서버"]
-            AuthCtrl["AuthController<br/>POST /auth/login"]
+            AuthCtrl["AuthController<br/>POST /auth/token"]
             JwtSvc["JwtService HS256"]
             ClientDir["ClientCatalog<br/>clientId, secret, scopes"]
         end
@@ -167,7 +167,7 @@ sequenceDiagram
     autonumber
     actor User as 사용자
     participant UI as 브라우저 UI
-    participant Auth as POST /auth/login
+    participant Auth as POST /auth/token
     participant Sec as SecurityFilterChain
     participant Chat as ChatGateway
     participant Client as Spring AI ChatClient
@@ -176,7 +176,7 @@ sequenceDiagram
     participant Repo as Repository
 
     User->>UI: 1. clientId/secret 입력
-    UI->>Auth: 2. POST /auth/login
+    UI->>Auth: 2. POST /auth/token
     Auth-->>UI: 3. JWT (sub, scopes, exp)
 
     User->>UI: 4. "재고 있는 블랙 옷 추천해줘"
@@ -220,14 +220,14 @@ sequenceDiagram
     actor Op as 운영자
     actor User as 외부 사용자
     participant ExtLLM as 외부 LLM 호스트
-    participant Auth as POST /auth/login
+    participant Auth as POST /auth/token
     participant SSE as GET /sse
     participant MsgEp as POST /mcp/message
     participant Mcp as McpServer
     participant Tools as CatalogTools
 
     Op->>ExtLLM: 0. clientId/secret 사전 발급
-    ExtLLM->>Auth: 1. POST /auth/login
+    ExtLLM->>Auth: 1. POST /auth/token
     Auth-->>ExtLLM: 2. JWT (scopes)
 
     ExtLLM->>SSE: 3. GET /sse Bearer JWT

@@ -1,0 +1,72 @@
+### 1. 토큰 발급
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "shopper-llm",
+  "clientSecret": "dev-secret-1"
+}
+
+### 2. UI 채팅 — 기본 시나리오
+POST http://localhost:8080/chat
+Content-Type: application/json
+
+{
+  "conversationId": "ui-demo-1",
+  "message": "안녕하세요",
+  "useRag": false
+}
+
+### 3. UI 채팅 — 도구 호출 시나리오
+POST http://localhost:8080/chat
+Content-Type: application/json
+
+{
+  "conversationId": "ui-demo-2",
+  "message": "재고 있는 블랙 색상 상품 추천해줘",
+  "useRag": false
+}
+
+
+### 4. UI 채팅 — RAG 활성 (사이즈가이드, FAQ 자동 인용)
+POST http://localhost:8080/chat
+Content-Type: application/json
+
+{
+  "conversationId": "ui-demo-3",
+  "message": "키 175cm / 70kg 인데 L 사이즈 입을 수 있나요?",
+  "useRag": true
+}
+
+
+### 5. UI 채팅 — 메모리 유지 검증 (turn 1)
+POST http://localhost:8080/chat
+Content-Type: application/json
+
+{
+  "conversationId": "memory-test",
+  "message": "내가 좋아하는 색은 블랙이야. 기억해줘.",
+  "useRag": false
+}
+
+### 6. UI 채팅 — 메모리 유지 검증 (turn 2)
+POST http://localhost:8080/chat
+Content-Type: application/json
+
+{
+  "conversationId": "memory-test",
+  "message": "내가 좋아하는 색이 뭐였지?",
+  "useRag": false
+}
+
+
+### 7. 스트리밍 응답 (SSE 토큰 청크)
+POST http://localhost:8080/chat/stream
+Content-Type: application/json
+Accept: text/event-stream
+
+{
+  "conversationId": "stream-demo",
+  "message": "옷 추천 한 줄로 해줘",
+  "useRag": false
+}

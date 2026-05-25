@@ -11,11 +11,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
-import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.RequestPart
 import org.springframework.web.bind.annotation.RestController
 import org.springframework.web.client.ResourceAccessException
-import org.springframework.web.multipart.MultipartFile
 import reactor.core.publisher.Flux
 
 /**
@@ -23,18 +20,14 @@ import reactor.core.publisher.Flux
  *
  * 엔드포인트:
  *
- * - **`POST /chat`** — 동기 응답. 도구 라운드까지 마친 최종 자연어를 한 번에 JSON 으로 반환.
+ * - **`POST /chat`** — 동기 응답. 도구 라운드까지 마친 최종 응답을 `ChatAnswer` JSON 으로 반환.
  *
  * - **`POST /chat/stream`** — SSE 스트리밍. Spring AI 의 `chatClient.stream()` 가 반환하는
  *   `Flux<String>` 을 `text/event-stream` 으로 그대로 흘려보낸다. UI 에 타자기 효과로 표시 가능.
- *
- * - **`POST /chat/vision`** — multipart 이미지 + 텍스트 프롬프트. `VisionService` 가
- *   `UserMessage.media(...)` 로 비전 모델에 첨부해 분석.
  */
 @RestController
 class ChatGatewayController(
     private val chatGatewayService: ChatGatewayService,
-    private val visionService: VisionService,
 ) {
 
     @PostMapping("/chat")
@@ -59,20 +52,6 @@ class ChatGatewayController(
         }
             .map { chunk -> ServerSentEvent.builder(chunk).build() }
             .concatWith(Flux.just(ServerSentEvent.builder("[DONE]").event("done").build()))
-    }
-
-    @PostMapping(
-        value = ["/chat/vision"],
-        consumes = [MediaType.MULTIPART_FORM_DATA_VALUE],
-        produces = [MediaType.APPLICATION_JSON_VALUE],
-    )
-    fun chatVision(
-        @RequestPart("image") image: MultipartFile,
-        @RequestParam("prompt", defaultValue = "이 사진 속 옷의 카테고리·색상·핏·스타일을 한국어로 분석해줘.") prompt: String,
-    ): VisionAnswerResponse {
-        require(!image.isEmpty) { "image 파일이 비어 있습니다." }
-        val answer = visionService.describe(image, prompt)
-        return VisionAnswerResponse(conversationId = "vision", result = answer)
     }
 
     @ExceptionHandler(AccessDeniedException::class)
@@ -109,9 +88,4 @@ data class ChatRequest(
 data class ChatAnswerResponse(
     val conversationId: String,
     val result: ChatAnswer,
-)
-
-data class VisionAnswerResponse(
-    val conversationId: String,
-    val result: VisionAnswer,
 )

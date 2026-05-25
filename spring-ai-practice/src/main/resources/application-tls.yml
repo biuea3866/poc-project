@@ -8,7 +8,7 @@
 #   2) 실행:
 #      ./gradlew bootRun --args='--spring.profiles.active=tls'
 #   3) 클라이언트 (자체서명이라 검증 비활성 필요):
-#      curl -k https://localhost:8443/auth/login ...
+#      curl -k https://localhost:8443/auth/token ...
 #      Python MCP 클라이언트는 ssl.create_default_context() 의 check_hostname/verify_mode 조정 필요.
 #
 # 운영에서는 자체서명 대신 정식 인증서(또는 nginx/Cloudflare 종단)로 교체한다.

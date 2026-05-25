@@ -148,7 +148,7 @@ WARN audit.tool : {"timestamp":"2026-05-23T02:52:53.389317Z","subject":"catalog-
 | 케이스 | 명령 | 결과 |
 |---|---|---|
 | 토큰 없이 `/chat` | `curl -X POST localhost:8080/chat -H 'Content-Type: application/json' -d '...'` | 401 `missing or invalid bearer token` |
-| 잘못된 자격증명 `/auth/login` | `-d '{"clientId":"shopper-llm","clientSecret":"WRONG"}'` | 401 `invalid client credentials` |
+| 잘못된 자격증명 `/auth/token` | `-d '{"clientId":"shopper-llm","clientSecret":"WRONG"}'` | 401 `invalid client credentials` |
 | 토큰 없이 `/sse` | `curl -N -m 2 localhost:8080/sse` | 401 |
 | Ollama 미실행 시 `/chat` (Bearer 정상) | (LLM 연결 실패) | 502 `llm_unreachable` |
 | UI 페이지 | `GET /` | 200 `text/html` |
