@@ -47,13 +47,13 @@ Authorization: Bearer invalid.token.value
 ### 7. /sse — 정상 토큰 (응답 첫 줄의 sessionId 를 복사해 아래 #8~#11 의 ?sessionId=... 에 붙여넣기)
 GET http://localhost:8080/sse
 Accept: text/event-stream
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6ImNsb3RoaW5nLWVjb21tZXJjZS1tY3AiLCJpYXQiOjE3Nzk2OTQ2MTEsImV4cCI6MTc3OTY5ODIxMSwic2NvcGVzIjoiY2F0YWxvZzpyZWFkIG9yZGVyOnJlYWQgb3JkZXI6d3JpdGUifQ.GUGuavEK1uB8W4KMixbZXAepNkeR7q_I8BjsYQzQKEQ
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
 
 ### 8. MCP initialize — 첫 핸드셰이크 (sessionId 는 #7 응답에서 복사)
 POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6ImNsb3RoaW5nLWVjb21tZXJjZS1tY3AiLCJpYXQiOjE3Nzk2OTQ2MTEsImV4cCI6MTc3OTY5ODIxMSwic2NvcGVzIjoiY2F0YWxvZzpyZWFkIG9yZGVyOnJlYWQgb3JkZXI6d3JpdGUifQ.GUGuavEK1uB8W4KMixbZXAepNkeR7q_I8BjsYQzQKEQ
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
 {
   "jsonrpc": "2.0",
@@ -69,7 +69,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6I
 ### 9. MCP notifications/initialized — 초기화 완료 통보 (이거 안 보내면 tools/list 가 응답 안 함)
 POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6ImNsb3RoaW5nLWVjb21tZXJjZS1tY3AiLCJpYXQiOjE3Nzk2OTQ2MTEsImV4cCI6MTc3OTY5ODIxMSwic2NvcGVzIjoiY2F0YWxvZzpyZWFkIG9yZGVyOnJlYWQgb3JkZXI6d3JpdGUifQ.GUGuavEK1uB8W4KMixbZXAepNkeR7q_I8BjsYQzQKEQ
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
 {
   "jsonrpc": "2.0",
@@ -79,7 +79,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6I
 ### 10. MCP tools/list — 노출된 도구 목록 조회
 POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6ImNsb3RoaW5nLWVjb21tZXJjZS1tY3AiLCJpYXQiOjE3Nzk2OTQ2MTEsImV4cCI6MTc3OTY5ODIxMSwic2NvcGVzIjoiY2F0YWxvZzpyZWFkIG9yZGVyOnJlYWQgb3JkZXI6d3JpdGUifQ.GUGuavEK1uB8W4KMixbZXAepNkeR7q_I8BjsYQzQKEQ
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
 {
   "jsonrpc": "2.0",
@@ -90,7 +90,7 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6I
 ### 11. MCP tools/call — 도구 실제 호출 (searchProducts)
 POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
 Content-Type: application/json
-Authorization: Bearer eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJzaG9wcGVyLWxsbSIsImlzcyI6ImNsb3RoaW5nLWVjb21tZXJjZS1tY3AiLCJpYXQiOjE3Nzk2OTQ2MTEsImV4cCI6MTc3OTY5ODIxMSwic2NvcGVzIjoiY2F0YWxvZzpyZWFkIG9yZGVyOnJlYWQgb3JkZXI6d3JpdGUifQ.GUGuavEK1uB8W4KMixbZXAepNkeR7q_I8BjsYQzQKEQ
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
 
 {
   "jsonrpc": "2.0",
