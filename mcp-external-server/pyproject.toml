@@ -1,0 +1,12 @@
+[project]
+name = "mcp-external-server"
+version = "0.1.0"
+description = "Independent MCP server exposing currency/season tools — clothing e-commerce PoC companion."
+requires-python = ">=3.11"
+dependencies = [
+    "mcp>=1.0.0",
+    "uvicorn>=0.30.0",
+]
+
+[tool.uv]
+package = false

@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "_comment": "Project-local Claude Code settings. All hooks go through .claude/hooks/_run.sh which silently passes (exit 0) if the target script is missing — this prevents the deadlock where a moved/deleted hook script blocks every Write/Edit/Bash call. Hooks are scoped to THIS project only; no global hooks are registered.",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/code-rules/harness-check.py file-guard"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/code-rules/harness-check.py code-pattern"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/workflow-gates/feature-gate.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/code-rules/harness-check.py git-guard"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/code-rules/harness-check.py bash-file-guard"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/workflow-gates/feature-tdd-gate.sh"
+          },
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/workflow-gates/push-test.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Agent",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash /Users/biuea/feature/flag_project/.claude/hooks/_run.sh /Users/biuea/feature/flag_project/.claude/hooks/verify/subagent-verify.py"
+          }
+        ]
+      }
+    ]
+  }
+}

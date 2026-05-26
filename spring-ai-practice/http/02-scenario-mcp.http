@@ -1,0 +1,118 @@
+### 1. MCP 토큰 발급 — shopper-llm
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "shopper-llm",
+  "clientSecret": "dev-secret-1"
+}
+
+### 2. MCP 토큰 발급 — catalog-only-llm
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "catalog-only-llm",
+  "clientSecret": "dev-secret-2"
+}
+
+### 3. MCP 토큰 발급 — ops-llm
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "ops-llm",
+  "clientSecret": "dev-secret-3"
+}
+
+### 4. 잘못된 자격증명 → 401
+POST http://localhost:8080/auth/token
+Content-Type: application/json
+
+{
+  "clientId": "shopper-llm",
+  "clientSecret": "WRONG_SECRET"
+}
+
+
+### 5. /sse — 토큰 없이 호출 시 401
+GET http://localhost:8080/sse
+Accept: text/event-stream
+
+### 6. /sse — 잘못된 토큰 → 401
+GET http://localhost:8080/sse
+Accept: text/event-stream
+Authorization: Bearer invalid.token.value
+
+### 7. /sse — 정상 토큰 (응답 첫 줄의 sessionId 를 복사해 아래 #8~#11 의 ?sessionId=... 에 붙여넣기)
+GET http://localhost:8080/sse
+Accept: text/event-stream
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+
+### 8. MCP initialize — 첫 핸드셰이크 (sessionId 는 #7 응답에서 복사)
+POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
+Content-Type: application/json
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {},
+    "clientInfo": { "name": "http-client", "version": "1.0" }
+  }
+}
+
+### 9. MCP notifications/initialized — 초기화 완료 통보 (이거 안 보내면 tools/list 가 응답 안 함)
+POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
+Content-Type: application/json
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
+}
+
+### 10. MCP tools/list — 노출된 도구 목록 조회
+POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
+Content-Type: application/json
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+{
+  "jsonrpc": "2.0",
+  "id": 2,
+  "method": "tools/list"
+}
+
+### 11. MCP tools/call — 도구 실제 호출 (searchProducts)
+POST http://localhost:8080/mcp/message?sessionId=PASTE_SESSION_ID_HERE
+Content-Type: application/json
+Authorization: Bearer PASTE_ACCESS_TOKEN_HERE
+
+{
+  "jsonrpc": "2.0",
+  "id": 3,
+  "method": "tools/call",
+  "params": {
+    "name": "searchProducts",
+    "arguments": { "color": "블랙" }
+  }
+}
+
+
+### 12. 외부 MCP 서버 — /sse (docker compose up -d mcp-external-server 후 실행)
+GET http://localhost:9090/sse
+Accept: text/event-stream
+
+### 13. 외부 MCP 서버 — tools/list (위 #12 응답의 sessionId 복사)
+POST http://localhost:9090/mcp/message?sessionId=PASTE_EXTERNAL_SESSION_ID_HERE
+Content-Type: application/json
+
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list"
+}

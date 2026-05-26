@@ -1,0 +1,86 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: spring-ai-practice
+  ai:
+    # ── 활성 제공자 선택 ─ Ollama 가 기본 (로컬·무료). ─────────────────────────────────
+    model:
+      chat: ollama
+      embedding: ollama
+    ollama:
+      # docker-compose 환경에서는 호스트 머신의 11434 포트로 노출되므로 기본값 그대로.
+      # 환경변수로 오버라이드 가능: OLLAMA_BASE_URL=http://other-host:11434
+      base-url: ${OLLAMA_BASE_URL:http://localhost:11434}
+      init:
+        pull-model-strategy: never   # 모델은 docker-compose 의 ollama-pull init 컨테이너가 받음
+      chat:
+        options:
+          # qwen2.5:7b — tool calling 정확도가 높고 한국어 응답 자연스러움.
+          # 더 작은 llama3.2:3b 는 도구 호출 루프에 빠지는 한계가 있어 7b 로 상향.
+          model: qwen2.5:7b
+          temperature: 0.3
+      embedding:
+        options:
+          # RAG 임베딩: 한국어 포함 다국어 가능. docker-compose 가 자동 pull.
+          model: nomic-embed-text
+    # OpenAI ImageModel(DALL-E) 전용. API 키 미설정 시 ImageModel 빈이 등록되지 않음.
+    openai:
+      api-key: ${OPENAI_API_KEY:disabled}
+      image:
+        options:
+          model: dall-e-3
+          size: 1024x1024
+          quality: standard
+    # ── MCP 서버: @Tool 메서드를 외부 LLM 에 노출 (SSE/HTTP 전송) ───────────────────
+    mcp:
+      server:
+        enabled: true
+        name: clothing-ecommerce-mcp
+        version: 0.0.1
+        type: SYNC
+        instructions: "의류 이커머스 상품 검색·재고 조회·주문 상태 조회 도구를 제공합니다."
+
+# 애플리케이션 고유 설정 ─────────────────────────────────────────────────────────────
+app:
+  # 외부 MCP 서버 연결 — 우리 앱이 다른 MCP 서버의 클라이언트가 되어 도구를 끌어옴.
+  # docker-compose 의 mcp-external-server 가 9090 포트에 노출되므로 기본값 그대로 사용 가능.
+  external-mcp:
+    enabled: ${EXTERNAL_MCP_ENABLED:false}
+    server-url: ${EXTERNAL_MCP_URL:http://localhost:9090}
+
+# ── 보안 PoC: JWT 인증 + 스코프 인가 + Rate limit + 정적 클라이언트 디렉토리 ───────
+security:
+  jwt:
+    secret: ${JWT_SECRET:change-me-please-change-me-please-change-me}
+    issuer: clothing-ecommerce-mcp
+    ttl-minutes: 60
+  rate-limit:
+    limit-for-period: 30
+    refresh-period-seconds: 60
+    timeout-millis: 0
+  clients:
+    - id: shopper-llm
+      secret: ${SHOPPER_LLM_SECRET:dev-secret-1}
+      scopes:
+        - catalog:read
+        - order:read
+        - order:write
+    - id: catalog-only-llm
+      secret: ${CATALOG_ONLY_SECRET:dev-secret-2}
+      scopes:
+        - catalog:read
+    - id: ops-llm
+      secret: ${OPS_LLM_SECRET:dev-secret-3}
+      scopes:
+        - catalog:read
+        - catalog:write
+        - order:read
+        - order:write
+        - shipment:write
+
+logging:
+  level:
+    org.springframework.ai: INFO
+    audit.tool: INFO
