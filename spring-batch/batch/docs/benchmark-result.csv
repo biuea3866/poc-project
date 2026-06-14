@@ -1,0 +1,31 @@
+strategy,job_name,run_index,duration_ms,items_written,throughput_per_sec,avg_cpu_percent,peak_heap_mb,avg_heap_mb
+1. 단일스레드 Chunk,singleChunkJob,1,52770,149793,2838.60,3.71,88.52,59.23
+1. 단일스레드 Chunk,singleChunkJob,2,54802,149793,2733.35,3.53,90.46,58.95
+1. 단일스레드 Chunk,singleChunkJob,3,53732,149793,2787.78,3.56,75.70,50.34
+1. 단일스레드 Chunk,singleChunkJob,4,70641,149793,2120.48,2.82,77.95,50.84
+1. 단일스레드 Chunk,singleChunkJob,5,54011,149793,2773.38,3.48,77.95,49.87
+2. 단일스레드 Tasklet,singleTaskletJob,1,44798,149793,3343.74,3.96,77.95,50.52
+2. 단일스레드 Tasklet,singleTaskletJob,2,51352,149793,2916.98,3.55,78.14,50.38
+2. 단일스레드 Tasklet,singleTaskletJob,3,52724,149793,2841.08,3.53,78.13,49.27
+2. 단일스레드 Tasklet,singleTaskletJob,4,50822,149793,2947.40,3.68,78.12,49.92
+2. 단일스레드 Tasklet,singleTaskletJob,5,52704,149793,2842.16,3.57,78.16,50.67
+3. Async Processor/Writer,asyncJob,1,39846,149793,3759.30,5.36,78.16,50.10
+3. Async Processor/Writer,asyncJob,2,43965,149793,3407.10,4.89,78.24,50.26
+3. Async Processor/Writer,asyncJob,3,42933,149793,3488.99,4.94,78.25,50.85
+3. Async Processor/Writer,asyncJob,4,62514,149793,2396.15,3.45,78.45,50.35
+3. Async Processor/Writer,asyncJob,5,41460,149793,3612.95,5.14,78.25,50.71
+4. Multi-thread Step,multiThreadStepJob,1,19001,149793,7883.43,9.61,77.80,51.10
+4. Multi-thread Step,multiThreadStepJob,2,18656,149793,8029.21,9.73,77.90,52.28
+4. Multi-thread Step,multiThreadStepJob,3,21458,149793,6980.75,8.51,78.63,53.32
+4. Multi-thread Step,multiThreadStepJob,4,22565,149793,6638.29,8.13,77.53,51.16
+4. Multi-thread Step,multiThreadStepJob,5,24697,149793,6065.23,7.36,78.90,51.30
+5. Parallel Step (Split),parallelStepJob,1,22712,149793,6595.32,8.20,78.90,51.58
+5. Parallel Step (Split),parallelStepJob,2,27391,149793,5468.69,6.87,80.51,53.18
+5. Parallel Step (Split),parallelStepJob,3,25101,149793,5967.61,7.48,78.30,51.49
+5. Parallel Step (Split),parallelStepJob,4,23503,149793,6373.36,7.97,77.23,51.22
+5. Parallel Step (Split),parallelStepJob,5,24767,149793,6048.09,7.52,81.28,51.02
+6. Partitioning,partitionJob,1,22391,149793,6689.88,8.50,78.77,51.33
+6. Partitioning,partitionJob,2,40667,149793,3683.40,4.69,198.22,82.26
+6. Partitioning,partitionJob,3,31739,149793,4719.52,6.06,130.22,75.69
+6. Partitioning,partitionJob,4,24478,149793,6119.50,7.64,104.80,66.33
+6. Partitioning,partitionJob,5,23766,149793,6302.83,7.79,90.02,60.22
