@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: spring-batch-performance-comparison
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: 'jdbc:mysql://localhost:3307/batch_perf?rewriteBatchedStatements=true&useSSL=false&serverTimezone=Asia/Seoul'
+    username: batch_user
+    password: batch_password
+    hikari:
+      maximum-pool-size: 32          # 멀티스레드/파티셔닝 전략의 워커 수 + reader 여유분
+      minimum-idle: 8
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: validate             # 스키마는 docker init SQL이 소유, JPA는 검증만
+    properties:
+      hibernate:
+        jdbc:
+          batch_size: 1000
+        order_inserts: true
+        order_updates: true
+  batch:
+    job:
+      enabled: false                 # 자동 실행 끔 — BenchmarkRunner가 수동 JobLauncher로 제어
+    jdbc:
+      initialize-schema: always      # BATCH_* 메타테이블 자동 생성
+
+benchmark:
+  mode: none                        # none | seed | benchmark (CLI --benchmark.mode= 로 override)
+  repeat-count: 5                    # 전략당 반복 횟수
+  sampling-interval-ms: 100         # MetricsSampler 폴링 주기
+  report-dir: docs                  # benchmark-result.md / .csv 산출 위치
+  total-count: 1000000              # 시딩 raw 건수
+  user-count: 10000                 # 유저 수
+  key-pool: 5                       # 유저·유형당 group_key 풀 — 작을수록 묶음 비율↑
+  send:
+    cpu-iterations: 40000           # 발송당 CPU 작업량(~100µs)
+    # latency-micros 는 0 권장 — Thread/park 의 OS 타이머 granularity(≈1ms)로 sub-ms latency 가
+    # 부정확해 단일스레드 런타임이 비현실적으로 길어진다. 측정은 CPU-bound 로 수행한다.
+    latency-micros: 0
+
+logging:
+  level:
+    org.springframework.batch: INFO
+    com.biuea.batch: INFO

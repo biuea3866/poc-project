@@ -1,0 +1,36 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: batch-perf-mysql
+    ports:
+      - "3307:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: batch_perf
+      MYSQL_USER: batch_user
+      MYSQL_PASSWORD: batch_password
+      TZ: Asia/Seoul
+    volumes:
+      - batch-perf-mysql-data:/var/lib/mysql
+      - ./docker/mysql/init:/docker-entrypoint-initdb.d
+    command:
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_unicode_ci
+      - --default-time-zone=+09:00
+      - --local-infile=1
+      - --innodb-buffer-pool-size=1G          # 100만건 GROUP BY/스캔 성능
+    networks:
+      - batch-perf-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-proot"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  batch-perf-mysql-data:
+    driver: local
+
+networks:
+  batch-perf-network:
+    driver: bridge
