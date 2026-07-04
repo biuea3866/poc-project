@@ -47,4 +47,6 @@ kotlin {
 
 tasks.withType<Test> {
     useJUnitPlatform()
+    // 다중 임베디드 서버 인스턴스 + 대량 WebSocket 소켓 부하 테스트를 위한 힙
+    maxHeapSize = "3g"
 }
