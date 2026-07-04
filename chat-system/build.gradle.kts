@@ -46,10 +46,21 @@ kotlin {
 }
 
 tasks.test {
-    // 기본 test 는 빠르게 유지한다. docker-compose 태그는 opt-in(composeTest)에서만 실행한다.
-    useJUnitPlatform { excludeTags("dockercompose") }
+    // 기본 test 는 빠르게 유지한다. docker-compose / benchmark 태그는 opt-in 태스크에서만 실행한다.
+    useJUnitPlatform { excludeTags("dockercompose", "benchmark") }
     // 다중 임베디드 서버 인스턴스 + 대량 WebSocket 소켓 부하 테스트를 위한 힙
     maxHeapSize = "3g"
+}
+
+// P95 지연·TPS 를 실측하는 벤치마크. 실행: ./gradlew benchmarkTest
+val benchmarkTest by tasks.registering(Test::class) {
+    description = "메시지 전달 지연(P50/P95/P99)과 처리량(TPS)을 실측한다"
+    group = "verification"
+    testClassesDirs = sourceSets["test"].output.classesDirs
+    classpath = sourceSets["test"].runtimeClasspath
+    useJUnitPlatform { includeTags("benchmark") }
+    maxHeapSize = "3g"
+    testLogging { showStandardStreams = true }
 }
 
 // 실제 분리된 프로세스(컨테이너) 인스턴스를 docker-compose 로 띄워 검증하는 opt-in 태스크.
