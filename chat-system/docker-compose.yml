@@ -1,0 +1,43 @@
+# 실제 분리된 프로세스로 멀티 인스턴스를 띄운다. 세 앱 인스턴스가 하나의 Redis 를 공유한다.
+# 고정 호스트 포트를 발행해 테스트가 localhost 로 직접 접속한다.
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "16379:6379"
+
+  chat-1:
+    build: .
+    environment:
+      SERVER_ID: server-1
+      SERVER_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "18081:8080"
+    depends_on:
+      - redis
+
+  chat-2:
+    build: .
+    environment:
+      SERVER_ID: server-2
+      SERVER_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "18082:8080"
+    depends_on:
+      - redis
+
+  chat-3:
+    build: .
+    environment:
+      SERVER_ID: server-3
+      SERVER_PORT: 8080
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+    ports:
+      - "18083:8080"
+    depends_on:
+      - redis
