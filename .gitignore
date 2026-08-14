@@ -50,3 +50,5 @@ docker/pinpoint/pinpoint-agent-*/
 .claude/workflow-state.json
 .claude/pipeline-*.json
 .claude/gc-*.json
+delivery-system/build/
+delivery-system/.gradle/
