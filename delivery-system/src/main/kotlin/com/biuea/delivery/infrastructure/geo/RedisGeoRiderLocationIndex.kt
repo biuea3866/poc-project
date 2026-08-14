@@ -11,8 +11,6 @@ import org.springframework.data.geo.Point
 import org.springframework.data.redis.connection.RedisGeoCommands.DistanceUnit
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoLocation
 import org.springframework.data.redis.connection.RedisGeoCommands.GeoSearchCommandArgs
-import org.springframework.data.redis.core.RedisCallback
-import org.springframework.data.redis.connection.StringRedisConnection
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.data.redis.domain.geo.GeoReference
 import org.springframework.stereotype.Component
@@ -33,16 +31,10 @@ class RedisGeoRiderLocationIndex(
 
     override fun update(location: RiderLocation) {
         val riderIdText = location.riderId.toString()
-        val updatedAtText = RiderLocationTimestamp.format(location.updatedAt)
         // GEOADD 는 같은 member 를 덮어쓰므로 이전 위치 삭제가 따로 필요 없다 — 셀 기반 구현과 갈리는 지점이다.
-        stringRedisTemplate.executePipelined(
-            RedisCallback<Any?> { connection ->
-                val stringConnection = connection as StringRedisConnection
-                stringConnection.geoAdd(GEO_KEY, toPoint(location.coordinate), riderIdText)
-                stringConnection.hSet(UPDATED_AT_KEY, riderIdText, updatedAtText)
-                null
-            },
-        )
+        stringRedisTemplate.opsForGeo().add(GEO_KEY, toPoint(location.coordinate), riderIdText)
+        stringRedisTemplate.opsForHash<String, String>()
+            .put(UPDATED_AT_KEY, riderIdText, RiderLocationTimestamp.format(location.updatedAt))
     }
 
     override fun searchWithin(center: Coordinate, radiusMeters: Int, limit: Int): List<NearbyRider> {

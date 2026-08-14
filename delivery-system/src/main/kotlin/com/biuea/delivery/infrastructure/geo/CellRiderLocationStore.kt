@@ -4,9 +4,7 @@ import com.biuea.delivery.domain.geo.Coordinate
 import com.biuea.delivery.domain.rider.NearbyRider
 import com.biuea.delivery.domain.rider.RiderLocation
 import org.springframework.data.redis.core.Cursor
-import org.springframework.data.redis.core.RedisCallback
 import org.springframework.data.redis.core.ScanOptions
-import org.springframework.data.redis.connection.StringRedisConnection
 import org.springframework.data.redis.core.StringRedisTemplate
 
 /**
@@ -30,23 +28,19 @@ class CellRiderLocationStore(
             ?.let { RiderLocationRecord.parse(it) }
 
     /**
-     * 셀 이동(SREM/SADD)과 위치 해시 갱신을 파이프라인 한 번으로 보낸다.
-     * 정밀도 3개를 개별 왕복하면 갱신 한 건에 왕복이 7번 필요해 처리량이 왕복 수에 지배당한다.
+     * 떠난 셀에서 빼고 들어간 셀에 넣은 뒤 위치 레코드를 갱신한다.
+     *
+     * 셀이 그대로면 SREM/SADD 없이 HSET 한 번으로 끝나고, 정밀도 3개가 모두 바뀌면 최대 8왕복이 든다.
+     * 파이프라인으로 묶지 않는 이유: Lettuce 는 파이프라인마다 전용 커넥션을 열어, 커넥션 풀이 없으면
+     * 갱신 3만 건에 소켓 3만 개를 만들어 포트가 고갈된다. 왕복 수를 줄이려면 풀 도입이 선행돼야 한다.
      */
     fun save(location: RiderLocation, previousCells: List<String>, currentCells: List<String>) {
         val riderIdText = location.riderId.toString()
-        val recordText = RiderLocationRecord.from(location).serialize()
-        val leftCells = previousCells - currentCells.toSet()
-        val enteredCells = currentCells - previousCells.toSet()
-        stringRedisTemplate.executePipelined(
-            RedisCallback<Any?> { connection ->
-                val stringConnection = connection as StringRedisConnection
-                leftCells.forEach { stringConnection.sRem(cellKeyOf(it), riderIdText) }
-                enteredCells.forEach { stringConnection.sAdd(cellKeyOf(it), riderIdText) }
-                stringConnection.hSet(locationKey, riderIdText, recordText)
-                null
-            },
-        )
+        val setOperations = stringRedisTemplate.opsForSet()
+        (previousCells - currentCells.toSet()).forEach { cell -> setOperations.remove(cellKeyOf(cell), riderIdText) }
+        (currentCells - previousCells.toSet()).forEach { cell -> setOperations.add(cellKeyOf(cell), riderIdText) }
+        stringRedisTemplate.opsForHash<String, String>()
+            .put(locationKey, riderIdText, RiderLocationRecord.from(location).serialize())
     }
 
     /** 여러 셀의 합집합을 한 번의 SUNION 으로 가져온다 — 셀마다 SMEMBERS 를 돌리면 왕복이 셀 수만큼 늘어난다. */
