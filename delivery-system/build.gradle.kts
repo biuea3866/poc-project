@@ -29,6 +29,19 @@ dependencies {
     // Uber H3 — 육각 격자 공간 인덱스
     implementation("com.uber:h3:4.1.1")
 
+    // Redisson — pub/sub 대기 + 워치독을 쓰는 분산락. 직접 구현 스핀락(20ms 폴링)과 비교 측정용.
+    //
+    // 3.39.0 을 고른 이유: 이 버전까지의 redisson-spring-boot-starter 가 redisson-spring-data-33
+    // (= Spring Data Redis 3.3 / Spring Boot 3.3.x 라인)에 맞춰져 있고, starter pom 이 선언한
+    // 검증 대상 Spring Boot 가 3.3.4 다. 3.40.0 부터는 redisson-spring-data-34 로 올라가 Boot 3.4 라인이 된다.
+    //
+    // starter 가 아니라 core 를 쓴 이유: redisson-spring-boot-starter 의 RedissonAutoConfigurationV2 는
+    // @AutoConfiguration(before = RedisAutoConfiguration) + @ConditionalOnMissingBean(RedisConnectionFactory) 로
+    // RedissonConnectionFactory 를 선점 등록한다. 그러면 기존 StringRedisTemplate(= 스핀락의 전송 계층)이
+    // Lettuce → Redisson 으로 통째로 바뀌어, 비교 기준인 스핀락의 조건이 함께 변한다.
+    // 락 메커니즘만 바꿔 재측정하려면 스핀락 쪽은 Lettuce 그대로 둬야 한다.
+    implementation("org.redisson:redisson:3.39.0")
+
     runtimeOnly("com.mysql:mysql-connector-j")
 
     testImplementation("org.springframework.boot:spring-boot-starter-test")

@@ -8,7 +8,7 @@ import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
 
 /**
- * 전략 3종(비관적 락·낙관적 락·Redis 분산락)이 지켜야 하는 동일한 계약.
+ * 전략 4종(비관적 락·낙관적 락·Redis 스핀 분산락·Redisson 분산락)이 지켜야 하는 동일한 계약.
  * 구현이 달라도 "동시에 눌러도 승자는 1명" 이라는 결과는 같아야 한다.
  */
 class AcceptStrategyContractTest : BehaviorSpec({

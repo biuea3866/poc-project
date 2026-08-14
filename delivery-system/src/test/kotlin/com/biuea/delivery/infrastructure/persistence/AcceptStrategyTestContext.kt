@@ -5,9 +5,12 @@ import com.biuea.delivery.domain.order.DeliveryOrder
 import com.biuea.delivery.domain.order.DeliveryOrderRepository
 import com.biuea.delivery.infrastructure.lock.DistributedLockAcceptStrategy
 import com.biuea.delivery.infrastructure.lock.RedisDistributedLock
+import com.biuea.delivery.infrastructure.lock.RedissonLockAcceptStrategy
 import com.biuea.delivery.support.MySqlContainer
+import com.biuea.delivery.support.RedisCommandCounter
 import com.biuea.delivery.support.RedisContainer
 import com.zaxxer.hikari.HikariDataSource
+import org.redisson.api.RedissonClient
 import org.springframework.boot.WebApplicationType
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration
 import org.springframework.boot.autoconfigure.domain.EntityScan
@@ -18,6 +21,7 @@ import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.Configuration
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories
+import org.springframework.data.redis.core.StringRedisTemplate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -92,20 +96,38 @@ object AcceptStrategyTestContext {
     val distributedLockAcceptStrategy: DistributedLockAcceptStrategy
         get() = context.getBean(DistributedLockAcceptStrategy::class.java)
 
+    val redissonLockAcceptStrategy: RedissonLockAcceptStrategy
+        get() = context.getBean(RedissonLockAcceptStrategy::class.java)
+
     val redisDistributedLock: RedisDistributedLock
         get() = context.getBean(RedisDistributedLock::class.java)
+
+    val redissonClient: RedissonClient
+        get() = context.getBean(RedissonClient::class.java)
 
     val connectionHoldTimeRecorder: ConnectionHoldTimeRecorder
         get() = context.getBean(ConnectionHoldTimeRecorder::class.java)
 
+    /** Redis 서버가 처리한 명령 수 계측기 — 폴링 대기와 pub/sub 대기의 비용 차이를 재는 데 쓴다. */
+    val redisCommandCounter: RedisCommandCounter by lazy {
+        RedisCommandCounter(context.getBean(StringRedisTemplate::class.java))
+    }
+
     private val deliveryOrderRepository: DeliveryOrderRepository
         get() = context.getBean(DeliveryOrderRepository::class.java)
 
-    /** 전략 3종을 같은 계약으로 검증·측정하기 위한 목록. */
+    /**
+     * 전략 4종을 같은 계약으로 검증·측정하기 위한 목록.
+     *
+     * "Redis 분산락" 은 SET NX EX 를 20ms 간격으로 재시도하는 직접 구현 스핀락,
+     * "Redisson 분산락" 은 채널 구독 + 블로킹으로 대기하는 Redisson RLock 이다.
+     * 임계 구역 로직은 동일하고 락 메커니즘만 다르다.
+     */
     fun strategies(): List<Pair<String, DeliveryAcceptStrategy>> = listOf(
         "비관적 락(FOR UPDATE)" to pessimisticLockAcceptStrategy,
         "낙관적 락(@Version)" to optimisticLockAcceptStrategy,
         "Redis 분산락" to distributedLockAcceptStrategy,
+        "Redisson 분산락" to redissonLockAcceptStrategy,
     )
 
     fun clearOrders() = deliveryOrderRepository.deleteAll()
