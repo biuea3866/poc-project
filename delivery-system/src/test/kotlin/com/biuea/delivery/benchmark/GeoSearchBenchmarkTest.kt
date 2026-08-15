@@ -413,7 +413,15 @@ class GeoSearchBenchmarkTest {
         private const val MAX_DISTANCE_DEVIATION_METERS = 3.0
         private const val LOCATION_UPDATE_COUNT = 5_000
         private const val SEARCH_RADIUS_METERS = 3_000
-        private const val SEARCH_LIMIT = 10
+
+        /**
+         * 인덱스에서 꺼내 다음 필터 단계로 넘길 후보 수.
+         *
+         * 배차 정책의 브로드캐스트 대상이 20명이므로 같은 값으로 맞춘다.
+         * 이 값을 바꿔도 전수 스캔과 셀 기반 구현은 후보를 전부 끌어온 뒤 마지막에 자르므로 영향이 없다.
+         * 서버가 limit 까지 처리하는 RedisGeo 만 전송량이 비례해 움직인다.
+         */
+        private const val SEARCH_LIMIT = 20
 
         private const val RIDER_SEED = 42L
         private const val MOVE_SEED = 4_242L
