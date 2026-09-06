@@ -14,7 +14,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor
 import org.springframework.stereotype.Component
 import java.util.concurrent.CompletableFuture
 import java.util.concurrent.atomic.AtomicLong
+import org.springframework.context.annotation.Profile
 
+// 파티셔닝 재검증(rebench)은 MySQL 만 쓴다. 브로커가 없으면 컨슈머 기동에서 막히고,
+// 접속 재시도가 측정 구간의 CPU 와 로그를 잠식한다.
+@Profile("!rebench")
 @Component
 @ConditionalOnProperty(name = ["spring.kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class OptimizedEventListener(

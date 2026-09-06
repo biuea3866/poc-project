@@ -15,6 +15,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.stereotype.Component
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
+import org.springframework.context.annotation.Profile
 
 /**
  * Confluent Parallel Consumer 리스너
@@ -29,6 +30,9 @@ import java.util.concurrent.atomic.AtomicLong
  * - 전략 C: 배치를 청크로 나눠 병렬 처리 → 순서 보장 X, 실패 시 배치 전체 재처리
  * - Parallel Consumer: 메시지별 병렬 처리 → KEY별 순서 보장, 실패 메시지만 재처리
  */
+// 파티셔닝 재검증(rebench)은 MySQL 만 쓴다. 브로커가 없으면 컨슈머 기동에서 막히고,
+// 접속 재시도가 측정 구간의 CPU 와 로그를 잠식한다.
+@Profile("!rebench")
 @Component
 @ConditionalOnProperty(name = ["spring.kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class ParallelEventListener(

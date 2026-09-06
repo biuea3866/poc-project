@@ -7,7 +7,11 @@ import org.slf4j.LoggerFactory
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.kafka.annotation.KafkaListener
 import org.springframework.stereotype.Component
+import org.springframework.context.annotation.Profile
 
+// 파티셔닝 재검증(rebench)은 MySQL 만 쓴다. 브로커가 없으면 컨슈머 기동에서 막히고,
+// 접속 재시도가 측정 구간의 CPU 와 로그를 잠식한다.
+@Profile("!rebench")
 @Component
 @ConditionalOnProperty(name = ["spring.kafka.enabled"], havingValue = "true", matchIfMissing = true)
 class UserEventListener {
