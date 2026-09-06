@@ -2,6 +2,7 @@ package com.biuea.springdata.controller
 
 import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
@@ -27,7 +28,7 @@ class RebenchController(
      */
     @GetMapping("/a/{table}")
     fun rangeQuery(
-        @org.springframework.web.bind.annotation.PathVariable table: String,
+        @PathVariable table: String,
         @RequestParam startDate: String,
         @RequestParam endDate: String,
         @RequestParam(defaultValue = "date") orderBy: String,
@@ -57,16 +58,15 @@ class RebenchController(
      */
     @GetMapping("/agg/{table}")
     fun aggregate(
-        @org.springframework.web.bind.annotation.PathVariable table: String,
+        @PathVariable table: String,
         @RequestParam startDate: String,
         @RequestParam endDate: String
     ): Map<String, Any?> {
-        val row = jdbcTemplate.queryForMap(
+        return jdbcTemplate.queryForMap(
             "SELECT COUNT(*) AS cnt, SUM(price) AS total, AVG(stock_quantity) AS avg_stock " +
                 "FROM ${productTable(table)} WHERE created_date BETWEEN ? AND ?",
             startDate, endDate
         )
-        return row
     }
 
     /**
@@ -76,7 +76,7 @@ class RebenchController(
      */
     @GetMapping("/b/{table}")
     fun pointLookup(
-        @org.springframework.web.bind.annotation.PathVariable table: String,
+        @PathVariable table: String,
         @RequestParam id: Long
     ): Map<String, Any> {
         val rows = jdbcTemplate.queryForList(
@@ -102,8 +102,6 @@ class RebenchController(
     ): Map<String, Any> {
         // 상품 쪽을 좁은 id 구간으로 제한한다. 그러지 않으면 p2024 전체 스캔이 비용을 지배해
         // 정작 재려는 댓글 테이블의 프루닝 차이가 묻힌다.
-        // withKey=true 면 댓글에도 같은 날짜 범위를 건다. 댓글은 상품과 같은 해로 시드했으므로
-        // 이 조건은 결과 집합을 바꾸지 않고 프루닝만 켠다.
         val commentPredicate = if (withKey) "AND c.created_date BETWEEN ? AND ? " else ""
         val sql = "SELECT p.id AS product_id, p.name, c.id AS comment_id, c.rating " +
             "FROM product_partitioned p " +
