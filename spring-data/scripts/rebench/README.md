@@ -15,6 +15,9 @@
 | `capture-explain.sh` | 쿼리 플랜·데이터 불변식 기록 |
 | `summarize.py` | k6 결과를 비교표로 집계 |
 | `results/<데이터셋>/` | k6 원본 요약 JSON·로그, `explain.md` |
+| `ablation-schema.sql` · `gen-ablation-seed.sh` | 날짜 인덱스 대조 실험 스키마·시드 (상품 3벌, 댓글 미사용) |
+| `ablation-lib.sh` · `run-ablation.sh` | 대조 실험 실행기. 컨테이너 소실 자가 복구와 오염 반복 재측정을 포함한다 |
+| `check-rep.py` · `check-case.py` | 실패율 판정 — 반복 재측정과 완료 케이스 건너뛰기에 쓴다 |
 
 ## 실행 순서
 
