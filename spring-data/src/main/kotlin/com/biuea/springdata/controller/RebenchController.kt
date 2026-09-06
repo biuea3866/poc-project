@@ -125,6 +125,9 @@ class RebenchController(
         "plain" -> "product"
         "composite" -> "product_composite_pk"
         "partitioned" -> "product_partitioned"
+        // 날짜 인덱스 대조 실험용 — 같은 구조에서 idx_created_date 만 뺀 짝
+        "plain-noidx" -> "product_noidx"
+        "partitioned-noidx" -> "product_partitioned_noidx"
         else -> throw IllegalArgumentException("unknown table: $table")
     }
 }
